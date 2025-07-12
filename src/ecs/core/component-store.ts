@@ -11,7 +11,11 @@ export class ComponentStore<T> {
   }
 
   public get(entityId : EntityId) {
-    return this.components.get(entityId);
+    const value = this.components.get(entityId)
+    if(!value){
+      throw new Error("Error when trying to get component store");
+    } 
+    return value;
   }
 
   public remove(entityId : EntityId) {
@@ -20,5 +24,9 @@ export class ComponentStore<T> {
 
   public has(entityId : EntityId) {
     return this.components.has(entityId);
+  }
+
+  public getAllEntities(){
+    return Array.from(this.components.keys());
   }
 }

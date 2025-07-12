@@ -1,38 +1,24 @@
 
+import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PositionComponent } from "../components/position.component.js";
-import { wouldCollideAABB } from "./collision-system.js"
+import { ComponentStore } from "../core/component-store.js";
+import { ISystem } from "./system.interface.js";
 
 
-export function movementSystem(playerEntity: number, keys: Set<string>, dt: number) {
-    const speed = 2; // tiles por segundo
-    console.log(keys);
+export class MovementSystem implements ISystem{
+    constructor(
+        private positionComponentStore: ComponentStore<PositionComponent>,
+        private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
+    ) {}
+    update(deltaTime: number): void {
+        for (const entity of this.movementIntentComponentStore.getAllEntities()){
+            const intent = this.movementIntentComponentStore.get(entity);
+            if (!intent) continue;
 
-    const pos = PositionComponent.get(playerEntity);
-    if (!pos) return;
+            this.positionComponentStore.add(entity, new PositionComponent(intent.x, intent.y));
 
-    let dx = 0;
-    let dy = 0;
-
-    if (keys.has("arrowup")) dy -= 1;
-    if (keys.has("arrowdown")) dy += 1;
-    if (keys.has("arrowleft")) dx -= 1;
-    if (keys.has("arrowright")) dx += 1;
-
-    if (dx !== 0 && dy !== 0) {
-        const norm = Math.SQRT1_2; // √(1/2)
-        dx *= norm;
-        dy *= norm;
-    }
-
-    const futurePos = {
-        x: pos.x + dx * speed * dt,
-        y: pos.y + dy * speed * dt
-    }
-
-    //40 = tileSize, ver como passar na entrada dessa função
-    if (!wouldCollideAABB(futurePos, 40, playerEntity)) {
-        pos.x = futurePos.x;
-        pos.y = futurePos.y;
-        PositionComponent.set(playerEntity, pos);
+            //remover o intent após aplicar movimento
+            this.movementIntentComponentStore.remove(entity);
+        }
     }
 }

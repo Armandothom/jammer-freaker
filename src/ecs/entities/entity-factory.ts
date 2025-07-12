@@ -19,5 +19,4 @@ export class EntityFactory {
     this.spriteComponent.add(entityId, new SpriteComponent(SpriteName.GRASS_1));
   }
 
-
 }
