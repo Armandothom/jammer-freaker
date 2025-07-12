@@ -4,6 +4,7 @@ import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ProjectileComponent } from "../components/projectile-component.js";
 import { ProjectileShooterComponent } from "../components/projectile-shooter.component.js";
+import { SoldierComponent } from "../components/soldier.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { VelocityComponent } from "../components/velocity-component.js";
 import { ComponentStore } from "../core/component-store.js";
@@ -17,7 +18,8 @@ export class EntityFactory {
     private spriteComponentStore: ComponentStore<SpriteComponent>,
     private projectileComponentStore: ComponentStore<ProjectileComponent>,
     private projectileShooterComponentStore: ComponentStore<ProjectileShooterComponent>,
-    private velocityComponentStore: ComponentStore<VelocityComponent>
+    private velocityComponentStore: ComponentStore<VelocityComponent>,
+    private soldierComponentStore: ComponentStore<SoldierComponent>
   ) {
 
   }
@@ -28,6 +30,7 @@ export class EntityFactory {
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.SOLDER_STILL, SpriteSheetName.SOLDIER));
     this.playerComponentStore.add(entityId, new PlayerComponent());
+    this.soldierComponentStore.add(entityId, new SoldierComponent());
     return entityId;
   }
 
@@ -37,7 +40,7 @@ export class EntityFactory {
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.STONE_1, SpriteSheetName.TERRAIN)); //placeholder
     this.projectileComponentStore.add(entityId, new ProjectileComponent());
     this.projectileShooterComponentStore.add(entityId, new ProjectileShooterComponent(entityShooterId));
-    this.velocityComponentStore.add(entityId, new VelocityComponent(velX, velY))
+    this.velocityComponentStore.add(entityId, new VelocityComponent(velX, velY));
     return entityId;
   }
 

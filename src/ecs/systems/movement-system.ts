@@ -10,21 +10,13 @@ import { ISystem } from "./system.interface.js";
 export class MovementSystem implements ISystem{
     constructor(
         private positionComponentStore: ComponentStore<PositionComponent>,
-        private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
-        private directionAnimComponent : ComponentStore<DirectionAnimComponent>
+        private movementIntentComponentStore: ComponentStore<MovementIntentComponent>
     ) {}
     
     update(deltaTime: number): void {
         for (const entity of this.movementIntentComponentStore.getAllEntities()){
             const intentPosition = this.movementIntentComponentStore.get(entity);
-            const initialPosition = this.positionComponentStore.get(entity);
-            const deltaPos = intentPosition.x - initialPosition.x;
-            if(deltaPos != 0) {
-                const directionAnim = deltaPos > 0 ? AnimDirection.RIGHT : AnimDirection.LEFT;
-                this.directionAnimComponent.add(entity, new DirectionAnimComponent(directionAnim))
-            }
             this.positionComponentStore.add(entity, new PositionComponent(intentPosition.x, intentPosition.y));
-
             //We remove the intent after moving the entity.
             this.movementIntentComponentStore.remove(entity);
         }
