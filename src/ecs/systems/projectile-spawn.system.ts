@@ -1,5 +1,6 @@
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
+import { ClickIntentComponent } from "../components/click-intent.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
@@ -22,7 +23,8 @@ export class ProjectileSpawnSystem implements ISystem {
         private projectileComponentStore: ComponentStore<ProjectileComponent>,
         private entityFactory: EntityFactory,
         private projectileShooterComponentStore: ComponentStore<ProjectileShooterComponent>,
-        private spriteComponentStore: ComponentStore<SpriteComponent>
+        private spriteComponentStore: ComponentStore<SpriteComponent>,
+        private clickIntentComponentStore: ComponentStore<ClickIntentComponent>,
     ) {
         const terrainSpriteSheet = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN);
         this.tileSize = terrainSpriteSheet.afterRenderSpriteCellSize;
@@ -38,31 +40,27 @@ export class ProjectileSpawnSystem implements ISystem {
             return;
         }
         const playerId = playerIdRetrievalResponse[0];
-        const playerPos = this.positionComponentStore.get(playerId);
-
-
-        for (const click of clicks) {
-            const canvasClickX = click.x / this.tileSize;
-            const canvasClickY = click.y / this.tileSize;
-
-            const canvasWidthHeightInPixels = 640;
-            const canvasWidthHeightInTiles = 20;
-
-            let playerPosXConverted = playerPos.x / canvasWidthHeightInPixels * canvasWidthHeightInTiles;
-            let playerPosYConverted = playerPos.y / canvasWidthHeightInPixels * canvasWidthHeightInTiles
-
-            console.log(canvasClickX, canvasClickY);
-            console.log(playerPosXConverted, playerPosYConverted);
-
-            const dx = canvasClickX - (playerPosXConverted);
-            const dy = canvasClickY - (playerPosYConverted);
-            const magnitude = Math.hypot(dx, dy); // Distancia do player e do click
-            if (magnitude === 0) continue; // Podemos alterar para que não spawne projetil se ele clicar tão perto do sprite do player
-
-            const dir = { x: dx / magnitude, y: dy / magnitude }; // Vetor de direção normalizado
-            this.spawnProjectile(playerPos.x, playerPos.y, dir, playerId)
+        const click = this.clickIntentComponentStore.getOrNull(playerId);
+        if(!click) {
+            return;
         }
 
+        const playerPos = this.positionComponentStore.get(playerId);
+        const canvasClickX = click.x / this.tileSize;
+        const canvasClickY = click.y / this.tileSize;
+
+        const canvasWidthHeightInPixels = 640;
+        const canvasWidthHeightInTiles = 20;
+
+        let playerPosXConverted = playerPos.x / canvasWidthHeightInPixels * canvasWidthHeightInTiles;
+        let playerPosYConverted = playerPos.y / canvasWidthHeightInPixels * canvasWidthHeightInTiles
+
+        const dx = canvasClickX - (playerPosXConverted);
+        const dy = canvasClickY - (playerPosYConverted);
+        const magnitude = Math.hypot(dx, dy); // Distancia do player e do click
+        if (magnitude === 0) return; // Podemos alterar para que não spawne projetil se ele clicar tão perto do sprite do player
+        const dir = { x: dx / magnitude, y: dy / magnitude }; // Vetor de direção normalizado
+        this.spawnProjectile(playerPos.x, playerPos.y, dir, playerId)
     }
 
     private spawnProjectile(x: number, y: number, dir: { x: number; y: number }, playerId: number): void {

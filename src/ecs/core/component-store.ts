@@ -19,6 +19,14 @@ export class ComponentStore<T> {
     return value;
   }
 
+  public getOrNull(entityId : EntityId) {
+    const value = this.components.get(entityId)
+    if (!value) {
+      return null;
+    }
+    return value;
+  }
+
   public remove(entityId: EntityId) {
     return this.components.delete(entityId);
   }
