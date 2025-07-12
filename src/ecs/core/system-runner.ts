@@ -43,7 +43,7 @@ export class SystemRunner {
     private entityManager: EntityManager,
     private rendererEngine: RendererEngine
   ) {
-    this.cameraManager = new CameraManager(this.worldTilemapManager)
+    this.cameraManager = new CameraManager(this.worldTilemapManager, this.spriteManager)
     this.entityFactory = new EntityFactory(entityManager, this.playerComponentStore, this.positionComponentStore, this.spriteComponentStore);
     this.renderSystem = new RenderSystem(this.positionComponentStore, this.spriteComponentStore, this.cameraManager, this.worldTilemapManager, this.rendererEngine, this.spriteManager);
     this.inputMovementSystem = new InputMovementSystem(this.positionComponentStore, this.movimentIntentComponentStore)

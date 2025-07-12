@@ -1,7 +1,5 @@
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
-import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
-import { EntityNameComponent } from "../components/entity-name.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
@@ -49,7 +47,7 @@ export class ProjectileSpawnSystem implements ISystem {
             if (magnitude === 0) continue; // Podemos alterar para que não spawne projetil se ele clicar tão perto do sprite do player
 
             const dir = { x: dx / magnitude, y: dy / magnitude }; // Vetor de direção normalizado
-            this.spawnProjectile(playerPos.x, playerPos.y, dir)
+            //this.spawnProjectile(playerPos.x, playerPos.y, dir)
         }
 
     }
@@ -57,10 +55,7 @@ export class ProjectileSpawnSystem implements ISystem {
     private spawnProjectile(x: number, y: number, dir: { x: number; y: number }): void {
         const entity = this.entityFactory.createProjectile(x, y);
 
-        this.movementIntentComponentStore.add(entity, {
-            x: dir.x * 0.2,
-            y: dir.y * 0.2, // Velocidades modificaveis (Um velocityComponent depois?)
-        });
+        this.movementIntentComponentStore.add(entity, new MovementIntentComponent(x, y));
 
         console.log("Projectile Spawned");
         //Adição de mais componentes

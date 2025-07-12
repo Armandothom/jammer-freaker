@@ -3,15 +3,18 @@ import { SpriteSheetName } from '../asset-manager/types/sprite-sheet-name.enum.j
 import { SpriteName } from './types/sprite-name.enum.js';
 import { CameraViewport } from './types/camera-viewport.js';
 import { TilemapTile } from './types/tilemap-tile.js';
+import { SpriteManager } from '../asset-manager/sprite-manager.js';
 
 export class WorldTilemapManager {
   private readonly _maxNumberTilesX = 200;
   private readonly _maxNumberTilesY = 200;
   private readonly _tilemapSpritesheetName = SpriteSheetName.TERRAIN;
   private readonly _tilemap: Map<string, TilemapTile> = new Map();
+  private readonly tileSize : number;
 
-  constructor() {
+  constructor(private spriteManager : SpriteManager) {
     this.generateTilemap();
+    this.tileSize = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN).afterRenderSpriteSize;
   }
 
   async generateTilemap() {
@@ -39,8 +42,12 @@ export class WorldTilemapManager {
 
   public getTilesInArea(viewport: CameraViewport) {
     let tiles: Array<TilemapTile> = [];
-    for (let x = viewport.left; x < viewport.right; x++) {
-      for (let y = viewport.top; y < viewport.bottom; y++) {
+    const leftTileNumberThreshold = viewport.left / this.tileSize;
+    const rightTileNumberThreshold = viewport.right / this.tileSize;
+    const topTileNumberThreshold = viewport.top / this.tileSize;
+    const bottomTileNumberThreshold = viewport.bottom / this.tileSize;
+    for (let x = leftTileNumberThreshold; x < rightTileNumberThreshold; x++) {
+      for (let y = topTileNumberThreshold; y < bottomTileNumberThreshold; y++) {
         const tile = this.getTile(x, y);
         tiles.push(tile);
       }

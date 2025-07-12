@@ -27,7 +27,7 @@ export class InputMovementSystem implements ISystem {
 function getInputForEntity(entityId: number): { dx: number, dy: number } | null {
 
     let dx = 0, dy = 0;
-    const speed = 0.1;
+    const speed = 1;
     if (keys["arrowup"] || keys["w"]) dy -= speed;
     if (keys["arrowdown"] || keys["s"]) dy += speed;
     if (keys["arrowleft"] || keys["a"]) dx -= speed;

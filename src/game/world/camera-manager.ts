@@ -1,15 +1,19 @@
+import { SpriteManager } from "../asset-manager/sprite-manager.js";
+import { SpriteSheetName } from "../asset-manager/types/sprite-sheet-name.enum.js";
 import { CameraViewport } from "./types/camera-viewport.js";
 import { WorldTilemapManager } from "./world-tilemap-manager.js";
 
 export class CameraManager {
   private viewportYAxisTiles : number = 50;
   private viewportXAxisTiles: number = 50;
-  private tilemapManager : WorldTilemapManager;
+  private tileSize : number;
   coordinateX : number = 0;
   coordinateY : number = 0;
-  constructor(tilemapManager : WorldTilemapManager) {
+  
+  constructor(private tilemapManager : WorldTilemapManager, private spriteManager : SpriteManager) {
     this.tilemapManager = tilemapManager;
     this.setInitialPosition();
+    this.tileSize = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN).afterRenderSpriteSize;
   }
 
   public getViewport() : CameraViewport {
@@ -31,10 +35,10 @@ export class CameraManager {
   private calcViewport(x : number, y : number) : CameraViewport {
     const halfW = this.viewportYAxisTiles / 2;
     const halfH = this.viewportXAxisTiles / 2;
-    const left = x - halfW;
-    const right = x + halfW;
-    const top = y - halfH;
-    const bottom = y + halfH;
+    const left = (x - halfW) * this.tileSize;
+    const right = (x + halfW) * this.tileSize;
+    const top = (y - halfH) * this.tileSize;
+    const bottom = (y + halfH) * this.tileSize;
     return {
       left,
       right,

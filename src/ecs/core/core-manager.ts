@@ -11,12 +11,11 @@ export class CoreManager {
     private _assetManager : AssetManager;
     private _spriteManager!: SpriteManager;
     private _systemRunner!: SystemRunner;
-    private _worldTilemapManager : WorldTilemapManager;
+    private _worldTilemapManager!: WorldTilemapManager;
     private _rendererEngine : RendererEngine;
     private _entityManager : EntityManager
     constructor() {
         this._assetManager = new AssetManager();
-        this._worldTilemapManager = new WorldTilemapManager();
         this._rendererEngine = new RendererEngine();
         this._entityManager = new EntityManager();
     }
@@ -27,6 +26,7 @@ export class CoreManager {
         this._spriteManager = new SpriteManager(this._assetManager);
         this._rendererEngine.init();
         console.log("Game generated");
+        this._worldTilemapManager = new WorldTilemapManager(this._spriteManager);
         this._systemRunner = new SystemRunner(this._worldTilemapManager, this._spriteManager, this._entityManager, this._rendererEngine);
         this._systemRunner.initialize();
         window.requestAnimationFrame(this.runLoop.bind(this));
