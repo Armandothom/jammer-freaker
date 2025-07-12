@@ -34,7 +34,7 @@ export class SystemRunner {
   private projectileSpawnSystem: ProjectileSpawnSystem;
   private collisionSystem: CollisionSystem;
   private movementSystem: MovementSystem;
-  private entityFactory : EntityFactory;
+  private entityFactory: EntityFactory;
 
 
   constructor(
@@ -44,13 +44,14 @@ export class SystemRunner {
     private rendererEngine: RendererEngine
   ) {
     this.cameraManager = new CameraManager(this.worldTilemapManager)
+    this.entityFactory = new EntityFactory(entityManager, this.playerComponentStore, this.positionComponentStore, this.spriteComponentStore);
     this.renderSystem = new RenderSystem(this.positionComponentStore, this.spriteComponentStore, this.cameraManager, this.worldTilemapManager, this.rendererEngine, this.spriteManager);
     this.inputMovementSystem = new InputMovementSystem(this.positionComponentStore, this.movimentIntentComponentStore)
     this.inputClickSystem = new InputClickSystem();
-    this.projectileSpawnSystem = new ProjectileSpawnSystem(this.inputClickSystem, this.spriteManager, this.entityNameComponentStore, this.positionComponentStore, this.movimentIntentComponentStore, this.entityManager)
+    this.projectileSpawnSystem = new ProjectileSpawnSystem(this.inputClickSystem, this.spriteManager, this.positionComponentStore, this.playerComponentStore, this.movimentIntentComponentStore, this.entityFactory)
     this.collisionSystem = new CollisionSystem(this.spriteComponentStore, this.positionComponentStore, this.collisionComponentStore, this.movimentIntentComponentStore, this.spriteManager);
     this.movementSystem = new MovementSystem(this.positionComponentStore, this.movimentIntentComponentStore);
-    this.entityFactory = new EntityFactory(entityManager, this.playerComponentStore, this.positionComponentStore, this.spriteComponentStore);
+
   }
 
   update() {

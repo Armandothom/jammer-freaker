@@ -8,19 +8,27 @@ import { EntityManager } from "../core/entity-manager.js";
 
 export class EntityFactory {
   constructor(
-    private entityManager : EntityManager,
-    private playerComponentStore : ComponentStore<PlayerComponent>,
-    private positionComponentStore : ComponentStore<PositionComponent>,
-    private spriteComponentStore : ComponentStore<SpriteComponent>) {
-      
+    private entityManager: EntityManager,
+    private playerComponentStore: ComponentStore<PlayerComponent>,
+    private positionComponentStore: ComponentStore<PositionComponent>,
+    private spriteComponentStore: ComponentStore<SpriteComponent>) {
+
   }
 
 
-  createPlayer(startX : number, startY : number) {
+  createPlayer(startX: number, startY: number) {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.SOLDER_STILL, SpriteSheetName.SOLDIER));
     this.playerComponentStore.add(entityId, new PlayerComponent());
+    return entityId;
+  }
+
+  createProjectile(startX: number, startY: number) {
+    const entityId = this.entityManager.registerEntity();
+    this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
+    this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.STONE_1, SpriteSheetName.TERRAIN)); //placeholder
+    return entityId;
   }
 
 }

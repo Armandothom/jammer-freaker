@@ -21,7 +21,9 @@ export class ProjectileUpdateSystem implements ISystem {
             return nameComp.name === "projectile" &&
                 this.positionComponentStore.has(id) &&
                 this.movementIntentComponentStore.has(id);
-        });
+        }); // refatorar com projectileComponent == playerComponent
+
+        // x e y, vetor = sqrt(x^2 + y^2);
 
 
         for (const entity of projectileEntities) {
