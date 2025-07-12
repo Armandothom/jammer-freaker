@@ -3,11 +3,10 @@ import { Rect } from "./types/rect.type.js";
 
 export class InputClickSystem implements ISystem {
 
-    private clickQueue: { x: number, y: number }[] = [],
-
-    constructor(
-        private canvas: HTMLCanvasElement,
-    ) {
+    private clickQueue: { x: number, y: number }[] = [];
+    private canvas : HTMLCanvasElement;
+    constructor() {
+        this.canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
         this.initListeners()
     };
 

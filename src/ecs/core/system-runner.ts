@@ -32,8 +32,6 @@ export class SystemRunner {
   private collisionSystem: CollisionSystem;
   private movementSystem: MovementSystem;
 
-  private tileSize: number;
-  private canvas: HTMLCanvasElement;
 
   constructor(
     private worldTilemapManager: WorldTilemapManager,
@@ -41,16 +39,13 @@ export class SystemRunner {
     private spriteManager: SpriteManager,
     private entityManager: EntityManager,
     private rendererEngine: RendererEngine,
-    canvas: HTMLCanvasElement
   ) {
-    this.tileSize = 40; // Alterar o tileSize
-    this.canvas = canvas;
     this.cameraManager = new CameraManager(this.worldTilemapManager)
     this.renderSystem = new RenderSystem(this.cameraManager, this.worldTilemapManager, this.rendererEngine, this.spriteManager);
     this.inputMovementSystem = new InputMovementSystem(this.positionComponentStore, this.movimentIntentComponentStore)
-    this.inputClickSystem = new InputClickSystem(this.canvas);
-    this.projectileSpawnSystem = new ProjectileSpawnSystem(this.inputClickSystem, this.tileSize, this.entityNameComponentStore, this.positionComponentStore, this.movimentIntentComponentStore, this.entityManager)
-    this.collisionSystem = new CollisionSystem(this.positionComponentStore, this.collisionComponentStore, this.movimentIntentComponentStore, this.tileSize);
+    this.inputClickSystem = new InputClickSystem();
+    this.projectileSpawnSystem = new ProjectileSpawnSystem(this.inputClickSystem, this.spriteManager, this.entityNameComponentStore, this.positionComponentStore, this.movimentIntentComponentStore, this.entityManager)
+    this.collisionSystem = new CollisionSystem(this.spriteComponentStore, this.positionComponentStore, this.collisionComponentStore, this.movimentIntentComponentStore, this.spriteManager);
     this.movementSystem = new MovementSystem(this.positionComponentStore, this.movimentIntentComponentStore)
   }
 

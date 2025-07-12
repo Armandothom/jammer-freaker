@@ -8,7 +8,6 @@ import { ISystem } from "./system.interface.js";
 É basicamente um movementSystem, mas que difere do player pois em colisão pode ser que
 queiramos adicionar alguma interação especifica no futuro (ex: entidade desaparece ao colidir, ao contrário de player)
 **/
-
 export class ProjectileUpdateSystem implements ISystem {
     constructor(
         private positionComponentStore: ComponentStore<PositionComponent>,

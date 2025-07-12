@@ -62,10 +62,7 @@ export class SpriteManager {
   }
 
   public getSpriteProperties(spriteName: SpriteName, spriteSheetName: SpriteSheetName) {
-    const spriteSheet = this._mappedSpriteSheetAssets.get(spriteSheetName);
-    if (!spriteSheet) {
-      throw new Error("Sprite sheet not found");
-    }
+    const spriteSheet = this.getSpriteSheetProperties(spriteSheetName);
     const sprite = spriteSheet?.sprites.get(spriteName);
     if (!sprite) {
       throw new Error("Sprite not found");
@@ -74,6 +71,14 @@ export class SpriteManager {
       sprite,
       spriteSheet
     }
+  }
+   
+  public getSpriteSheetProperties(spriteSheetName: SpriteSheetName) {
+    const spriteSheet = this._mappedSpriteSheetAssets.get(spriteSheetName);
+    if (!spriteSheet) {
+      throw new Error("Sprite sheet not found");
+    }
+    return spriteSheet;
   }
 
   public getSpriteSheetImage(spriteSheetKey: SpriteSheetName) {

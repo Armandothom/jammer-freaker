@@ -2,7 +2,7 @@ import { SpriteName } from "../../world/types/sprite-name.enum.js";
 
 export abstract class SpriteSheetBlueprint {
   eachSpriteSize!: number
-  afterRenderezSpriteSize!: number
+  afterRenderSpriteSize!: number
   rows!: number;
   columns!: number;
   sprites!: Map<SpriteName, {row : number, column : number}>

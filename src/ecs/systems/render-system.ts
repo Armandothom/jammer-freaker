@@ -31,12 +31,12 @@ export class RenderSystem implements ISystem {
     for (const terrainTile of terrainTilesInViewport) {
       const spriteDetails = this.spriteManager.getSpriteProperties(terrainTile.spriteName, terrainSpritesheet);
       terrainRenderObjects.push({
-        xWorldPosition: terrainTile.x * spriteDetails.spriteSheet.afterRenderezSpriteSize,
-        yWorldPosition: terrainTile.y * spriteDetails.spriteSheet.afterRenderezSpriteSize,
+        xWorldPosition: terrainTile.x * spriteDetails.spriteSheet.afterRenderSpriteSize,
+        yWorldPosition: terrainTile.y * spriteDetails.spriteSheet.afterRenderSpriteSize,
         spriteSheetTexture: spriteDetails.spriteSheet.texture,
         uvCoordinates: this.spriteManager.getUvCoordinates(terrainTile.spriteName, terrainSpritesheet),
-        height : spriteDetails.spriteSheet.afterRenderezSpriteSize,
-        width : spriteDetails.spriteSheet.afterRenderezSpriteSize
+        height : spriteDetails.spriteSheet.afterRenderSpriteSize,
+        width : spriteDetails.spriteSheet.afterRenderSpriteSize
       })
     }
     return terrainRenderObjects;

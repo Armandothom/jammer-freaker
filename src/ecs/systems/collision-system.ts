@@ -4,22 +4,36 @@ import { ComponentStore } from "../core/component-store.js";
 import { Rect } from "./types/rect.type.js";
 import { ISystem } from "./system.interface.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
+import { SpriteComponent } from "../components/sprite.component.js";
+import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 
 export class CollisionSystem implements ISystem {
     constructor(
+        private spriteComponentStore : ComponentStore<SpriteComponent>,
         private positionComponentStore: ComponentStore<PositionComponent>,
         private collisionComponentStore: ComponentStore<CollisionComponent>,
         private movimentIntentComponentStore: ComponentStore<MovementIntentComponent>,
-        private tileSize: number
+        private spriteManager : SpriteManager
     ) {
 
     }
+    
     update(deltaTime: number): void {
         for (const entity of this.movimentIntentComponentStore.getAllEntities()) {
             const intent = this.movimentIntentComponentStore.get(entity);
-            if (!intent) continue;
+            if (!intent) {
+                continue;
+            };
 
-            if (this.wouldCollideAABB(intent, entity, this.tileSize)) {
+            const spriteComponent = this.spriteComponentStore.get(entity);
+
+            if(!spriteComponent) {
+                console.error(`No sprite found for entity ${spriteComponent}`);
+            }
+
+            const spriteSheetOriginProperties = this.spriteManager.getSpriteSheetProperties(spriteComponent.spriteSheet);
+            
+            if (this.wouldCollideAABB(intent, entity, spriteSheetOriginProperties.afterRenderSpriteSize)) {
                 this.movimentIntentComponentStore.remove(entity); // Cancelamento do intent
             }
 
@@ -48,10 +62,10 @@ export class CollisionSystem implements ISystem {
             if (!pos) continue;
 
             const current = {
-                left: pos.x * this.tileSize,
-                right: (pos.x + 1) * this.tileSize,
-                top: pos.y * this.tileSize,
-                bottom: (pos.y + 1) * this.tileSize
+                left: pos.x * tileSize,
+                right: (pos.x + 1) * tileSize,
+                top: pos.y * tileSize,
+                bottom: (pos.y + 1) * tileSize
             };
 
             const intersect =

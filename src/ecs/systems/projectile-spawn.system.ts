@@ -1,3 +1,6 @@
+import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
+import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
+import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { EntityNameComponent } from "../components/entity-name.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PositionComponent } from "../components/position.component.js";
@@ -7,14 +10,18 @@ import { InputClickSystem } from "./input-click.system.js";
 import { ISystem } from "./system.interface.js";
 
 export class ProjectileSpawnSystem implements ISystem {
+    private readonly tileSize : number;
     constructor(
         private inputClickSystem: InputClickSystem,
-        private tileSize: number,
+        private spriteManager: SpriteManager,
         private entityNameComponentStore: ComponentStore<EntityNameComponent>,
         private positionComponentStore: ComponentStore<PositionComponent>,
         private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
         private entityManager: EntityManager
-    ) { }
+    ) { 
+        const terrainSpriteSheet = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN);
+        this.tileSize = terrainSpriteSheet.afterRenderSpriteSize;
+    }
 
     update(deltaTime: number): void {
         const clicks = this.inputClickSystem.consumeClicks();

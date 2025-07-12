@@ -10,6 +10,7 @@ export class MovementSystem implements ISystem{
         private positionComponentStore: ComponentStore<PositionComponent>,
         private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
     ) {}
+    
     update(deltaTime: number): void {
         for (const entity of this.movementIntentComponentStore.getAllEntities()){
             const intent = this.movementIntentComponentStore.get(entity);
@@ -17,7 +18,7 @@ export class MovementSystem implements ISystem{
 
             this.positionComponentStore.add(entity, new PositionComponent(intent.x, intent.y));
 
-            //remover o intent após aplicar movimento
+            //We remove the intent after moving the entity.
             this.movementIntentComponentStore.remove(entity);
         }
     }

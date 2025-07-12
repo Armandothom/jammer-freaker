@@ -8,7 +8,7 @@ export const SPRITESHEET_MAPPED_VALUES : Map<SpriteSheetName, SpriteSheetBluepri
         rows: 30,
         columns: 15,
         eachSpriteSize : 16,
-        afterRenderezSpriteSize : 32,
+        afterRenderSpriteSize : 32,
         srcImagePath : 'src/assets/images/grass_tileset_16px.png',
         sprites: new Map([
           [SpriteName.GRASS_1, {row : 1, column : 1}],
@@ -23,7 +23,7 @@ export const SPRITESHEET_MAPPED_VALUES : Map<SpriteSheetName, SpriteSheetBluepri
       rows : 8, 
       columns : 7,
       eachSpriteSize : 32,
-      afterRenderezSpriteSize : 32,
+      afterRenderSpriteSize : 32,
       srcImagePath : 'src/assets/images/soldier.png',
       sprites: new Map([
         [SpriteName.SOLDER_STILL, {row : 2, column : 1}],
