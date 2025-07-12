@@ -25,13 +25,12 @@ export class ProjectileSpawnSystem implements ISystem {
         private spriteComponentStore: ComponentStore<SpriteComponent>
     ) {
         const terrainSpriteSheet = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN);
-        this.tileSize = terrainSpriteSheet.afterRenderSpriteSize;
+        this.tileSize = terrainSpriteSheet.afterRenderSpriteCellSize;
     }
 
     update(deltaTime: number): void {
         const clicks = this.inputClickSystem.consumeClicks();
         if (clicks.length === 0) return; // Para aqui se não houver clique
-        //console.log(clicks.length);
 
         const playerIdRetrievalResponse = this.playerComponentStore.getAllEntities();
         if (playerIdRetrievalResponse.length !== 1) {
@@ -69,7 +68,7 @@ export class ProjectileSpawnSystem implements ISystem {
     private spawnProjectile(x: number, y: number, dir: { x: number; y: number }, playerId: number): void {
         const spritePlayerComponent = this.spriteComponentStore.get(playerId);
         const spriteProperties = this.spriteManager.getSpriteProperties(spritePlayerComponent.spriteName, spritePlayerComponent.spriteSheetName)
-        const spriteSize = spriteProperties.spriteSheet.afterRenderSpriteSize;
+        const spriteSize = spriteProperties.spriteSheet.afterRenderSpriteCellSize;
         //console.log(dir.x, dir.y);
 
         const projectileId = this.entityFactory.createProjectile(

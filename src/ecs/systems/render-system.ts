@@ -36,12 +36,12 @@ export class RenderSystem implements ISystem {
     for (const terrainTile of terrainTilesInViewport) {
       const spriteDetails = this.spriteManager.getSpriteProperties(terrainTile.spriteName, terrainSpritesheet);
       terrainRenderObjects.push({
-        xWorldPosition: terrainTile.x * spriteDetails.spriteSheet.afterRenderSpriteSize,
-        yWorldPosition: terrainTile.y * spriteDetails.spriteSheet.afterRenderSpriteSize,
+        xWorldPosition: terrainTile.x * spriteDetails.spriteSheet.afterRenderSpriteCellSize,
+        yWorldPosition: terrainTile.y * spriteDetails.spriteSheet.afterRenderSpriteCellSize,
         spriteSheetTexture: spriteDetails.spriteSheet.texture,
         uvCoordinates: this.spriteManager.getUvCoordinates(terrainTile.spriteName, terrainSpritesheet),
-        height: spriteDetails.spriteSheet.afterRenderSpriteSize,
-        width: spriteDetails.spriteSheet.afterRenderSpriteSize
+        height: spriteDetails.spriteSheet.afterRenderSpriteCellSize,
+        width: spriteDetails.spriteSheet.afterRenderSpriteCellSize
       })
     }
     return terrainRenderObjects;
@@ -66,8 +66,8 @@ export class RenderSystem implements ISystem {
         yWorldPosition: position.y,
         spriteSheetTexture: spriteProperties.spriteSheet.texture,
         uvCoordinates: this.spriteManager.getUvCoordinates(sprite.spriteName, sprite.spriteSheetName),
-        height: spriteProperties.spriteSheet.afterRenderSpriteSize,
-        width: spriteProperties.spriteSheet.afterRenderSpriteSize
+        height: spriteProperties.spriteSheet.afterRenderSpriteCellSize,
+        width: spriteProperties.spriteSheet.afterRenderSpriteCellSize
       })
     }
     return renderObject;

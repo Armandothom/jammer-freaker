@@ -33,7 +33,7 @@ export class CollisionSystem implements ISystem {
 
             const spriteSheetOriginProperties = this.spriteManager.getSpriteSheetProperties(spriteComponent.spriteSheetName);
             
-            if (this.wouldCollideAABB(intent, entity, spriteSheetOriginProperties.afterRenderSpriteSize)) {
+            if (this.wouldCollideAABB(intent, entity, spriteSheetOriginProperties.afterRenderSpriteCellSize)) {
                 this.movimentIntentComponentStore.remove(entity); // Cancelamento do intent
             }
 

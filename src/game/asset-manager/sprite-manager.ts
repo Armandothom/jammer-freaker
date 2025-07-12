@@ -45,7 +45,7 @@ export class SpriteManager {
     const tilesetHeight = spriteProperties.spriteSheet.height;
     const tileColumn = spriteProperties.sprite.column;
     const tileRow = spriteProperties.sprite.row;
-    const spriteSize = spriteProperties.spriteSheet.eachSpriteSize;
+    const spriteSize = spriteProperties.spriteSheet.eachSpriteCellSize;
     let xLeft = 0 + (spriteSize * (tileColumn - 1)) / tilesetWidth;
     let xRight = (spriteSize * tileColumn) / tilesetWidth;
     let yTop = 1 - ((spriteSize * (tileRow - 1)) / tilesetHeight);

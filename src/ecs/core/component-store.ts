@@ -7,8 +7,7 @@ export class ComponentStore<T> {
     this.className = className;
   }
 
-  public add(entityId: EntityId, component: T) {
-    //console.log(this.className);
+  public add(entityId : EntityId, component : T) {
     return this.components.set(entityId, component);
   }
 
