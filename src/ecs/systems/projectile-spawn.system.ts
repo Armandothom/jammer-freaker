@@ -31,9 +31,6 @@ export class ProjectileSpawnSystem implements ISystem {
     }
 
     update(deltaTime: number): void {
-        const clicks = this.inputClickSystem.consumeClicks();
-        if (clicks.length === 0) return; // Para aqui se não houver clique
-
         const playerIdRetrievalResponse = this.playerComponentStore.getAllEntities();
         if (playerIdRetrievalResponse.length !== 1) {
             console.warn("Número inesperado de jogadores encontrados:", playerIdRetrievalResponse.length);
