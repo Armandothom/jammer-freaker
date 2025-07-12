@@ -17,8 +17,8 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
           collisionBox: {
             offsetX: 0,
             offsetY: 0,
-            width: 32,
-            height: 32
+            width: 16,
+            height: 16
           }
         }],
         [SpriteName.GRASS_2, {
@@ -27,8 +27,8 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
           collisionBox: {
             offsetX: 0,
             offsetY: 0,
-            width: 32,
-            height: 32
+            width: 16,
+            height: 16
           }
         }],
         [SpriteName.GRASS_3,
@@ -38,8 +38,8 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
           collisionBox: {
             offsetX: 0,
             offsetY: 0,
-            width: 32,
-            height: 32
+            width: 16,
+            height: 16
           }
         }],
         [SpriteName.STONE_1,
@@ -49,8 +49,8 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
           collisionBox: {
             offsetX: 0,
             offsetY: 0,
-            width: 32,
-            height: 32
+            width: 16,
+            height: 16
           }
         }]
       ])
@@ -61,7 +61,7 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
       rows: 8,
       columns: 7,
       eachSpriteCellSize: 32,
-      afterRenderSpriteCellSize: 48,
+      afterRenderSpriteCellSize: 32,
       srcImagePath: 'src/assets/images/soldier.png',
       sprites: new Map([
         [SpriteName.SOLDER_STILL,
@@ -72,7 +72,7 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
             offsetX: 10,
             offsetY: 6,
             width: 23,
-            height: 28
+            height: 27
           }
         }],
         [SpriteName.SOLDER_RUNNING_1,

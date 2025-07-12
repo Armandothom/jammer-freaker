@@ -35,31 +35,46 @@ export class SpriteManager {
   }
 
   /**
-   * We use this method to get the UV coordinates from the tileset.
-   * It is assumed that the tileset image is flipped (since WebGL renders from bottom-left https://stackoverflow.com/a/74483656)
+   * We use this method to get the UV coordinates from the spriteSheet.
+   * It is assumed that the spriteSheet image is flipped (since WebGL renders from bottom-left https://stackoverflow.com/a/74483656)
    * @param spriteName the name of the sprite for this BaseSprite.
    */
   public getUvCoordinates(spriteName: SpriteName, spriteSheetName: SpriteSheetName) {
-    const spriteProperties = this.getSpriteProperties(spriteName, spriteSheetName);
-    const tilesetWidth = spriteProperties.spriteSheet.width;
-    const tilesetHeight = spriteProperties.spriteSheet.height;
-    const tileColumn = spriteProperties.sprite.column;
-    const tileRow = spriteProperties.sprite.row;
-    const spriteSize = spriteProperties.spriteSheet.eachSpriteCellSize;
-    let xLeft = 0 + (spriteSize * (tileColumn - 1)) / tilesetWidth;
-    let xRight = (spriteSize * tileColumn) / tilesetWidth;
-    let yTop = 1 - ((spriteSize * (tileRow - 1)) / tilesetHeight);
-    let yBottom = 1 - ((spriteSize * tileRow) / tilesetHeight);
-    return [
-      xLeft, yTop, //top left
-      xLeft, yBottom, //bottom left
-      xRight, yTop, //top right
+  const spriteProperties = this.getSpriteProperties(spriteName, spriteSheetName);
+  const collisionBox = spriteProperties.sprite.collisionBox;
+  const spriteSheetWidth = spriteProperties.spriteSheet.width;
+  const spriteSheetHeight = spriteProperties.spriteSheet.height;
+  const tileColumn = spriteProperties.sprite.column;
+  const tileRow = spriteProperties.sprite.row;
+  const spriteCellSize = spriteProperties.spriteSheet.eachSpriteCellSize;
+  
+  // We define where is the cell of the sprite on the spritesheet
+  let cellX = (tileColumn - 1) * spriteCellSize;
+  let cellY = (tileRow - 1) * spriteCellSize;
+  
+  // We define the offset of the sprite, on left,right,top,bottom inside the cell
+  let xLeft = cellX + collisionBox.offsetX;
+  let xRight = xLeft + collisionBox.width;
+  let yTop = cellY + collisionBox.offsetY;
+  let yBottom = yTop + collisionBox.height;
+  
+  //We normalize to between 0 and 1
+  const xLeftNormalized = xLeft / spriteSheetWidth;
+  const xRightNormalized = xRight / spriteSheetWidth;
+  const yTopNormalized = 1 - (yTop / spriteSheetHeight);
+  const yBottomNormalized = 1 - (yBottom / spriteSheetHeight);
+  
+  return [
+    xLeftNormalized, yTopNormalized,        // top left
+    xLeftNormalized, yBottomNormalized,       // bottom left
+    xRightNormalized, yTopNormalized,         // top right
 
-      xRight, yBottom, //bottom right
-      xRight, yTop, // top right
-      xLeft, yBottom //bottom left
-    ]
-  }
+    xRightNormalized, yBottomNormalized,      // bottom right
+    xRightNormalized, yTopNormalized,         // top right (repetido)
+    xLeftNormalized, yBottomNormalized        // bottom left (repetido)
+  ];
+}
+
 
   public getSpriteProperties(spriteName: SpriteName, spriteSheetName: SpriteSheetName) {
     const spriteSheet = this.getSpriteSheetProperties(spriteSheetName);
