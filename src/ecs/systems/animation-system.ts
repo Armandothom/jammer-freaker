@@ -28,8 +28,6 @@ export class AnimationSystem implements ISystem {
                 const directionAnim = deltaPos > 0 ? AnimDirection.RIGHT : AnimDirection.LEFT;
                 this.directionAnimComponent.add(entityMoving, new DirectionAnimComponent(directionAnim))
             }
-            this.positionComponentStore.add(entityMoving, new PositionComponent(intentPosition.x, intentPosition.y));
-
         }
 
     }
