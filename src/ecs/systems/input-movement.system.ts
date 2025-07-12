@@ -5,7 +5,7 @@ import { ISystem } from "./system.interface.js";
 
 const keys: Record<string, boolean> = {};
 
-export class InputSystem implements ISystem {
+export class InputMovementSystem implements ISystem {
     constructor(
         private positionComponentStore: ComponentStore<PositionComponent>,
         private movementIntentComponentStore: ComponentStore<MovementIntentComponent>
@@ -14,7 +14,7 @@ export class InputSystem implements ISystem {
     update(deltaTime: number): void {
         for (const entity of this.positionComponentStore.getAllEntities()) {
 
-            const input = getInputForEntity(entity); // ← você define isso
+            const input = getInputForEntity(entity); // Definido abaixo
             if (!input) continue;
 
             const pos = this.positionComponentStore.get(entity);

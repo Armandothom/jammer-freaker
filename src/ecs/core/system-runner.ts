@@ -4,45 +4,60 @@ import { RendererEngine } from "../../game/renderer/renderer-engine.js";
 import { CameraManager } from "../../game/world/camera-manager.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { CollisionComponent } from "../components/collision-component.js";
+import { EntityNameComponent } from "../components/entity-name.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { CollisionSystem } from "../systems/collision-system.js";
-import { InputSystem } from "../systems/input-system.js";
+import { InputClickSystem } from "../systems/input-click.system.js";
+import { InputMovementSystem } from "../systems/input-movement.system.js";
 import { MovementSystem } from "../systems/movement-system.js";
+import { ProjectileSpawnSystem } from "../systems/projectile-spawn.system.js";
 import { RenderSystem } from "../systems/render-system.js";
 import { ComponentStore } from "./component-store.js";
 import { CoreManager } from "./core-manager.js";
+import { EntityManager } from "./entity-manager.js";
 
 export class SystemRunner {
   private renderSystem: RenderSystem;
   private cameraManager: CameraManager;
-  private spriteComponent: ComponentStore<SpriteComponent> = new ComponentStore();
+  private entityNameComponentStore: ComponentStore<EntityNameComponent> = new ComponentStore();
+  private spriteComponentStore: ComponentStore<SpriteComponent> = new ComponentStore();
   private positionComponentStore: ComponentStore<PositionComponent> = new ComponentStore();
   private collisionComponentStore: ComponentStore<CollisionComponent> = new ComponentStore();
   private movimentIntentComponentStore: ComponentStore<MovementIntentComponent> = new ComponentStore();
-  private inputSystem: InputSystem;
+  private inputMovementSystem: InputMovementSystem;
+  private inputClickSystem: InputClickSystem;
+  private projectileSpawnSystem: ProjectileSpawnSystem;
   private collisionSystem: CollisionSystem;
   private movementSystem: MovementSystem;
 
   private tileSize: number;
+  private canvas: HTMLCanvasElement;
 
   constructor(
     private worldTilemapManager: WorldTilemapManager,
     private assetManager: AssetManager,
     private spriteManager: SpriteManager,
-    private rendererEngine: RendererEngine
+    private entityManager: EntityManager,
+    private rendererEngine: RendererEngine,
+    canvas: HTMLCanvasElement
   ) {
     this.tileSize = 40; // Alterar o tileSize
+    this.canvas = canvas;
     this.cameraManager = new CameraManager(this.worldTilemapManager)
     this.renderSystem = new RenderSystem(this.cameraManager, this.worldTilemapManager, this.rendererEngine, this.spriteManager);
-    this.inputSystem = new InputSystem(this.positionComponentStore, this.movimentIntentComponentStore)
+    this.inputMovementSystem = new InputMovementSystem(this.positionComponentStore, this.movimentIntentComponentStore)
+    this.inputClickSystem = new InputClickSystem(this.canvas);
+    this.projectileSpawnSystem = new ProjectileSpawnSystem(this.inputClickSystem, this.tileSize, this.entityNameComponentStore, this.positionComponentStore, this.movimentIntentComponentStore, this.entityManager)
     this.collisionSystem = new CollisionSystem(this.positionComponentStore, this.collisionComponentStore, this.movimentIntentComponentStore, this.tileSize);
     this.movementSystem = new MovementSystem(this.positionComponentStore, this.movimentIntentComponentStore)
   }
 
   update() {
-    this.inputSystem.update(CoreManager.timeSinceLastRender);
+    this.inputMovementSystem.update(CoreManager.timeSinceLastRender);
+    this.inputClickSystem.update(CoreManager.timeSinceLastRender); // Tem que ser chamado?
+    this.projectileSpawnSystem.update(CoreManager.timeSinceLastRender);
     this.collisionSystem.update(CoreManager.timeSinceLastRender);
     this.movementSystem.update(CoreManager.timeSinceLastRender)
     this.renderSystem.update(CoreManager.timeSinceLastRender);
