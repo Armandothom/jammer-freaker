@@ -3,9 +3,9 @@ import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 
 export class SpriteComponent {
   public spriteName : SpriteName;
-  public spriteSheet : SpriteSheetName;
-  constructor(spriteName : SpriteName, spriteSheet : SpriteSheetName) {
+  public spriteSheetName : SpriteSheetName;
+  constructor(spriteName : SpriteName, spriteSheetName : SpriteSheetName) {
     this.spriteName = spriteName;
-    this.spriteSheet = spriteSheet;
+    this.spriteSheetName = spriteSheetName;
   }
 }

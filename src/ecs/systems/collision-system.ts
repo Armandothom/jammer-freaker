@@ -17,7 +17,7 @@ export class CollisionSystem implements ISystem {
     ) {
 
     }
-    
+
     update(deltaTime: number): void {
         for (const entity of this.movimentIntentComponentStore.getAllEntities()) {
             const intent = this.movimentIntentComponentStore.get(entity);
@@ -31,7 +31,7 @@ export class CollisionSystem implements ISystem {
                 console.error(`No sprite found for entity ${spriteComponent}`);
             }
 
-            const spriteSheetOriginProperties = this.spriteManager.getSpriteSheetProperties(spriteComponent.spriteSheet);
+            const spriteSheetOriginProperties = this.spriteManager.getSpriteSheetProperties(spriteComponent.spriteSheetName);
             
             if (this.wouldCollideAABB(intent, entity, spriteSheetOriginProperties.afterRenderSpriteSize)) {
                 this.movimentIntentComponentStore.remove(entity); // Cancelamento do intent

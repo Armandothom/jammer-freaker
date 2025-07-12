@@ -23,7 +23,7 @@ export const SPRITESHEET_MAPPED_VALUES : Map<SpriteSheetName, SpriteSheetBluepri
       rows : 8, 
       columns : 7,
       eachSpriteSize : 32,
-      afterRenderSpriteSize : 32,
+      afterRenderSpriteSize : 48,
       srcImagePath : 'src/assets/images/soldier.png',
       sprites: new Map([
         [SpriteName.SOLDER_STILL, {row : 2, column : 1}],

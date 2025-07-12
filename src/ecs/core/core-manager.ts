@@ -2,6 +2,7 @@ import { AssetManager } from "../../game/asset-manager/asset-manager.js";
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { RendererEngine } from "../../game/renderer/renderer-engine.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
+import { EntityManager } from "./entity-manager.js";
 import { SystemRunner } from "./system-runner.js";
 
 export class CoreManager {
@@ -12,21 +13,22 @@ export class CoreManager {
     private _systemRunner!: SystemRunner;
     private _worldTilemapManager : WorldTilemapManager;
     private _rendererEngine : RendererEngine;
+    private _entityManager : EntityManager
     constructor() {
         this._assetManager = new AssetManager();
         this._worldTilemapManager = new WorldTilemapManager();
         this._rendererEngine = new RendererEngine();
+        this._entityManager = new EntityManager();
     }
 
     public async init() {
         console.log("Loading Game...");
         await this._assetManager.loadAssets();
         this._spriteManager = new SpriteManager(this._assetManager);
-        //TBD how to handle
         this._rendererEngine.init();
-        ///TBD how to handle
         console.log("Game generated");
-        this._systemRunner = new SystemRunner(this._worldTilemapManager, this._assetManager, this._spriteManager, this._rendererEngine);
+        this._systemRunner = new SystemRunner(this._worldTilemapManager, this._spriteManager, this._entityManager, this._rendererEngine);
+        this._systemRunner.initialize();
         window.requestAnimationFrame(this.runLoop.bind(this));
     }
 
