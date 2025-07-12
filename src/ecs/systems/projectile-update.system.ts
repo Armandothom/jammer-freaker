@@ -1,6 +1,6 @@
-import { EntityNameComponent } from "../components/entity-name.component.js";
-import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PositionComponent } from "../components/position.component.js";
+import { ProjectileComponent } from "../components/projectile-component.js";
+import { VelocityComponent } from "../components/velocity-component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { ISystem } from "./system.interface.js";
 
@@ -11,29 +11,25 @@ queiramos adicionar alguma interação especifica no futuro (ex: entidade desapa
 export class ProjectileUpdateSystem implements ISystem {
     constructor(
         private positionComponentStore: ComponentStore<PositionComponent>,
-        private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
-        private entityNameComponentStore: ComponentStore<EntityNameComponent>
+        private projectileComponentStore: ComponentStore<ProjectileComponent>,
+        private velocityComponentStore: ComponentStore<VelocityComponent>
     ) { }
 
     update(deltaTime: number): void {
-        const projectileEntities = this.entityNameComponentStore.getAllEntities().filter(id => {
-            const nameComp = this.entityNameComponentStore.get(id);
-            return nameComp.name === "projectile" &&
-                this.positionComponentStore.has(id) &&
-                this.movementIntentComponentStore.has(id);
-        }); // refatorar com projectileComponent == playerComponent
-
-        // x e y, vetor = sqrt(x^2 + y^2);
-
+        const projectileEntities = this.projectileComponentStore.getAllEntities();
+        //console.log("projectileEntities", projectileEntities);
 
         for (const entity of projectileEntities) {
+            //console.log(entity);
             const position = this.positionComponentStore.get(entity);
-            const movement = this.movementIntentComponentStore.get(entity);
+            const velocity = this.velocityComponentStore.get(entity);
+            const intent = {
+                x: position.x + velocity.velX * deltaTime * 120,
+                y: position.y + velocity.velY * deltaTime * 120
+            }
+            //console.log(position, velocity);
 
-            position.x += movement.x * deltaTime;
-            position.y += movement.y * deltaTime;
-
-            this.positionComponentStore.add(entity, position); // atualiza posição
+            this.positionComponentStore.add(entity, intent); // atualiza posição
         }
 
     }

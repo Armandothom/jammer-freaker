@@ -2,7 +2,10 @@ import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-nam
 import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
+import { ProjectileComponent } from "../components/projectile-component.js";
+import { ProjectileShooterComponent } from "../components/projectile-shooter.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
+import { VelocityComponent } from "../components/velocity-component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityManager } from "../core/entity-manager.js";
 
@@ -11,7 +14,11 @@ export class EntityFactory {
     private entityManager: EntityManager,
     private playerComponentStore: ComponentStore<PlayerComponent>,
     private positionComponentStore: ComponentStore<PositionComponent>,
-    private spriteComponentStore: ComponentStore<SpriteComponent>) {
+    private spriteComponentStore: ComponentStore<SpriteComponent>,
+    private projectileComponentStore: ComponentStore<ProjectileComponent>,
+    private projectileShooterComponentStore: ComponentStore<ProjectileShooterComponent>,
+    private velocityComponentStore: ComponentStore<VelocityComponent>
+  ) {
 
   }
 
@@ -24,10 +31,13 @@ export class EntityFactory {
     return entityId;
   }
 
-  createProjectile(startX: number, startY: number) {
+  createProjectile(startX: number, startY: number, entityShooterId: number, velX: number, velY: number) {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.STONE_1, SpriteSheetName.TERRAIN)); //placeholder
+    this.projectileComponentStore.add(entityId, new ProjectileComponent());
+    this.projectileShooterComponentStore.add(entityId, new ProjectileShooterComponent(entityShooterId));
+    this.velocityComponentStore.add(entityId, new VelocityComponent(velX, velY))
     return entityId;
   }
 

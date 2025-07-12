@@ -2,32 +2,33 @@ import { EntityId } from "./types/entity-id.type.js";
 
 export class ComponentStore<T> {
   private components: Map<EntityId, T> = new Map();
-  constructor() {
-
+  private className!: string;
+  constructor(className: string) {
+    this.className = className;
   }
 
-  public add(entityId : EntityId, component : T) {
-    console.log("Entity adicionada", entityId);
+  public add(entityId: EntityId, component: T) {
+    //console.log(this.className);
     return this.components.set(entityId, component);
   }
 
-  public get(entityId : EntityId) {
+  public get(entityId: EntityId) {
     const value = this.components.get(entityId)
-    if(!value){
-      throw new Error("Error when trying to get component store");
-    } 
+    if (!value) {
+      throw new Error(`[${this.className}] Error when trying to get component store ${entityId}`);
+    }
     return value;
   }
 
-  public remove(entityId : EntityId) {
+  public remove(entityId: EntityId) {
     return this.components.delete(entityId);
   }
 
-  public has(entityId : EntityId) {
+  public has(entityId: EntityId) {
     return this.components.has(entityId);
   }
 
-  public getAllEntities(){
+  public getAllEntities() {
     return Array.from(this.components.keys());
   }
 }
