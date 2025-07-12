@@ -17,5 +17,24 @@ export const SPRITESHEET_MAPPED_VALUES : Map<SpriteSheetName, SpriteSheetBluepri
           [SpriteName.STONE_1, {row : 14, column : 1}]
         ])
     }
+],
+[
+  SpriteSheetName.SOLDIER, {
+      rows : 8, 
+      columns : 7,
+      eachSpriteSize : 32,
+      afterRenderezSpriteSize : 32,
+      srcImagePath : 'src/assets/images/soldier.png',
+      sprites: new Map([
+        [SpriteName.SOLDER_STILL, {row : 2, column : 1}],
+        [SpriteName.SOLDER_RUNNING_1, {row : 2, column : 2}],
+        [SpriteName.SOLDER_RUNNING_2, {row : 2, column : 3}],
+        [SpriteName.SOLDER_RUNNING_3, {row : 2, column : 4}],
+        [SpriteName.SOLDER_RUNNING_4, {row : 2, column : 5}],
+        [SpriteName.SOLDER_RUNNING_5, {row : 2, column : 6}],
+        [SpriteName.SOLDER_RUNNING_6, {row : 2, column : 7}],
+        [SpriteName.SOLDER_RUNNING_7, {row : 2, column : 8}],
+      ])
+  }
 ]
 ])
