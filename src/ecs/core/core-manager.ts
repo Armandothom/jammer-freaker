@@ -35,6 +35,6 @@ export class CoreManager {
         CoreManager.timeSinceLastRender = (startTimePageLoaded - this.previousTimestamp) / 1000;
         this.previousTimestamp = startTimePageLoaded;
         this._systemRunner.update();
-        //window.requestAnimationFrame(this.runLoop.bind(this))
+        window.requestAnimationFrame(this.runLoop.bind(this))
     }
 }
