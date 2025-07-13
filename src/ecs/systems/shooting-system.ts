@@ -28,10 +28,6 @@ export class ShootingSystem implements ISystem {
         if (this.isMouseDown) {
             this.pushShotIntent(true); // isHold = true
         }
-        const shotIntents = this.intentShotComponentStore.getAllEntities();
-        for (const shotIntent in shotIntents) {
-            this.pushShotIntent(true);
-        }
     }
 
     private initListeners() {
@@ -63,27 +59,15 @@ export class ShootingSystem implements ISystem {
     }
 
     private pushShotIntent(isHold: boolean) {
-        const shooters = this.shooterComponentStore.getAllEntities();
+        const playerIds = this.playerComponentStore.getAllEntities();
         let playerPos: { x: number, y: number } | undefined;
-
-        for (const shooter of shooters) {
-
-            if (this.playerComponentStore.has(shooter)) {
-                playerPos = this.positionComponentStore.get(shooter);
-                this.intentShotComponentStore.add(shooter, new IntentShotComponent(
-                    this.currentMousePos.x,
-                    this.currentMousePos.y,
-                    isHold
-                ))
-            }
-
-            if (this.enemyComponentStore.has(shooter)) {
-                this.intentShotComponentStore.add(shooter, new IntentShotComponent(
-                    playerPos!.x,
-                    playerPos!.y,
-                    true
-                ));
-            }
+        for (const playerId of playerIds) {
+            playerPos = this.positionComponentStore.get(playerId);
+            this.intentShotComponentStore.add(playerId, new IntentShotComponent(
+                this.currentMousePos.x,
+                this.currentMousePos.y,
+                isHold
+            ))
         }
     }
 }

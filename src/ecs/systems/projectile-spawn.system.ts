@@ -63,16 +63,11 @@ export class ProjectileSpawnSystem implements ISystem {
 
             const dir = { x: dx / magnitude, y: dy / magnitude }; // Vetor de direção normalizado
 
-
             const cooldown = this.shootingCooldownComponentStore.has(entity);
             if (!cooldown) {
                 this.spawnProjectile(shooterPos.x, shooterPos.y, dir, entity);
                 const cooldownAdd = this.shootingCooldownComponentStore.add(entity, new ShootingCooldownComponent(0.2));
             }
-
-
-            // Adicionar lógica de criar projectile a partir do this.enemyComponentStore.has(entity)
-            // bem similar da estrutura acima
         }
     }
 

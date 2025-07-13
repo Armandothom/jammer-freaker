@@ -12,6 +12,7 @@ import { ShooterComponent } from "../components/shooter-component.js";
 import { HealthComponent } from "../components/health.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
 import { PlayerComponent } from "../components/player.component.js";
+import { ShotOriginComponent } from "../components/shot-origin.component.js";
 
 export class CollisionSystem implements ISystem {
     constructor(
@@ -26,6 +27,7 @@ export class CollisionSystem implements ISystem {
         private spriteManager: SpriteManager,
         private entityFactory: EntityFactory,
         private playerComponentStore: ComponentStore<PlayerComponent>,
+        private shotOriginComponentStore: ComponentStore<ShotOriginComponent>,
     ) {
 
     }
@@ -47,15 +49,39 @@ export class CollisionSystem implements ISystem {
 
             const spriteSheetOriginProperties = this.spriteManager.getSpriteSheetProperties(spriteComponent.spriteSheetName);
             const wouldCollideCheck = this.wouldCollideAABB(intent, entity, spriteSheetOriginProperties.afterRenderSpriteCellSize);
+
             if (wouldCollideCheck.wouldCollide) {
                 this.movementIntentComponentStore.remove(entity); // Cancelamento do intent
                 if (this.projectileComponentStore.has(entity)) {
-                    const enemies = this.enemyComponentStore.getAllEntities();
-                    for (const enemy of enemies) {
-                        if(enemy == wouldCollideCheck.collidingEntitiy) {
-                            this.healthComponentStore.get(enemy).takeDamage(20);
-                            if(this.healthComponentStore.get(enemy).hp <= 0){
-                                this.entityFactory.destroyEnemy(enemy);
+                    const shotOrigin = this.shotOriginComponentStore.get(entity);
+                    const shooterId = shotOrigin.shooterEntity;
+                    const target = wouldCollideCheck.collidingEntity;
+
+                    if (shooterId == null || target == null) return;
+                    if (target === shooterId) {
+                        return; // Ignora colisão com o próprio criador
+                    }
+
+                    const targetPlayer = this.playerComponentStore.has(target);
+                    const targetEnemy = this.enemyComponentStore.has(target);
+
+                    const projectileFromPlayer = this.playerComponentStore.has(shooterId);
+                    const projectileFromEnemy = this.enemyComponentStore.has(shooterId);
+
+                    const validTarget = (projectileFromPlayer && targetEnemy) ||
+                        (projectileFromEnemy && targetPlayer);
+
+                    if (validTarget) {
+                        const targetDamage = this.healthComponentStore.get(target).takeDamage(20);
+                        console.log("target x HP:", target, this.healthComponentStore.get(target).hp);
+
+                        if (this.healthComponentStore.get(target).hp <= 0) {
+
+                            if (targetEnemy) {
+                                
+                                this.entityFactory.destroyEnemy(target);
+                            } else if (targetPlayer) {
+                                console.log("Player dead - Game over");
                             }
                         }
                     }
@@ -108,15 +134,15 @@ export class CollisionSystem implements ISystem {
 
             if (intersect) {
                 return {
-                    wouldCollide : true,
-                    collidingEntitiy : other
+                    wouldCollide: true,
+                    collidingEntity: other
                 }
             };
         }
 
         return {
-            wouldCollide : false,
-            collidingEntitiy : null
+            wouldCollide: false,
+            collidingEntity: null
         };
     }
 

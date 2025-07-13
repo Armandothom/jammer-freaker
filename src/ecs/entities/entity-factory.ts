@@ -19,6 +19,7 @@ import { EnemyComponent } from "../components/enemy.component.js";
 import { CollisionComponent } from "../components/collision-component.js";
 import { AIComponent } from "../components/ai.component.js";
 import { HealthComponent } from "../components/health.component.js";
+import { ShotOriginComponent } from "../components/shot-origin.component.js";
 
 export class EntityFactory {
   constructor(
@@ -38,6 +39,7 @@ export class EntityFactory {
     private collisionComponentStore: ComponentStore<CollisionComponent>,
     private aiComponentStore: ComponentStore<AIComponent>,
     private healthComponentStore: ComponentStore<HealthComponent>,
+    private shotOriginComponentStore: ComponentStore<ShotOriginComponent>,
   ) {
 
   }
@@ -65,6 +67,7 @@ export class EntityFactory {
     this.projectileComponentStore.add(entityId, new ProjectileComponent());
     this.velocityComponentStore.add(entityId, new VelocityComponent(velX, velY));
     this.collisionComponentStore.add(entityId, new CollisionComponent());
+    this.shotOriginComponentStore.add(entityId,new ShotOriginComponent(entityShooterId))
     return entityId;
   }
 
