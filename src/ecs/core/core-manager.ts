@@ -11,7 +11,7 @@ export class CoreManager {
     private previousTimestamp = 0;
     static timeSinceLastRender = 0;
     static timeGlobalSinceStart = 0;
-    private _assetManager : AssetManager;
+    private _assetManager: AssetManager;
     private _spriteManager!: SpriteManager;
     private _systemRunner!: SystemRunner;
     private _worldTilemapManager!: WorldTilemapManager;
@@ -36,6 +36,7 @@ export class CoreManager {
         this._worldTilemapManager = new WorldTilemapManager(this._spriteManager);
         this._systemRunner = new SystemRunner(this._worldTilemapManager, this._spriteManager, this._entityManager, this._soundManager, this._rendererEngine,);
         this._systemRunner.initialize();
+        this._soundManager.playSound("THEME", true, 0.1);
         CoreManager.timeGlobalSinceStart = 0;
         window.requestAnimationFrame(this.runLoop.bind(this));
     }
