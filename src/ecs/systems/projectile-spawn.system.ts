@@ -40,6 +40,7 @@ export class ProjectileSpawnSystem implements ISystem {
         for (const entity of players) {
             const playerPos = this.positionComponentStore.get(entity);
             const intent = this.intentClickComponentStore.getOrNull(entity);
+
             if (!playerPos || !intent) continue;
 
             let playerPosXConverted = playerPos.x / canvas.width * canvasWidthHeightInTiles;
@@ -56,6 +57,7 @@ export class ProjectileSpawnSystem implements ISystem {
             const dir = { x: dx / magnitude, y: dy / magnitude }; // Vetor de direção normalizado
 
             if (intent.isHold) {
+                console.log("ishold = true");
                 this.fireCooldown += deltaTime * 1000;
                 if (this.fireCooldown >= this.fireRateMs) {
                     this.fireCooldown = 0;
