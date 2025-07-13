@@ -51,7 +51,7 @@ export class CollisionSystem implements ISystem {
             const wouldCollideCheck = this.wouldCollideAABB(intent, entity, spriteSheetOriginProperties.afterRenderSpriteCellSize);
 
             if (wouldCollideCheck.wouldCollide) {
-                this.movementIntentComponentStore.remove(entity); // Cancelamento do intent
+                this.movementIntentComponentStore.remove(entity); // Cancelamento do intent pra questões de movimento
                 if (this.projectileComponentStore.has(entity)) {
                     const shotOrigin = this.shotOriginComponentStore.get(entity);
                     const shooterId = shotOrigin.shooterEntity;
@@ -78,7 +78,7 @@ export class CollisionSystem implements ISystem {
                         if (this.healthComponentStore.get(target).hp <= 0) {
 
                             if (targetEnemy) {
-                                
+
                                 this.entityFactory.destroyEnemy(target);
                             } else if (targetPlayer) {
                                 console.log("Player dead - Game over");
@@ -104,8 +104,21 @@ export class CollisionSystem implements ISystem {
             bottom: intent.y + tileSize,
         };
 
+        const shotOrigin = this.shotOriginComponentStore.getOrNull(self);
+        const shooterId = shotOrigin?.shooterEntity;
+
         for (const other of this.collisionComponentStore.getAllEntities()) {
             if (other === self) continue;
+            if (other === shooterId) continue; // Ignores who made the shot
+
+            const otherShotOrigin = this.shotOriginComponentStore.getOrNull(other);
+
+            if (
+                (shooterId && otherShotOrigin?.shooterEntity === shooterId) ||
+                (otherShotOrigin?.shooterEntity === self)
+            ) {
+                continue;
+            } // Ignores self with shot
 
             const collision = this.collisionComponentStore.get(other);
             const pos = this.positionComponentStore.get(other);
