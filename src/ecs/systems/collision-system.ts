@@ -11,6 +11,7 @@ import { EntityFactory } from "../entities/entity-factory.js";
 import { ShooterComponent } from "../components/shooter-component.js";
 import { HealthComponent } from "../components/health.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
+import { PlayerComponent } from "../components/player.component.js";
 
 export class CollisionSystem implements ISystem {
     constructor(
@@ -23,12 +24,14 @@ export class CollisionSystem implements ISystem {
         private healthComponentStore: ComponentStore<HealthComponent>,
         private enemyComponentStore: ComponentStore<EnemyComponent>,
         private spriteManager: SpriteManager,
-        private entityFactory: EntityFactory
+        private entityFactory: EntityFactory,
+        private playerComponentStore: ComponentStore<PlayerComponent>,
     ) {
 
     }
 
     update(deltaTime: number): void {
+        const playerEntityId = this.playerComponentStore.getAllEntities()[0];
         for (const entity of this.movementIntentComponentStore.getAllEntities()) {
             const intent = this.movementIntentComponentStore.getOrNull(entity);
             if (!intent) {
@@ -43,18 +46,18 @@ export class CollisionSystem implements ISystem {
             }
 
             const spriteSheetOriginProperties = this.spriteManager.getSpriteSheetProperties(spriteComponent.spriteSheetName);
-
-            if (this.wouldCollideAABB(intent, entity, spriteSheetOriginProperties.afterRenderSpriteCellSize)) {
+            const wouldCollideCheck = this.wouldCollideAABB(intent, entity, spriteSheetOriginProperties.afterRenderSpriteCellSize);
+            if (wouldCollideCheck.wouldCollide) {
                 this.movementIntentComponentStore.remove(entity); // Cancelamento do intent
-                
                 if (this.projectileComponentStore.has(entity)) {
                     const enemies = this.enemyComponentStore.getAllEntities();
-
                     for (const enemy of enemies) {
-                        this.healthComponentStore.get(enemy).takeDamage(20);
-                        console.log(this.healthComponentStore.get(enemy).hp);
-                        if(this.healthComponentStore.get(enemy).hp <= 0){
-                            this.entityFactory.destroyEnemy(enemy);
+                        if(enemy == wouldCollideCheck.collidingEntitiy) {
+                            this.healthComponentStore.get(enemy).takeDamage(20);
+                            console.log(this.healthComponentStore.get(enemy).hp);
+                            if(this.healthComponentStore.get(enemy).hp <= 0){
+                                this.entityFactory.destroyEnemy(enemy);
+                            }
                         }
                     }
                     this.entityFactory.destroyProjectile(entity);
@@ -68,7 +71,7 @@ export class CollisionSystem implements ISystem {
         intent: MovementIntentComponent,
         self: number,
         tileSize: number
-    ): boolean {
+    ) {
         const intendedMovement = {
             left: intent.x,
             right: intent.x + tileSize,
@@ -104,10 +107,18 @@ export class CollisionSystem implements ISystem {
                 intendedMovement.top < current.bottom &&
                 intendedMovement.bottom > current.top;
 
-            if (intersect) return true;
+            if (intersect) {
+                return {
+                    wouldCollide : true,
+                    collidingEntitiy : other
+                }
+            };
         }
 
-        return false;
+        return {
+            wouldCollide : false,
+            collidingEntitiy : null
+        };
     }
 
 
