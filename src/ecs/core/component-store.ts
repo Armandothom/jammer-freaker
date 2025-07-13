@@ -38,4 +38,8 @@ export class ComponentStore<T> {
   public getAllEntities() {
     return Array.from(this.components.keys());
   }
+
+  public getAllValues() {
+    return Array.from(this.components.values());
+  }
 }

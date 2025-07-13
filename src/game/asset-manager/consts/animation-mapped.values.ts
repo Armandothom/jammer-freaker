@@ -4,6 +4,16 @@ import { SpriteSheetName } from "../types/sprite-sheet-name.enum.js";
 
 export const ANIMATION_MAPPED: Map<AnimationName, AnimationKeyMap[]> = new Map([
   [
+    AnimationName.STILL, [
+      {
+        spriteName: SpriteName.SOLDER_STILL,
+        spriteSheetName : SpriteSheetName.SOLDIER,
+        order : 1,
+        durationKeyFrame : 1
+      }
+    ]
+  ],
+  [
     AnimationName.RUN, [
       {
         spriteName: SpriteName.SOLDER_RUNNING_1,
