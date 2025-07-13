@@ -5,11 +5,8 @@ import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { AnimationComponent } from "../components/animation.component.js";
 import { ClickIntentComponent } from "../components/click-intent.component.js";
 import { CollisionComponent } from "../components/collision-component.js";
-<<<<<<< HEAD
 import { IntentClickComponent } from "../components/intent-click.component.js";
-=======
 import { DirectionAnimComponent } from "../components/direction-anim.component.js";
->>>>>>> 806d5e210af67fbd15e4c8ac9376ae39f0bd2663
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
