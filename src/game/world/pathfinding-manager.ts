@@ -26,11 +26,13 @@ export class PathFindingManager {
     openList.set(this.getKeyFromTileCoordinate(xOrigin, yOrigin), initialNode);
     supportQueue.insert(initialNode, 0)
     let closedList: Map<string, PathfindingNode> = new Map();
+    const historyList: Map<string, PathfindingNode> = new Map();
     let finalNodeKey!: string;
     while (hasFinishedSearching == false) {
       const node = supportQueue.extractMin()!;
       const keyCurrentNode = this.getKeyFromTileCoordinate(node.x, node.y);
       closedList.set(keyCurrentNode, node);
+      historyList.set(keyCurrentNode, node);
       openList.delete(keyCurrentNode);
       const neighboringTiles = this.getNeighborTiles(node.x, node.y);
       for (const neighborTile of neighboringTiles) {
@@ -50,6 +52,7 @@ export class PathFindingManager {
         //If you find the target coordinate
         if (neighborNode.x == xTarget && neighborNode.y == yTarget) {
           closedList.set(keyNeighborTile, neighborNode);
+          historyList.set(keyCurrentNode, node);
           finalNodeKey = keyNeighborTile;
           hasFinishedSearching = true;
           break;
@@ -61,6 +64,7 @@ export class PathFindingManager {
             closedList.delete(keyNeighborTile);
             supportQueue.insert(neighborNode, neighborNode.f);
             openList.set(keyNeighborTile, neighborNode);
+            historyList.set(keyCurrentNode, node);
           }
           continue;
         }
@@ -70,9 +74,11 @@ export class PathFindingManager {
         if (!neighborOnOpenList) {
           supportQueue.insert(neighborNode, neighborNode.f);
           openList.set(keyNeighborTile, neighborNode)
+          historyList.set(keyCurrentNode, node);
         } else if(neighborOnOpenList.g > neighborNode.g) {
           supportQueue.insert(neighborNode, neighborNode.f);
           openList.set(keyNeighborTile, neighborNode)
+          historyList.set(keyCurrentNode, node);
         }
       }
     }
@@ -86,7 +92,7 @@ export class PathFindingManager {
       if(lastNode.x == xOrigin && lastNode.y == yOrigin) {
         hasBuildPath = true;
       } else {
-        lastNode = closedList.get(lastNode.previousCoordinate!)!;
+        lastNode = historyList.get(lastNode.previousCoordinate!)!;
       }
     }
     return builtList.reverse().slice(1); //We remove the first node, since it's the start node

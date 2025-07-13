@@ -54,7 +54,6 @@ export class CollisionSystem implements ISystem {
                     for (const enemy of enemies) {
                         if(enemy == wouldCollideCheck.collidingEntitiy) {
                             this.healthComponentStore.get(enemy).takeDamage(20);
-                            console.log(this.healthComponentStore.get(enemy).hp);
                             if(this.healthComponentStore.get(enemy).hp <= 0){
                                 this.entityFactory.destroyEnemy(enemy);
                             }
