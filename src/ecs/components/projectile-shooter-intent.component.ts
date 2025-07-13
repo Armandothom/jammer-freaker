@@ -1,4 +1,4 @@
-export class ProjectileShooterComponent {
+export class ProjectileShooterIntentComponent {
     public shooterEntityId: number;
 
     constructor(shooterEntityId: number) {

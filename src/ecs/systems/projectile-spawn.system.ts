@@ -1,13 +1,15 @@
 import { SoundManager } from "../../game/asset-manager/sound-manager.js";
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
+import { DirectionAnimComponent } from "../components/direction-anim.component.js";
 import { IntentClickComponent } from "../components/intent-click.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ProjectileComponent } from "../components/projectile-component.js";
-import { ProjectileShooterComponent } from "../components/projectile-shooter.component.js";
+import { ProjectileShooterIntentComponent } from "../components/projectile-shooter-intent.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
+import { AnimDirection } from "../components/types/anim-direction.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityFactory } from "../entities/entity-factory.js";
 import { InputClickSystem } from "./input-click.system.js";
@@ -24,8 +26,9 @@ export class ProjectileSpawnSystem implements ISystem {
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private projectileComponentStore: ComponentStore<ProjectileComponent>,
         private entityFactory: EntityFactory,
-        private projectileShooterComponentStore: ComponentStore<ProjectileShooterComponent>,
+        private projectileShooterComponentStore: ComponentStore<ProjectileShooterIntentComponent>,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
+        private directionAnimComponentStore: ComponentStore<DirectionAnimComponent>,
         private intentClickComponentStore: ComponentStore<IntentClickComponent>,
         private fireRateMs: number = 200
     ) {
@@ -69,12 +72,14 @@ export class ProjectileSpawnSystem implements ISystem {
 
     private spawnProjectile(x: number, y: number, dir: { x: number; y: number }, playerId: number): void {
         const spritePlayerComponent = this.spriteComponentStore.get(playerId);
+        const animPlayerDirectionComponent = this.directionAnimComponentStore.get(playerId);
         const spriteProperties = this.spriteManager.getSpriteProperties(spritePlayerComponent.spriteName, spritePlayerComponent.spriteSheetName)
         const spriteSize = spriteProperties.spriteSheet.afterRenderSpriteCellSize;
+        const offsetX = animPlayerDirectionComponent.direction == AnimDirection.RIGHT ? spriteProperties.spriteSheet.afterRenderSpriteCellSize : 0;
         this.soundManager.playSound("SMG_FIRE");
 
-        const projectileId = this.entityFactory.createProjectile(
-            x + spriteSize,
+        this.entityFactory.createProjectile(
+            x + offsetX,
             y + 9,
             playerId, // por enquanto player ID
             dir.x * 120, // cte --> pode mudar
