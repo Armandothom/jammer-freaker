@@ -32,10 +32,12 @@ import { SoundManager } from "../../game/asset-manager/sound-manager.js";
 import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
 import { IntentShootingComponent } from "../components/intentShootingComponentStore.js";
+import { PathFindingManager } from "../../game/world/pathfinding-manager.js";
 
 export class SystemRunner {
   private renderSystem: RenderSystem;
   private cameraManager: CameraManager;
+  private pathFindingManager : PathFindingManager = new PathFindingManager();
   private spriteComponentStore: ComponentStore<SpriteComponent> = new ComponentStore("SpriteComponent");
   private positionComponentStore: ComponentStore<PositionComponent> = new ComponentStore("PositionComponent");
   private collisionComponentStore: ComponentStore<CollisionComponent> = new ComponentStore("CollisionComponent");

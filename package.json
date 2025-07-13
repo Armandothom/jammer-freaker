@@ -16,7 +16,6 @@
     "vite": "^5.2.10"
   },
   "dependencies": {
-    "gl-matrix": "^3.4.3",
     "simplex-noise": "^4.0.3"
   }
 }

@@ -39,7 +39,7 @@ export class SoundManager {
         source.buffer = buffer;
         source.loop = loop;
 
-        gainNode.gain.value = volume;
+        gainNode.gain.value = 0.05;
 
         source.connect(gainNode);
         gainNode.connect(this.audioContext.destination);
