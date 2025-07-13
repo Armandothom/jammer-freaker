@@ -1,6 +1,6 @@
 
 import { IntentClickComponent } from "../components/intent-click.component.js";
-import { IntentShotComponent } from "../components/intentShotComponentStore.js";
+import { IntentShotComponent } from "../components/intent-shot.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
 import { ComponentStore } from "../core/component-store.js";

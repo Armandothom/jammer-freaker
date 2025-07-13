@@ -2,7 +2,7 @@
 import { randomNumberWithSeedInfluence } from "../../utils/get-random-with-seed.js";
 import { AIAttackOrderComponent } from "../components/ai-attack-order.component.js";
 import { AIComponent } from "../components/ai.component.js";
-import { IntentShotComponent } from "../components/intentShotComponentStore.js";
+import { IntentShotComponent } from "../components/intent-shot.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { AiAttackOrder } from "../components/types/ai-attack-order.js";

@@ -3,7 +3,7 @@ import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
 import { DirectionAnimComponent } from "../components/direction-anim.component.js";
 import { IntentClickComponent } from "../components/intent-click.component.js";
-import { IntentShootComponent } from "../components/intentShotComponentStore.js";
+import { IntentShotComponent } from "../components/intent-shot.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
@@ -28,7 +28,7 @@ export class ProjectileSpawnSystem implements ISystem {
         private entityFactory: EntityFactory,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
         private directionAnimComponentStore: ComponentStore<DirectionAnimComponent>,
-        private intentShotComponentStore: ComponentStore<IntentShootComponent>,
+        private intentShotComponentStore: ComponentStore<IntentShotComponent>,
         private shootingCooldownComponentStore: ComponentStore<ShootingCooldownComponent>,
         private shooterComponentStore: ComponentStore<ShooterComponent>,
         private fireRateMs: number = 200

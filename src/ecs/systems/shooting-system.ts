@@ -1,5 +1,5 @@
 import { EnemyComponent } from "../components/enemy.component.js";
-import { IntentShotComponent } from "../components/intentShotComponentStore.js";
+import { IntentShotComponent } from "../components/intent-shot.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ShooterComponent } from "../components/shooter-component.js";

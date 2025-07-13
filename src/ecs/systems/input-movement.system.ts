@@ -15,6 +15,7 @@ export class InputMovementSystem implements ISystem {
 
     update(deltaTime: number): void {
         for (const entity of this.playerComponentStore.getAllEntities()) {
+
             const input = getInputForEntity(entity); // Definido abaixo
             if (!input) continue;
 

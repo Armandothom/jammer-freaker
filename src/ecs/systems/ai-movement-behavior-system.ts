@@ -32,10 +32,12 @@ export class AiMovementBehaviorSystem implements ISystem {
         for (const aiEntityId of aiEntities) {
             const aiHasMovementOrder = this.aiMovementOrderComponentStore.has(aiEntityId);
             if (!aiHasMovementOrder) {
+                
                 this.setNewMovement(aiEntityId, playerEntityId)
                 continue;
             }
             const aiMovementOrder = this.aiMovementOrderComponentStore.get(aiEntityId);
+            console.log("aimovementOrder", aiEntityId, aiMovementOrder.movementOrder, aiMovementOrder.pathList.length);
             switch (aiMovementOrder.movementOrder) {
                 case AiMovementOrder.MOVE_TO_PLAYER:
                 case AiMovementOrder.MOVE_AWAY_FROM_PLAYER:
@@ -60,6 +62,12 @@ export class AiMovementBehaviorSystem implements ISystem {
         const playerPosition = this.positionComponentStore.get(playerEntityId);
         const aiPosition = this.positionComponentStore.get(aiEntityId);
         const randomNumber = randomNumberWithSeedInfluence(aiEntityId.toString(), 0, 10);
+        playerPosition.x = Math.floor(playerPosition.x);
+        playerPosition.y = Math.floor(playerPosition.y);
+
+        aiPosition.x = Math.floor(aiPosition.x);
+        aiPosition.y = Math.floor(aiPosition.y);
+
         if (randomNumber <= 4) {
             const isTooClose = detectByRadius({
                 x : playerPosition.x,
@@ -100,9 +108,11 @@ export class AiMovementBehaviorSystem implements ISystem {
     private saveMoveIntent(aiMovementOrder: AIMovementOrderComponent, aiEntityId: number) {
         const aiPosition = this.positionComponentStore.get(aiEntityId);
         const aiVelocity = this.velocityComponentStore.get(aiEntityId);
+        //console.log(aiMovementOrder.pathList[0].x, aiPosition.x, aiMovementOrder.pathList[0].y, aiPosition.y);
         if (aiMovementOrder.pathList[0].x == aiPosition.x && aiMovementOrder.pathList[0].y == aiPosition.y) {
             aiMovementOrder.pathList.shift();
         }
+
         if (aiMovementOrder.pathList.length > 0) {
             //Math.sign to get the sign if we should increment or subtract axis
             const offsetX = Math.sign(aiMovementOrder.pathList[0].x - aiPosition.x);

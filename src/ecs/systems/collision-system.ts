@@ -51,7 +51,7 @@ export class CollisionSystem implements ISystem {
             const wouldCollideCheck = this.wouldCollideAABB(intent, entity, spriteSheetOriginProperties.afterRenderSpriteCellSize);
 
             if (wouldCollideCheck.wouldCollide) {
-                this.movementIntentComponentStore.remove(entity); // Cancelamento do intent pra questões de movimento
+                this.movementIntentComponentStore.remove(entity); // Cancelamento do intent pra questões de movimento            
                 if (this.projectileComponentStore.has(entity)) {
                     const shotOrigin = this.shotOriginComponentStore.get(entity);
                     const shooterId = shotOrigin.shooterEntity;
@@ -73,7 +73,7 @@ export class CollisionSystem implements ISystem {
 
                     if (validTarget) {
                         const targetDamage = this.healthComponentStore.get(target).takeDamage(20);
-                        console.log("target x HP:", target, this.healthComponentStore.get(target).hp);
+                        //console.log("target x HP:", target, this.healthComponentStore.get(target).hp);
 
                         if (this.healthComponentStore.get(target).hp <= 0) {
 
@@ -81,12 +81,17 @@ export class CollisionSystem implements ISystem {
 
                                 this.entityFactory.destroyEnemy(target);
                             } else if (targetPlayer) {
-                                console.log("Player dead - Game over");
+                                //console.log("Player dead - Game over");
                             }
                         }
                     }
                     this.entityFactory.destroyProjectile(entity);
                 }
+            }
+
+            const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
+            if (intent.x > canvas.width || intent.y > canvas.height || intent.x < 0 || intent.y < 0) {
+                this.movementIntentComponentStore.remove(entity);
             }
 
         }

@@ -63,6 +63,21 @@ export class SoundManager {
         this.currentSources.clear();
     }
 
+    public resumeOnUserGesture(): void {
+        const resume = () => {
+            if (this.audioContext.state === "suspended") {
+                this.audioContext.resume().then(() => {
+                    console.log("🔊 AudioContext retomado com sucesso.");
+                });
+            }
+            window.removeEventListener("click", resume);
+            window.removeEventListener("keydown", resume);
+        };
+
+        window.addEventListener("click", resume);
+        window.addEventListener("keydown", resume);
+    }
+
     /*setVolume(name: string, volume: number): void {
         // Esse método pode ser estendido para gerenciar volumes individuais via GainNode
     }*/

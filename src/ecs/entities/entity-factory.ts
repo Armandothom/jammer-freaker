@@ -85,7 +85,8 @@ export class EntityFactory {
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.aiComponentStore.add(entityId, new AIComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(100));
-    console.log("Inimigo criado com sucesso", entityId);
+    //console.log("Inimigo criado com sucesso", entityId, startX, startY);
+    //console.log(this.directionAnimationComponentStore.get(entityId));
     return entityId;
   }
 

@@ -3,7 +3,7 @@ import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
 import { AIComponent } from "../components/ai.component.js";
 import { AnimationComponent } from "../components/animation.component.js";
 import { DirectionAnimComponent } from "../components/direction-anim.component.js";
-import { IntentShotComponent } from "../components/intentShotComponentStore.js";
+import { IntentShotComponent } from "../components/intent-shot.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";

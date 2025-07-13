@@ -31,7 +31,7 @@ import { EntityManager } from "./entity-manager.js";
 import { SoundManager } from "../../game/asset-manager/sound-manager.js";
 import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
-import { IntentShotComponent } from "../components/intentShotComponentStore.js";
+import { IntentShotComponent } from "../components/intent-shot.component.js";
 import { PathFindingManager } from "../../game/world/pathfinding-manager.js";
 import { AIComponent } from "../components/ai.component.js";
 import { AiMovementBehaviorSystem } from "../systems/ai-movement-behavior-system.js";
@@ -41,6 +41,7 @@ import { AiAttackBehaviorSystem } from "../systems/ai-attack-behavior-system.js"
 import { AIAttackOrderComponent } from "../components/ai-attack-order.component.js";
 import { ShotOriginComponent } from "../components/shot-origin.component.js";
 import { AimShootingComponent } from "../components/aim-shooting.component.js";
+import { LevelManager } from "./level-manager.js";
 
 export class SystemRunner {
   private renderSystem: RenderSystem;
@@ -87,9 +88,11 @@ export class SystemRunner {
     private entityManager: EntityManager,
     private soundManager: SoundManager,
     private rendererEngine: RendererEngine,
+    private levelManager: LevelManager,
   ) {
-    this.cameraManager = new CameraManager(this.worldTilemapManager, this.spriteManager)
+    this.cameraManager = new CameraManager(this.worldTilemapManager, this.spriteManager);
     this.entityFactory = new EntityFactory(entityManager, this.playerComponentStore, this.enemyComponentStore, this.positionComponentStore, this.spriteComponentStore, this.projectileComponentStore, this.shooterComponentStore, this.velocityComponentStore, this.movementIntentComponentStore, this.soldierComponentStore, this.animationComponentStore, this.directionAnimComponentStore, this.collisionComponentStore, this.aiComponentStore, this.healthComponentStore, this.shotOriginComponentStore);
+    this.levelManager = new LevelManager(5, 1, this.entityManager, this.playerComponentStore, this.enemyComponentStore, this.positionComponentStore, this.spriteComponentStore, this.projectileComponentStore, this.shooterComponentStore, this.velocityComponentStore, this.movementIntentComponentStore, this.soldierComponentStore, this.animationComponentStore, this.directionAnimComponentStore, this.collisionComponentStore, this.aiComponentStore, this.healthComponentStore, this.shotOriginComponentStore)
     this.renderSystem = new RenderSystem(this.positionComponentStore, this.spriteComponentStore, this.cameraManager, this.worldTilemapManager, this.rendererEngine, this.spriteManager, this.directionAnimComponentStore);
     this.inputMovementSystem = new InputMovementSystem(this.positionComponentStore, this.movimentIntentComponentStore, this.playerComponentStore)
     this.shootingSystem = new ShootingSystem(this.playerComponentStore, this.enemyComponentStore, this.intentShotComponentStore, this.positionComponentStore, this.shooterComponentStore);
@@ -105,6 +108,7 @@ export class SystemRunner {
   }
 
   update() {
+    this.levelManager.update(CoreManager.timeGlobalSinceStart);
     this.inputMovementSystem.update(CoreManager.timeSinceLastRender);
     this.aiMovementBehaviorSystem.update(CoreManager.timeSinceLastRender);
     this.aiAttackBehaviorSystem.update(CoreManager.timeSinceLastRender)

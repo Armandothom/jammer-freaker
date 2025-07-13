@@ -4,6 +4,7 @@ import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { RendererEngine } from "../../game/renderer/renderer-engine.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { EntityManager } from "./entity-manager.js";
+import { LevelManager } from "./level-manager.js";
 import { SystemRunner } from "./system-runner.js";
 import { SoundMap } from "../../game/asset-manager/consts/sound-mapped.values.js"
 
@@ -18,6 +19,7 @@ export class CoreManager {
     private _rendererEngine: RendererEngine;
     private _entityManager: EntityManager;
     private _soundManager!: SoundManager;
+    private _levelManager!: LevelManager;
 
     constructor() {
         this._assetManager = new AssetManager();
@@ -34,8 +36,9 @@ export class CoreManager {
         this._rendererEngine.init();
         console.log("Game generated");
         this._worldTilemapManager = new WorldTilemapManager(this._spriteManager);
-        this._systemRunner = new SystemRunner(this._worldTilemapManager, this._spriteManager, this._entityManager, this._soundManager, this._rendererEngine,);
+        this._systemRunner = new SystemRunner(this._worldTilemapManager, this._spriteManager, this._entityManager, this._soundManager, this._rendererEngine, this._levelManager);
         this._systemRunner.initialize();
+        this._soundManager.resumeOnUserGesture();
         this._soundManager.playSound("THEME", true, 0.1);
         CoreManager.timeGlobalSinceStart = 0;
         window.requestAnimationFrame(this.runLoop.bind(this));
