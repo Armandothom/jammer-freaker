@@ -1,33 +1,32 @@
+import { EnemyComponent } from "../components/enemy.component.js";
 import { IntentClickComponent } from "../components/intent-click.component.js";
+import { IntentShootingComponent } from "../components/intentShootingComponentStore.js";
 import { PlayerComponent } from "../components/player.component.js";
+import { PositionComponent } from "../components/position.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { ISystem } from "./system.interface.js";
 
-export class InputClickSystem implements ISystem {
+export class ShootingSystem implements ISystem {
 
-    private clickQueue: { x: number, y: number }[] = [];
     private canvas: HTMLCanvasElement;
     private isMouseDown: boolean = false;
     private currentMousePos: { x: number, y: number } = { x: 0, y: 0 };
 
     constructor(
         private playerComponentStore: ComponentStore<PlayerComponent>,
+        private enemyComponentStore: ComponentStore<EnemyComponent>,
         private intentClickComponentStore: ComponentStore<IntentClickComponent>,
-        private clickCooldownMs = 20000,
-        private pressTresholdMs = 200,
-        private spamTresholdMs = 20000
+        private intentShootingComponentStore: ComponentStore<IntentShootingComponent>,
+        private poisitionComponentStore: ComponentStore<PositionComponent>,
+
     ) {
         this.canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
         this.initListeners();
     };
 
     update(deltaTime: number): void {
-        this.pressTresholdMs -= deltaTime * 1000;
-        if (this.pressTresholdMs < 0) this.pressTresholdMs = 0;
-
-        if (this.isMouseDown && this.pressTresholdMs === 0) {
-            this.pushClickIntent(true); // isHold = true
-            this.pressTresholdMs = 200;
+        if (this.isMouseDown) {
+            this.pushShootIntent(true); // isHold = true
         }
     }
 
@@ -36,12 +35,6 @@ export class InputClickSystem implements ISystem {
         this.canvas.addEventListener("mousedown", (e: MouseEvent) => {
             this.isMouseDown = true;
             this.updateMousePosition(e);
-
-            if (this.clickCooldownMs === 0) {
-                this.pushClickIntent(true); // isHold = true
-                this.clickCooldownMs = this.spamTresholdMs;
-            }
-            // dispara o primeiro com isHold=true
         });
 
         this.canvas.addEventListener("mouseup", () => {
@@ -54,12 +47,7 @@ export class InputClickSystem implements ISystem {
 
         this.canvas.addEventListener("click", (e: MouseEvent) => {
             this.updateMousePosition(e);
-            this.pushClickIntent(false); // isHold = false
-
-            if (this.clickCooldownMs === 0) {
-                this.pushClickIntent(false); // isHold = false
-                this.clickCooldownMs = this.spamTresholdMs;
-            }
+            this.pushShootIntent(false); // isHold = false
         });
     }
 
@@ -71,14 +59,24 @@ export class InputClickSystem implements ISystem {
         };
     }
 
-    private pushClickIntent(isHold: boolean) {
-        const entities = this.playerComponentStore.getAllEntities();
-        for (const entity of entities) {
+    private pushShootIntent(isHold: boolean) {
+        const playerEntities = this.playerComponentStore.getAllEntities();
+        const enemyEntities = this.enemyComponentStore.getAllEntities()
+        let playerPos: { x: number, y: number } | undefined;
+
+        for (const entity of playerEntities) {
             this.intentClickComponentStore.add(entity, new IntentClickComponent(
                 this.currentMousePos.x,
                 this.currentMousePos.y,
                 isHold
             ))
+            playerPos = this.poisitionComponentStore.get(entity);
+        }
+
+        if (playerPos) {
+            for (const entity of enemyEntities) {
+                this.intentShootingComponentStore.add(entity, new IntentShootingComponent(playerPos.x, playerPos.y))
+            }
         }
     }
 }

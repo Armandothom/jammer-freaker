@@ -1,8 +1,10 @@
 
 import { IntentClickComponent } from "../components/intent-click.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
-import { ProjectileShooterIntentComponent } from "../components/projectile-shooter-intent.component.js";
+import { ProjectileShooterIntentComponent } from "../components/shooter-component.js";
+import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
 import { ComponentStore } from "../core/component-store.js";
+import { CoreManager } from "../core/core-manager.js";
 import { ISystem } from "./system.interface.js";
 
 
@@ -12,6 +14,8 @@ export class TerminatorSystem implements ISystem {
         private clickIntentComponentStore: ComponentStore<IntentClickComponent>,
         private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
         private projectileShooterComponentStore: ComponentStore<ProjectileShooterIntentComponent>,
+        private shootingCooldownComponentStore: ComponentStore<ShootingCooldownComponent>,
+
     ) { }
 
     update(deltaTime: number): void {
@@ -28,6 +32,15 @@ export class TerminatorSystem implements ISystem {
         const projectileShooterComponentEntities = this.projectileShooterComponentStore.getAllEntities();
         for (const projectileShooterComponentEntity of projectileShooterComponentEntities) {
             this.projectileShooterComponentStore.remove(projectileShooterComponentEntity);
+        }
+
+        const shootingCooldownComponentEntities = this.shootingCooldownComponentStore.getAllEntities();
+        for (const shootingCooldownComponentEntity of shootingCooldownComponentEntities) {
+
+            const cooldown = this.shootingCooldownComponentStore.get(shootingCooldownComponentEntity);
+            if (cooldown.endCooldown < CoreManager.timeGlobalSinceStart) {
+                this.shootingCooldownComponentStore.remove(shootingCooldownComponentEntity);
+            }
         }
     }
 }

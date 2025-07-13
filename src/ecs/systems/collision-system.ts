@@ -6,35 +6,44 @@ import { ISystem } from "./system.interface.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
+import { ProjectileComponent } from "../components/projectile-component.js";
+import { EntityFactory } from "../entities/entity-factory.js";
 
 export class CollisionSystem implements ISystem {
     constructor(
-        private spriteComponentStore : ComponentStore<SpriteComponent>,
+        private spriteComponentStore: ComponentStore<SpriteComponent>,
         private positionComponentStore: ComponentStore<PositionComponent>,
         private collisionComponentStore: ComponentStore<CollisionComponent>,
-        private movimentIntentComponentStore: ComponentStore<MovementIntentComponent>,
-        private spriteManager : SpriteManager
+        private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
+        private projectileComponentStore: ComponentStore<ProjectileComponent>,
+        private spriteManager: SpriteManager,
+        private entityFactory: EntityFactory
     ) {
 
     }
 
     update(deltaTime: number): void {
-        for (const entity of this.movimentIntentComponentStore.getAllEntities()) {
-            const intent = this.movimentIntentComponentStore.get(entity);
+        for (const entity of this.movementIntentComponentStore.getAllEntities()) {
+            const intent = this.movementIntentComponentStore.getOrNull(entity);
             if (!intent) {
                 continue;
             };
 
             const spriteComponent = this.spriteComponentStore.get(entity);
 
-            if(!spriteComponent) {
-                console.error(`No sprite found for entity ${spriteComponent}`);
+            if (!spriteComponent) {
+                console.error(`No sprite found for entity ${entity}`);
+                continue;
             }
 
             const spriteSheetOriginProperties = this.spriteManager.getSpriteSheetProperties(spriteComponent.spriteSheetName);
-            
+
             if (this.wouldCollideAABB(intent, entity, spriteSheetOriginProperties.afterRenderSpriteCellSize)) {
-                this.movimentIntentComponentStore.remove(entity); // Cancelamento do intent
+                this.movementIntentComponentStore.remove(entity); // Cancelamento do intent
+                if (this.projectileComponentStore.has(entity)) {
+                    console.log("projectile collision");
+                    this.entityFactory.destroyProjectile(entity);
+                }
             }
 
         }
@@ -46,26 +55,33 @@ export class CollisionSystem implements ISystem {
         tileSize: number
     ): boolean {
         const intendedMovement = {
-            left: intent.x * tileSize,
-            right: (intent.x + 1) * tileSize,
-            top: intent.y * tileSize,
-            bottom: (intent.y + 1) * tileSize,
+            left: intent.x,
+            right: intent.x + tileSize,
+            top: intent.y,
+            bottom: intent.y + tileSize,
         };
 
         for (const other of this.collisionComponentStore.getAllEntities()) {
             if (other === self) continue;
 
             const collision = this.collisionComponentStore.get(other);
+            const pos = this.positionComponentStore.get(other);
+            console.log(`Checking against ${other} - collides=${collision?.collides} pos=${pos?.x},${pos?.y}`);
             if (!collision || !collision.collides) continue;
 
-            const pos = this.positionComponentStore.get(other);
+
             if (!pos) continue;
 
+            const otherSprite = this.spriteComponentStore.getOrNull(other);
+            const otherTileSize = otherSprite
+                ? this.spriteManager.getSpriteSheetProperties(otherSprite.spriteSheetName)?.afterRenderSpriteCellSize ?? tileSize
+                : tileSize;
+
             const current = {
-                left: pos.x * tileSize,
-                right: (pos.x + 1) * tileSize,
-                top: pos.y * tileSize,
-                bottom: (pos.y + 1) * tileSize
+                left: pos.x,
+                right: pos.x + otherTileSize,
+                top: pos.y,
+                bottom: pos.y + otherTileSize,
             };
 
             const intersect =

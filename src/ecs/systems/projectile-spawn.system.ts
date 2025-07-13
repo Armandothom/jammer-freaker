@@ -7,17 +7,17 @@ import { MovementIntentComponent } from "../components/movement-intent.component
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ProjectileComponent } from "../components/projectile-component.js";
-import { ProjectileShooterIntentComponent } from "../components/projectile-shooter-intent.component.js";
+import { ProjectileShooterComponent, ProjectileShooterIntentComponent } from "../components/shooter-component.js";
+import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { AnimDirection } from "../components/types/anim-direction.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityFactory } from "../entities/entity-factory.js";
-import { InputClickSystem } from "./input-click.system.js";
+import { InputClickSystem } from "./shooting-system.js";
 import { ISystem } from "./system.interface.js";
 
 export class ProjectileSpawnSystem implements ISystem {
     private readonly tileSize: number;
-    private fireCooldown = 0;
 
     constructor(
         private spriteManager: SpriteManager,
@@ -26,10 +26,11 @@ export class ProjectileSpawnSystem implements ISystem {
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private projectileComponentStore: ComponentStore<ProjectileComponent>,
         private entityFactory: EntityFactory,
-        private projectileShooterComponentStore: ComponentStore<ProjectileShooterIntentComponent>,
+        private projectileShooterComponentStore: ComponentStore<ProjectileShooterComponent>,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
         private directionAnimComponentStore: ComponentStore<DirectionAnimComponent>,
         private intentClickComponentStore: ComponentStore<IntentClickComponent>,
+        private shootingCooldownComponentStore: ComponentStore<ShootingCooldownComponent>,
         private fireRateMs: number = 200
     ) {
         const terrainSpriteSheet = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN);
@@ -60,13 +61,13 @@ export class ProjectileSpawnSystem implements ISystem {
             if (magnitude === 0) continue; // Podemos alterar para que não spawne projetil se ele clicar tão perto do sprite do player
 
             const dir = { x: dx / magnitude, y: dy / magnitude }; // Vetor de direção normalizado
-            this.spawnProjectile(playerPos.x, playerPos.y, dir, entity);
 
-            // Remove intent APENAS se for clique único
-            if (!intent.isHold) {
-                this.intentClickComponentStore.remove(entity);
+
+            const cooldown = this.shootingCooldownComponentStore.has(entity);
+            if (!cooldown) {
+                this.spawnProjectile(playerPos.x, playerPos.y, dir, entity);
+                const cooldownAdd = this.shootingCooldownComponentStore.add(entity, new ShootingCooldownComponent(0.2));
             }
-
         }
     }
 
@@ -75,18 +76,16 @@ export class ProjectileSpawnSystem implements ISystem {
         const animPlayerDirectionComponent = this.directionAnimComponentStore.get(playerId);
         const spriteProperties = this.spriteManager.getSpriteProperties(spritePlayerComponent.spriteName, spritePlayerComponent.spriteSheetName)
         const spriteSize = spriteProperties.spriteSheet.afterRenderSpriteCellSize;
-        const offsetX = animPlayerDirectionComponent.direction == AnimDirection.RIGHT ? spriteProperties.spriteSheet.afterRenderSpriteCellSize : 0;
+        const offsetX = animPlayerDirectionComponent.direction == AnimDirection.RIGHT ? spriteProperties.spriteSheet.afterRenderSpriteCellSize +5 : -5;
         this.soundManager.playSound("SMG_FIRE");
 
-        this.entityFactory.createProjectile(
+        const entity = this.entityFactory.createProjectile(
             x + offsetX,
             y + 9,
             playerId, // por enquanto player ID
             dir.x * 120, // cte --> pode mudar
             dir.y * 120
         );
-
-        console.log("Projectile Spawned");
         //Adição de mais componentes
     }
 

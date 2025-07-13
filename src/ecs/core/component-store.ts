@@ -8,7 +8,6 @@ export class ComponentStore<T> {
   }
 
   public add(entityId: EntityId, component: T) {
-
     return this.components.set(entityId, component);
   }
 

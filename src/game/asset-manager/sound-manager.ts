@@ -19,7 +19,6 @@ export class SoundManager {
                     const arrayBuffer = await response.arrayBuffer();
                     const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
                     this.buffers.set(key as SoundKey, audioBuffer);
-                    console.log(`✅ Sound "${key}" carregado com sucesso.`);
                 } catch (error) {
                     console.warn(`❌ Falha ao carregar o som "${key}":`, error);
                 }

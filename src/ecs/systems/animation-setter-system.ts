@@ -4,7 +4,7 @@ import { AnimationComponent } from "../components/animation.component.js";
 import { DirectionAnimComponent } from "../components/direction-anim.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PositionComponent } from "../components/position.component.js";
-import { ProjectileShooterIntentComponent } from "../components/projectile-shooter-intent.component.js";
+import { ProjectileShooterIntentComponent } from "../components/shooter-component.js";
 import { SoldierComponent } from "../components/soldier.component.js";
 import { AnimDirection } from "../components/types/anim-direction.js";
 import { ComponentStore } from "../core/component-store.js";

@@ -7,38 +7,49 @@ import { AnimationComponent } from "../components/animation.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ProjectileComponent } from "../components/projectile-component.js";
-import { ProjectileShooterIntentComponent } from "../components/projectile-shooter-intent.component.js";
+import { ShooterComponent } from "../components/shooter-component.js";
 import { SoldierComponent } from "../components/soldier.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { VelocityComponent } from "../components/velocity-component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityManager } from "../core/entity-manager.js";
+import { DirectionAnimComponent } from "../components/direction-anim.component.js";
+import { AnimDirection } from "../components/types/anim-direction.js";
+import { EnemyComponent } from "../components/enemy.component.js";
+import { CollisionComponent } from "../components/collision-component.js";
 
 export class EntityFactory {
   constructor(
     private entityManager: EntityManager,
     private playerComponentStore: ComponentStore<PlayerComponent>,
+    private enemyComponentStore: ComponentStore<EnemyComponent>,
     private positionComponentStore: ComponentStore<PositionComponent>,
     private spriteComponentStore: ComponentStore<SpriteComponent>,
     private projectileComponentStore: ComponentStore<ProjectileComponent>,
-    private projectileShooterComponentStore: ComponentStore<ProjectileShooterIntentComponent>,
+    private shooterComponentStore: ComponentStore<ShooterComponent>,
     private velocityComponentStore: ComponentStore<VelocityComponent>,
     private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
     //private intentClickComponentStore: ComponentStore<IntentClickComponent>
     private soldierComponentStore: ComponentStore<SoldierComponent>,
-    private animationComponentStore: ComponentStore<AnimationComponent>
+    private animationComponentStore: ComponentStore<AnimationComponent>,
+    private directionAnimationComponentStore: ComponentStore<DirectionAnimComponent>,
+    private collisionComponentStore: ComponentStore<CollisionComponent>
   ) {
 
   }
-  
+
   createPlayer(startX: number, startY: number) {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.SOLDER_STILL, SpriteSheetName.SOLDIER));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.SOLDIER_STILL));
+    this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
     this.playerComponentStore.add(entityId, new PlayerComponent());
+    this.shooterComponentStore.add(entityId, new ShooterComponent());
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY))
     this.soldierComponentStore.add(entityId, new SoldierComponent());
+    this.collisionComponentStore.add(entityId, new CollisionComponent());
+    console.log("Player criado com sucesso");
     return entityId;
   }
 
@@ -47,10 +58,32 @@ export class EntityFactory {
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.BULLET_1, SpriteSheetName.BULLET)); //placeholder
     this.projectileComponentStore.add(entityId, new ProjectileComponent());
-    this.projectileShooterComponentStore.add(entityId, new ProjectileShooterIntentComponent(entityShooterId));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velX, velY));
-    //this.intentClickComponentStore.add(entityId, new IntentClickComponent())
+    this.collisionComponentStore.add(entityId, new CollisionComponent());
     return entityId;
   }
+
+  createEnemy(startX: number, startY: number) {
+    const entityId = this.entityManager.registerEntity();
+    this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
+    this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.SOLDER_STILL, SpriteSheetName.SOLDIER));
+    this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.SOLDIER_STILL));
+    this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
+    this.enemyComponentStore.add(entityId, new PlayerComponent());
+    this.shooterComponentStore.add(entityId, new ShooterComponent())
+    this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY))
+    this.soldierComponentStore.add(entityId, new SoldierComponent());
+    this.collisionComponentStore.add(entityId, new CollisionComponent());
+    console.log("Inimigo criado com sucesso");
+    return entityId;
+  }
+
+  destroyProjectile(entityId: number): void {
+    this.positionComponentStore.remove(entityId);
+    this.spriteComponentStore.remove(entityId);
+    this.projectileComponentStore.remove(entityId);
+    this.velocityComponentStore.remove(entityId);
+    this.collisionComponentStore.remove(entityId);
+}
 
 }

@@ -11,15 +11,16 @@ export class InputMovementSystem implements ISystem {
         private positionComponentStore: ComponentStore<PositionComponent>,
         private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
         private playerComponentStore: ComponentStore<PlayerComponent>
-    ) {}
+    ) { }
 
     update(deltaTime: number): void {
         for (const entity of this.playerComponentStore.getAllEntities()) {
-
             const input = getInputForEntity(entity); // Definido abaixo
             if (!input) continue;
 
             const pos = this.positionComponentStore.get(entity);
+            if (!pos) continue;
+
             const intent = new MovementIntentComponent(pos.x + input.dx, pos.y + input.dy);
             this.movementIntentComponentStore.add(entity, intent);
         }
