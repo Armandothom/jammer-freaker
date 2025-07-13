@@ -1,6 +1,5 @@
 import { EnemyComponent } from "../components/enemy.component.js";
-import { IntentClickComponent } from "../components/intent-click.component.js";
-import { IntentShootingComponent } from "../components/intentShootingComponentStore.js";
+import { IntentShotComponent } from "../components/intentShotComponentStore.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ShooterComponent } from "../components/shooter-component.js";
@@ -16,9 +15,8 @@ export class ShootingSystem implements ISystem {
     constructor(
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private enemyComponentStore: ComponentStore<EnemyComponent>,
-        private intentClickComponentStore: ComponentStore<IntentClickComponent>,
-        private intentShootingComponentStore: ComponentStore<IntentShootingComponent>,
-        private poisitionComponentStore: ComponentStore<PositionComponent>,
+        private intentShotComponentStore: ComponentStore<IntentShotComponent>,
+        private positionComponentStore: ComponentStore<PositionComponent>,
         private shooterComponentStore: ComponentStore<ShooterComponent>
 
     ) {
@@ -28,16 +26,15 @@ export class ShootingSystem implements ISystem {
 
     update(deltaTime: number): void {
         if (this.isMouseDown) {
-            this.pushShootIntent(true); // isHold = true
+            this.pushShotIntent(true); // isHold = true
         }
-        const shootIntents = this.intentShootingComponentStore.getAllEntities();
-        for (const shootIntent in shootIntents) {
-            this.pushShootIntent(true);
+        const shotIntents = this.intentShotComponentStore.getAllEntities();
+        for (const shotIntent in shotIntents) {
+            this.pushShotIntent(true);
         }
     }
 
     private initListeners() {
-
         this.canvas.addEventListener("mousedown", (e: MouseEvent) => {
             this.isMouseDown = true;
             this.updateMousePosition(e);
@@ -53,7 +50,7 @@ export class ShootingSystem implements ISystem {
 
         this.canvas.addEventListener("click", (e: MouseEvent) => {
             this.updateMousePosition(e);
-            this.pushShootIntent(false); // isHold = false
+            this.pushShotIntent(false); // isHold = false
         });
     }
 
@@ -65,15 +62,15 @@ export class ShootingSystem implements ISystem {
         };
     }
 
-    private pushShootIntent(isHold: boolean) {
+    private pushShotIntent(isHold: boolean) {
         const shooters = this.shooterComponentStore.getAllEntities();
         let playerPos: { x: number, y: number } | undefined;
 
         for (const shooter of shooters) {
 
             if (this.playerComponentStore.has(shooter)) {
-                playerPos = this.poisitionComponentStore.get(shooter);
-                this.intentClickComponentStore.add(shooter, new IntentClickComponent(
+                playerPos = this.positionComponentStore.get(shooter);
+                this.intentShotComponentStore.add(shooter, new IntentShotComponent(
                     this.currentMousePos.x,
                     this.currentMousePos.y,
                     isHold
@@ -81,9 +78,10 @@ export class ShootingSystem implements ISystem {
             }
 
             if (this.enemyComponentStore.has(shooter)) {
-                this.intentShootingComponentStore.add(shooter, new IntentShootingComponent(
+                this.intentShotComponentStore.add(shooter, new IntentShotComponent(
                     playerPos!.x,
-                    playerPos!.y
+                    playerPos!.y,
+                    true
                 ));
             }
         }

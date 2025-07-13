@@ -2,7 +2,7 @@
 import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
 import { AnimationComponent } from "../components/animation.component.js";
 import { DirectionAnimComponent } from "../components/direction-anim.component.js";
-import { IntentShootingComponent } from "../components/intentShootingComponentStore.js";
+import { IntentShotComponent } from "../components/intentShotComponentStore.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ShooterComponent } from "../components/shooter-component.js";
@@ -18,13 +18,13 @@ export class AnimationSetterSystem implements ISystem {
         private positionComponentStore: ComponentStore<PositionComponent>,
         private directionAnimComponentStore: ComponentStore<DirectionAnimComponent>,
         private animationComponentStore: ComponentStore<AnimationComponent>,
-        private projectileShooterComponentStore: ComponentStore<IntentShootingComponent>,
+        private intentShotComponentStore: ComponentStore<IntentShotComponent>,
         private soldierComponentStore : ComponentStore<SoldierComponent>
     ) { }
 
     update(deltaTime: number): void {
         const entitiesWithAnim = this.animationComponentStore.getAllEntities();
-        const entitiesShooting = new Set(this.projectileShooterComponentStore.getAllEntities());
+        const entitiesShooting = new Set(this.intentShotComponentStore.getAllEntities());
         for (const entityWithAnim of entitiesWithAnim) {
             let animToUse : AnimationName | undefined;
             const currentAnim = this.animationComponentStore.get(entityWithAnim).animationName;

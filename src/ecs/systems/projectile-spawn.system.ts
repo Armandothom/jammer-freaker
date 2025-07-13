@@ -3,6 +3,7 @@ import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
 import { DirectionAnimComponent } from "../components/direction-anim.component.js";
 import { IntentClickComponent } from "../components/intent-click.component.js";
+import { IntentShootComponent } from "../components/intentShotComponentStore.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
@@ -25,10 +26,9 @@ export class ProjectileSpawnSystem implements ISystem {
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private projectileComponentStore: ComponentStore<ProjectileComponent>,
         private entityFactory: EntityFactory,
-        private projectileShooterComponentStore: ComponentStore<ShooterComponent>,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
         private directionAnimComponentStore: ComponentStore<DirectionAnimComponent>,
-        private intentClickComponentStore: ComponentStore<IntentClickComponent>,
+        private intentShotComponentStore: ComponentStore<IntentShootComponent>,
         private shootingCooldownComponentStore: ComponentStore<ShootingCooldownComponent>,
         private shooterComponentStore: ComponentStore<ShooterComponent>,
         private fireRateMs: number = 200
@@ -45,31 +45,31 @@ export class ProjectileSpawnSystem implements ISystem {
 
         for (const entity of shooters) {
             const shooterPos = this.positionComponentStore.get(entity);
-            if (this.playerComponentStore.has(entity)) {
-                const intent = this.intentClickComponentStore.getOrNull(entity);
 
-                if (!shooterPos || !intent) continue;
+            const intent = this.intentShotComponentStore.getOrNull(entity);
 
-                let shooterPosXConverted = shooterPos.x / canvas.width * canvasWidthHeightInTiles;
-                let shooterPosYConverted = shooterPos.y / canvas.height * canvasWidthHeightInTiles;
+            if (!shooterPos || !intent) continue;
 
-                let intentXConverted = intent.x / canvas.width * canvasWidthHeightInTiles;
-                let intentYConverted = intent.y / canvas.height * canvasWidthHeightInTiles;
+            let shooterPosXConverted = shooterPos.x / canvas.width * canvasWidthHeightInTiles;
+            let shooterPosYConverted = shooterPos.y / canvas.height * canvasWidthHeightInTiles;
 
-                const dx = intentXConverted - (shooterPosXConverted);
-                const dy = intentYConverted - (shooterPosYConverted);
-                const magnitude = Math.hypot(dx, dy); // Distancia do player e do click
-                if (magnitude === 0) continue; // Podemos alterar para que não spawne projetil se ele clicar tão perto do sprite do player
+            let intentXConverted = intent.x / canvas.width * canvasWidthHeightInTiles;
+            let intentYConverted = intent.y / canvas.height * canvasWidthHeightInTiles;
 
-                const dir = { x: dx / magnitude, y: dy / magnitude }; // Vetor de direção normalizado
+            const dx = intentXConverted - (shooterPosXConverted);
+            const dy = intentYConverted - (shooterPosYConverted);
+            const magnitude = Math.hypot(dx, dy); // Distancia do player e do click
+            if (magnitude === 0) continue; // Podemos alterar para que não spawne projetil se ele clicar tão perto do sprite do player
+
+            const dir = { x: dx / magnitude, y: dy / magnitude }; // Vetor de direção normalizado
 
 
-                const cooldown = this.shootingCooldownComponentStore.has(entity);
-                if (!cooldown) {
-                    this.spawnProjectile(shooterPos.x, shooterPos.y, dir, entity);
-                    const cooldownAdd = this.shootingCooldownComponentStore.add(entity, new ShootingCooldownComponent(0.2));
-                }
+            const cooldown = this.shootingCooldownComponentStore.has(entity);
+            if (!cooldown) {
+                this.spawnProjectile(shooterPos.x, shooterPos.y, dir, entity);
+                const cooldownAdd = this.shootingCooldownComponentStore.add(entity, new ShootingCooldownComponent(0.2));
             }
+
 
             // Adicionar lógica de criar projectile a partir do this.enemyComponentStore.has(entity)
             // bem similar da estrutura acima
