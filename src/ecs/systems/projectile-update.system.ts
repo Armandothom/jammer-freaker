@@ -15,20 +15,23 @@ export class ProjectileUpdateSystem implements ISystem {
         private velocityComponentStore: ComponentStore<VelocityComponent>
     ) { }
 
+    canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
+
     update(deltaTime: number): void {
         const projectileEntities = this.projectileComponentStore.getAllEntities();
         //console.log("projectileEntities", projectileEntities);
 
         for (const entity of projectileEntities) {
-            //console.log(entity);
             const position = this.positionComponentStore.get(entity);
             const velocity = this.velocityComponentStore.get(entity);
             const intent = {
-                x: position.x + velocity.velX * deltaTime * 120,
-                y: position.y + velocity.velY * deltaTime * 120
+                x: position.x + velocity.velX * deltaTime,
+                y: position.y + velocity.velY * deltaTime
             }
-            //console.log(position, velocity);
-
+            if (intent.x > this.canvas.width || intent.y > this.canvas.height || intent.x < 0 || intent.y < 0){
+                this.projectileComponentStore.remove(entity);                
+            }
+            //console.log(intent);
             this.positionComponentStore.add(entity, intent); // atualiza posição
         }
 

@@ -7,7 +7,8 @@ export class ComponentStore<T> {
     this.className = className;
   }
 
-  public add(entityId : EntityId, component : T) {
+  public add(entityId: EntityId, component: T) {
+
     return this.components.set(entityId, component);
   }
 
@@ -15,6 +16,14 @@ export class ComponentStore<T> {
     const value = this.components.get(entityId)
     if (!value) {
       throw new Error(`[${this.className}] Error when trying to get component store ${entityId}`);
+    }
+    return value;
+  }
+
+  public getOrNull(entityId: EntityId) {
+    const value = this.components.get(entityId)
+    if (!value) {
+      return null;
     }
     return value;
   }

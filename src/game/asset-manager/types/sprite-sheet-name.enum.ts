@@ -1,4 +1,5 @@
 export enum SpriteSheetName {
   TERRAIN = "terrain",
-  SOLDIER = "soldier"
+  SOLDIER = "soldier",
+  BULLET = "bullet"
 }

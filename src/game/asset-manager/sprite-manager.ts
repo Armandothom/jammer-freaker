@@ -75,7 +75,6 @@ export class SpriteManager {
   ];
 }
 
-
   public getSpriteProperties(spriteName: SpriteName, spriteSheetName: SpriteSheetName) {
     const spriteSheet = this.getSpriteSheetProperties(spriteSheetName);
     const sprite = spriteSheet?.sprites.get(spriteName);

@@ -4,7 +4,7 @@ import { RendererEngine } from "../../game/renderer/renderer-engine.js";
 import { CameraManager } from "../../game/world/camera-manager.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { CollisionComponent } from "../components/collision-component.js";
-import { EntityNameComponent } from "../components/entity-name.component.js";
+import { IntentClickComponent } from "../components/intent-click.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
@@ -35,6 +35,7 @@ export class SystemRunner {
   private projectileComponentStore: ComponentStore<ProjectileComponent> = new ComponentStore("ProjectileComponent");
   private projectileShooterComponentStore: ComponentStore<ProjectileShooterComponent> = new ComponentStore("ProjectileShooterComponent");
   private velocityComponentStore: ComponentStore<VelocityComponent> = new ComponentStore("VelocityComponent");
+  private intentClickComponentStore: ComponentStore<IntentClickComponent> = new ComponentStore("IntentClickComponent");
   private inputMovementSystem: InputMovementSystem;
   private inputClickSystem: InputClickSystem;
   private projectileSpawnSystem: ProjectileSpawnSystem;
@@ -51,15 +52,14 @@ export class SystemRunner {
     private rendererEngine: RendererEngine
   ) {
     this.cameraManager = new CameraManager(this.worldTilemapManager, this.spriteManager)
-    this.entityFactory = new EntityFactory(entityManager, this.playerComponentStore, this.positionComponentStore, this.spriteComponentStore, this.projectileComponentStore, this.projectileShooterComponentStore, this.velocityComponentStore);
+    this.entityFactory = new EntityFactory(entityManager, this.playerComponentStore, this.positionComponentStore, this.spriteComponentStore, this.projectileComponentStore, this.projectileShooterComponentStore, this.velocityComponentStore, this.movimentIntentComponentStore);
     this.renderSystem = new RenderSystem(this.positionComponentStore, this.spriteComponentStore, this.cameraManager, this.worldTilemapManager, this.rendererEngine, this.spriteManager);
-    this.inputMovementSystem = new InputMovementSystem(this.positionComponentStore, this.movimentIntentComponentStore)
-    this.inputClickSystem = new InputClickSystem();
-    this.projectileSpawnSystem = new ProjectileSpawnSystem(this.inputClickSystem, this.spriteManager, this.positionComponentStore, this.playerComponentStore, this.movimentIntentComponentStore, this.projectileComponentStore, this.entityFactory, this.projectileShooterComponentStore, this.spriteComponentStore)
+    this.inputMovementSystem = new InputMovementSystem(this.positionComponentStore, this.movimentIntentComponentStore, this.playerComponentStore)
+    this.inputClickSystem = new InputClickSystem(this.playerComponentStore, this.intentClickComponentStore);
+    this.projectileSpawnSystem = new ProjectileSpawnSystem(this.spriteManager, this.positionComponentStore, this.playerComponentStore, this.projectileComponentStore, this.entityFactory, this.projectileShooterComponentStore, this.spriteComponentStore, this.intentClickComponentStore)
     this.projectileUpdateSystem = new ProjectileUpdateSystem(this.positionComponentStore, this.projectileComponentStore, this.velocityComponentStore);
     this.collisionSystem = new CollisionSystem(this.spriteComponentStore, this.positionComponentStore, this.collisionComponentStore, this.movimentIntentComponentStore, this.spriteManager);
-    this.movementSystem = new MovementSystem(this.positionComponentStore, this.movimentIntentComponentStore);
-
+    this.movementSystem = new MovementSystem(this.positionComponentStore, this.movimentIntentComponentStore, this.playerComponentStore);
   }
 
   update() {
@@ -68,7 +68,7 @@ export class SystemRunner {
     this.projectileSpawnSystem.update(CoreManager.timeSinceLastRender);
     this.projectileUpdateSystem.update(CoreManager.timeSinceLastRender);
     this.collisionSystem.update(CoreManager.timeSinceLastRender);
-    this.movementSystem.update(CoreManager.timeSinceLastRender)
+    this.movementSystem.update(CoreManager.timeSinceLastRender);
     this.renderSystem.update(CoreManager.timeSinceLastRender);
   }
 

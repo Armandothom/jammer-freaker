@@ -1,4 +1,5 @@
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
+import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { ISystem } from "./system.interface.js";
@@ -8,11 +9,12 @@ const keys: Record<string, boolean> = {};
 export class InputMovementSystem implements ISystem {
     constructor(
         private positionComponentStore: ComponentStore<PositionComponent>,
-        private movementIntentComponentStore: ComponentStore<MovementIntentComponent>
+        private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
+        private playerComponentStore: ComponentStore<PlayerComponent>
     ) {}
 
     update(deltaTime: number): void {
-        for (const entity of this.positionComponentStore.getAllEntities()) {
+        for (const entity of this.playerComponentStore.getAllEntities()) {
 
             const input = getInputForEntity(entity); // Definido abaixo
             if (!input) continue;

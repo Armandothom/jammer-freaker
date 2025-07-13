@@ -1,5 +1,6 @@
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
+import { IntentClickComponent } from "../components/intent-click.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
@@ -13,56 +14,59 @@ import { ISystem } from "./system.interface.js";
 
 export class ProjectileSpawnSystem implements ISystem {
     private readonly tileSize: number;
+    private fireCooldown = 0;
+
     constructor(
-        private inputClickSystem: InputClickSystem,
         private spriteManager: SpriteManager,
         private positionComponentStore: ComponentStore<PositionComponent>,
         private playerComponentStore: ComponentStore<PlayerComponent>,
-        private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
         private projectileComponentStore: ComponentStore<ProjectileComponent>,
         private entityFactory: EntityFactory,
         private projectileShooterComponentStore: ComponentStore<ProjectileShooterComponent>,
-        private spriteComponentStore: ComponentStore<SpriteComponent>
+        private spriteComponentStore: ComponentStore<SpriteComponent>,
+        private intentClickComponentStore: ComponentStore<IntentClickComponent>,
+        private fireRateMs: number = 200
     ) {
         const terrainSpriteSheet = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN);
         this.tileSize = terrainSpriteSheet.afterRenderSpriteCellSize;
     }
 
     update(deltaTime: number): void {
-        const clicks = this.inputClickSystem.consumeClicks();
-        if (clicks.length === 0) return; // Para aqui se não houver clique
 
-        const playerIdRetrievalResponse = this.playerComponentStore.getAllEntities();
-        if (playerIdRetrievalResponse.length !== 1) {
-            console.warn("Número inesperado de jogadores encontrados:", playerIdRetrievalResponse.length);
-            return;
-        }
-        const playerId = playerIdRetrievalResponse[0];
-        const playerPos = this.positionComponentStore.get(playerId);
+        const players = this.playerComponentStore.getAllEntities();
+        const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
+        const canvasWidthHeightInTiles = canvas.width / this.tileSize;
 
+        for (const entity of players) {
+            const playerPos = this.positionComponentStore.get(entity);
+            console.log(entity);
+            const intent = this.intentClickComponentStore.getOrNull(entity);
+            if (!playerPos || !intent) continue;
 
-        for (const click of clicks) {
-            const canvasClickX = click.x / this.tileSize;
-            const canvasClickY = click.y / this.tileSize;
+            let playerPosXConverted = playerPos.x / canvas.width * canvasWidthHeightInTiles;
+            let playerPosYConverted = playerPos.y / canvas.height * canvasWidthHeightInTiles;
 
-            const canvasWidthHeightInPixels = 640;
-            const canvasWidthHeightInTiles = 20;
+            let intentXConverted = intent.x / canvas.width * canvasWidthHeightInTiles;
+            let intentYConverted = intent.y / canvas.height * canvasWidthHeightInTiles;
 
-            let playerPosXConverted = playerPos.x / canvasWidthHeightInPixels * canvasWidthHeightInTiles;
-            let playerPosYConverted = playerPos.y / canvasWidthHeightInPixels * canvasWidthHeightInTiles
-
-            console.log(canvasClickX, canvasClickY);
-            console.log(playerPosXConverted, playerPosYConverted);
-
-            const dx = canvasClickX - (playerPosXConverted);
-            const dy = canvasClickY - (playerPosYConverted);
+            const dx = intentXConverted - (playerPosXConverted);
+            const dy = intentYConverted - (playerPosYConverted);
             const magnitude = Math.hypot(dx, dy); // Distancia do player e do click
             if (magnitude === 0) continue; // Podemos alterar para que não spawne projetil se ele clicar tão perto do sprite do player
 
             const dir = { x: dx / magnitude, y: dy / magnitude }; // Vetor de direção normalizado
-            this.spawnProjectile(playerPos.x, playerPos.y, dir, playerId)
-        }
 
+            if (intent.isHold) {
+                this.fireCooldown += deltaTime * 1000;
+                if (this.fireCooldown >= this.fireRateMs) {
+                    this.fireCooldown = 0;
+                    this.spawnProjectile(playerPos.x, playerPos.y, dir, entity);
+                }
+            } else {
+                this.spawnProjectile(playerPos.x, playerPos.y, dir, entity);
+            }
+            this.intentClickComponentStore.remove(entity);
+        }
     }
 
     private spawnProjectile(x: number, y: number, dir: { x: number; y: number }, playerId: number): void {
@@ -70,13 +74,14 @@ export class ProjectileSpawnSystem implements ISystem {
         const spriteProperties = this.spriteManager.getSpriteProperties(spritePlayerComponent.spriteName, spritePlayerComponent.spriteSheetName)
         const spriteSize = spriteProperties.spriteSheet.afterRenderSpriteCellSize;
         //console.log(dir.x, dir.y);
+        console.log(x, y);
 
         const projectileId = this.entityFactory.createProjectile(
             x + spriteSize,
-            y,
+            y + 9,
             playerId, // por enquanto player ID
-            dir.x,
-            dir.y
+            dir.x * 120, // cte --> pode mudar
+            dir.y * 120
         );
         //console.log(projectileId);
 

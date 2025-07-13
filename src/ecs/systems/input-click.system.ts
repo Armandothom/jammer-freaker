@@ -1,38 +1,72 @@
+import { IntentClickComponent } from "../components/intent-click.component.js";
+import { PlayerComponent } from "../components/player.component.js";
+import { ComponentStore } from "../core/component-store.js";
 import { ISystem } from "./system.interface.js";
-import { Rect } from "./types/rect.type.js";
 
 export class InputClickSystem implements ISystem {
 
     private clickQueue: { x: number, y: number }[] = [];
-    private canvas : HTMLCanvasElement;
-    constructor() {
+    private canvas: HTMLCanvasElement;
+    private isMouseDown: boolean = false;
+    private currentMousePos: { x: number, y: number } = { x: 0, y: 0 };
+
+    constructor(
+        private playerComponentStore: ComponentStore<PlayerComponent>,
+        private intentClickComponentStore: ComponentStore<IntentClickComponent>
+    ) {
         this.canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
-        this.initListeners()
+        this.initListeners();
     };
 
     update(deltaTime: number): void {
-        // Não tem update por frame, é dado pelo initListeners no constructor
+        // Não tem update por frame, é dado pelo initListeners no constructor e demais eventos
     }
 
     private initListeners() {
-        this.canvas.addEventListener("click", (e: MouseEvent) => {
-            ;
-            const rect: Rect = {
-                left: this.canvas.getBoundingClientRect().left,
-                right: this.canvas.getBoundingClientRect().right,
-                top: this.canvas.getBoundingClientRect().top,
-                bottom: this.canvas.getBoundingClientRect().bottom,
-            }
-            const clickX = e.clientX - rect.left;
-            const clickY = e.clientY - rect.top;
+        const rect = this.canvas.getBoundingClientRect();
 
-            this.clickQueue.push({ x: clickX, y: clickY });
+        this.canvas.addEventListener("mousedown", (e: MouseEvent) => {
+            this.isMouseDown = true;
+            console.log("[mousedown] registrado");
+
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            this.currentMousePos = { x, y };
+            this.clickQueue.push({ x, y });
+        });
+
+        this.canvas.addEventListener("mouseup", () => {
+            this.isMouseDown = false;
+        });
+
+        this.canvas.addEventListener("mousemove", (e: MouseEvent) => {
+            this.updateMousePosition(e);
+        });
+
+        this.canvas.addEventListener("click", (e: MouseEvent) => {
+            this.updateMousePosition(e);
+            this.pushClickIntent(false); // isHold = false
         });
     }
 
-    public consumeClicks(): { x: number; y: number }[] {
-        const clicks = [...this.clickQueue];
-        this.clickQueue.length = 0;
-        return clicks;
+    private updateMousePosition = (e: MouseEvent) => {
+        const rect = this.canvas.getBoundingClientRect();
+        this.currentMousePos = {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top,
+        };
     }
+
+    private pushClickIntent(isHold: boolean) {
+        const entities = this.playerComponentStore.getAllEntities();
+        for (const entity of entities) {
+            this.intentClickComponentStore.add(entity, new IntentClickComponent(
+                this.currentMousePos.x,
+                this.currentMousePos.y,
+                isHold
+            ))
+        }
+    }
+
 }

@@ -2,7 +2,7 @@ import { RenderObject } from "./types/render-objects.js";
 
 export class RendererEngine {
   private _isLoaded: boolean = false;
-  private _debugMode: boolean = false;
+  private _debugMode: boolean = true;
   private _program: WebGLProgram | undefined;
   private _canvas: HTMLCanvasElement;
   private _gl: WebGL2RenderingContext;
