@@ -46,7 +46,7 @@ export class EntityFactory {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.PLAYER_STILL, SpriteSheetName.PLAYER));
-    this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.SOLDIER_STILL));
+    this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.PLAYER_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
     this.playerComponentStore.add(entityId, new PlayerComponent());
     this.shooterComponentStore.add(entityId, new ShooterComponent());
@@ -72,8 +72,8 @@ export class EntityFactory {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.velocityComponentStore.add(entityId, new VelocityComponent(1, 1));
-    this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.PLAYER_STILL, SpriteSheetName.PLAYER));
-    this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.SOLDIER_STILL));
+    this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.ENEMY_STILL, SpriteSheetName.ENEMY));
+    this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.ENEMY_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
     this.enemyComponentStore.add(entityId, new EnemyComponent());
     this.shooterComponentStore.add(entityId, new ShooterComponent());

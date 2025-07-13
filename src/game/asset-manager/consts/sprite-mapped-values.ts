@@ -80,6 +80,48 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
     }
   ],
   [
+    SpriteSheetName.ENEMY,
+    {
+      rows: 1,
+      columns: 6,
+      eachSpriteCellSize: 32,
+      afterRenderSpriteCellSize: 32,
+      srcImagePath: 'src/assets/images/enemy.png',
+      sprites: new Map([
+        [SpriteName.ENEMY_STILL, {
+          row: 1,
+          column: 1,
+          collisionBox: { offsetX: 3, offsetY: 6, width: 25, height: 27 }
+        }],
+        [SpriteName.ENEMY_RUNNING_1, {
+          row: 1,
+          column: 2,
+          collisionBox: { offsetX: 3, offsetY: 4, width: 25, height: 28 }
+        }],
+        [SpriteName.ENEMY_RUNNING_2, {
+          row: 1,
+          column: 3,
+          collisionBox: { offsetX: 3, offsetY: 5, width: 25, height: 28 }
+        }],
+        [SpriteName.ENEMY_RUNNING_3, {
+          row: 1,
+          column: 4,
+          collisionBox: { offsetX: 4, offsetY: 7, width: 25, height: 28 }
+        }],
+        [SpriteName.ENEMY_RUNNING_4, {
+          row: 1,
+          column: 5,
+          collisionBox: { offsetX: 5, offsetY: 3, width: 25, height: 28 }
+        }],
+        [SpriteName.ENEMY_RUNNING_5, {
+          row: 1,
+          column: 6,
+          collisionBox: { offsetX: 5, offsetY: 2, width: 25, height: 28 }
+        }]
+      ])
+    }
+  ],
+  [
     SpriteSheetName.BULLET,
     {
       rows: 1,

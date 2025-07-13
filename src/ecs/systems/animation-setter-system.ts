@@ -1,9 +1,11 @@
 
 import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
+import { AIComponent } from "../components/ai.component.js";
 import { AnimationComponent } from "../components/animation.component.js";
 import { DirectionAnimComponent } from "../components/direction-anim.component.js";
 import { IntentShotComponent } from "../components/intentShotComponentStore.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
+import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ShooterComponent } from "../components/shooter-component.js";
 import { SoldierComponent } from "../components/soldier.component.js";
@@ -19,7 +21,8 @@ export class AnimationSetterSystem implements ISystem {
         private directionAnimComponentStore: ComponentStore<DirectionAnimComponent>,
         private animationComponentStore: ComponentStore<AnimationComponent>,
         private intentShotComponentStore: ComponentStore<IntentShotComponent>,
-        private soldierComponentStore : ComponentStore<SoldierComponent>
+        private aiComponentStore : ComponentStore<AIComponent>,
+        private playerComponentStore : ComponentStore<PlayerComponent>,
     ) { }
 
     update(deltaTime: number): void {
@@ -28,9 +31,9 @@ export class AnimationSetterSystem implements ISystem {
         for (const entityWithAnim of entitiesWithAnim) {
             let animToUse : AnimationName | undefined;
             const currentAnim = this.animationComponentStore.get(entityWithAnim).animationName;
-            const isSoldier = this.soldierComponentStore.has(entityWithAnim);
+            const isPlayer = this.playerComponentStore.has(entityWithAnim);
+            const isNpc = this.aiComponentStore.has(entityWithAnim);
             let isMoving = false;
-            let isShooting = entitiesShooting.has(entityWithAnim);
             const entityMovementIntent = this.movementIntentComponentStore.getOrNull(entityWithAnim);
 
             //Check anim direction + movement
@@ -47,13 +50,19 @@ export class AnimationSetterSystem implements ISystem {
             }
 
             //Decide the anim
-            if(isSoldier) {
+            if(isPlayer) {
                 if(isMoving) {
-                    animToUse = AnimationName.SOLDIER_RUN
-                } else if(isShooting) {
-                    animToUse = AnimationName.SOLDIER_SHOOT
+                    animToUse = AnimationName.PLAYER_RUN
                 } else {
-                    animToUse = AnimationName.SOLDIER_STILL
+                    animToUse = AnimationName.PLAYER_STILL
+                }
+            }
+
+            if(isNpc) {
+                if(isMoving) {
+                    animToUse = AnimationName.ENEMY_RUN
+                } else {
+                    animToUse = AnimationName.ENEMY_STILL
                 }
             }
 

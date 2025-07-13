@@ -2,9 +2,10 @@ import { SpriteName } from "../../world/types/sprite-name.enum.js";
 import { SpriteSheetName } from "./sprite-sheet-name.enum.js";
 
 export enum AnimationName {
-  SOLDIER_STILL = "still",
-  SOLDIER_RUN = "run",
-  SOLDIER_SHOOT = "shot"
+  PLAYER_STILL = "player_still",
+  PLAYER_RUN = "player_run",
+  ENEMY_STILL = "enemy_still",
+  ENEMY_RUN = "enemy_run",
 }
 
 
