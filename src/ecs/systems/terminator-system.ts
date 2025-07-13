@@ -1,7 +1,7 @@
 
 import { IntentClickComponent } from "../components/intent-click.component.js";
+import { IntentShootingComponent } from "../components/intentShootingComponentStore.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
-import { ProjectileShooterIntentComponent } from "../components/shooter-component.js";
 import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { CoreManager } from "../core/core-manager.js";
@@ -13,8 +13,8 @@ export class TerminatorSystem implements ISystem {
     constructor(
         private clickIntentComponentStore: ComponentStore<IntentClickComponent>,
         private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
-        private projectileShooterComponentStore: ComponentStore<ProjectileShooterIntentComponent>,
         private shootingCooldownComponentStore: ComponentStore<ShootingCooldownComponent>,
+        private shootingIntentComponentStore: ComponentStore<IntentShootingComponent>,
 
     ) { }
 
@@ -29,9 +29,9 @@ export class TerminatorSystem implements ISystem {
             this.movementIntentComponentStore.remove(movementIntentComponentEntity);
         }
 
-        const projectileShooterComponentEntities = this.projectileShooterComponentStore.getAllEntities();
-        for (const projectileShooterComponentEntity of projectileShooterComponentEntities) {
-            this.projectileShooterComponentStore.remove(projectileShooterComponentEntity);
+        const shootingIntentComponentEntities = this.shootingIntentComponentStore.getAllEntities();
+        for (const shootingIntentComponentEntity of shootingIntentComponentEntities) {
+            this.shootingIntentComponentStore.remove(shootingIntentComponentEntity);
         }
 
         const shootingCooldownComponentEntities = this.shootingCooldownComponentStore.getAllEntities();

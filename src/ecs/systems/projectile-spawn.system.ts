@@ -7,13 +7,12 @@ import { MovementIntentComponent } from "../components/movement-intent.component
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ProjectileComponent } from "../components/projectile-component.js";
-import { ProjectileShooterComponent, ProjectileShooterIntentComponent } from "../components/shooter-component.js";
+import { ShooterComponent } from "../components/shooter-component.js";
 import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { AnimDirection } from "../components/types/anim-direction.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityFactory } from "../entities/entity-factory.js";
-import { InputClickSystem } from "./shooting-system.js";
 import { ISystem } from "./system.interface.js";
 
 export class ProjectileSpawnSystem implements ISystem {
@@ -26,7 +25,7 @@ export class ProjectileSpawnSystem implements ISystem {
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private projectileComponentStore: ComponentStore<ProjectileComponent>,
         private entityFactory: EntityFactory,
-        private projectileShooterComponentStore: ComponentStore<ProjectileShooterComponent>,
+        private projectileShooterComponentStore: ComponentStore<ShooterComponent>,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
         private directionAnimComponentStore: ComponentStore<DirectionAnimComponent>,
         private intentClickComponentStore: ComponentStore<IntentClickComponent>,

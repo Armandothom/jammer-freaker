@@ -41,7 +41,6 @@ export class CollisionSystem implements ISystem {
             if (this.wouldCollideAABB(intent, entity, spriteSheetOriginProperties.afterRenderSpriteCellSize)) {
                 this.movementIntentComponentStore.remove(entity); // Cancelamento do intent
                 if (this.projectileComponentStore.has(entity)) {
-                    console.log("projectile collision");
                     this.entityFactory.destroyProjectile(entity);
                 }
             }
@@ -66,7 +65,6 @@ export class CollisionSystem implements ISystem {
 
             const collision = this.collisionComponentStore.get(other);
             const pos = this.positionComponentStore.get(other);
-            console.log(`Checking against ${other} - collides=${collision?.collides} pos=${pos?.x},${pos?.y}`);
             if (!collision || !collision.collides) continue;
 
 
@@ -108,7 +106,7 @@ export class CollisionSystem implements ISystem {
     }
 
     private getEntityAABB(entity: number, tileSize: number): Rect | null {
-        const movIntent = this.movimentIntentComponentStore.get(entity);
+        const movIntent = this.movementIntentComponentStore.get(entity);
         if (!movIntent) return null;
 
         const left = movIntent.x * tileSize;
