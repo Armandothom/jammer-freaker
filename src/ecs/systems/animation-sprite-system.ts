@@ -35,7 +35,6 @@ export class AnimationSpriteSystem implements ISystem {
                 accumulator += frame.durationKeyFrame;
                 if (loopedTime <= accumulator) {
                     currentFrame = frame;
-                    console.log("currentFrame", currentFrame)
                     break;
                 }
             }

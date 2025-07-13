@@ -7,7 +7,7 @@ import { AnimationComponent } from "../components/animation.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ProjectileComponent } from "../components/projectile-component.js";
-import { ProjectileShooterComponent } from "../components/projectile-shooter.component.js";
+import { ProjectileShooterIntentComponent } from "../components/projectile-shooter-intent.component.js";
 import { SoldierComponent } from "../components/soldier.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { VelocityComponent } from "../components/velocity-component.js";
@@ -21,7 +21,7 @@ export class EntityFactory {
     private positionComponentStore: ComponentStore<PositionComponent>,
     private spriteComponentStore: ComponentStore<SpriteComponent>,
     private projectileComponentStore: ComponentStore<ProjectileComponent>,
-    private projectileShooterComponentStore: ComponentStore<ProjectileShooterComponent>,
+    private projectileShooterComponentStore: ComponentStore<ProjectileShooterIntentComponent>,
     private velocityComponentStore: ComponentStore<VelocityComponent>,
     private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
     //private intentClickComponentStore: ComponentStore<IntentClickComponent>
@@ -47,7 +47,7 @@ export class EntityFactory {
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.BULLET_1, SpriteSheetName.BULLET)); //placeholder
     this.projectileComponentStore.add(entityId, new ProjectileComponent());
-    this.projectileShooterComponentStore.add(entityId, new ProjectileShooterComponent(entityShooterId));
+    this.projectileShooterComponentStore.add(entityId, new ProjectileShooterIntentComponent(entityShooterId));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velX, velY));
     //this.intentClickComponentStore.add(entityId, new IntentClickComponent())
     return entityId;

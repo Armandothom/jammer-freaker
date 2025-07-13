@@ -4,7 +4,7 @@ import { AnimationComponent } from "../components/animation.component.js";
 import { DirectionAnimComponent } from "../components/direction-anim.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PositionComponent } from "../components/position.component.js";
-import { ProjectileShooterComponent } from "../components/projectile-shooter.component.js";
+import { ProjectileShooterIntentComponent } from "../components/projectile-shooter-intent.component.js";
 import { SoldierComponent } from "../components/soldier.component.js";
 import { AnimDirection } from "../components/types/anim-direction.js";
 import { ComponentStore } from "../core/component-store.js";
@@ -17,7 +17,7 @@ export class AnimationSetterSystem implements ISystem {
         private positionComponentStore: ComponentStore<PositionComponent>,
         private directionAnimComponentStore: ComponentStore<DirectionAnimComponent>,
         private animationComponentStore: ComponentStore<AnimationComponent>,
-        private projectileShooterComponentStore: ComponentStore<ProjectileShooterComponent>,
+        private projectileShooterComponentStore: ComponentStore<ProjectileShooterIntentComponent>,
         private soldierComponentStore : ComponentStore<SoldierComponent>
     ) { }
 

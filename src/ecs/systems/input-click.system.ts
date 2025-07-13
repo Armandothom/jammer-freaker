@@ -30,7 +30,6 @@ export class InputClickSystem implements ISystem {
 
         this.canvas.addEventListener("mousedown", (e: MouseEvent) => {
             this.isMouseDown = true;
-            console.log(this.isMouseDown);
 
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
