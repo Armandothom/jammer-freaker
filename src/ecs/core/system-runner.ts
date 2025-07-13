@@ -40,6 +40,7 @@ import { HealthComponent } from "../components/health.component.js";
 import { AiAttackBehaviorSystem } from "../systems/ai-attack-behavior-system.js";
 import { AIAttackOrderComponent } from "../components/ai-attack-order.component.js";
 import { ShotOriginComponent } from "../components/shot-origin.component.js";
+import { AimShootingComponent } from "../components/aim-shooting.component.js";
 
 export class SystemRunner {
   private renderSystem: RenderSystem;
@@ -66,6 +67,7 @@ export class SystemRunner {
   private healthComponentStore: ComponentStore<HealthComponent> = new ComponentStore("HealthComponent");
   private aiAttackOrderComponentStore: ComponentStore<AIAttackOrderComponent> = new ComponentStore("AIAttackOrderComponent");
   private shotOriginComponentStore: ComponentStore<ShotOriginComponent> = new ComponentStore("ShotOriginComponent")
+  private aimShootingComponent: ComponentStore<AimShootingComponent> = new ComponentStore("AimShootingComponent");
   private animationSpriteSystem: AnimationSpriteSystem;
   private inputMovementSystem: InputMovementSystem;
   private shootingSystem: ShootingSystem;
