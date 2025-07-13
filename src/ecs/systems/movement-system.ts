@@ -25,7 +25,6 @@ export class MovementSystem implements ISystem {
             const intent = this.movementIntentComponentStore.getOrNull(entity); 
 
             if (!intent) continue;
-
             this.positionComponentStore.add(entity, new PositionComponent(intent.x, intent.y));
 
             //We remove the intent after moving the entity.

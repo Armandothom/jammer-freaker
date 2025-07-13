@@ -33,6 +33,9 @@ import { ShootingCooldownComponent } from "../components/shooting-cooldown.compo
 import { EnemyComponent } from "../components/enemy.component.js";
 import { IntentShootingComponent } from "../components/intentShootingComponentStore.js";
 import { PathFindingManager } from "../../game/world/pathfinding-manager.js";
+import { AIComponent } from "../components/ai.component.js";
+import { AiMovementBehaviorSystem } from "../systems/ai-movement-behavior-system.js";
+import { AIMovementOrderComponent } from "../components/ai-movement-order.component.js";
 
 export class SystemRunner {
   private renderSystem: RenderSystem;
@@ -53,6 +56,8 @@ export class SystemRunner {
   private enemyComponentStore: ComponentStore<EnemyComponent> = new ComponentStore("EnemyComponent");
   private intentShootingComponentStore: ComponentStore<IntentShootingComponent> = new ComponentStore("IntentShootingComponent");
   private shooterComponentStore: ComponentStore<ShooterComponent> = new ComponentStore("ShooterComponent");
+  private aiComponentStore: ComponentStore<AIComponent> = new ComponentStore("AIComponent");
+  private aiMovementOrderComponentStore: ComponentStore<AIMovementOrderComponent> = new ComponentStore("AIMovementOrderComponent");
   private animationSpriteSystem: AnimationSpriteSystem;
   private inputMovementSystem: InputMovementSystem;
   private shootingSystem: ShootingSystem;
@@ -62,6 +67,7 @@ export class SystemRunner {
   private animationSetterSystem: AnimationSetterSystem;
   private terminatorSystem: TerminatorSystem;
   private projectileUpdateSystem: ProjectileUpdateSystem;
+  private aiMovementBehaviorSystem: AiMovementBehaviorSystem;
   private entityFactory: EntityFactory;
 
   constructor(
@@ -72,7 +78,7 @@ export class SystemRunner {
     private rendererEngine: RendererEngine,
   ) {
     this.cameraManager = new CameraManager(this.worldTilemapManager, this.spriteManager)
-    this.entityFactory = new EntityFactory(entityManager, this.playerComponentStore, this.enemyComponentStore, this.positionComponentStore, this.spriteComponentStore, this.projectileComponentStore, this.intentShootingComponentStore, this.velocityComponentStore, this.movimentIntentComponentStore, this.soldierComponentStore, this.animationComponentStore, this.directionAnimComponentStore, this.collisionComponentStore);
+    this.entityFactory = new EntityFactory(entityManager, this.playerComponentStore, this.enemyComponentStore, this.positionComponentStore, this.spriteComponentStore, this.projectileComponentStore, this.intentShootingComponentStore, this.velocityComponentStore, this.movimentIntentComponentStore, this.soldierComponentStore, this.animationComponentStore, this.directionAnimComponentStore, this.collisionComponentStore, this.aiComponentStore);
     this.renderSystem = new RenderSystem(this.positionComponentStore, this.spriteComponentStore, this.cameraManager, this.worldTilemapManager, this.rendererEngine, this.spriteManager, this.directionAnimComponentStore);
     this.inputMovementSystem = new InputMovementSystem(this.positionComponentStore, this.movimentIntentComponentStore, this.playerComponentStore)
     this.shootingSystem = new ShootingSystem(this.playerComponentStore, this.enemyComponentStore, this.intentClickComponentStore, this.intentShootingComponentStore, this.positionComponentStore);
@@ -82,12 +88,14 @@ export class SystemRunner {
     this.movementSystem = new MovementSystem(this.positionComponentStore, this.movimentIntentComponentStore, this.playerComponentStore, this.shooterComponentStore);
     this.animationSetterSystem = new AnimationSetterSystem(this.movimentIntentComponentStore, this.positionComponentStore, this.directionAnimComponentStore, this.animationComponentStore, this.intentShootingComponentStore, this.soldierComponentStore);
     this.terminatorSystem = new TerminatorSystem(this.intentClickComponentStore, this.movimentIntentComponentStore, this.shootingCooldownComponentStore, this.intentShootingComponentStore);
-    this.animationSpriteSystem = new AnimationSpriteSystem(this.animationComponentStore, this.spriteComponentStore)
+    this.animationSpriteSystem = new AnimationSpriteSystem(this.animationComponentStore, this.spriteComponentStore);
+    this.aiMovementBehaviorSystem = new AiMovementBehaviorSystem(this.positionComponentStore, this.velocityComponentStore, this.movimentIntentComponentStore, this.aiComponentStore, this.aiMovementOrderComponentStore, this.playerComponentStore, this.pathFindingManager)
   }
 
   update() {
     this.inputMovementSystem.update(CoreManager.timeSinceLastRender);
-    this.shootingSystem.update(CoreManager.timeSinceLastRender); // might be used for shooting? not sure if we can merge in inputMovementSystem
+    this.aiMovementBehaviorSystem.update(CoreManager.timeSinceLastRender);
+    this.shootingSystem.update(CoreManager.timeSinceLastRender);
     this.projectileSpawnSystem.update(CoreManager.timeSinceLastRender);
     this.projectileUpdateSystem.update(CoreManager.timeSinceLastRender);
     this.animationSetterSystem.update(CoreManager.timeSinceLastRender);
@@ -100,6 +108,6 @@ export class SystemRunner {
 
   initialize() {
     this.entityFactory.createPlayer(30, 30);
-    this.entityFactory.createEnemy(90, 90);
+    this.entityFactory.createEnemy(300, 300);
   }
 }

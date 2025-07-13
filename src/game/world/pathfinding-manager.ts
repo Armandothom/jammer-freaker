@@ -89,7 +89,7 @@ export class PathFindingManager {
         lastNode = closedList.get(lastNode.previousCoordinate!)!;
       }
     }
-    return builtList.reverse();
+    return builtList.reverse().slice(1); //We remove the first node, since it's the start node
   }
 
 
