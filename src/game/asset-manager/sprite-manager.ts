@@ -39,7 +39,7 @@ export class SpriteManager {
    * It is assumed that the spriteSheet image is flipped (since WebGL renders from bottom-left https://stackoverflow.com/a/74483656)
    * @param spriteName the name of the sprite for this BaseSprite.
    */
-  public getUvCoordinates(spriteName: SpriteName, spriteSheetName: SpriteSheetName) {
+  public getUvCoordinates(spriteName: SpriteName, spriteSheetName: SpriteSheetName, mirrored = false) {
   const spriteProperties = this.getSpriteProperties(spriteName, spriteSheetName);
   const collisionBox = spriteProperties.sprite.collisionBox;
   const spriteSheetWidth = spriteProperties.spriteSheet.width;
@@ -64,15 +64,26 @@ export class SpriteManager {
   const yTopNormalized = 1 - (yTop / spriteSheetHeight);
   const yBottomNormalized = 1 - (yBottom / spriteSheetHeight);
   
-  return [
-    xLeftNormalized, yTopNormalized,        // top left
-    xLeftNormalized, yBottomNormalized,       // bottom left
-    xRightNormalized, yTopNormalized,         // top right
+  const normalUv = [
+    xLeftNormalized, yTopNormalized,       //topleft
+    xLeftNormalized, yBottomNormalized,    //bottomleft
+    xRightNormalized, yTopNormalized,      //rightleft
 
-    xRightNormalized, yBottomNormalized,      // bottom right
-    xRightNormalized, yTopNormalized,         // top right (repetido)
-    xLeftNormalized, yBottomNormalized        // bottom left (repetido)
+    xRightNormalized, yBottomNormalized,   //bottomright
+    xRightNormalized, yTopNormalized,      //topright
+    xLeftNormalized, yBottomNormalized     //bottomleft
   ];
+  const mirroredUv = [
+    xRightNormalized, yTopNormalized,      //topright
+    xRightNormalized, yBottomNormalized,   //bottomright
+    xLeftNormalized, yTopNormalized,       //topleft
+
+    xLeftNormalized, yBottomNormalized,    //bottoleft
+    xLeftNormalized, yTopNormalized,       //topleft
+    xRightNormalized, yBottomNormalized    //bottomright
+
+  ]
+  return mirrored ? mirroredUv : normalUv;
 }
 
   public getSpriteProperties(spriteName: SpriteName, spriteSheetName: SpriteSheetName) {

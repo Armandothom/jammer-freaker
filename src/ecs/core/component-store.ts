@@ -20,7 +20,7 @@ export class ComponentStore<T> {
     return value;
   }
 
-  public getOrNull(entityId: EntityId) {
+  public getOrNull(entityId : EntityId) {
     const value = this.components.get(entityId)
     if (!value) {
       return null;
@@ -38,5 +38,9 @@ export class ComponentStore<T> {
 
   public getAllEntities() {
     return Array.from(this.components.keys());
+  }
+
+  public getAllValues() {
+    return Array.from(this.components.values());
   }
 }
