@@ -10,25 +10,10 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
       columns: 15,
       eachSpriteCellSize: 16,
       afterRenderSpriteCellSize: 32,
-      srcImagePath: 'src/assets/images/grass_tileset_16px.png',
+      srcImagePath: 'src/assets/images/tilesheet_metal.png',
       sprites: new Map([
-        [SpriteName.GRASS_1, {
+        [SpriteName.METAL_1, {
           row: 1,
-          column: 1,
-          collisionBox: { offsetX: 0, offsetY: 0, width: 16, height: 16 }
-        }],
-        [SpriteName.GRASS_2, {
-          row: 7,
-          column: 5,
-          collisionBox: { offsetX: 0, offsetY: 0, width: 16, height: 16 }
-        }],
-        [SpriteName.GRASS_3, {
-          row: 3,
-          column: 9,
-          collisionBox: { offsetX: 0, offsetY: 0, width: 16, height: 16 }
-        }],
-        [SpriteName.STONE_1, {
-          row: 14,
           column: 1,
           collisionBox: { offsetX: 0, offsetY: 0, width: 16, height: 16 }
         }]
@@ -36,48 +21,60 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
     }
   ],
   [
-    SpriteSheetName.SOLDIER,
+    SpriteSheetName.WEAPON,
     {
-      rows: 8,
-      columns: 7,
+      rows: 1,
+      columns: 1,
+      eachSpriteCellSize: 16,
+      afterRenderSpriteCellSize: 32,
+      srcImagePath: 'src/assets/images/smg.png',
+      sprites: new Map([
+        [SpriteName.METAL_1, {
+          row: 1,
+          column: 1,
+          collisionBox: { offsetX: 3, offsetY: 3, width: 60, height: 28 }
+        }]
+      ])
+    }
+  ],
+  [
+    SpriteSheetName.PLAYER,
+    {
+      rows: 1,
+      columns: 6,
       eachSpriteCellSize: 32,
       afterRenderSpriteCellSize: 32,
-      srcImagePath: 'src/assets/images/soldier.png',
+      srcImagePath: 'src/assets/images/player.png',
       sprites: new Map([
-        [SpriteName.SOLDER_STILL, {
-          row: 2,
+        [SpriteName.PLAYER_STILL, {
+          row: 1,
           column: 1,
-          collisionBox: { offsetX: 10, offsetY: 6, width: 23, height: 27 }
+          collisionBox: { offsetX: 3, offsetY: 6, width: 25, height: 27 }
         }],
-        [SpriteName.SOLDER_RUNNING_1, {
-          row: 2,
+        [SpriteName.PLAYER_RUNNING_1, {
+          row: 1,
           column: 2,
-          collisionBox: { offsetX: 10, offsetY: 6, width: 23, height: 28 }
+          collisionBox: { offsetX: 3, offsetY: 4, width: 25, height: 28 }
         }],
-        [SpriteName.SOLDER_RUNNING_2, {
-          row: 2,
+        [SpriteName.PLAYER_RUNNING_2, {
+          row: 1,
           column: 3,
-          collisionBox: { offsetX: 10, offsetY: 6, width: 23, height: 28 }
+          collisionBox: { offsetX: 3, offsetY: 5, width: 25, height: 28 }
         }],
-        [SpriteName.SOLDER_RUNNING_3, {
-          row: 2,
+        [SpriteName.PLAYER_RUNNING_3, {
+          row: 1,
           column: 4,
-          collisionBox: { offsetX: 10, offsetY: 6, width: 23, height: 28 }
+          collisionBox: { offsetX: 4, offsetY: 7, width: 25, height: 28 }
         }],
-        [SpriteName.SOLDER_RUNNING_4, {
-          row: 2,
+        [SpriteName.PLAYER_RUNNING_4, {
+          row: 1,
           column: 5,
-          collisionBox: { offsetX: 10, offsetY: 6, width: 23, height: 28 }
+          collisionBox: { offsetX: 5, offsetY: 3, width: 25, height: 28 }
         }],
-        [SpriteName.SOLDER_RUNNING_5, {
-          row: 2,
+        [SpriteName.PLAYER_RUNNING_5, {
+          row: 1,
           column: 6,
-          collisionBox: { offsetX: 10, offsetY: 6, width: 23, height: 28 }
-        }],
-        [SpriteName.SOLDER_RUNNING_6, {
-          row: 2,
-          column: 7,
-          collisionBox: { offsetX: 10, offsetY: 6, width: 23, height: 28 }
+          collisionBox: { offsetX: 5, offsetY: 2, width: 25, height: 28 }
         }]
       ])
     }

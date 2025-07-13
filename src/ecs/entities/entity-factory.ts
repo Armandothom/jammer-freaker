@@ -45,7 +45,7 @@ export class EntityFactory {
   createPlayer(startX: number, startY: number) {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
-    this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.SOLDER_STILL, SpriteSheetName.SOLDIER));
+    this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.PLAYER_STILL, SpriteSheetName.PLAYER));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.SOLDIER_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
     this.playerComponentStore.add(entityId, new PlayerComponent());
@@ -72,7 +72,7 @@ export class EntityFactory {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.velocityComponentStore.add(entityId, new VelocityComponent(1, 1));
-    this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.SOLDER_STILL, SpriteSheetName.SOLDIER));
+    this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.PLAYER_STILL, SpriteSheetName.PLAYER));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.SOLDIER_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
     this.enemyComponentStore.add(entityId, new EnemyComponent());

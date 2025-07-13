@@ -23,13 +23,13 @@ export class WorldTilemapManager {
       for (let y = 0; y < this._maxNumberTilesY; y++) {
         const keyCoordinate = this.setTilemapKey(x, y);
         const noiseValue = noise2D(x, y);
-        let selectedSpriteName: SpriteName = SpriteName.GRASS_1;
+        let selectedSpriteName: SpriteName = SpriteName.METAL_1;
         if (noiseValue <= 0.0) {
-          selectedSpriteName = SpriteName.GRASS_1;
+          selectedSpriteName = SpriteName.METAL_1;
         } else if (noiseValue >= 0.0 && noiseValue <= 0.8) {
-          selectedSpriteName = SpriteName.GRASS_2;
+          selectedSpriteName = SpriteName.METAL_1;
         } else {
-          selectedSpriteName = SpriteName.GRASS_3;
+          selectedSpriteName = SpriteName.METAL_1;
         }
         this._tilemap.set(keyCoordinate, {
           x : x,
