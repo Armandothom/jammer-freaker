@@ -8,6 +8,9 @@ import { SpriteComponent } from "../components/sprite.component.js";
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { ProjectileComponent } from "../components/projectile-component.js";
 import { EntityFactory } from "../entities/entity-factory.js";
+import { ShooterComponent } from "../components/shooter-component.js";
+import { HealthComponent } from "../components/health.component.js";
+import { EnemyComponent } from "../components/enemy.component.js";
 
 export class CollisionSystem implements ISystem {
     constructor(
@@ -16,6 +19,9 @@ export class CollisionSystem implements ISystem {
         private collisionComponentStore: ComponentStore<CollisionComponent>,
         private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
         private projectileComponentStore: ComponentStore<ProjectileComponent>,
+        private shooterComponentStore: ComponentStore<ShooterComponent>,
+        private healthComponentStore: ComponentStore<HealthComponent>,
+        private enemyComponentStore: ComponentStore<EnemyComponent>,
         private spriteManager: SpriteManager,
         private entityFactory: EntityFactory
     ) {
@@ -40,7 +46,17 @@ export class CollisionSystem implements ISystem {
 
             if (this.wouldCollideAABB(intent, entity, spriteSheetOriginProperties.afterRenderSpriteCellSize)) {
                 this.movementIntentComponentStore.remove(entity); // Cancelamento do intent
+                
                 if (this.projectileComponentStore.has(entity)) {
+                    const enemies = this.enemyComponentStore.getAllEntities();
+
+                    for (const enemy of enemies) {
+                        this.healthComponentStore.get(enemy).takeDamage(20);
+                        console.log(this.healthComponentStore.get(enemy).hp);
+                        if(this.healthComponentStore.get(enemy).hp <= 0){
+                            this.entityFactory.destroyEnemy(enemy);
+                        }
+                    }
                     this.entityFactory.destroyProjectile(entity);
                 }
             }

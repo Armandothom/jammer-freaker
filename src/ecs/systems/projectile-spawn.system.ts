@@ -30,6 +30,7 @@ export class ProjectileSpawnSystem implements ISystem {
         private directionAnimComponentStore: ComponentStore<DirectionAnimComponent>,
         private intentClickComponentStore: ComponentStore<IntentClickComponent>,
         private shootingCooldownComponentStore: ComponentStore<ShootingCooldownComponent>,
+        private shooterComponentStore: ComponentStore<ShooterComponent>,
         private fireRateMs: number = 200
     ) {
         const terrainSpriteSheet = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN);
@@ -38,50 +39,55 @@ export class ProjectileSpawnSystem implements ISystem {
 
     update(deltaTime: number): void {
 
-        const players = this.playerComponentStore.getAllEntities();
+        const shooters = this.shooterComponentStore.getAllEntities();
         const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
         const canvasWidthHeightInTiles = canvas.width / this.tileSize;
 
-        for (const entity of players) {
-            const playerPos = this.positionComponentStore.get(entity);
-            const intent = this.intentClickComponentStore.getOrNull(entity);
+        for (const entity of shooters) {
+            const shooterPos = this.positionComponentStore.get(entity);
+            if (this.playerComponentStore.has(entity)) {
+                const intent = this.intentClickComponentStore.getOrNull(entity);
 
-            if (!playerPos || !intent) continue;
+                if (!shooterPos || !intent) continue;
 
-            let playerPosXConverted = playerPos.x / canvas.width * canvasWidthHeightInTiles;
-            let playerPosYConverted = playerPos.y / canvas.height * canvasWidthHeightInTiles;
+                let shooterPosXConverted = shooterPos.x / canvas.width * canvasWidthHeightInTiles;
+                let shooterPosYConverted = shooterPos.y / canvas.height * canvasWidthHeightInTiles;
 
-            let intentXConverted = intent.x / canvas.width * canvasWidthHeightInTiles;
-            let intentYConverted = intent.y / canvas.height * canvasWidthHeightInTiles;
+                let intentXConverted = intent.x / canvas.width * canvasWidthHeightInTiles;
+                let intentYConverted = intent.y / canvas.height * canvasWidthHeightInTiles;
 
-            const dx = intentXConverted - (playerPosXConverted);
-            const dy = intentYConverted - (playerPosYConverted);
-            const magnitude = Math.hypot(dx, dy); // Distancia do player e do click
-            if (magnitude === 0) continue; // Podemos alterar para que não spawne projetil se ele clicar tão perto do sprite do player
+                const dx = intentXConverted - (shooterPosXConverted);
+                const dy = intentYConverted - (shooterPosYConverted);
+                const magnitude = Math.hypot(dx, dy); // Distancia do player e do click
+                if (magnitude === 0) continue; // Podemos alterar para que não spawne projetil se ele clicar tão perto do sprite do player
 
-            const dir = { x: dx / magnitude, y: dy / magnitude }; // Vetor de direção normalizado
+                const dir = { x: dx / magnitude, y: dy / magnitude }; // Vetor de direção normalizado
 
 
-            const cooldown = this.shootingCooldownComponentStore.has(entity);
-            if (!cooldown) {
-                this.spawnProjectile(playerPos.x, playerPos.y, dir, entity);
-                const cooldownAdd = this.shootingCooldownComponentStore.add(entity, new ShootingCooldownComponent(0.2));
+                const cooldown = this.shootingCooldownComponentStore.has(entity);
+                if (!cooldown) {
+                    this.spawnProjectile(shooterPos.x, shooterPos.y, dir, entity);
+                    const cooldownAdd = this.shootingCooldownComponentStore.add(entity, new ShootingCooldownComponent(0.2));
+                }
             }
+
+            // Adicionar lógica de criar projectile a partir do this.enemyComponentStore.has(entity)
+            // bem similar da estrutura acima
         }
     }
 
-    private spawnProjectile(x: number, y: number, dir: { x: number; y: number }, playerId: number): void {
-        const spritePlayerComponent = this.spriteComponentStore.get(playerId);
-        const animPlayerDirectionComponent = this.directionAnimComponentStore.get(playerId);
+    private spawnProjectile(x: number, y: number, dir: { x: number; y: number }, shooterId: number): void {
+        const spritePlayerComponent = this.spriteComponentStore.get(shooterId);
+        const animPlayerDirectionComponent = this.directionAnimComponentStore.get(shooterId);
         const spriteProperties = this.spriteManager.getSpriteProperties(spritePlayerComponent.spriteName, spritePlayerComponent.spriteSheetName)
         const spriteSize = spriteProperties.spriteSheet.afterRenderSpriteCellSize;
-        const offsetX = animPlayerDirectionComponent.direction == AnimDirection.RIGHT ? spriteProperties.spriteSheet.afterRenderSpriteCellSize +5 : -5;
+        const offsetX = animPlayerDirectionComponent.direction == AnimDirection.RIGHT ? spriteProperties.spriteSheet.afterRenderSpriteCellSize + 5 : -5;
         this.soundManager.playSound("SMG_FIRE");
 
         const entity = this.entityFactory.createProjectile(
             x + offsetX,
             y + 9,
-            playerId, // por enquanto player ID
+            shooterId, // por enquanto player ID
             dir.x * 120, // cte --> pode mudar
             dir.y * 120
         );

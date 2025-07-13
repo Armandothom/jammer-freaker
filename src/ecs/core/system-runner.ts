@@ -36,11 +36,12 @@ import { PathFindingManager } from "../../game/world/pathfinding-manager.js";
 import { AIComponent } from "../components/ai.component.js";
 import { AiMovementBehaviorSystem } from "../systems/ai-movement-behavior-system.js";
 import { AIMovementOrderComponent } from "../components/ai-movement-order.component.js";
+import { HealthComponent } from "../components/health.component.js";
 
 export class SystemRunner {
   private renderSystem: RenderSystem;
   private cameraManager: CameraManager;
-  private pathFindingManager : PathFindingManager = new PathFindingManager();
+  private pathFindingManager: PathFindingManager = new PathFindingManager();
   private spriteComponentStore: ComponentStore<SpriteComponent> = new ComponentStore("SpriteComponent");
   private positionComponentStore: ComponentStore<PositionComponent> = new ComponentStore("PositionComponent");
   private collisionComponentStore: ComponentStore<CollisionComponent> = new ComponentStore("CollisionComponent");
@@ -58,6 +59,8 @@ export class SystemRunner {
   private shooterComponentStore: ComponentStore<ShooterComponent> = new ComponentStore("ShooterComponent");
   private aiComponentStore: ComponentStore<AIComponent> = new ComponentStore("AIComponent");
   private aiMovementOrderComponentStore: ComponentStore<AIMovementOrderComponent> = new ComponentStore("AIMovementOrderComponent");
+  private movementIntentComponentStore: ComponentStore<MovementIntentComponent> = new ComponentStore("MovementIntentComponent");
+  private healthComponentStore: ComponentStore<HealthComponent> = new ComponentStore("HealthComponent");
   private animationSpriteSystem: AnimationSpriteSystem;
   private inputMovementSystem: InputMovementSystem;
   private shootingSystem: ShootingSystem;
@@ -78,13 +81,13 @@ export class SystemRunner {
     private rendererEngine: RendererEngine,
   ) {
     this.cameraManager = new CameraManager(this.worldTilemapManager, this.spriteManager)
-    this.entityFactory = new EntityFactory(entityManager, this.playerComponentStore, this.enemyComponentStore, this.positionComponentStore, this.spriteComponentStore, this.projectileComponentStore, this.intentShootingComponentStore, this.velocityComponentStore, this.movimentIntentComponentStore, this.soldierComponentStore, this.animationComponentStore, this.directionAnimComponentStore, this.collisionComponentStore, this.aiComponentStore);
+    this.entityFactory = new EntityFactory(entityManager, this.playerComponentStore, this.enemyComponentStore, this.positionComponentStore, this.spriteComponentStore, this.projectileComponentStore, this.shooterComponentStore, this.velocityComponentStore, this.movementIntentComponentStore, this.soldierComponentStore, this.animationComponentStore, this.directionAnimComponentStore, this.collisionComponentStore, this.aiComponentStore, this.healthComponentStore);
     this.renderSystem = new RenderSystem(this.positionComponentStore, this.spriteComponentStore, this.cameraManager, this.worldTilemapManager, this.rendererEngine, this.spriteManager, this.directionAnimComponentStore);
     this.inputMovementSystem = new InputMovementSystem(this.positionComponentStore, this.movimentIntentComponentStore, this.playerComponentStore)
-    this.shootingSystem = new ShootingSystem(this.playerComponentStore, this.enemyComponentStore, this.intentClickComponentStore, this.intentShootingComponentStore, this.positionComponentStore);
-    this.projectileSpawnSystem = new ProjectileSpawnSystem(this.spriteManager, this.soundManager, this.positionComponentStore, this.playerComponentStore, this.projectileComponentStore, this.entityFactory, this.intentShootingComponentStore, this.spriteComponentStore, this.directionAnimComponentStore, this.intentClickComponentStore, this.shootingCooldownComponentStore)
+    this.shootingSystem = new ShootingSystem(this.playerComponentStore, this.enemyComponentStore, this.intentClickComponentStore, this.intentShootingComponentStore, this.positionComponentStore, this.shooterComponentStore);
+    this.projectileSpawnSystem = new ProjectileSpawnSystem(this.spriteManager, this.soundManager, this.positionComponentStore, this.playerComponentStore, this.projectileComponentStore, this.entityFactory, this.intentShootingComponentStore, this.spriteComponentStore, this.directionAnimComponentStore, this.intentClickComponentStore, this.shootingCooldownComponentStore, this.shooterComponentStore)
     this.projectileUpdateSystem = new ProjectileUpdateSystem(this.positionComponentStore, this.projectileComponentStore, this.velocityComponentStore, this.movimentIntentComponentStore);
-    this.collisionSystem = new CollisionSystem(this.spriteComponentStore, this.positionComponentStore, this.collisionComponentStore, this.movimentIntentComponentStore, this.projectileComponentStore, this.spriteManager, this.entityFactory);
+    this.collisionSystem = new CollisionSystem(this.spriteComponentStore, this.positionComponentStore, this.collisionComponentStore, this.movimentIntentComponentStore, this.projectileComponentStore, this.shooterComponentStore, this.healthComponentStore, this.enemyComponentStore, this.spriteManager, this.entityFactory);
     this.movementSystem = new MovementSystem(this.positionComponentStore, this.movimentIntentComponentStore, this.playerComponentStore, this.shooterComponentStore);
     this.animationSetterSystem = new AnimationSetterSystem(this.movimentIntentComponentStore, this.positionComponentStore, this.directionAnimComponentStore, this.animationComponentStore, this.intentShootingComponentStore, this.soldierComponentStore);
     this.terminatorSystem = new TerminatorSystem(this.intentClickComponentStore, this.movimentIntentComponentStore, this.shootingCooldownComponentStore, this.intentShootingComponentStore);

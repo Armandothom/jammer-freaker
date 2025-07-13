@@ -18,6 +18,7 @@ import { AnimDirection } from "../components/types/anim-direction.js";
 import { EnemyComponent } from "../components/enemy.component.js";
 import { CollisionComponent } from "../components/collision-component.js";
 import { AIComponent } from "../components/ai.component.js";
+import { HealthComponent } from "../components/health.component.js";
 
 export class EntityFactory {
   constructor(
@@ -36,6 +37,7 @@ export class EntityFactory {
     private directionAnimationComponentStore: ComponentStore<DirectionAnimComponent>,
     private collisionComponentStore: ComponentStore<CollisionComponent>,
     private aiComponentStore: ComponentStore<AIComponent>,
+    private healthComponentStore: ComponentStore<HealthComponent>,
   ) {
 
   }
@@ -51,7 +53,8 @@ export class EntityFactory {
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY))
     this.soldierComponentStore.add(entityId, new SoldierComponent());
     this.collisionComponentStore.add(entityId, new CollisionComponent());
-    console.log("Player criado com sucesso");
+    this.healthComponentStore.add(entityId, new HealthComponent(100));
+    console.log("Player criado com sucesso", entityId);
     return entityId;
   }
 
@@ -72,13 +75,14 @@ export class EntityFactory {
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.SOLDER_STILL, SpriteSheetName.SOLDIER));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.SOLDIER_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
-    this.enemyComponentStore.add(entityId, new PlayerComponent());
-    this.shooterComponentStore.add(entityId, new ShooterComponent())
-    this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY))
+    this.enemyComponentStore.add(entityId, new EnemyComponent());
+    this.shooterComponentStore.add(entityId, new ShooterComponent());
+    this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY));
     this.soldierComponentStore.add(entityId, new SoldierComponent());
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.aiComponentStore.add(entityId, new AIComponent());
-    console.log("Inimigo criado com sucesso");
+    this.healthComponentStore.add(entityId, new HealthComponent(100));
+    console.log("Inimigo criado com sucesso", entityId);
     return entityId;
   }
 
@@ -88,6 +92,16 @@ export class EntityFactory {
     this.projectileComponentStore.remove(entityId);
     this.velocityComponentStore.remove(entityId);
     this.collisionComponentStore.remove(entityId);
-}
+  }
+
+  destroyEnemy(entityId: number): void {
+    console.log("Inimigo morto");
+    this.positionComponentStore.remove(entityId);
+    this.spriteComponentStore.remove(entityId);
+    this.collisionComponentStore.remove(entityId);
+    this.shooterComponentStore.remove(entityId);
+    this.velocityComponentStore.remove(entityId);
+    this.aiComponentStore.remove(entityId);
+  }
 
 }
