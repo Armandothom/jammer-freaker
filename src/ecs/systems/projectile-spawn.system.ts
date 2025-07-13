@@ -1,3 +1,4 @@
+import { SoundManager } from "../../game/asset-manager/sound-manager.js";
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
 import { IntentClickComponent } from "../components/intent-click.component.js";
@@ -18,6 +19,7 @@ export class ProjectileSpawnSystem implements ISystem {
 
     constructor(
         private spriteManager: SpriteManager,
+        private soundManager: SoundManager,
         private positionComponentStore: ComponentStore<PositionComponent>,
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private projectileComponentStore: ComponentStore<ProjectileComponent>,
@@ -55,18 +57,13 @@ export class ProjectileSpawnSystem implements ISystem {
             if (magnitude === 0) continue; // Podemos alterar para que não spawne projetil se ele clicar tão perto do sprite do player
 
             const dir = { x: dx / magnitude, y: dy / magnitude }; // Vetor de direção normalizado
+            this.spawnProjectile(playerPos.x, playerPos.y, dir, entity);
 
-            if (intent.isHold) {
-                console.log("ishold = true");
-                this.fireCooldown += deltaTime * 1000;
-                if (this.fireCooldown >= this.fireRateMs) {
-                    this.fireCooldown = 0;
-                    this.spawnProjectile(playerPos.x, playerPos.y, dir, entity);
-                }
-            } else {
-                this.spawnProjectile(playerPos.x, playerPos.y, dir, entity);
+            // Remove intent APENAS se for clique único
+            if (!intent.isHold) {
+                this.intentClickComponentStore.remove(entity);
             }
-            this.intentClickComponentStore.remove(entity);
+
         }
     }
 
@@ -74,6 +71,7 @@ export class ProjectileSpawnSystem implements ISystem {
         const spritePlayerComponent = this.spriteComponentStore.get(playerId);
         const spriteProperties = this.spriteManager.getSpriteProperties(spritePlayerComponent.spriteName, spritePlayerComponent.spriteSheetName)
         const spriteSize = spriteProperties.spriteSheet.afterRenderSpriteCellSize;
+        this.soundManager.playSound("SMG_FIRE");
 
         const projectileId = this.entityFactory.createProjectile(
             x + spriteSize,

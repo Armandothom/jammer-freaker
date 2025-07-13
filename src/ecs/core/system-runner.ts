@@ -28,6 +28,7 @@ import { TerminatorSystem } from "../systems/terminator-system.js";
 import { ComponentStore } from "./component-store.js";
 import { CoreManager } from "./core-manager.js";
 import { EntityManager } from "./entity-manager.js";
+import { SoundManager } from "../../game/asset-manager/sound-manager.js";
 
 export class SystemRunner {
   private renderSystem: RenderSystem;
@@ -41,17 +42,17 @@ export class SystemRunner {
   private projectileShooterComponentStore: ComponentStore<ProjectileShooterComponent> = new ComponentStore("ProjectileShooterComponent");
   private velocityComponentStore: ComponentStore<VelocityComponent> = new ComponentStore("VelocityComponent");
   private intentClickComponentStore: ComponentStore<IntentClickComponent> = new ComponentStore("IntentClickComponent");
-  private directionAnimComponentStore : ComponentStore<DirectionAnimComponent> = new ComponentStore("DirectionAnimComponent");
-  private soldierComponentStore : ComponentStore<SoldierComponent> = new ComponentStore("SoldierComponent");
-  private animationComponentStore : ComponentStore<AnimationComponent> = new ComponentStore("AnimationComponent");
-  private animationSpriteSystem : AnimationSpriteSystem;
+  private directionAnimComponentStore: ComponentStore<DirectionAnimComponent> = new ComponentStore("DirectionAnimComponent");
+  private soldierComponentStore: ComponentStore<SoldierComponent> = new ComponentStore("SoldierComponent");
+  private animationComponentStore: ComponentStore<AnimationComponent> = new ComponentStore("AnimationComponent");
+  private animationSpriteSystem: AnimationSpriteSystem;
   private inputMovementSystem: InputMovementSystem;
   private inputClickSystem: InputClickSystem;
   private projectileSpawnSystem: ProjectileSpawnSystem;
   private collisionSystem: CollisionSystem;
   private movementSystem: MovementSystem;
   private animationSetterSystem: AnimationSetterSystem;
-  private terminatorSystem : TerminatorSystem;
+  private terminatorSystem: TerminatorSystem;
   private projectileUpdateSystem: ProjectileUpdateSystem;
   private entityFactory: EntityFactory;
 
@@ -60,22 +61,15 @@ export class SystemRunner {
     private worldTilemapManager: WorldTilemapManager,
     private spriteManager: SpriteManager,
     private entityManager: EntityManager,
-    private rendererEngine: RendererEngine
+    private soundManager: SoundManager,
+    private rendererEngine: RendererEngine,
   ) {
     this.cameraManager = new CameraManager(this.worldTilemapManager, this.spriteManager)
     this.entityFactory = new EntityFactory(entityManager, this.playerComponentStore, this.positionComponentStore, this.spriteComponentStore, this.projectileComponentStore, this.projectileShooterComponentStore, this.velocityComponentStore, this.movimentIntentComponentStore, this.soldierComponentStore, this.animationComponentStore);
     this.renderSystem = new RenderSystem(this.positionComponentStore, this.spriteComponentStore, this.cameraManager, this.worldTilemapManager, this.rendererEngine, this.spriteManager, this.directionAnimComponentStore);
     this.inputMovementSystem = new InputMovementSystem(this.positionComponentStore, this.movimentIntentComponentStore, this.playerComponentStore)
     this.inputClickSystem = new InputClickSystem(this.playerComponentStore, this.intentClickComponentStore);
-    this.projectileSpawnSystem = new ProjectileSpawnSystem(this.spriteManager, this.positionComponentStore, this.playerComponentStore, this.projectileComponentStore, this.entityFactory, this.projectileShooterComponentStore, this.spriteComponentStore, this.intentClickComponentStore)
-    this.projectileUpdateSystem = new ProjectileUpdateSystem(this.positionComponentStore, this.projectileComponentStore, this.velocityComponentStore);
-    this.collisionSystem = new CollisionSystem(this.spriteComponentStore, this.positionComponentStore, this.collisionComponentStore, this.movimentIntentComponentStore, this.spriteManager);
-    this.movementSystem = new MovementSystem(this.positionComponentStore, this.movimentIntentComponentStore, this.playerComponentStore);
-    this.entityFactory = new EntityFactory(entityManager, this.playerComponentStore, this.positionComponentStore, this.spriteComponentStore, this.projectileComponentStore, this.projectileShooterComponentStore, this.velocityComponentStore, this.movimentIntentComponentStore, this.soldierComponentStore, this.animationComponentStore);
-    this.renderSystem = new RenderSystem(this.positionComponentStore, this.spriteComponentStore, this.cameraManager, this.worldTilemapManager, this.rendererEngine, this.spriteManager, this.directionAnimComponentStore);
-    this.inputMovementSystem = new InputMovementSystem(this.positionComponentStore, this.movimentIntentComponentStore, this.playerComponentStore)
-    this.inputClickSystem = new InputClickSystem(this.playerComponentStore, this.intentClickComponentStore);
-    this.projectileSpawnSystem = new ProjectileSpawnSystem(this.spriteManager, this.positionComponentStore, this.playerComponentStore, this.projectileComponentStore, this.entityFactory, this.projectileShooterComponentStore, this.spriteComponentStore, this.intentClickComponentStore)
+    this.projectileSpawnSystem = new ProjectileSpawnSystem(this.spriteManager, this.soundManager, this.positionComponentStore, this.playerComponentStore, this.projectileComponentStore, this.entityFactory, this.projectileShooterComponentStore, this.spriteComponentStore, this.intentClickComponentStore)
     this.projectileUpdateSystem = new ProjectileUpdateSystem(this.positionComponentStore, this.projectileComponentStore, this.velocityComponentStore);
     this.collisionSystem = new CollisionSystem(this.spriteComponentStore, this.positionComponentStore, this.collisionComponentStore, this.movimentIntentComponentStore, this.spriteManager);
     this.movementSystem = new MovementSystem(this.positionComponentStore, this.movimentIntentComponentStore, this.playerComponentStore);

@@ -12,31 +12,36 @@ export class InputClickSystem implements ISystem {
 
     constructor(
         private playerComponentStore: ComponentStore<PlayerComponent>,
-        private intentClickComponentStore: ComponentStore<IntentClickComponent>
+        private intentClickComponentStore: ComponentStore<IntentClickComponent>,
+        private clickCooldownMs = 20000,
+        private pressTresholdMs = 200,
+        private spamTresholdMs = 20000
     ) {
         this.canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
         this.initListeners();
     };
 
     update(deltaTime: number): void {
-        // Não tem update por frame, é dado pelo initListeners no constructor e demais eventos
-        if (this.isMouseDown) {
-            this.pushClickIntent(true); // Emitir clique contínuo
+        this.pressTresholdMs -= deltaTime * 1000;
+        if (this.pressTresholdMs < 0) this.pressTresholdMs = 0;
+
+        if (this.isMouseDown && this.pressTresholdMs === 0) {
+            this.pushClickIntent(true); // isHold = true
+            this.pressTresholdMs = 200;
         }
     }
 
     private initListeners() {
-        const rect = this.canvas.getBoundingClientRect();
 
         this.canvas.addEventListener("mousedown", (e: MouseEvent) => {
             this.isMouseDown = true;
-            console.log(this.isMouseDown);
+            this.updateMousePosition(e);
 
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-
-            this.currentMousePos = { x, y };
-            this.clickQueue.push({ x, y });
+            if (this.clickCooldownMs === 0) {
+                this.pushClickIntent(true); // isHold = true
+                this.clickCooldownMs = this.spamTresholdMs;
+            }
+            // dispara o primeiro com isHold=true
         });
 
         this.canvas.addEventListener("mouseup", () => {
@@ -50,6 +55,11 @@ export class InputClickSystem implements ISystem {
         this.canvas.addEventListener("click", (e: MouseEvent) => {
             this.updateMousePosition(e);
             this.pushClickIntent(false); // isHold = false
+
+            if (this.clickCooldownMs === 0) {
+                this.pushClickIntent(false); // isHold = false
+                this.clickCooldownMs = this.spamTresholdMs;
+            }
         });
     }
 
@@ -71,5 +81,4 @@ export class InputClickSystem implements ISystem {
             ))
         }
     }
-
 }
