@@ -37,6 +37,8 @@ import { AIComponent } from "../components/ai.component.js";
 import { AiMovementBehaviorSystem } from "../systems/ai-movement-behavior-system.js";
 import { AIMovementOrderComponent } from "../components/ai-movement-order.component.js";
 import { HealthComponent } from "../components/health.component.js";
+import { AiAttackBehaviorSystem } from "../systems/ai-attack-behavior-system.js";
+import { AIAttackOrderComponent } from "../components/ai-attack-order.component.js";
 
 export class SystemRunner {
   private renderSystem: RenderSystem;
@@ -61,6 +63,7 @@ export class SystemRunner {
   private aiMovementOrderComponentStore: ComponentStore<AIMovementOrderComponent> = new ComponentStore("AIMovementOrderComponent");
   private movementIntentComponentStore: ComponentStore<MovementIntentComponent> = new ComponentStore("MovementIntentComponent");
   private healthComponentStore: ComponentStore<HealthComponent> = new ComponentStore("HealthComponent");
+  private aiAttackOrderComponentStore: ComponentStore<AIAttackOrderComponent> = new ComponentStore("AIAttackOrderComponent");
   private animationSpriteSystem: AnimationSpriteSystem;
   private inputMovementSystem: InputMovementSystem;
   private shootingSystem: ShootingSystem;
@@ -71,6 +74,7 @@ export class SystemRunner {
   private terminatorSystem: TerminatorSystem;
   private projectileUpdateSystem: ProjectileUpdateSystem;
   private aiMovementBehaviorSystem: AiMovementBehaviorSystem;
+  private aiAttackBehaviorSystem : AiAttackBehaviorSystem;
   private entityFactory: EntityFactory;
 
   constructor(
@@ -92,12 +96,14 @@ export class SystemRunner {
     this.animationSetterSystem = new AnimationSetterSystem(this.movimentIntentComponentStore, this.positionComponentStore, this.directionAnimComponentStore, this.animationComponentStore, this.intentShootingComponentStore, this.soldierComponentStore);
     this.terminatorSystem = new TerminatorSystem(this.intentClickComponentStore, this.movimentIntentComponentStore, this.shootingCooldownComponentStore, this.intentShootingComponentStore);
     this.animationSpriteSystem = new AnimationSpriteSystem(this.animationComponentStore, this.spriteComponentStore);
-    this.aiMovementBehaviorSystem = new AiMovementBehaviorSystem(this.positionComponentStore, this.velocityComponentStore, this.movimentIntentComponentStore, this.aiComponentStore, this.aiMovementOrderComponentStore, this.playerComponentStore, this.pathFindingManager)
+    this.aiMovementBehaviorSystem = new AiMovementBehaviorSystem(this.positionComponentStore, this.velocityComponentStore, this.movimentIntentComponentStore, this.aiComponentStore, this.aiMovementOrderComponentStore, this.playerComponentStore, this.pathFindingManager);
+    this.aiAttackBehaviorSystem = new AiAttackBehaviorSystem(this.positionComponentStore, this.intentShootingComponentStore, this.aiComponentStore, this.aiAttackOrderComponentStore, this.playerComponentStore);
   }
 
   update() {
     this.inputMovementSystem.update(CoreManager.timeSinceLastRender);
     this.aiMovementBehaviorSystem.update(CoreManager.timeSinceLastRender);
+    this.aiAttackBehaviorSystem.update(CoreManager.timeSinceLastRender)
     this.shootingSystem.update(CoreManager.timeSinceLastRender);
     this.projectileSpawnSystem.update(CoreManager.timeSinceLastRender);
     this.projectileUpdateSystem.update(CoreManager.timeSinceLastRender);

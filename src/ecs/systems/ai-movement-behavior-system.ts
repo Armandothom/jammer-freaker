@@ -1,6 +1,6 @@
 
 import { PathFindingManager } from "../../game/world/pathfinding-manager.js";
-import { randomWithSeedInfluence } from "../../utils/get-random-with-seed.js";
+import { randomNumberWithSeedInfluence } from "../../utils/get-random-with-seed.js";
 import { detectByRadius, lerpPosition } from "../../utils/lerp-position.js";
 import { Position } from "../../utils/types/position.js";
 import { AIMovementOrderComponent } from "../components/ai-movement-order.component.js";
@@ -59,7 +59,7 @@ export class AiMovementBehaviorSystem implements ISystem {
     private setNewMovement(aiEntityId: number, playerEntityId: number) {
         const playerPosition = this.positionComponentStore.get(playerEntityId);
         const aiPosition = this.positionComponentStore.get(aiEntityId);
-        const randomNumber = randomWithSeedInfluence(aiEntityId.toString(), 0, 10);
+        const randomNumber = randomNumberWithSeedInfluence(aiEntityId.toString(), 0, 10);
         if (randomNumber <= 4) {
             const isTooClose = detectByRadius({
                 x : playerPosition.x,
@@ -69,19 +69,19 @@ export class AiMovementBehaviorSystem implements ISystem {
                 y : aiPosition.y
             }, 120)
             this.setMoveRelatedToPlayer(aiEntityId, playerPosition, aiPosition, isTooClose ? false : true);
-        } else if (randomNumber > 4 && randomNumber <= 6) {
+        } else if (randomNumber > 4 && randomNumber <= 8) {
             this.setMoveRelatedToPlayer(aiEntityId, playerPosition, aiPosition, false);
-        } else if (randomNumber > 6) {
-            const durationStandStill = randomWithSeedInfluence(aiEntityId.toString(), 0, 5);
+        } else if (randomNumber > 8) {
+            const durationStandStill = randomNumberWithSeedInfluence(aiEntityId.toString(), 0, 5);
             this.aiMovementOrderComponentStore.add(aiEntityId, new AIMovementOrderComponent(AiMovementOrder.STAND_STILL, [], durationStandStill))
         }
     }
 
     private setMoveRelatedToPlayer(aiEntityId: number, playerPosition: PositionComponent, aiPosition: PositionComponent, toPlayer: boolean) {
-        const approximity = randomWithSeedInfluence(aiEntityId.toString(), 20, 80) / 100;
+        const approximity = randomNumberWithSeedInfluence(aiEntityId.toString(), 20, 40) / 100;
         const referencePoint: Position = {
-            x: toPlayer ? playerPosition.x : playerPosition.x + randomWithSeedInfluence(aiEntityId.toString(), 100, 250),
-            y: toPlayer ? playerPosition.y : playerPosition.y + randomWithSeedInfluence(aiEntityId.toString(), 100, 250)
+            x: toPlayer ? playerPosition.x : playerPosition.x + randomNumberWithSeedInfluence(aiEntityId.toString(), 100, 250),
+            y: toPlayer ? playerPosition.y : playerPosition.y + randomNumberWithSeedInfluence(aiEntityId.toString(), 100, 250)
         }
         const goalPath = lerpPosition(
             {

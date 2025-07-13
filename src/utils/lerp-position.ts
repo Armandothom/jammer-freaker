@@ -11,7 +11,6 @@ export function detectByRadius(a: Position, b: Position, radius: number): boolea
   const dx = b.x - a.x;
   const dy = b.y - a.y;
   const distance = Math.hypot(dx, dy);
-  console.log("distance", distance)
   return distance <= radius;
 }
 

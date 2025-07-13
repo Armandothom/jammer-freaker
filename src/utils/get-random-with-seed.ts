@@ -18,7 +18,7 @@ function seededRandom(id: string): number {
   return (base + offset) % 1;              
 }
 
-export function randomWithSeedInfluence(id: string, min: number, max: number): number {
+export function randomNumberWithSeedInfluence(id: string, min: number, max: number): number {
   const seedInfluence = getSeedOffset(id); 
   const baseRandom = Math.random();       
   const mixed = (baseRandom + seedInfluence * 0.2) % 1; //20percent of influence of the seed
