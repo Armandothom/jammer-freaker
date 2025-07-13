@@ -19,7 +19,6 @@ export class MovementSystem implements ISystem {
         const entities = this.movementIntentComponentStore.getAllEntities();
 
         for (const entity of entities) {
-            console.log(entity);
             const intent = this.movementIntentComponentStore.get(entity); // 1 --> não existe
 
             if (!intent) continue;

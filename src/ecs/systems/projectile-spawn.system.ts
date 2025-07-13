@@ -39,7 +39,6 @@ export class ProjectileSpawnSystem implements ISystem {
 
         for (const entity of players) {
             const playerPos = this.positionComponentStore.get(entity);
-            console.log(entity);
             const intent = this.intentClickComponentStore.getOrNull(entity);
             if (!playerPos || !intent) continue;
 
@@ -73,8 +72,6 @@ export class ProjectileSpawnSystem implements ISystem {
         const spritePlayerComponent = this.spriteComponentStore.get(playerId);
         const spriteProperties = this.spriteManager.getSpriteProperties(spritePlayerComponent.spriteName, spritePlayerComponent.spriteSheetName)
         const spriteSize = spriteProperties.spriteSheet.afterRenderSpriteCellSize;
-        //console.log(dir.x, dir.y);
-        console.log(x, y);
 
         const projectileId = this.entityFactory.createProjectile(
             x + spriteSize,
@@ -83,7 +80,6 @@ export class ProjectileSpawnSystem implements ISystem {
             dir.x * 120, // cte --> pode mudar
             dir.y * 120
         );
-        //console.log(projectileId);
 
         console.log("Projectile Spawned");
         //Adição de mais componentes

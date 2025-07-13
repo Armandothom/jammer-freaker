@@ -19,7 +19,6 @@ export class ProjectileUpdateSystem implements ISystem {
 
     update(deltaTime: number): void {
         const projectileEntities = this.projectileComponentStore.getAllEntities();
-        //console.log("projectileEntities", projectileEntities);
 
         for (const entity of projectileEntities) {
             const position = this.positionComponentStore.get(entity);
@@ -31,7 +30,6 @@ export class ProjectileUpdateSystem implements ISystem {
             if (intent.x > this.canvas.width || intent.y > this.canvas.height || intent.x < 0 || intent.y < 0){
                 this.projectileComponentStore.remove(entity);                
             }
-            //console.log(intent);
             this.positionComponentStore.add(entity, intent); // atualiza posição
         }
 

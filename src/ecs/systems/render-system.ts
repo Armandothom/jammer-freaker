@@ -56,7 +56,6 @@ export class RenderSystem implements ISystem {
     for (const entity of entities) {
       const sprite = this.spriteComponentStore.get(entity);
       const position = this.positionComponentStore.get(entity);
-      //console.log("render",position.x,position.y);
       if (position.x > viewport.right || position.x < viewport.left ||
         position.y < viewport.top || position.y > viewport.bottom
       ) {
