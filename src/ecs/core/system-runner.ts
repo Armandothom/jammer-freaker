@@ -81,7 +81,7 @@ export class SystemRunner {
     this.movementSystem = new MovementSystem(this.positionComponentStore, this.movimentIntentComponentStore, this.playerComponentStore);
     this.animationSetterSystem = new AnimationSetterSystem(this.movimentIntentComponentStore, this.positionComponentStore, this.directionAnimComponentStore, this.animationComponentStore, this.projectileShooterComponentStore, this.soldierComponentStore);
     this.terminatorSystem = new TerminatorSystem(this.intentClickComponentStore, this.movimentIntentComponentStore);
-    this.animationSpriteSystem = new AnimationSpriteSystem(this.animationComponentStore)
+    this.animationSpriteSystem = new AnimationSpriteSystem(this.animationComponentStore, this.spriteComponentStore)
   }
 
   update() {
@@ -90,6 +90,7 @@ export class SystemRunner {
     this.projectileSpawnSystem.update(CoreManager.timeSinceLastRender);
     this.projectileUpdateSystem.update(CoreManager.timeSinceLastRender);
     this.animationSetterSystem.update(CoreManager.timeSinceLastRender);
+    this.animationSpriteSystem.update(CoreManager.timeSinceLastRender);
     this.collisionSystem.update(CoreManager.timeSinceLastRender);
     this.movementSystem.update(CoreManager.timeSinceLastRender);
     this.renderSystem.update(CoreManager.timeSinceLastRender);

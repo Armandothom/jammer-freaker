@@ -8,6 +8,7 @@ import { SystemRunner } from "./system-runner.js";
 export class CoreManager {
     private previousTimestamp = 0;
     static timeSinceLastRender = 0;
+    static timeGlobalSinceStart = 0;
     private _assetManager : AssetManager;
     private _spriteManager!: SpriteManager;
     private _systemRunner!: SystemRunner;
@@ -29,11 +30,13 @@ export class CoreManager {
         this._worldTilemapManager = new WorldTilemapManager(this._spriteManager);
         this._systemRunner = new SystemRunner(this._worldTilemapManager, this._spriteManager, this._entityManager, this._rendererEngine);
         this._systemRunner.initialize();
+        CoreManager.timeGlobalSinceStart = 0;
         window.requestAnimationFrame(this.runLoop.bind(this));
     }
 
     private runLoop(startTimePageLoaded : number) {
         CoreManager.timeSinceLastRender = (startTimePageLoaded - this.previousTimestamp) / 1000;
+        CoreManager.timeGlobalSinceStart += CoreManager.timeSinceLastRender
         this.previousTimestamp = startTimePageLoaded;
         this._systemRunner.update();
         window.requestAnimationFrame(this.runLoop.bind(this))

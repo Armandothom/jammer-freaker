@@ -10,6 +10,5 @@ export enum SpriteName {
   SOLDER_RUNNING_4 = "soldier_running_4",
   SOLDER_RUNNING_5 = "soldier_running_5",
   SOLDER_RUNNING_6 = "soldier_running_6",
-  SOLDER_RUNNING_7 = "soldier_running_7",
   BULLET_1 = "bullet_1",
 }

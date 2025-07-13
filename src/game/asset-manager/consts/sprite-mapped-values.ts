@@ -78,11 +78,6 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
           row: 2,
           column: 7,
           collisionBox: { offsetX: 10, offsetY: 6, width: 23, height: 28 }
-        }],
-        [SpriteName.SOLDER_RUNNING_7, {
-          row: 2,
-          column: 8,
-          collisionBox: { offsetX: 10, offsetY: 6, width: 23, height: 28 }
         }]
       ])
     }
