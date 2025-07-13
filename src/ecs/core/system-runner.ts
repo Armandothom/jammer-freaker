@@ -3,7 +3,6 @@ import { RendererEngine } from "../../game/renderer/renderer-engine.js";
 import { CameraManager } from "../../game/world/camera-manager.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { AnimationComponent } from "../components/animation.component.js";
-import { ClickIntentComponent } from "../components/click-intent.component.js";
 import { CollisionComponent } from "../components/collision-component.js";
 import { IntentClickComponent } from "../components/intent-click.component.js";
 import { DirectionAnimComponent } from "../components/direction-anim.component.js";
@@ -42,7 +41,6 @@ export class SystemRunner {
   private projectileShooterComponentStore: ComponentStore<ProjectileShooterComponent> = new ComponentStore("ProjectileShooterComponent");
   private velocityComponentStore: ComponentStore<VelocityComponent> = new ComponentStore("VelocityComponent");
   private intentClickComponentStore: ComponentStore<IntentClickComponent> = new ComponentStore("IntentClickComponent");
-  private clickIntentComponentStore : ComponentStore<ClickIntentComponent> = new ComponentStore("ClickIntentComponent");
   private directionAnimComponentStore : ComponentStore<DirectionAnimComponent> = new ComponentStore("DirectionAnimComponent");
   private soldierComponentStore : ComponentStore<SoldierComponent> = new ComponentStore("SoldierComponent");
   private animationComponentStore : ComponentStore<AnimationComponent> = new ComponentStore("AnimationComponent");
@@ -82,7 +80,7 @@ export class SystemRunner {
     this.collisionSystem = new CollisionSystem(this.spriteComponentStore, this.positionComponentStore, this.collisionComponentStore, this.movimentIntentComponentStore, this.spriteManager);
     this.movementSystem = new MovementSystem(this.positionComponentStore, this.movimentIntentComponentStore, this.playerComponentStore);
     this.animationSetterSystem = new AnimationSetterSystem(this.movimentIntentComponentStore, this.positionComponentStore, this.directionAnimComponentStore, this.animationComponentStore, this.projectileShooterComponentStore, this.soldierComponentStore);
-    this.terminatorSystem = new TerminatorSystem(this.clickIntentComponentStore, this.movimentIntentComponentStore);
+    this.terminatorSystem = new TerminatorSystem(this.intentClickComponentStore, this.movimentIntentComponentStore);
     this.animationSpriteSystem = new AnimationSpriteSystem(this.animationComponentStore)
   }
 

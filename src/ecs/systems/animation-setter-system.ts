@@ -1,7 +1,6 @@
 
 import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
 import { AnimationComponent } from "../components/animation.component.js";
-import { ClickIntentComponent } from "../components/click-intent.component.js";
 import { DirectionAnimComponent } from "../components/direction-anim.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PositionComponent } from "../components/position.component.js";

@@ -1,5 +1,5 @@
 
-import { ClickIntentComponent } from "../components/click-intent.component.js";
+import { IntentClickComponent } from "../components/intent-click.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { ISystem } from "./system.interface.js";
@@ -8,7 +8,7 @@ import { ISystem } from "./system.interface.js";
 //Hasta la vista, baby
 export class TerminatorSystem implements ISystem {
     constructor(
-        private clickIntentComponentStore: ComponentStore<ClickIntentComponent>,
+        private clickIntentComponentStore: ComponentStore<IntentClickComponent>,
         private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
     ) { }
 
