@@ -67,11 +67,30 @@ export class EntityFactory {
     this.projectileComponentStore.add(entityId, new ProjectileComponent());
     this.velocityComponentStore.add(entityId, new VelocityComponent(velX, velY));
     this.collisionComponentStore.add(entityId, new CollisionComponent());
-    this.shotOriginComponentStore.add(entityId,new ShotOriginComponent(entityShooterId))
+    this.shotOriginComponentStore.add(entityId, new ShotOriginComponent(entityShooterId))
     return entityId;
   }
 
-  createEnemy(startX: number, startY: number) {
+  createSoldier(startX: number, startY: number, hp: number, damage: number, attackCooldownInSeconds: number, attackRange: number, movementRadius: number, velocity: number) {
+    const entityId = this.entityManager.registerEntity();
+    this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
+    this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity));
+    this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.ENEMY_STILL, SpriteSheetName.ENEMY));
+    this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.ENEMY_STILL));
+    this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
+    this.enemyComponentStore.add(entityId, new EnemyComponent());
+    this.shooterComponentStore.add(entityId, new ShooterComponent());
+    this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY));
+    this.soldierComponentStore.add(entityId, new SoldierComponent());
+    this.collisionComponentStore.add(entityId, new CollisionComponent());
+    this.aiComponentStore.add(entityId, new AIComponent());
+    this.healthComponentStore.add(entityId, new HealthComponent(hp));
+    console.log("Soldier Spawnado", entityId);
+    //console.log(this.directionAnimationComponentStore.get(entityId));
+    return entityId;
+  }
+
+  createJuggernaut(startX: number, startY: number, hp: number, damage: number, attackCooldownInSeconds: number, attackRange: number, movementRadius: number, velocity: number) {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.velocityComponentStore.add(entityId, new VelocityComponent(1, 1));
@@ -85,7 +104,64 @@ export class EntityFactory {
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.aiComponentStore.add(entityId, new AIComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(100));
-    //console.log("Inimigo criado com sucesso", entityId, startX, startY);
+    console.log("Juggernaut Spawnado", entityId);
+    //console.log(this.directionAnimationComponentStore.get(entityId));
+    return entityId;
+  }
+
+  createSniper(startX: number, startY: number, hp: number, damage: number, attackCooldownInSeconds: number, attackRange: number, movementRadius: number, velocity: number) {
+    const entityId = this.entityManager.registerEntity();
+    this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
+    this.velocityComponentStore.add(entityId, new VelocityComponent(1, 1));
+    this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.ENEMY_STILL, SpriteSheetName.ENEMY));
+    this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.ENEMY_STILL));
+    this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
+    this.enemyComponentStore.add(entityId, new EnemyComponent());
+    this.shooterComponentStore.add(entityId, new ShooterComponent());
+    this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY));
+    this.soldierComponentStore.add(entityId, new SoldierComponent());
+    this.collisionComponentStore.add(entityId, new CollisionComponent());
+    this.aiComponentStore.add(entityId, new AIComponent());
+    this.healthComponentStore.add(entityId, new HealthComponent(100));
+    console.log("Sniper Spawnado", entityId);
+    //console.log(this.directionAnimationComponentStore.get(entityId));
+    return entityId;
+  }
+
+  createKamikaze(startX: number, startY: number, hp: number, damage: number, attackCooldownInSeconds: number, attackRange: number, movementRadius: number, velocity: number) {
+    const entityId = this.entityManager.registerEntity();
+    this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
+    this.velocityComponentStore.add(entityId, new VelocityComponent(1, 1));
+    this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.ENEMY_STILL, SpriteSheetName.ENEMY));
+    this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.ENEMY_STILL));
+    this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
+    this.enemyComponentStore.add(entityId, new EnemyComponent());
+    this.shooterComponentStore.add(entityId, new ShooterComponent());
+    this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY));
+    this.soldierComponentStore.add(entityId, new SoldierComponent());
+    this.collisionComponentStore.add(entityId, new CollisionComponent());
+    this.aiComponentStore.add(entityId, new AIComponent());
+    this.healthComponentStore.add(entityId, new HealthComponent(100));
+    console.log("Kamikaze Spawnado", entityId);
+    //console.log(this.directionAnimationComponentStore.get(entityId));
+    return entityId;
+  }
+
+  createBomber(startX: number, startY: number, hp: number, damage: number, attackCooldownInSeconds: number, attackRange: number, movementRadius: number, velocity: number) {
+    const entityId = this.entityManager.registerEntity();
+    this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
+    this.velocityComponentStore.add(entityId, new VelocityComponent(1, 1));
+    this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.ENEMY_STILL, SpriteSheetName.ENEMY));
+    this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.ENEMY_STILL));
+    this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
+    this.enemyComponentStore.add(entityId, new EnemyComponent());
+    this.shooterComponentStore.add(entityId, new ShooterComponent());
+    this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY));
+    this.soldierComponentStore.add(entityId, new SoldierComponent());
+    this.collisionComponentStore.add(entityId, new CollisionComponent());
+    this.aiComponentStore.add(entityId, new AIComponent());
+    this.healthComponentStore.add(entityId, new HealthComponent(100));
+    console.log("Bomber Spawnado", entityId);
     //console.log(this.directionAnimationComponentStore.get(entityId));
     return entityId;
   }

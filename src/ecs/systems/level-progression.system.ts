@@ -23,12 +23,13 @@ export class LevelProgressionSystem implements ISystem {
         this.timeInLevel += deltaTime;
         const previousTime = this.timeInLevel - deltaTime;
 
-        if (previousTime < levelTimeInSeconds && this.timeInLevel >= levelTimeInSeconds) {
+        if (previousTime < levelTimeInSeconds && this.timeInLevel >= levelTimeInSeconds && totalEnemiesKilled >= this.totalKillsToProgress / 2) {
             this.timeInLevel = 0;
+            console.log("Level update");
             this.levelManager.update();
         }
 
-        if (totalEnemiesKilled == this.totalKillsToProgress){
+        if (totalEnemiesKilled == this.totalKillsToProgress) {
             this.timeInLevel = 0;
             this.totalKillsToProgress += enemyKillIncrease;
             this.levelManager.update();

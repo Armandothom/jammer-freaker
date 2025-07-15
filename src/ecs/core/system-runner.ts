@@ -44,6 +44,7 @@ import { AimShootingComponent } from "../components/aim-shooting.component.js";
 import { LevelManager } from "./level-manager.js";
 import { EnemiesKilledComponent } from "../components/enemies-killed.component.js";
 import { LevelProgressionSystem } from "../systems/level-progression.system.js";
+import { EnemySpawnSystem } from "../systems/enemy-spawn.system.js";
 
 export class SystemRunner {
   private renderSystem: RenderSystem;
@@ -84,6 +85,7 @@ export class SystemRunner {
   private aiMovementBehaviorSystem: AiMovementBehaviorSystem;
   private aiAttackBehaviorSystem: AiAttackBehaviorSystem;
   private levelProgressionSystem: LevelProgressionSystem;
+  private enemySpawnSystem: EnemySpawnSystem;
   private entityFactory: EntityFactory;
 
   constructor(
@@ -95,8 +97,8 @@ export class SystemRunner {
     private levelManager: LevelManager,
   ) {
     this.cameraManager = new CameraManager(this.worldTilemapManager, this.spriteManager);
+    this.levelManager = new LevelManager();
     this.entityFactory = new EntityFactory(entityManager, this.playerComponentStore, this.enemyComponentStore, this.positionComponentStore, this.spriteComponentStore, this.projectileComponentStore, this.shooterComponentStore, this.velocityComponentStore, this.movementIntentComponentStore, this.soldierComponentStore, this.animationComponentStore, this.directionAnimComponentStore, this.collisionComponentStore, this.aiComponentStore, this.healthComponentStore, this.shotOriginComponentStore);
-    this.levelManager = new LevelManager(5, 1, this.entityManager, this.playerComponentStore, this.enemyComponentStore, this.positionComponentStore, this.spriteComponentStore, this.projectileComponentStore, this.shooterComponentStore, this.velocityComponentStore, this.movementIntentComponentStore, this.soldierComponentStore, this.animationComponentStore, this.directionAnimComponentStore, this.collisionComponentStore, this.aiComponentStore, this.healthComponentStore, this.shotOriginComponentStore)
     this.renderSystem = new RenderSystem(this.positionComponentStore, this.spriteComponentStore, this.cameraManager, this.worldTilemapManager, this.rendererEngine, this.spriteManager, this.directionAnimComponentStore);
     this.inputMovementSystem = new InputMovementSystem(this.positionComponentStore, this.movimentIntentComponentStore, this.playerComponentStore)
     this.shootingSystem = new ShootingSystem(this.playerComponentStore, this.enemyComponentStore, this.intentShotComponentStore, this.positionComponentStore, this.shooterComponentStore);
@@ -110,10 +112,12 @@ export class SystemRunner {
     this.aiMovementBehaviorSystem = new AiMovementBehaviorSystem(this.positionComponentStore, this.velocityComponentStore, this.movimentIntentComponentStore, this.aiComponentStore, this.aiMovementOrderComponentStore, this.playerComponentStore, this.pathFindingManager);
     this.aiAttackBehaviorSystem = new AiAttackBehaviorSystem(this.positionComponentStore, this.intentShotComponentStore, this.aiComponentStore, this.aiAttackOrderComponentStore, this.playerComponentStore);
     this.levelProgressionSystem = new LevelProgressionSystem(this.enemiesKilledCompontentStore, this.levelManager);
+    this.enemySpawnSystem = new EnemySpawnSystem(this.positionComponentStore,this.enemyComponentStore,this.entityFactory);
   }
 
   update() {
     this.levelProgressionSystem.update(CoreManager.timeSinceLastRender);
+    this.enemySpawnSystem.update(CoreManager.timeSinceLastRender);
     this.inputMovementSystem.update(CoreManager.timeSinceLastRender);
     this.aiMovementBehaviorSystem.update(CoreManager.timeSinceLastRender);
     this.aiAttackBehaviorSystem.update(CoreManager.timeSinceLastRender)
@@ -130,6 +134,6 @@ export class SystemRunner {
 
   initialize() {
     this.entityFactory.createPlayer(30, 30);
-    this.entityFactory.createEnemy(300, 300);
+    //this.entityFactory.createEnemy(300, 300);
   }
 }
