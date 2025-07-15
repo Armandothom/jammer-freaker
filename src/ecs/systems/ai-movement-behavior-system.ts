@@ -37,7 +37,7 @@ export class AiMovementBehaviorSystem implements ISystem {
                 continue;
             }
             const aiMovementOrder = this.aiMovementOrderComponentStore.get(aiEntityId);
-            console.log("aimovementOrder", aiEntityId, aiMovementOrder.movementOrder, aiMovementOrder.pathList.length);
+            //console.log("aimovementOrder", aiEntityId, aiMovementOrder.movementOrder, aiMovementOrder.pathList.length);
             switch (aiMovementOrder.movementOrder) {
                 case AiMovementOrder.MOVE_TO_PLAYER:
                 case AiMovementOrder.MOVE_AWAY_FROM_PLAYER:

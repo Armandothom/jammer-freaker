@@ -13,6 +13,7 @@ import { HealthComponent } from "../components/health.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { ShotOriginComponent } from "../components/shot-origin.component.js";
+import { EnemiesKilledComponent } from "../components/enemies-killed.component.js";
 
 export class CollisionSystem implements ISystem {
     constructor(
@@ -28,6 +29,7 @@ export class CollisionSystem implements ISystem {
         private entityFactory: EntityFactory,
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private shotOriginComponentStore: ComponentStore<ShotOriginComponent>,
+        private enemiesKilledComponentStore: ComponentStore<EnemiesKilledComponent>,
     ) {
 
     }
@@ -78,7 +80,7 @@ export class CollisionSystem implements ISystem {
                         if (this.healthComponentStore.get(target).hp <= 0) {
 
                             if (targetEnemy) {
-
+                                this.enemiesKilledComponentStore.add(target, new EnemiesKilledComponent());
                                 this.entityFactory.destroyEnemy(target);
                             } else if (targetPlayer) {
                                 //console.log("Player dead - Game over");
