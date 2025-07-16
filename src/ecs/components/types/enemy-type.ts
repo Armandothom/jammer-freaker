@@ -62,5 +62,5 @@ export const EnemyConfig: Record<EnemyType, PropertiesTable> = {
         movementRadius: 320,
         velocity: 1,
     },
-    // Spawn frequency has to sum up to 1, adjust the values when we implement the attack beha
+    // Spawn frequency has to sum up to 1, adjust the values when we implement the attack behavior
 }

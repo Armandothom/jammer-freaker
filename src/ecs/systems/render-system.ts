@@ -52,7 +52,7 @@ export class RenderSystem implements ISystem {
 
   private getOverTerrainRenderObjects(viewport: CameraViewport): Array<RenderObject> {
     let renderObject: Array<RenderObject> = [];
-    const entities = this.positionComponentStore.getAllEntities();
+    const entities = this.positionComponentStore.getAllEntities();    
     for (const entity of entities) {
       const sprite = this.spriteComponentStore.get(entity);
       const position = this.positionComponentStore.get(entity);

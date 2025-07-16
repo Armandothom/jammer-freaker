@@ -6,14 +6,15 @@ import { TilemapTile } from './types/tilemap-tile.js';
 import { SpriteManager } from '../asset-manager/sprite-manager.js';
 
 export class WorldTilemapManager {
-  private readonly _maxNumberTilesX = 50;
-  private readonly _maxNumberTilesY = 50;
+  public _maxNumberTilesX = 50;
+  public _maxNumberTilesY = 50;
   private readonly _tilemapSpritesheetName = SpriteSheetName.TERRAIN;
   private readonly _tilemap: Map<string, TilemapTile> = new Map();
   private readonly tileSize : number;
 
   constructor(private spriteManager : SpriteManager) {
     this.generateTilemap();
+
     this.tileSize = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN).afterRenderSpriteCellSize;
   }
 

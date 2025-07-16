@@ -4,13 +4,19 @@ import { ISystem } from "./system.interface.js";
 import { EnemyType, EnemyConfig } from "../components/types/enemy-type.js";
 import { EntityFactory } from "../entities/entity-factory.js";
 import { EnemyComponent } from "../components/enemy.component.js";
+import { CollisionComponent } from "../components/collision-component.js";
+import { PlayerComponent } from "../components/player.component.js";
+import { EnemyDead } from "../components/enemy-dead.component.js";
 
 export class EnemySpawnSystem implements ISystem {
     private timeSinceLastSpawn = 0;
 
     constructor(
         private positionComponentStore: ComponentStore<PositionComponent>,
+        private playerComponentStore: ComponentStore<PlayerComponent>,
         private enemyComponentStore: ComponentStore<EnemyComponent>,
+        private collisionComponentStore: ComponentStore<CollisionComponent>,
+        private enemyDeadComponentStore: ComponentStore<EnemyDead>,
         private entityFactory: EntityFactory,
 
     ) {
@@ -47,6 +53,7 @@ export class EnemySpawnSystem implements ISystem {
 
         if (previousTime < spawnIntervalsInSeconds && this.timeSinceLastSpawn >= spawnIntervalsInSeconds) {
             this.timeSinceLastSpawn = 0;
+            this.trySpawn(spawnRoll, 0);
             if (spawnRoll <= spawnChancesAccumulated[0]) {
                 this.entityFactory.createSoldier(
                     xRoll, yRoll,
@@ -99,6 +106,55 @@ export class EnemySpawnSystem implements ISystem {
                     EnemyConfig[EnemyType.BOMBER].movementRadius,
                     EnemyConfig[EnemyType.BOMBER].velocity);
             }
+        }
+    }
+
+    trySpawn(spawnRoll: number, spawnAttempt: number) {
+        const playerEntities = this.playerComponentStore.getAllEntities();
+        const playerEntity = playerEntities[0]; // hard coded as the first player
+        const playerPos: { x: number, y: number } = this.positionComponentStore.get(playerEntity);
+        const enemyEntities = this.enemyComponentStore.getAllEntities();
+        const deadEnemiesEntities = this.enemyDeadComponentStore.getAllEntities();
+
+        const inCommon = deadEnemiesEntities.filter(function (v) {
+            return enemyEntities.indexOf(v) > -1;
+        });
+        const exclusiveA = deadEnemiesEntities.filter(function (v) {
+            return inCommon.indexOf(v) === -1;
+        });
+        const exclusiveB = enemyEntities.filter(function (v) {
+            return inCommon.indexOf(v) === -1;
+        });
+
+        const aliveEnemyEntities = exclusiveA.concat(exclusiveB);
+        console.log(enemyEntities);
+        console.log(aliveEnemyEntities);
+
+        const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
+        let xRoll = canvas.width * Math.random();
+        let yRoll = canvas.height * Math.random();
+        let sucessCount = 0;
+
+        for (const enemyEntity of aliveEnemyEntities) {
+            // refuge spawn attempts of the xRoll and yRoll
+            // should take into account the already set spawnRoll
+            const enemyPos: { x: number, y: number } = this.positionComponentStore.get(enemyEntity);
+            const dxEnemy = Math.abs(enemyPos.x - xRoll);
+            const dyEnemy = Math.abs(enemyPos.y - yRoll);
+            const dxPlayer = Math.abs(playerPos.x - xRoll);
+            const dyPlayer = Math.abs(playerPos.y - yRoll);
+            if (dxEnemy <= 160 || dyEnemy <= 160 || dxPlayer <= 160 || dyPlayer <= 160) {
+                continue;
+            } else {
+                sucessCount++;
+            }
+        }
+        if (sucessCount == aliveEnemyEntities.length) {
+            return;
+        } else {
+            if (spawnAttempt == 0) {
+                this.trySpawn(spawnRoll, 1);
+            } else return;
         }
     }
 }
