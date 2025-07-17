@@ -16,8 +16,14 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
           row: 1,
           column: 1,
           collisionBox: { offsetX: 0, offsetY: 0, width: 16, height: 16 }
-        }]
-      ])
+        }],
+        [SpriteName.WALL_1, {
+          row: 1,
+          column: 4,
+          collisionBox: { offsetX: 0, offsetY: 0, width: 16, height: 16 }
+        }
+        ]
+      ]),
     }
   ],
   [

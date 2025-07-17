@@ -8,13 +8,11 @@ export class LevelManager {
     ) {
     }
 
-    update() {
+    async update() {
         const levelNumber = this.previousLevel + 1;
         this.previousLevel = levelNumber;
+                
         
-        const noise2d = createNoise2D();
-
-
 
         //console.log("Level Progredido:", levelNumber);
     }

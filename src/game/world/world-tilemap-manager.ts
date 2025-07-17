@@ -10,9 +10,9 @@ export class WorldTilemapManager {
   public _maxNumberTilesY = 50;
   private readonly _tilemapSpritesheetName = SpriteSheetName.TERRAIN;
   private readonly _tilemap: Map<string, TilemapTile> = new Map();
-  private readonly tileSize : number;
+  private readonly tileSize: number;
 
-  constructor(private spriteManager : SpriteManager) {
+  constructor(private spriteManager: SpriteManager) {
     this.generateTilemap();
 
     this.tileSize = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN).afterRenderSpriteCellSize;
@@ -20,22 +20,38 @@ export class WorldTilemapManager {
 
   async generateTilemap() {
     const noise2D = createNoise2D();
+    let noiseValueTreshhold = 0.4;
+    let xIncrement: number;
+    let yIncrement: number;
+
     for (let x = 0; x < this._maxNumberTilesX; x++) {
+
+      let xVariance = Math.floor(Math.random()*5);
+      let yVariance = Math.floor(Math.random()*5);
       for (let y = 0; y < this._maxNumberTilesY; y++) {
         const keyCoordinate = this.setTilemapKey(x, y);
-        const noiseValue = noise2D(x, y);
+        let noiseValue = noise2D(x, y);
+        let directionX = 2*Math.random() - 1;
+        let directionY = 2*Math.random() - 1;
+        
+        if(noiseValue >= noiseValueTreshhold && directionX > 0){
+          //os próximos noises em x tem que entrar aqui e serem alterados para parede
+        }
+
         let selectedSpriteName: SpriteName = SpriteName.METAL_1;
-        if (noiseValue <= 0.0) {
+
+        if (noiseValue < 0.0) {
           selectedSpriteName = SpriteName.METAL_1;
-        } else if (noiseValue >= 0.0 && noiseValue <= 0.8) {
+        } else if (noiseValue >= 0.0 && noiseValue < noiseValueTreshhold) {
           selectedSpriteName = SpriteName.METAL_1;
         } else {
-          selectedSpriteName = SpriteName.METAL_1;
+          selectedSpriteName = SpriteName.WALL_1;
         }
+
         this._tilemap.set(keyCoordinate, {
-          x : x,
-          y : y,
-          spriteName : selectedSpriteName
+          x: x,
+          y: y,
+          spriteName: selectedSpriteName
         });
       }
     }
@@ -65,7 +81,7 @@ export class WorldTilemapManager {
     }
   }
 
-  get appliedSpriteSheetName () {
+  get appliedSpriteSheetName() {
     return this._tilemapSpritesheetName;
   }
 

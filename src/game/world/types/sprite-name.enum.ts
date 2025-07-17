@@ -1,5 +1,6 @@
 export enum SpriteName {
   METAL_1 = 'metal_1',
+  WALL_1 = 'wall_1',
   SMG = 'smg',
   PLAYER_STILL = "player_still",
   PLAYER_RUNNING_1 = "player_running_1",
