@@ -10,4 +10,5 @@ export abstract class RenderObject {
   uvCoordinates!: number[]
   height!: number;
   width!: number;
+  angleRotation!: number | null
 }

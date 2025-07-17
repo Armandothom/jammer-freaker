@@ -24,6 +24,7 @@ import { AiAttackRangeComponent } from "../components/ai-attack-range.component.
 import { AiMovementRadiusComponent } from "../components/ai-movement-radius.component.js";
 import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
 import { EnemyDead } from "../components/enemy-dead.component.js";
+import { AimShootingComponent } from "../components/aim-shooting.component.js";
 
 export class EntityFactory {
   constructor(
@@ -48,6 +49,7 @@ export class EntityFactory {
     private aiAttackRangeComponentStore: ComponentStore<AiAttackRangeComponent>,
     private aiMovementRadiusComponentStore: ComponentStore<AiMovementRadiusComponent>,
     private enemyDeadComponentStore: ComponentStore<EnemyDead>,
+    private aimShootingComponentStore: ComponentStore<AimShootingComponent>,
   ) {
 
   }
@@ -59,6 +61,7 @@ export class EntityFactory {
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.PLAYER_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity))
+    this.aimShootingComponentStore.add(entityId, new AimShootingComponent(0));
     this.playerComponentStore.add(entityId, new PlayerComponent());
     this.shooterComponentStore.add(entityId, new ShooterComponent());
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY))
@@ -110,6 +113,7 @@ export class EntityFactory {
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.ENEMY_STILL, SpriteSheetName.ENEMY));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.ENEMY_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
+    this.aimShootingComponentStore.add(entityId, new AimShootingComponent(0));
     this.enemyComponentStore.add(entityId, new EnemyComponent());
     this.shooterComponentStore.add(entityId, new ShooterComponent());
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY));
