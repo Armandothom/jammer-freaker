@@ -44,7 +44,8 @@ export class RenderSystem implements ISystem {
         spriteSheetTexture: spriteDetails.spriteSheet.texture,
         uvCoordinates: this.spriteManager.getUvCoordinates(terrainTile.spriteName, terrainSpritesheet),
         height: spriteDetails.spriteSheet.afterRenderSpriteCellSize,
-        width: spriteDetails.spriteSheet.afterRenderSpriteCellSize
+        width: spriteDetails.spriteSheet.afterRenderSpriteCellSize,
+        angleRotation : null
       })
     }
     return terrainRenderObjects;
@@ -70,7 +71,8 @@ export class RenderSystem implements ISystem {
         spriteSheetTexture: spriteProperties.spriteSheet.texture,
         uvCoordinates: this.spriteManager.getUvCoordinates(sprite.spriteName, sprite.spriteSheetName, mirrorSprite),
         height: spriteProperties.spriteSheet.afterRenderSpriteCellSize,
-        width: spriteProperties.spriteSheet.afterRenderSpriteCellSize
+        width: spriteProperties.spriteSheet.afterRenderSpriteCellSize,
+        angleRotation : null
       })
     }
     return renderObject;

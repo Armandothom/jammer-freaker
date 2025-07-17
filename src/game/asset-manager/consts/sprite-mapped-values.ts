@@ -31,14 +31,14 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
     {
       rows: 1,
       columns: 1,
-      eachSpriteCellSize: 16,
-      afterRenderSpriteCellSize: 80,
+      eachSpriteCellSize: 32,
+      afterRenderSpriteCellSize: 32,
       srcImagePath: 'src/assets/images/smg.png',
       sprites: new Map([
-        [SpriteName.METAL_1, {
+        [SpriteName.SMG, {
           row: 1,
           column: 1,
-          collisionBox: { offsetX: 3, offsetY: 3, width: 60, height: 28 }
+          collisionBox: { offsetX: 6, offsetY: 12, width: 24, height: 13 }
         }]
       ])
     }
