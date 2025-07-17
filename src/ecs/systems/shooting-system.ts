@@ -1,3 +1,4 @@
+import { AimShootingComponent } from "../components/aim-shooting.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
 import { IntentShotComponent } from "../components/intentShotComponentStore.js";
 import { PlayerComponent } from "../components/player.component.js";
@@ -17,7 +18,8 @@ export class ShootingSystem implements ISystem {
         private enemyComponentStore: ComponentStore<EnemyComponent>,
         private intentShotComponentStore: ComponentStore<IntentShotComponent>,
         private positionComponentStore: ComponentStore<PositionComponent>,
-        private shooterComponentStore: ComponentStore<ShooterComponent>
+        private shooterComponentStore: ComponentStore<ShooterComponent>,
+        private aimShootingComponentStore: ComponentStore<AimShootingComponent>,
 
     ) {
         this.canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
@@ -51,7 +53,15 @@ export class ShootingSystem implements ISystem {
     }
 
     private updateMousePosition = (e: MouseEvent) => {
+        const playerIdRes = this.playerComponentStore.getAllEntities();
+        const playerId = playerIdRes[0];
+        const positionPlayerComponent = this.positionComponentStore.get(playerId);
         const rect = this.canvas.getBoundingClientRect();
+        const dx = e.clientX - rect.left - positionPlayerComponent.x;
+        const dy = e.clientY - rect.top - positionPlayerComponent.y;
+        const angle = Math.atan2(dy, dx);
+        this.aimShootingComponentStore.add(playerId, new AimShootingComponent(angle));
+        
         this.currentMousePos = {
             x: e.clientX - rect.left,
             y: e.clientY - rect.top,

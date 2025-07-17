@@ -20,6 +20,7 @@ import { CollisionComponent } from "../components/collision-component.js";
 import { AIComponent } from "../components/ai.component.js";
 import { HealthComponent } from "../components/health.component.js";
 import { ShotOriginComponent } from "../components/shot-origin.component.js";
+import { AimShootingComponent } from "../components/aim-shooting.component.js";
 
 export class EntityFactory {
   constructor(
@@ -40,6 +41,7 @@ export class EntityFactory {
     private aiComponentStore: ComponentStore<AIComponent>,
     private healthComponentStore: ComponentStore<HealthComponent>,
     private shotOriginComponentStore: ComponentStore<ShotOriginComponent>,
+    private aimShootingComponentStore: ComponentStore<AimShootingComponent>,
   ) {
 
   }
@@ -50,6 +52,7 @@ export class EntityFactory {
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.PLAYER_STILL, SpriteSheetName.PLAYER));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.PLAYER_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
+    this.aimShootingComponentStore.add(entityId, new AimShootingComponent(0));
     this.playerComponentStore.add(entityId, new PlayerComponent());
     this.shooterComponentStore.add(entityId, new ShooterComponent());
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY))
@@ -78,6 +81,7 @@ export class EntityFactory {
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.ENEMY_STILL, SpriteSheetName.ENEMY));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.ENEMY_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
+    this.aimShootingComponentStore.add(entityId, new AimShootingComponent(0));
     this.enemyComponentStore.add(entityId, new EnemyComponent());
     this.shooterComponentStore.add(entityId, new ShooterComponent());
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY));
