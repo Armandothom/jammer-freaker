@@ -53,59 +53,59 @@ export class EnemySpawnSystem implements ISystem {
 
         if (previousTime < spawnIntervalsInSeconds && this.timeSinceLastSpawn >= spawnIntervalsInSeconds) {
             this.timeSinceLastSpawn = 0;
-            this.trySpawn(spawnRoll, 0);
-            if (spawnRoll <= spawnChancesAccumulated[0]) {
-                this.entityFactory.createSoldier(
-                    xRoll, yRoll,
-                    EnemyConfig[EnemyType.SOLDIER].hp,
-                    EnemyConfig[EnemyType.SOLDIER].damage,
-                    EnemyConfig[EnemyType.SOLDIER].attackCooldownInSeconds,
-                    EnemyConfig[EnemyType.SOLDIER].attackRange,
-                    EnemyConfig[EnemyType.SOLDIER].movementRadius,
-                    EnemyConfig[EnemyType.SOLDIER].velocity);
-            }
-            if (spawnRoll > spawnChancesAccumulated[0] && spawnRoll < spawnChancesAccumulated[1]) {
-                this.entityFactory.createSniper(
-                    xRoll, yRoll,
-                    EnemyConfig[EnemyType.SNIPER].hp,
-                    EnemyConfig[EnemyType.SNIPER].damage,
-                    EnemyConfig[EnemyType.SNIPER].attackCooldownInSeconds,
-                    EnemyConfig[EnemyType.SNIPER].attackRange,
-                    EnemyConfig[EnemyType.SNIPER].movementRadius,
-                    EnemyConfig[EnemyType.SNIPER].velocity);
-            }
-            if (spawnRoll > spawnChancesAccumulated[1] && spawnRoll < spawnChancesAccumulated[2]) {
-                //kmkz
-                this.entityFactory.createKamikaze(
-                    xRoll, yRoll,
-                    EnemyConfig[EnemyType.KAMIKAZE].hp,
-                    EnemyConfig[EnemyType.KAMIKAZE].damage,
-                    EnemyConfig[EnemyType.KAMIKAZE].attackCooldownInSeconds,
-                    EnemyConfig[EnemyType.KAMIKAZE].attackRange,
-                    EnemyConfig[EnemyType.KAMIKAZE].movementRadius,
-                    EnemyConfig[EnemyType.KAMIKAZE].velocity);
-            }
-            if (spawnRoll > spawnChancesAccumulated[2] && spawnRoll < spawnChancesAccumulated[3]) {
-                //JUGG
-                this.entityFactory.createJuggernaut(
-                    xRoll, yRoll,
-                    EnemyConfig[EnemyType.JUGG].hp,
-                    EnemyConfig[EnemyType.JUGG].damage,
-                    EnemyConfig[EnemyType.JUGG].attackCooldownInSeconds,
-                    EnemyConfig[EnemyType.JUGG].attackRange,
-                    EnemyConfig[EnemyType.JUGG].movementRadius,
-                    EnemyConfig[EnemyType.JUGG].velocity);
-            }
-            if (spawnRoll > spawnChancesAccumulated[3] && spawnRoll < spawnChancesAccumulated[4]) {
-                this.entityFactory.createBomber(
-                    xRoll, yRoll,
-                    EnemyConfig[EnemyType.BOMBER].hp,
-                    EnemyConfig[EnemyType.BOMBER].damage,
-                    EnemyConfig[EnemyType.BOMBER].attackCooldownInSeconds,
-                    EnemyConfig[EnemyType.BOMBER].attackRange,
-                    EnemyConfig[EnemyType.BOMBER].movementRadius,
-                    EnemyConfig[EnemyType.BOMBER].velocity);
-            }
+            // this.trySpawn(spawnRoll, 0);
+            // if (spawnRoll <= spawnChancesAccumulated[0]) {
+            //     this.entityFactory.createSoldier(
+            //         xRoll, yRoll,
+            //         EnemyConfig[EnemyType.SOLDIER].hp,
+            //         EnemyConfig[EnemyType.SOLDIER].damage,
+            //         EnemyConfig[EnemyType.SOLDIER].attackCooldownInSeconds,
+            //         EnemyConfig[EnemyType.SOLDIER].attackRange,
+            //         EnemyConfig[EnemyType.SOLDIER].movementRadius,
+            //         EnemyConfig[EnemyType.SOLDIER].velocity);
+            // }
+            // if (spawnRoll > spawnChancesAccumulated[0] && spawnRoll < spawnChancesAccumulated[1]) {
+            //     this.entityFactory.createSniper(
+            //         xRoll, yRoll,
+            //         EnemyConfig[EnemyType.SNIPER].hp,
+            //         EnemyConfig[EnemyType.SNIPER].damage,
+            //         EnemyConfig[EnemyType.SNIPER].attackCooldownInSeconds,
+            //         EnemyConfig[EnemyType.SNIPER].attackRange,
+            //         EnemyConfig[EnemyType.SNIPER].movementRadius,
+            //         EnemyConfig[EnemyType.SNIPER].velocity);
+            // }
+            // if (spawnRoll > spawnChancesAccumulated[1] && spawnRoll < spawnChancesAccumulated[2]) {
+            //     //kmkz
+            //     this.entityFactory.createKamikaze(
+            //         xRoll, yRoll,
+            //         EnemyConfig[EnemyType.KAMIKAZE].hp,
+            //         EnemyConfig[EnemyType.KAMIKAZE].damage,
+            //         EnemyConfig[EnemyType.KAMIKAZE].attackCooldownInSeconds,
+            //         EnemyConfig[EnemyType.KAMIKAZE].attackRange,
+            //         EnemyConfig[EnemyType.KAMIKAZE].movementRadius,
+            //         EnemyConfig[EnemyType.KAMIKAZE].velocity);
+            // }
+            // if (spawnRoll > spawnChancesAccumulated[2] && spawnRoll < spawnChancesAccumulated[3]) {
+            //     //JUGG
+            //     this.entityFactory.createJuggernaut(
+            //         xRoll, yRoll,
+            //         EnemyConfig[EnemyType.JUGG].hp,
+            //         EnemyConfig[EnemyType.JUGG].damage,
+            //         EnemyConfig[EnemyType.JUGG].attackCooldownInSeconds,
+            //         EnemyConfig[EnemyType.JUGG].attackRange,
+            //         EnemyConfig[EnemyType.JUGG].movementRadius,
+            //         EnemyConfig[EnemyType.JUGG].velocity);
+            // }
+            // if (spawnRoll > spawnChancesAccumulated[3] && spawnRoll < spawnChancesAccumulated[4]) {
+            //     this.entityFactory.createBomber(
+            //         xRoll, yRoll,
+            //         EnemyConfig[EnemyType.BOMBER].hp,
+            //         EnemyConfig[EnemyType.BOMBER].damage,
+            //         EnemyConfig[EnemyType.BOMBER].attackCooldownInSeconds,
+            //         EnemyConfig[EnemyType.BOMBER].attackRange,
+            //         EnemyConfig[EnemyType.BOMBER].movementRadius,
+            //         EnemyConfig[EnemyType.BOMBER].velocity);
+            // }
         }
     }
 

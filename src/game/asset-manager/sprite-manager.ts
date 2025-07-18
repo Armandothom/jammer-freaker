@@ -41,7 +41,7 @@ export class SpriteManager {
    */
   public getUvCoordinates(spriteName: SpriteName, spriteSheetName: SpriteSheetName, mirrored = false) {
   const spriteProperties = this.getSpriteProperties(spriteName, spriteSheetName);
-  const collisionBox = spriteProperties.sprite.collisionBox;
+  const spriteCellOffset = spriteProperties.sprite.spriteCellOffset;
   const spriteSheetWidth = spriteProperties.spriteSheet.width;
   const spriteSheetHeight = spriteProperties.spriteSheet.height;
   const tileColumn = spriteProperties.sprite.column;
@@ -53,10 +53,10 @@ export class SpriteManager {
   let cellY = (tileRow - 1) * spriteCellSize;
   
   // We define the offset of the sprite, on left,right,top,bottom inside the cell
-  let xLeft = cellX + collisionBox.offsetX;
-  let xRight = xLeft + collisionBox.width;
-  let yTop = cellY + collisionBox.offsetY;
-  let yBottom = yTop + collisionBox.height;
+  let xLeft = cellX + spriteCellOffset.offsetX;
+  let xRight = xLeft + spriteCellOffset.width;
+  let yTop = cellY + spriteCellOffset.offsetY;
+  let yBottom = yTop + spriteCellOffset.height;
   
   //We normalize to between 0 and 1
   const xLeftNormalized = xLeft / spriteSheetWidth;
