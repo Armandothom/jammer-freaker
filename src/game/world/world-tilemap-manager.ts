@@ -20,37 +20,160 @@ export class WorldTilemapManager {
 
   async generateTilemap() {
     const noise2D = createNoise2D();
-    let noiseValueTreshhold = 0.4;
-    let xIncrement: number;
-    let yIncrement: number;
+    let noiseValueTreshhold = 0.88;
+    const maxWallLength = Math.floor(3*Math.random());
+    const minWallLength = 4;
+    const maxPositiveNoiseDist = 3;
+    const createWallChance = 0.2;
+    const offset = 3;
 
-    for (let x = 0; x < this._maxNumberTilesX; x++) {
+    let noiseValue: number[][] = [];
+    const aboveTreshholdCoords: { x: number, y: number }[] = [];
 
-      let xVariance = Math.floor(Math.random()*5);
-      let yVariance = Math.floor(Math.random()*5);
-      for (let y = 0; y < this._maxNumberTilesY; y++) {
-        const keyCoordinate = this.setTilemapKey(x, y);
-        let noiseValue = noise2D(x, y);
-        let directionX = 2*Math.random() - 1;
-        let directionY = 2*Math.random() - 1;
-        
-        if(noiseValue >= noiseValueTreshhold && directionX > 0){
-          //os próximos noises em x tem que entrar aqui e serem alterados para parede
+    for (let y = 0; y < this._maxNumberTilesY; y++) {
+      noiseValue[y] = [];
+      for (let x = 0; x < this._maxNumberTilesX; x++) {
+        noiseValue[y][x] = noise2D(x, y);
+
+        if (x == 0 || y == 0 || x == this._maxNumberTilesX - 1 || y == this._maxNumberTilesY - 1 || x == 1 || y == 1) {
+          noiseValue[y][x] = 0;
         }
 
-        let selectedSpriteName: SpriteName = SpriteName.METAL_1;
+        if (noiseValue[y][x] >= noiseValueTreshhold) {
+          aboveTreshholdCoords.push({ x, y });
+        }
+      }
+    }
 
-        if (noiseValue < 0.0) {
+    const coordMap = new Map<string, boolean>();
+    for (const { x, y } of aboveTreshholdCoords) {
+      const key = this.setTilemapKey(x, y);
+      coordMap.set(key, true);
+    }
+
+    for (const { x, y } of aboveTreshholdCoords) {
+      for (let dx = -maxPositiveNoiseDist; dx <= maxPositiveNoiseDist; dx++) {
+        for (let dy = -maxPositiveNoiseDist; dy <= maxPositiveNoiseDist; dy++) {
+          if (dx == 0 && dy == 0) continue;
+          const xIncrement = x + dx;
+          const yIncrement = y + dy;
+          const generatedKey = `${xIncrement},${yIncrement}`;
+
+          if (coordMap.has(generatedKey)) {
+            noiseValue[y][x] = 0;
+            dx = 999;
+            dy = 999; // Hack for breaking the loop
+          }
+        }
+      }
+    }
+
+    //Noise treatment
+    for (const { x, y } of aboveTreshholdCoords) {
+
+      const randomDirection = { x: 2 * Math.random() - 1, y: 2 * Math.random() - 1 }
+      const randomWallLength = { x: maxWallLength + minWallLength, y: maxWallLength + minWallLength }
+
+      if (Math.random() > createWallChance) {
+        if (randomDirection.x >= 0) {
+          let sucessCount = 0;
+
+          for (let n = 0; n < randomWallLength.x; n++) {
+            const nextX = x + n
+            if (nextX >= 0 && nextX < this._maxNumberTilesX && noiseValue[y][nextX] < noiseValueTreshhold) {
+              sucessCount++;
+            }
+          }
+
+          if (sucessCount >= randomWallLength.x - offset) {
+            for (let n = 0; n < randomWallLength.x; n++) {
+              const nextX = x + n;
+              if (nextX >= 0 && nextX < this._maxNumberTilesX && noiseValue[y][nextX] < noiseValueTreshhold) {
+                noiseValue[y][nextX] = noiseValueTreshhold;
+              }
+            }
+          }
+        }
+
+        if (randomDirection.x < 0) {
+          let sucessCount = 0;
+
+          for (let n = 0; n < randomWallLength.x; n++) {
+            const nextX = x - n;
+            if (nextX >= 0 && nextX < this._maxNumberTilesX && noiseValue[y][nextX] < noiseValueTreshhold) {
+              sucessCount++;
+            }
+          }
+
+          if (sucessCount >= randomWallLength.x - offset) {
+            for (let n = 0; n < randomWallLength.x; n++) {
+              const nextX = x - n;
+              if (nextX >= 0 && nextX < this._maxNumberTilesX && noiseValue[y][nextX] < noiseValueTreshhold) {
+                noiseValue[y][nextX] = noiseValueTreshhold;
+              }
+            }
+          }
+        }
+
+        if (randomDirection.y >= 0) {
+          let sucessCount = 0;
+
+          for (let n = 0; n < randomWallLength.y; n++) {
+            const nextY = y + n;
+            if (nextY >= 0 && nextY < this._maxNumberTilesY && noiseValue[nextY][x] < noiseValueTreshhold) {
+              sucessCount++;
+            }
+          }
+
+          if (sucessCount >= randomWallLength.y - offset) {
+            for (let n = 0; n < randomWallLength.y; n++) {
+              const nextY = y + n
+              if (nextY >= 0 && nextY < this._maxNumberTilesY && noiseValue[nextY][x] < noiseValueTreshhold) {
+                noiseValue[nextY][x] = noiseValueTreshhold;
+              }
+            }
+          }
+        }
+
+        if (randomDirection.y < 0) {
+          let sucessCount = 0;
+
+          for (let n = 0; n < randomWallLength.y; n++) {
+            const nextY = y - n;
+            if (nextY >= 0 && nextY < this._maxNumberTilesY && noiseValue[nextY][x] < noiseValueTreshhold) {
+              sucessCount++;
+            }
+          }
+
+          if (sucessCount >= randomWallLength.y - offset) {
+            for (let n = 0; n < randomWallLength.y; n++) {
+              const nextY = y - n
+              if (nextY >= 0 && nextY < this._maxNumberTilesY && noiseValue[nextY][x] < noiseValueTreshhold) {
+                noiseValue[nextY][x] = noiseValueTreshhold;
+              }
+            }
+          }
+        }
+      } else noiseValue[y][x] = 0;
+    }
+
+    for (let y = 0; y < this._maxNumberTilesY; y++) {
+      for (let x = 0; x < this._maxNumberTilesX; x++) {
+        const keyCoordinate = this.setTilemapKey(x, y);
+        //let noiseValue = noise2D(x, y);
+
+        let selectedSpriteName: SpriteName = SpriteName.METAL_1;
+        if (noiseValue[y][x] < 0.0) {
           selectedSpriteName = SpriteName.METAL_1;
-        } else if (noiseValue >= 0.0 && noiseValue < noiseValueTreshhold) {
+        } else if (noiseValue[y][x] >= 0.0 && noiseValue[y][x] < noiseValueTreshhold) {
           selectedSpriteName = SpriteName.METAL_1;
         } else {
           selectedSpriteName = SpriteName.WALL_1;
         }
 
         this._tilemap.set(keyCoordinate, {
-          x: x,
           y: y,
+          x: x,
           spriteName: selectedSpriteName
         });
       }
@@ -97,5 +220,4 @@ export class WorldTilemapManager {
     }
     return tile;
   }
-
 }

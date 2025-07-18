@@ -127,8 +127,6 @@ export class EnemySpawnSystem implements ISystem {
         });
 
         const aliveEnemyEntities = exclusiveA.concat(exclusiveB);
-        console.log(enemyEntities);
-        console.log(aliveEnemyEntities);
 
         const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
         let xRoll = canvas.width * Math.random();
