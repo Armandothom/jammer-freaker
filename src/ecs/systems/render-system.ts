@@ -13,7 +13,11 @@ import { EntityManager } from "../core/entity-manager.js";
 import { ISystem } from "./system.interface.js";
 
 export class RenderSystem implements ISystem {
-
+  private readonly layerMultiplicator = {
+    "1": 1,
+    "2": 2,
+    "3": 3
+  };
   constructor(
     private positionComponentStore: ComponentStore<PositionComponent>,
     private spriteComponentStore: ComponentStore<SpriteComponent>,
@@ -29,7 +33,8 @@ export class RenderSystem implements ISystem {
     const viewport = this.cameraManager.getViewport();
     const terrainRenderObjects = this.getTerrainRenderObjects(viewport);
     const overTerrainRenderObjects = this.getOverTerrainRenderObjects(viewport);
-    this.rendererEngine.render(terrainRenderObjects, overTerrainRenderObjects);
+    const renderObjects = [...overTerrainRenderObjects, ...terrainRenderObjects]
+    this.rendererEngine.render(renderObjects);
   }
 
   private getTerrainRenderObjects(viewport: CameraViewport): Array<RenderObject> {
@@ -46,7 +51,7 @@ export class RenderSystem implements ISystem {
         height: spriteDetails.spriteSheet.afterRenderSpriteCellSize,
         width: spriteDetails.spriteSheet.afterRenderSpriteCellSize,
         angleRotation: null,
-        zPosition: terrainTile.y * spriteDetails.spriteSheet.afterRenderSpriteCellSize
+        zLevel: (terrainTile.y * 0.1) * this.layerMultiplicator["1"]
       })
     }
     return terrainRenderObjects;
@@ -74,7 +79,7 @@ export class RenderSystem implements ISystem {
         height: spriteProperties.spriteSheet.afterRenderSpriteCellSize,
         width: spriteProperties.spriteSheet.afterRenderSpriteCellSize,
         angleRotation: null,
-        zPosition : position.y
+        zLevel : (position.y * 0.1) * this.layerMultiplicator["2"]
       })
     }
     return renderObject;

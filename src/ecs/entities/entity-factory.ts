@@ -69,7 +69,6 @@ export class EntityFactory {
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.damageComponentStore.add(entityId, new DamageComponent(damage));
-    console.log("Player criado com sucesso", entityId);
     return entityId;
   }
 
@@ -102,7 +101,6 @@ export class EntityFactory {
     this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
-    console.log("Soldier Spawnado", entityId);
     return entityId;
   }
 
@@ -125,8 +123,6 @@ export class EntityFactory {
     this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
-    console.log("Juggernaut Spawnado", entityId);
-    //console.log(this.directionAnimationComponentStore.get(entityId));
     return entityId;
   }
 
@@ -148,8 +144,6 @@ export class EntityFactory {
     this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
-    console.log("Sniper Spawnado", entityId);
-    //console.log(this.directionAnimationComponentStore.get(entityId));
     return entityId;
   }
 
@@ -171,8 +165,6 @@ export class EntityFactory {
     this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
-    console.log("Kamikaze Spawnado", entityId);
-    //console.log(this.directionAnimationComponentStore.get(entityId));
     return entityId;
   }
 
@@ -194,8 +186,6 @@ export class EntityFactory {
     this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
-    console.log("Bomber Spawnado", entityId);
-    //console.log(this.directionAnimationComponentStore.get(entityId));
     return entityId;
   }
 
@@ -208,7 +198,6 @@ export class EntityFactory {
   }
 
   destroyEnemy(entityId: number): void {  
-    console.log("Inimigo morto");
     this.enemyDeadComponentStore.add(entityId, new EnemyDead());
     this.positionComponentStore.remove(entityId);
     this.spriteComponentStore.remove(entityId);

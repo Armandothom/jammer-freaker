@@ -50,7 +50,6 @@ export class EnemySpawnSystem implements ISystem {
 
         // to be implemented: time elapsed || bypass logic for spawn logic
         // bypass being used to spawn a bunch of enemies on level start
-
         if (previousTime < spawnIntervalsInSeconds && this.timeSinceLastSpawn >= spawnIntervalsInSeconds) {
             this.timeSinceLastSpawn = 0;
             // this.trySpawn(spawnRoll, 0);
@@ -127,8 +126,6 @@ export class EnemySpawnSystem implements ISystem {
         });
 
         const aliveEnemyEntities = exclusiveA.concat(exclusiveB);
-        console.log(enemyEntities);
-        console.log(aliveEnemyEntities);
 
         const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
         let xRoll = canvas.width * Math.random();
