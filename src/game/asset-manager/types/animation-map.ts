@@ -6,6 +6,7 @@ export enum AnimationName {
   PLAYER_RUN = "player_run",
   ENEMY_STILL = "enemy_still",
   ENEMY_RUN = "enemy_run",
+  WEAPON_SMG = "weapon_smg"
 }
 
 

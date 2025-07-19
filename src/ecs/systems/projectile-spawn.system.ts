@@ -2,17 +2,13 @@ import { SoundManager } from "../../game/asset-manager/sound-manager.js";
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
 import { DirectionAnimComponent } from "../components/direction-anim.component.js";
-import { IntentClickComponent } from "../components/intent-click.component.js";
 import { IntentShotComponent } from "../components/intent-shot.component.js";
-import { MovementIntentComponent } from "../components/movement-intent.component.js";
-import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ProjectileComponent } from "../components/projectile-component.js";
 import { ShooterComponent } from "../components/shooter-component.js";
 import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
-import { AnimDirection } from "../components/types/anim-direction.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityFactory } from "../entities/entity-factory.js";
 import { ISystem } from "./system.interface.js";
@@ -78,14 +74,11 @@ export class ProjectileSpawnSystem implements ISystem {
         if(!attachedWeaponEntry) {
             throw new Error("No weapon entry found");
         }
-        const attachedWeaponSprite = this.spriteComponentStore.get(attachedWeaponEntry[0]);
-        const attachedWeaponPosition = this.positionComponentStore.get(attachedWeaponEntry[0]);
-        let offsetX = attachedWeaponPosition.x + attachedWeaponSprite.width + 2;
-        let offsetY = attachedWeaponPosition.y
+        const attachedWeapon = attachedWeaponEntry[1];
         this.soundManager.playSound("SMG_FIRE");
         const entity = this.entityFactory.createProjectile(
-            offsetX,
-            offsetY,
+            attachedWeapon.barrelX,
+            attachedWeapon.barrelY,
             shooterId, // por enquanto player ID
             dir.x * 120, // cte --> pode mudar
             dir.y * 120
