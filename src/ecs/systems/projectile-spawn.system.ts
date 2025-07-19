@@ -78,13 +78,11 @@ export class ProjectileSpawnSystem implements ISystem {
         if(!attachedWeaponEntry) {
             throw new Error("No weapon entry found");
         }
-        console.log(attachedWeaponEntry, "attachedWeaponEntry")
         const attachedWeaponSprite = this.spriteComponentStore.get(attachedWeaponEntry[0]);
         const attachedWeaponPosition = this.positionComponentStore.get(attachedWeaponEntry[0]);
         let offsetX = attachedWeaponPosition.x + attachedWeaponSprite.width;
         let offsetY = attachedWeaponPosition.y
         this.soundManager.playSound("SMG_FIRE");
-        console.log(offsetX)
         const entity = this.entityFactory.createProjectile(
             offsetX,
             offsetY,

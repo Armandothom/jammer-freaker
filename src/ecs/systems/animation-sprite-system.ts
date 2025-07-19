@@ -40,10 +40,10 @@ export class AnimationSpriteSystem implements ISystem {
             }
 
 
-            this.spriteComponentStore.add(entityId, {
-                spriteName: currentFrame.spriteName,
-                spriteSheetName: currentFrame.spriteSheetName
-            });
+            this.spriteComponentStore.add(entityId, new SpriteComponent(
+                currentFrame.spriteName,
+                currentFrame.spriteSheetName
+            ));
         }
     }
 
