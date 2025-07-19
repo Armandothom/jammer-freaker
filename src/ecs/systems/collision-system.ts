@@ -15,9 +15,7 @@ import { PlayerComponent } from "../components/player.component.js";
 import { ShotOriginComponent } from "../components/shot-origin.component.js";
 import { EnemiesKilledComponent } from "../components/enemies-killed.component.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
-import { TilemapTile } from "../../game/world/types/tilemap-tile.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
-import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 
 export class CollisionSystem implements ISystem {
     constructor(
@@ -55,8 +53,8 @@ export class CollisionSystem implements ISystem {
             }
 
             const spriteSheetOriginProperties = this.spriteManager.getSpriteSheetProperties(spriteComponent.spriteSheetName);
-            const wouldCollideCheckEntity = this.wouldCollideAABB(intent, entity, spriteSheetOriginProperties.afterRenderSpriteCellSize);
-            const wallCollisionCheck = this.wallCollision(intent, entity, spriteSheetOriginProperties.afterRenderSpriteCellSize);
+            const wouldCollideCheckEntity = this.wouldCollideAABB(intent, entity, spriteSheetOriginProperties.originalRenderSpriteHeight);
+            const wallCollisionCheck = this.wallCollision(intent, entity, spriteSheetOriginProperties.originalRenderSpriteHeight);
 
             if (wouldCollideCheckEntity.wouldCollide) {
                 this.movementIntentComponentStore.remove(entity); // Cancelamento do intent pra questões de movimento            
@@ -105,7 +103,7 @@ export class CollisionSystem implements ISystem {
                 }
             }
 
-            if (intent.x > canvas.width - spriteSheetOriginProperties.afterRenderSpriteCellSize  || intent.y > canvas.height - spriteSheetOriginProperties.afterRenderSpriteCellSize || intent.x < 0 || intent.y < 0) {
+            if (intent.x > canvas.width - spriteSheetOriginProperties.originalRenderSpriteWidth  || intent.y > canvas.height - spriteSheetOriginProperties.originalRenderSpriteHeight || intent.x < 0 || intent.y < 0) {
                 this.movementIntentComponentStore.remove(entity);
             }
 
@@ -149,7 +147,7 @@ export class CollisionSystem implements ISystem {
 
             const otherSprite = this.spriteComponentStore.getOrNull(other);
             const otherTileSize = otherSprite
-                ? this.spriteManager.getSpriteSheetProperties(otherSprite.spriteSheetName)?.afterRenderSpriteCellSize ?? tileSize
+                ? this.spriteManager.getSpriteSheetProperties(otherSprite.spriteSheetName)?.originalRenderSpriteHeight ?? tileSize
                 : tileSize;
 
             const current = {
@@ -199,10 +197,10 @@ export class CollisionSystem implements ISystem {
             // const key = `${x * wallWidth}_${y * wallHeight}`;
             // coordWallMap.set(key, true);
             const wallRect = {
-                left: (x * tilemapProperties.afterRenderSpriteCellSize + 6),
-                right: (x * tilemapProperties.afterRenderSpriteCellSize + tilemapProperties.afterRenderSpriteCellSize - 6),
-                top: (y * tilemapProperties.afterRenderSpriteCellSize + 6),
-                bottom: (y * tilemapProperties.afterRenderSpriteCellSize + tilemapProperties.afterRenderSpriteCellSize - 6)
+                left: (x * tilemapProperties.originalRenderSpriteWidth + 6),
+                right: (x * tilemapProperties.originalRenderSpriteWidth + tilemapProperties.originalRenderSpriteWidth - 6),
+                top: (y * tilemapProperties.originalRenderSpriteHeight + 6),
+                bottom: (y * tilemapProperties.originalRenderSpriteHeight + tilemapProperties.originalRenderSpriteHeight - 6)
             }
 
             const intersect =

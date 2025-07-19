@@ -19,7 +19,7 @@ export class WorldTilemapManager {
   ) {
     this.generateTilemap();
 
-    this.tileSize = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN).afterRenderSpriteCellSize;
+    this.tileSize = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN).originalRenderSpriteHeight;
   }
 
   async generateTilemap() {

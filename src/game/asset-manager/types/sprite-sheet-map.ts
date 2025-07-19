@@ -17,7 +17,8 @@ export abstract class SpriteSpriteSheetProperty {
 }
 export abstract class SpriteSheetBlueprint {
   eachSpriteCellSize!: number
-  afterRenderSpriteCellSize!: number
+  originalRenderSpriteHeight!: number
+  originalRenderSpriteWidth!: number
   rows!: number;
   columns!: number;
   sprites!: Map<SpriteName, SpriteSpriteSheetProperty>

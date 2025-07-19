@@ -9,7 +9,8 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
       rows: 30,
       columns: 15,
       eachSpriteCellSize: 16,
-      afterRenderSpriteCellSize: 32,
+      originalRenderSpriteHeight: 32,
+      originalRenderSpriteWidth: 32,
       srcImagePath: 'src/assets/images/tilesheet_metal.png',
       sprites: new Map([
         [SpriteName.METAL_1, {
@@ -32,7 +33,8 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
       rows: 1,
       columns: 1,
       eachSpriteCellSize: 32,
-      afterRenderSpriteCellSize: 32,
+      originalRenderSpriteHeight: 32,
+      originalRenderSpriteWidth: 32,
       srcImagePath: 'src/assets/images/smg.png',
       sprites: new Map([
         [SpriteName.SMG, {
@@ -49,7 +51,8 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
       rows: 1,
       columns: 6,
       eachSpriteCellSize: 32,
-      afterRenderSpriteCellSize: 32,
+      originalRenderSpriteHeight: 32,
+      originalRenderSpriteWidth: 32,
       srcImagePath: 'src/assets/images/player.png',
       sprites: new Map([
         [SpriteName.PLAYER_STILL, {
@@ -91,7 +94,8 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
       rows: 1,
       columns: 6,
       eachSpriteCellSize: 32,
-      afterRenderSpriteCellSize: 32,
+      originalRenderSpriteHeight: 32,
+      originalRenderSpriteWidth: 32,
       srcImagePath: 'src/assets/images/enemy.png',
       sprites: new Map([
         [SpriteName.ENEMY_STILL, {
@@ -133,7 +137,8 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
       rows: 1,
       columns: 1,
       eachSpriteCellSize: 6,
-      afterRenderSpriteCellSize: 6,
+      originalRenderSpriteHeight: 6,
+      originalRenderSpriteWidth: 6,
       srcImagePath: 'src/assets/images/bullet.png',
       sprites: new Map([
         [SpriteName.BULLET_1, {

@@ -10,6 +10,7 @@ import { PositionComponent } from "../components/position.component.js";
 import { ProjectileComponent } from "../components/projectile-component.js";
 import { ShooterComponent } from "../components/shooter-component.js";
 import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
+import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { AnimDirection } from "../components/types/anim-direction.js";
 import { ComponentStore } from "../core/component-store.js";
@@ -23,7 +24,7 @@ export class ProjectileSpawnSystem implements ISystem {
         private spriteManager: SpriteManager,
         private soundManager: SoundManager,
         private positionComponentStore: ComponentStore<PositionComponent>,
-        private playerComponentStore: ComponentStore<PlayerComponent>,
+        private attachedSpriteComponent: ComponentStore<WeaponSpriteAttachmentComponent>,
         private projectileComponentStore: ComponentStore<ProjectileComponent>,
         private entityFactory: EntityFactory,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
@@ -34,7 +35,7 @@ export class ProjectileSpawnSystem implements ISystem {
         private fireRateMs: number = 200
     ) {
         const terrainSpriteSheet = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN);
-        this.tileSize = terrainSpriteSheet.afterRenderSpriteCellSize;
+        this.tileSize = terrainSpriteSheet.originalRenderSpriteWidth;
     }
 
     update(deltaTime: number): void {
@@ -65,22 +66,28 @@ export class ProjectileSpawnSystem implements ISystem {
 
             const cooldown = this.shootingCooldownComponentStore.has(entity);
             if (!cooldown) {
-                this.spawnProjectile(shooterPos.x, shooterPos.y, dir, entity);
+                this.spawnProjectile(dir, entity);
                 const cooldownAdd = this.shootingCooldownComponentStore.add(entity, new ShootingCooldownComponent(0.2));
             }
         }
     }
 
-    private spawnProjectile(x: number, y: number, dir: { x: number; y: number }, shooterId: number): void {
-        const spritePlayerComponent = this.spriteComponentStore.get(shooterId);
-        const animPlayerDirectionComponent = this.directionAnimComponentStore.get(shooterId);
-        const spriteProperties = this.spriteManager.getSpriteProperties(spritePlayerComponent.spriteName, spritePlayerComponent.spriteSheetName)
-        const offsetX = animPlayerDirectionComponent.direction == AnimDirection.RIGHT ? spriteProperties.spriteSheet.afterRenderSpriteCellSize + 5 : -5;
+    private spawnProjectile(dir: { x: number; y: number }, shooterId: number): void {
+        const attachedWeapons = this.attachedSpriteComponent.getValuesAndEntityId();
+        const attachedWeaponEntry = attachedWeapons.find((value) => value[1].parentEntityId == shooterId);
+        if(!attachedWeaponEntry) {
+            throw new Error("No weapon entry found");
+        }
+        console.log(attachedWeaponEntry, "attachedWeaponEntry")
+        const attachedWeaponSprite = this.spriteComponentStore.get(attachedWeaponEntry[0]);
+        const attachedWeaponPosition = this.positionComponentStore.get(attachedWeaponEntry[0]);
+        let offsetX = attachedWeaponPosition.x + attachedWeaponSprite.width;
+        let offsetY = attachedWeaponPosition.y
         this.soundManager.playSound("SMG_FIRE");
-
+        console.log(offsetX)
         const entity = this.entityFactory.createProjectile(
-            x + offsetX,
-            y + 9,
+            offsetX,
+            offsetY,
             shooterId, // por enquanto player ID
             dir.x * 120, // cte --> pode mudar
             dir.y * 120

@@ -13,7 +13,7 @@ export class CameraManager {
   constructor(private tilemapManager: WorldTilemapManager, private spriteManager: SpriteManager) {
     this.tilemapManager = tilemapManager;
     this.setInitialPosition();
-    this.tileSize = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN).afterRenderSpriteCellSize;
+    this.tileSize = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN).originalRenderSpriteHeight;
   }
 
   public getViewport(): CameraViewport {

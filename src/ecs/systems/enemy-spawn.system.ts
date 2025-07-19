@@ -115,8 +115,8 @@ export class EnemySpawnSystem implements ISystem {
         const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
         const spriteProperties = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.ENEMY);
         return {
-            x: Math.floor((canvas.width - spriteProperties.afterRenderSpriteCellSize) * Math.random()),
-            y: Math.floor((canvas.height - spriteProperties.afterRenderSpriteCellSize) * Math.random()),
+            x: Math.floor((canvas.width - spriteProperties.originalRenderSpriteWidth) * Math.random()),
+            y: Math.floor((canvas.height - spriteProperties.originalRenderSpriteHeight) * Math.random()),
         }
     }
 
@@ -162,7 +162,7 @@ export class EnemySpawnSystem implements ISystem {
 
                 const enemyDistance = Math.hypot(enemyPos.x - rolledPosition.x, enemyPos.y - rolledPosition.y);
                 const playerDistance = Math.hypot(playerPos.x - rolledPosition.x, playerPos.y - rolledPosition.y);
-                if (enemyDistance >= spriteProperties.afterRenderSpriteCellSize * 2 && playerDistance >= spriteProperties.afterRenderSpriteCellSize * 2) {
+                if (enemyDistance >= spriteProperties.originalRenderSpriteHeight * 2 && playerDistance >= spriteProperties.originalRenderSpriteWidth * 2) {
                     sucessCount++;
                 }
             }
@@ -180,8 +180,8 @@ export class EnemySpawnSystem implements ISystem {
             }
 
             const rolledPositionTile = {
-                x: Math.floor(rolledPosition.x / spriteProperties.afterRenderSpriteCellSize),
-                y: Math.floor(rolledPosition.y / spriteProperties.afterRenderSpriteCellSize)
+                x: Math.floor(rolledPosition.x / spriteProperties.originalRenderSpriteWidth),
+                y: Math.floor(rolledPosition.y / spriteProperties.originalRenderSpriteHeight)
             }
 
             let counter = 0;
