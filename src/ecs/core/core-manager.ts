@@ -35,9 +35,10 @@ export class CoreManager {
         this._spriteManager = new SpriteManager(this._assetManager);
         this._rendererEngine.init();
         console.log("Game generated");
+        
         this._worldTilemapManager = new WorldTilemapManager(this._spriteManager);
         this._systemRunner = new SystemRunner(this._worldTilemapManager, this._spriteManager, this._entityManager, this._soundManager, this._rendererEngine, this._levelManager);
-        this._systemRunner.initialize();
+        this._systemRunner.initialize();        
         this._soundManager.resumeOnUserGesture();
         this._soundManager.playSound("THEME", true, 0.1);
         CoreManager.timeGlobalSinceStart = 0;
