@@ -39,7 +39,6 @@ export class CameraManager {
     const right = (x + halfW) * this.tileSize;
     const top = (y - halfH) * this.tileSize;
     const bottom = (y + halfH) * this.tileSize;
-    console.log(left, right, top, bottom);
     return {
       left,
       right,

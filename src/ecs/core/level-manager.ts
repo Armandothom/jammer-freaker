@@ -1,8 +1,5 @@
 export class LevelManager {
     public previousLevel = 0;
-    public initialSpriteSize = 80;
-    public initialBulletSize = 24;
-    public initialTiles = 8;
     private levelNumber: number;
     public zoomProgressionFactor: number;
     public tileProgressionFactor: number;
