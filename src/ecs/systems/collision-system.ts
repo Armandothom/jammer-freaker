@@ -14,6 +14,10 @@ import { EnemyComponent } from "../components/enemy.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { ShotOriginComponent } from "../components/shot-origin.component.js";
 import { EnemiesKilledComponent } from "../components/enemies-killed.component.js";
+import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
+import { TilemapTile } from "../../game/world/types/tilemap-tile.js";
+import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
+import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 
 export class CollisionSystem implements ISystem {
     constructor(
@@ -30,6 +34,7 @@ export class CollisionSystem implements ISystem {
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private shotOriginComponentStore: ComponentStore<ShotOriginComponent>,
         private enemiesKilledComponentStore: ComponentStore<EnemiesKilledComponent>,
+        private worldTilemapManager: WorldTilemapManager,
     ) {
 
     }
@@ -50,14 +55,15 @@ export class CollisionSystem implements ISystem {
             }
 
             const spriteSheetOriginProperties = this.spriteManager.getSpriteSheetProperties(spriteComponent.spriteSheetName);
-            const wouldCollideCheck = this.wouldCollideAABB(intent, entity, spriteSheetOriginProperties.afterRenderSpriteCellSize);
+            const wouldCollideCheckEntity = this.wouldCollideAABB(intent, entity, spriteSheetOriginProperties.afterRenderSpriteCellSize);
+            const wallCollisionCheck = this.wallCollision(intent, entity, spriteSheetOriginProperties.afterRenderSpriteCellSize);
 
-            if (wouldCollideCheck.wouldCollide) {
+            if (wouldCollideCheckEntity.wouldCollide) {
                 this.movementIntentComponentStore.remove(entity); // Cancelamento do intent pra questões de movimento            
                 if (this.projectileComponentStore.has(entity)) {
                     const shotOrigin = this.shotOriginComponentStore.get(entity);
                     const shooterId = shotOrigin.shooterEntity;
-                    const target = wouldCollideCheck.collidingEntity;
+                    const target = wouldCollideCheckEntity.collidingEntity;
 
                     if (shooterId == null || target == null) return;
                     if (target === shooterId) {
@@ -92,7 +98,14 @@ export class CollisionSystem implements ISystem {
             }
 
             const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
-            if (intent.x > canvas.width || intent.y > canvas.height || intent.x < 0 || intent.y < 0) {
+            if (wallCollisionCheck) {
+                this.movementIntentComponentStore.remove(entity);
+                if (this.projectileComponentStore.has(entity)) {
+                    this.entityFactory.destroyProjectile(entity);
+                }
+            }
+
+            if (intent.x > canvas.width - spriteSheetOriginProperties.afterRenderSpriteCellSize  || intent.y > canvas.height - spriteSheetOriginProperties.afterRenderSpriteCellSize || intent.x < 0 || intent.y < 0) {
                 this.movementIntentComponentStore.remove(entity);
             }
 
@@ -166,29 +179,46 @@ export class CollisionSystem implements ISystem {
         };
     }
 
+    private wallCollision(
+        intent: MovementIntentComponent,
+        self: number,
+        tileSize: number,
+    ) {
 
-    // métodos inutilizados por enquanto
-    private checkAABBCollision(a: Rect, b: Rect): boolean {
-        return (
-            a.left < b.right &&
-            a.right > b.left &&
-            a.top < b.bottom &&
-            a.bottom > b.top
-        );
-    }
-
-    private getEntityAABB(entity: number, tileSize: number): Rect | null {
-        const movIntent = this.movementIntentComponentStore.get(entity);
-        if (!movIntent) return null;
-
-        const left = movIntent.x * tileSize;
-        const top = movIntent.y * tileSize;
-
-        return {
-            left,
-            top,
-            right: left + tileSize,
-            bottom: top + tileSize
+        const intendedMovement = {
+            left: intent.x,
+            right: intent.x + tileSize,
+            top: intent.y,
+            bottom: intent.y + tileSize,
         };
+
+        const wallPosition = this.worldTilemapManager._generatedWalls;
+        const tilemapProperties = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN);
+
+        for (const { x, y } of wallPosition) {
+            // const key = `${x * wallWidth}_${y * wallHeight}`;
+            // coordWallMap.set(key, true);
+            const wallRect = {
+                left: (x * tilemapProperties.afterRenderSpriteCellSize + 6),
+                right: (x * tilemapProperties.afterRenderSpriteCellSize + tilemapProperties.afterRenderSpriteCellSize - 6),
+                top: (y * tilemapProperties.afterRenderSpriteCellSize + 6),
+                bottom: (y * tilemapProperties.afterRenderSpriteCellSize + tilemapProperties.afterRenderSpriteCellSize - 6)
+            }
+
+            const intersect =
+                intendedMovement.left < wallRect.right &&
+                intendedMovement.right > wallRect.left &&
+                intendedMovement.top < wallRect.bottom &&
+                intendedMovement.bottom > wallRect.top;
+
+            if (intersect) {
+                return true;
+            }
+        }
+
+
+
+
+
     }
 }

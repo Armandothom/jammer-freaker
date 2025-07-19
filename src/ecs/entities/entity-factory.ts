@@ -99,7 +99,7 @@ export class EntityFactory {
     this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
-    console.log("Soldier Spawnado", entityId);
+    console.log("Soldier Spawnado", entityId, startX, startY);
     return entityId;
   }
 
@@ -121,7 +121,7 @@ export class EntityFactory {
     this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
-    console.log("Juggernaut Spawnado", entityId);
+    console.log("Juggernaut Spawnado", entityId, startX, startY);
     //console.log(this.directionAnimationComponentStore.get(entityId));
     return entityId;
   }
@@ -144,7 +144,7 @@ export class EntityFactory {
     this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
-    console.log("Sniper Spawnado", entityId);
+    console.log("Sniper Spawnado", entityId, startX, startY);
     //console.log(this.directionAnimationComponentStore.get(entityId));
     return entityId;
   }
@@ -167,7 +167,7 @@ export class EntityFactory {
     this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
-    console.log("Kamikaze Spawnado", entityId);
+    console.log("Kamikaze Spawnado", entityId, startX, startY);
     //console.log(this.directionAnimationComponentStore.get(entityId));
     return entityId;
   }
@@ -190,7 +190,7 @@ export class EntityFactory {
     this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
-    console.log("Bomber Spawnado", entityId);
+    console.log("Bomber Spawnado", entityId, startX, startY);
     //console.log(this.directionAnimationComponentStore.get(entityId));
     return entityId;
   }

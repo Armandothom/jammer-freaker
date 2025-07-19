@@ -4,8 +4,8 @@ import { CameraViewport } from "./types/camera-viewport.js";
 import { WorldTilemapManager } from "./world-tilemap-manager.js";
 
 export class CameraManager {
-  private viewportYAxisTiles : number = 50;
-  private viewportXAxisTiles: number = 50;
+  private viewportYAxisTiles : number = 20;
+  private viewportXAxisTiles: number = 20;
   private tileSize : number;
   coordinateX : number = 0;
   coordinateY : number = 0;
