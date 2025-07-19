@@ -216,7 +216,7 @@ export class EntityFactory {
   createSmg(parentEntityId : number) {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(0, 0));
-    this.weaponSpriteAttachmentComponentStore.add(entityId, new WeaponSpriteAttachmentComponent(parentEntityId, 20, 15, 0, true));
+    this.weaponSpriteAttachmentComponentStore.add(entityId, new WeaponSpriteAttachmentComponent(parentEntityId, 8, 14, 0, true));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.SMG, SpriteSheetName.WEAPON));
   }
 

@@ -16,7 +16,8 @@ export abstract class SpriteSpriteSheetProperty {
   spriteCellOffset! : SpriteSpriteSheetspriteCellOffset
 }
 export abstract class SpriteSheetBlueprint {
-  eachSpriteCellSize!: number
+  eachSpriteCellSizeHeight!: number
+  eachSpriteCellSizeWidth!: number
   originalRenderSpriteHeight!: number
   originalRenderSpriteWidth!: number
   rows!: number;

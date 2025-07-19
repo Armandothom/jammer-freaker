@@ -80,7 +80,7 @@ export class ProjectileSpawnSystem implements ISystem {
         }
         const attachedWeaponSprite = this.spriteComponentStore.get(attachedWeaponEntry[0]);
         const attachedWeaponPosition = this.positionComponentStore.get(attachedWeaponEntry[0]);
-        let offsetX = attachedWeaponPosition.x + attachedWeaponSprite.width;
+        let offsetX = attachedWeaponPosition.x + attachedWeaponSprite.width + 2;
         let offsetY = attachedWeaponPosition.y
         this.soundManager.playSound("SMG_FIRE");
         const entity = this.entityFactory.createProjectile(

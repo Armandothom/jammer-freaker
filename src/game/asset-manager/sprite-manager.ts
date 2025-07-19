@@ -46,11 +46,12 @@ export class SpriteManager {
   const spriteSheetHeight = spriteProperties.spriteSheet.height;
   const tileColumn = spriteProperties.sprite.column;
   const tileRow = spriteProperties.sprite.row;
-  const spriteCellSize = spriteProperties.spriteSheet.eachSpriteCellSize;
+  const spriteCellSizeHeight = spriteProperties.spriteSheet.eachSpriteCellSizeHeight;
+  const spriteCellSizeWidth = spriteProperties.spriteSheet.eachSpriteCellSizeWidth;
   
   // We define where is the cell of the sprite on the spritesheet
-  let cellX = (tileColumn - 1) * spriteCellSize;
-  let cellY = (tileRow - 1) * spriteCellSize;
+  let cellX = (tileColumn - 1) * spriteCellSizeWidth;
+  let cellY = (tileRow - 1) * spriteCellSizeHeight;
   
   // We define the offset of the sprite, on left,right,top,bottom inside the cell
   let xLeft = cellX + spriteCellOffset.offsetX;

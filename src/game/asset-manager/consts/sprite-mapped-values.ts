@@ -8,7 +8,8 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
     {
       rows: 30,
       columns: 15,
-      eachSpriteCellSize: 16,
+      eachSpriteCellSizeHeight: 16,
+      eachSpriteCellSizeWidth: 16,
       originalRenderSpriteHeight: 32,
       originalRenderSpriteWidth: 32,
       srcImagePath: 'src/assets/images/tilesheet_metal.png',
@@ -32,15 +33,16 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
     {
       rows: 1,
       columns: 1,
-      eachSpriteCellSize: 32,
-      originalRenderSpriteHeight: 32,
-      originalRenderSpriteWidth: 32,
+      eachSpriteCellSizeHeight: 16,
+      eachSpriteCellSizeWidth: 32,
+      originalRenderSpriteHeight: 20,
+      originalRenderSpriteWidth: 36,
       srcImagePath: 'src/assets/images/smg.png',
       sprites: new Map([
         [SpriteName.SMG, {
           row: 1,
           column: 1,
-          spriteCellOffset: { offsetX: 6, offsetY: 12, width: 24, height: 13 }
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 26, height: 16 }
         }]
       ])
     }
@@ -50,7 +52,8 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
     {
       rows: 1,
       columns: 6,
-      eachSpriteCellSize: 32,
+      eachSpriteCellSizeHeight: 32,
+      eachSpriteCellSizeWidth: 32,
       originalRenderSpriteHeight: 32,
       originalRenderSpriteWidth: 32,
       srcImagePath: 'src/assets/images/player.png',
@@ -93,7 +96,8 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
     {
       rows: 1,
       columns: 6,
-      eachSpriteCellSize: 32,
+      eachSpriteCellSizeWidth: 32,
+      eachSpriteCellSizeHeight: 32,
       originalRenderSpriteHeight: 32,
       originalRenderSpriteWidth: 32,
       srcImagePath: 'src/assets/images/enemy.png',
@@ -136,7 +140,8 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
     {
       rows: 1,
       columns: 1,
-      eachSpriteCellSize: 6,
+      eachSpriteCellSizeHeight: 6,
+      eachSpriteCellSizeWidth: 6,
       originalRenderSpriteHeight: 6,
       originalRenderSpriteWidth: 6,
       srcImagePath: 'src/assets/images/bullet.png',
