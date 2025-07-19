@@ -1,6 +1,7 @@
 
 import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
 import { AIComponent } from "../components/ai.component.js";
+import { AimShootingComponent } from "../components/aim-shooting.component.js";
 import { AnimationComponent } from "../components/animation.component.js";
 import { DirectionAnimComponent } from "../components/direction-anim.component.js";
 import { IntentShotComponent } from "../components/intent-shot.component.js";
@@ -20,14 +21,13 @@ export class AnimationSetterSystem implements ISystem {
         private positionComponentStore: ComponentStore<PositionComponent>,
         private directionAnimComponentStore: ComponentStore<DirectionAnimComponent>,
         private animationComponentStore: ComponentStore<AnimationComponent>,
-        private intentShotComponentStore: ComponentStore<IntentShotComponent>,
         private aiComponentStore : ComponentStore<AIComponent>,
         private playerComponentStore : ComponentStore<PlayerComponent>,
+        private aimShootingComponent : ComponentStore<AimShootingComponent>
     ) { }
 
     update(deltaTime: number): void {
         const entitiesWithAnim = this.animationComponentStore.getAllEntities();
-        const entitiesShooting = new Set(this.intentShotComponentStore.getAllEntities());
         for (const entityWithAnim of entitiesWithAnim) {
             let animToUse : AnimationName | undefined;
             const currentAnim = this.animationComponentStore.get(entityWithAnim).animationName;
@@ -43,14 +43,13 @@ export class AnimationSetterSystem implements ISystem {
                 const deltaPosY = entityMovementIntent.y - initialPosition.y;
                 isMoving = (deltaPosX != 0 || deltaPosY != 0) ? true : false;
                 //Entity is not moving horizontally
-                if (deltaPosX != 0) {
-                    const directionAnim = deltaPosX > 0 ? AnimDirection.RIGHT : AnimDirection.LEFT;
-                    this.directionAnimComponentStore.add(entityWithAnim, new DirectionAnimComponent(directionAnim))
-                }
             }
 
             //Decide the anim
             if(isPlayer) {
+                const aimShootingComponent = this.aimShootingComponent.get(entityWithAnim);
+                const directionAnim = Math.cos(aimShootingComponent.aimAngle) > 0 ? AnimDirection.RIGHT : AnimDirection.LEFT;
+                this.directionAnimComponentStore.add(entityWithAnim, new DirectionAnimComponent(directionAnim))
                 if(isMoving) {
                     animToUse = AnimationName.PLAYER_RUN
                 } else {

@@ -25,6 +25,7 @@ import { AiMovementRadiusComponent } from "../components/ai-movement-radius.comp
 import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
 import { EnemyDead } from "../components/enemy-dead.component.js";
 import { AimShootingComponent } from "../components/aim-shooting.component.js";
+import { SpriteAttachmentComponent } from "../components/sprite-attachment.component.js";
 
 export class EntityFactory {
   constructor(
@@ -50,6 +51,7 @@ export class EntityFactory {
     private aiMovementRadiusComponentStore: ComponentStore<AiMovementRadiusComponent>,
     private enemyDeadComponentStore: ComponentStore<EnemyDead>,
     private aimShootingComponentStore: ComponentStore<AimShootingComponent>,
+    private spriteAttachmentComponentStore: ComponentStore<SpriteAttachmentComponent>,
   ) {
 
   }
@@ -69,6 +71,7 @@ export class EntityFactory {
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.damageComponentStore.add(entityId, new DamageComponent(damage));
+    this.createSmg(entityId);
     return entityId;
   }
 
@@ -205,6 +208,15 @@ export class EntityFactory {
     this.shooterComponentStore.remove(entityId);
     this.velocityComponentStore.remove(entityId);
     this.aiComponentStore.remove(entityId);
+  }
+
+
+  //Temporary, only to test rendering
+  createSmg(parentEntityId : number) {
+    const entityId = this.entityManager.registerEntity();
+    this.positionComponentStore.add(entityId, new PositionComponent(0, 0));
+    this.spriteAttachmentComponentStore.add(entityId, new SpriteAttachmentComponent(parentEntityId, 20, 15, true));
+    this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.SMG, SpriteSheetName.WEAPON));
   }
 
 }
