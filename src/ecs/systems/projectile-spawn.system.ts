@@ -75,7 +75,6 @@ export class ProjectileSpawnSystem implements ISystem {
         const spritePlayerComponent = this.spriteComponentStore.get(shooterId);
         const animPlayerDirectionComponent = this.directionAnimComponentStore.get(shooterId);
         const spriteProperties = this.spriteManager.getSpriteProperties(spritePlayerComponent.spriteName, spritePlayerComponent.spriteSheetName)
-        const spriteSize = spriteProperties.spriteSheet.afterRenderSpriteCellSize;
         const offsetX = animPlayerDirectionComponent.direction == AnimDirection.RIGHT ? spriteProperties.spriteSheet.afterRenderSpriteCellSize + 5 : -5;
         this.soundManager.playSound("SMG_FIRE");
 

@@ -7,8 +7,8 @@ import { SpriteName } from "../../world/types/sprite-name.enum.js";
 export abstract class SpriteSpriteSheetspriteCellOffset {
     offsetX! : number //Where the sprite starts on the sprite cell X axis
     offsetY! : number //Where the sprite starts on the sprite cell Y axis
-    width! : number //The real width of the sprite
-    height! : number //The real height of the sprite
+    width! : number //The real width of the sprite (not the tile cell)
+    height! : number //The real height of the sprite (not the tile)
 }
 export abstract class SpriteSpriteSheetProperty {
   row! : number
