@@ -190,7 +190,7 @@ export class CollisionSystem implements ISystem {
             bottom: intent.y + tileSize,
         };
 
-        const wallPosition = this.worldTilemapManager._generatedWalls;
+        const wallPosition = this.worldTilemapManager.generatedWalls;
         const tilemapProperties = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN);
 
         for (const { x, y } of wallPosition) {

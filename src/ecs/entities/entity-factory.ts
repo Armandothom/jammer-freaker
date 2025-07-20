@@ -64,7 +64,6 @@ export class EntityFactory {
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.PLAYER_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity))
-    this.aimShootingComponentStore.add(entityId, new AimShootingComponent(0));
     this.playerComponentStore.add(entityId, new PlayerComponent());
     this.shooterComponentStore.add(entityId, new ShooterComponent());
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY))
@@ -115,7 +114,6 @@ export class EntityFactory {
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.ENEMY_STILL, SpriteSheetName.ENEMY));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.ENEMY_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
-    this.aimShootingComponentStore.add(entityId, new AimShootingComponent(0));
     this.enemyComponentStore.add(entityId, new EnemyComponent());
     this.shooterComponentStore.add(entityId, new ShooterComponent());
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY));
@@ -216,9 +214,10 @@ export class EntityFactory {
   createSmg(parentEntityId : number) {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(0, 0));
-    this.weaponSpriteAttachmentComponentStore.add(entityId, new WeaponSpriteAttachmentComponent(parentEntityId, 8, 14, true));
+    this.aimShootingComponentStore.add(entityId, new AimShootingComponent(0));
+    this.weaponSpriteAttachmentComponentStore.add(entityId, new WeaponSpriteAttachmentComponent(parentEntityId, 20, 20, 16, 16));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.WEAPON_SMG));
-    this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.SMG, SpriteSheetName.WEAPON));
+    this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.SMG, SpriteSheetName.WEAPON, 36, 20));
   }
 
 }

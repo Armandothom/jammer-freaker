@@ -4,6 +4,7 @@ import { RenderObjectLayer, RenderObject } from "../../game/renderer/types/rende
 import { CameraManager } from "../../game/world/camera-manager.js";
 import { CameraViewport } from "../../game/world/types/camera-viewport.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
+import { AimShootingComponent } from "../components/aim-shooting.component.js";
 import { DirectionAnimComponent } from "../components/direction-anim.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
@@ -25,7 +26,8 @@ export class RenderSystem implements ISystem {
     private tilemapManager: WorldTilemapManager,
     private rendererEngine: RendererEngine,
     private spriteManager: SpriteManager,
-    private directionAnimComponentStore : ComponentStore<DirectionAnimComponent>) {
+    private directionAnimComponentStore : ComponentStore<DirectionAnimComponent>,
+    private aimShootingComponentStore : ComponentStore<AimShootingComponent>,) {
 
   }
 
@@ -51,6 +53,7 @@ export class RenderSystem implements ISystem {
         height: spriteDetails.spriteSheet.originalRenderSpriteHeight,
         width: spriteDetails.spriteSheet.originalRenderSpriteWidth,
         angleRotation: null,
+        offsetRotation : 0,
         zLevel: (terrainTile.y * 0.1) * this.layerMultiplicator["1"]
       })
     }
@@ -69,6 +72,7 @@ export class RenderSystem implements ISystem {
         //Entity is not within viewport
         continue;
       }
+      const aimComponent = this.aimShootingComponentStore.getOrNull(entity);
       const mirrorSprite = this.directionAnimComponentStore.getOrNull(entity)?.direction == AnimDirection.LEFT ? true : false;
       const spriteProperties = this.spriteManager.getSpriteProperties(sprite.spriteName, sprite.spriteSheetName);
       renderObject.push({
@@ -76,9 +80,10 @@ export class RenderSystem implements ISystem {
         yWorldPosition: position.y,
         spriteSheetTexture: spriteProperties.spriteSheet.texture,
         uvCoordinates: this.spriteManager.getUvCoordinates(sprite.spriteName, sprite.spriteSheetName, mirrorSprite),
-        height: spriteProperties.spriteSheet.originalRenderSpriteHeight,
-        width: spriteProperties.spriteSheet.originalRenderSpriteWidth,
-        angleRotation: null,
+        height: sprite.height,
+        width: sprite.width,
+        angleRotation: aimComponent?.aimAngle || null,
+        offsetRotation : aimComponent?.offsetAimAngle || 0,
         zLevel : (position.y * 0.1) * this.layerMultiplicator["2"]
       })
     }

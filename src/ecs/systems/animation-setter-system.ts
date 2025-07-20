@@ -47,9 +47,6 @@ export class AnimationSetterSystem implements ISystem {
 
             //Decide the anim
             if(isPlayer) {
-                const aimShootingComponent = this.aimShootingComponent.get(entityWithAnim);
-                const directionAnim = Math.cos(aimShootingComponent.aimAngle) > 0 ? AnimDirection.RIGHT : AnimDirection.LEFT;
-                this.directionAnimComponentStore.add(entityWithAnim, new DirectionAnimComponent(directionAnim));
                 if(isMoving) {
                     animToUse = AnimationName.PLAYER_RUN
                 } else {
@@ -59,9 +56,9 @@ export class AnimationSetterSystem implements ISystem {
 
             if(isAttachedWeapon) {
                 const attachedWeapon = this.weaponSpriteAttachmentComponent.get(entityWithAnim);
-                const aimShootingComponent = this.aimShootingComponent.get(attachedWeapon.parentEntityId);;
+                const aimShootingComponent = this.aimShootingComponent.get(entityWithAnim);
                 const directionAnim = Math.cos(aimShootingComponent.aimAngle) > 0 ? AnimDirection.RIGHT : AnimDirection.LEFT;
-                this.directionAnimComponentStore.add(entityWithAnim, new DirectionAnimComponent(directionAnim));
+                this.directionAnimComponentStore.add(attachedWeapon.parentEntityId, new DirectionAnimComponent(directionAnim));
             }
 
             if(isNpc) {

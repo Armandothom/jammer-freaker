@@ -1,4 +1,5 @@
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
+import { AimShootingComponent } from "../components/aim-shooting.component.js";
 import { DirectionAnimComponent } from "../components/direction-anim.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
@@ -12,7 +13,8 @@ export class WeaponSpriteAttachmenPositiontSystem implements ISystem {
         private positionComponentStore: ComponentStore<PositionComponent>,
         private weaponSpriteAttachmentComponentStore: ComponentStore<WeaponSpriteAttachmentComponent>,
         private animDirectionComponentStore: ComponentStore<DirectionAnimComponent>,
-        private spriteComponentStore: ComponentStore<SpriteComponent>
+        private spriteComponentStore: ComponentStore<SpriteComponent>,
+        private aimShootingComponentStore: ComponentStore<AimShootingComponent>,
     ) { }
 
     update(deltaTime: number): void {
@@ -22,16 +24,15 @@ export class WeaponSpriteAttachmenPositiontSystem implements ISystem {
             const attachedWeapon = this.weaponSpriteAttachmentComponentStore.get(attachedEntityId);
             const attachedWeaponPosition = this.positionComponentStore.get(attachedEntityId);
             const parentEntityPosition = this.positionComponentStore.get(attachedWeapon.parentEntityId);
-            const isMirrored = this.animDirectionComponentStore.get(attachedEntityId).direction == AnimDirection.LEFT;
-            const mirroredVariable = isMirrored ? -1 : 1; 
-            const offsetX = attachedWeapon.offsetX * mirroredVariable;
-            const offsetY = attachedWeapon.offsetY;
+            const aimShooting = this.aimShootingComponentStore.get(attachedEntityId);
+            const isAimingLeft = Math.cos(aimShooting.aimAngle) < 0 ? true : false;
+            const radiusWeapon = Math.sqrt((sprite.height * sprite.height) + (sprite.width * sprite.width)) / 2;
+            const offsetX = isAimingLeft ? attachedWeapon.offsetXAimLeft : attachedWeapon.offsetXAimRight;
+            const offsetY = isAimingLeft ? attachedWeapon.offsetYAimLeft : attachedWeapon.offsetYAimRight;
             attachedWeaponPosition.x = parentEntityPosition.x + offsetX;
             attachedWeaponPosition.y = parentEntityPosition.y + offsetY;
-            attachedWeapon.barrelX = attachedWeaponPosition.x + (isMirrored ? 0 : sprite.width) + (mirroredVariable * 3);
-            console.log(`attachedWeapon.barrelX`, attachedWeapon.barrelX)
-            console.log(`sprite.width`, sprite.width)
-            attachedWeapon.barrelY = attachedWeaponPosition.y;
+            attachedWeapon.barrelX = attachedWeaponPosition.x + (radiusWeapon * Math.cos(aimShooting.aimAngle));
+            attachedWeapon.barrelY = attachedWeaponPosition.y + (radiusWeapon * Math.sin(aimShooting.aimAngle));
         }
     }
 

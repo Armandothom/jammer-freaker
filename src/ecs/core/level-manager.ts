@@ -6,17 +6,17 @@ export class LevelManager {
     constructor(
     ) {
         this.levelNumber = this.previousLevel + 1;
-        this.zoomProgressionFactor = 0;
-        this.tileProgressionFactor = 0;
+        this.zoomProgressionFactor = 1;
+        this.tileProgressionFactor = 1;
         if (this.levelNumber >= 0 && this.levelNumber <= 8) {
-            this.zoomProgressionFactor = 1.5 * this.levelNumber;
-            this.tileProgressionFactor = 4 * this.levelNumber;
+            this.zoomProgressionFactor = 1 * this.levelNumber;
+            this.tileProgressionFactor = 1 * this.levelNumber;
         }
     }
 
     async update() {
-        const newLevel = this.previousLevel + 1;
-        this.previousLevel = newLevel;
+        // const newLevel = this.previousLevel + 1;
+        // this.previousLevel = newLevel;
 
         //console.log("Level Progredido:", levelNumber);
     }

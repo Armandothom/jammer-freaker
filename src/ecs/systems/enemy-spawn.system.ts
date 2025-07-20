@@ -124,7 +124,7 @@ export class EnemySpawnSystem implements ISystem {
         const enemyEntities = this.enemyComponentStore.getAllEntities();
         const deadEnemiesEntities = this.enemyDeadComponentStore.getAllEntities();
         const spriteProperties = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.ENEMY);
-        const wallPosition = this.worldTilemapManager._generatedWalls;
+        const wallPosition = this.worldTilemapManager.generatedWalls;
         const playerId = this.playerComponentStore.getAllEntities()[0];
         const playerPos = this.positionComponentStore.get(playerId);
         let counter = 0;

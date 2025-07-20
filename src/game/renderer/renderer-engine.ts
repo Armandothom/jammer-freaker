@@ -2,7 +2,7 @@ import { RenderObject } from "./types/render-objects.js";
 
 export class RendererEngine {
   private _isLoaded: boolean = false;
-  private _debugMode: boolean = false;
+  private _debugMode: boolean = true;
   private _program: WebGLProgram | undefined;
   private _canvas: HTMLCanvasElement;
   private _gl: WebGL2RenderingContext;
@@ -57,7 +57,7 @@ export class RendererEngine {
     const vertexShader = this.createShader(this._gl.VERTEX_SHADER, vertexShaderSource);
     const fragmentShader = this.createShader(this._gl.FRAGMENT_SHADER, fragmentShaderSource);
     this._gl.enable(this._gl.DEPTH_TEST);
-    this._gl.depthMask(true); 
+    this._gl.depthMask(true);
     this._gl.depthFunc(this._gl.LEQUAL);
     this._gl.clearDepth(1.0);
     this._gl.enable(this._gl.BLEND);
@@ -96,19 +96,31 @@ export class RendererEngine {
       const uvLocal: number[] = [];
 
       for (const obj of renderObjects) {
-        const { xWorldPosition, yWorldPosition, zLevel, width, height, uvCoordinates } = obj;
-        const topLeft = this.toClipSpace(xWorldPosition, yWorldPosition, zLevel, this._canvas);
-        const bottomLeft = this.toClipSpace(xWorldPosition, yWorldPosition + height, zLevel, this._canvas);
-        const topRight = this.toClipSpace(xWorldPosition + width, yWorldPosition, zLevel, this._canvas);
-        const bottomRight = this.toClipSpace(xWorldPosition + width, yWorldPosition + height, zLevel, this._canvas);
-        vertices.push(
-          ...topLeft,
-          ...bottomLeft,
-          ...topRight,
-          ...bottomRight,
-          ...topRight,
-          ...bottomLeft
-        );
+        const { xWorldPosition, yWorldPosition, zLevel, width, height, uvCoordinates, offsetRotation } = obj;
+        const angle = obj.angleRotation || 0; //
+
+
+        const localQuad = [
+          { x: 0, y: 0 },             // top-left
+          { x: 0, y: height },        // bottom-left
+          { x: width, y: 0 },         // top-right
+          { x: width, y: height },    // bottom-right
+          { x: width, y: 0 },         // top-right
+          { x: 0, y: height }         // bottom-left
+        ];
+        const pivot = { x: 0, y: offsetRotation };
+        for (const point of localQuad) {
+          const cos = Math.cos(angle);
+          const sin = Math.sin(angle);
+          const dx = point.x - pivot.x;
+          const dy = point.y - pivot.y;
+          const rotatedX = dx * cos - dy * sin;
+          const rotatedY = dx * sin + dy * cos;
+          const worldX = xWorldPosition + rotatedX;
+          const worldY = yWorldPosition + rotatedY;
+          const [clipX, clipY, clipZ] = this.toClipSpace(worldX, worldY, zLevel, this._canvas);
+          vertices.push(clipX, clipY, clipZ);
+        }
 
         uvTextures.push(...uvCoordinates);
         uvLocal.push(...uvBorderPattern);
@@ -160,7 +172,7 @@ export class RendererEngine {
   }
 
 
-  private toClipSpace(px: number, py: number, zLevel : number, canvas: HTMLCanvasElement): [number, number, number] {
+  private toClipSpace(px: number, py: number, zLevel: number, canvas: HTMLCanvasElement): [number, number, number] {
     const clipX = (px / canvas.width) * 2 - 1;
     const clipY = 1 - (py / canvas.height) * 2;
     const clipZ = 1.0 - (zLevel / 1000) * 2.0;

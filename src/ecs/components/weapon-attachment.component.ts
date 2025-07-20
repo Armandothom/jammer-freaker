@@ -1,9 +1,11 @@
 export class WeaponSpriteAttachmentComponent {
   constructor(
     public parentEntityId: number,
-    public offsetX: number = 0,
-    public offsetY: number = 0,
-    public rotateByMouseAim: boolean = false,
+    public offsetXAimRight: number = 0,
+    public offsetXAimLeft: number = 0,
+    public offsetYAimRight: number = 0,
+    public offsetYAimLeft: number = 0,
+    public barrelOffset : number = 5,
     public barrelX : number = 0,
     public barrelY : number = 0
   ) {}

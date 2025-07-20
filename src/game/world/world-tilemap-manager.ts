@@ -8,11 +8,11 @@ import { SpriteManager } from '../asset-manager/sprite-manager.js';
 export class WorldTilemapManager {
   public _maxNumberTilesX = 200;
   public _maxNumberTilesY = 200;
-  public _generatedWalls: { x: number, y: number }[] = []
+  public generatedWalls: { x: number, y: number }[] = []
+  public tileSize: number;
   private readonly noiseValueTreshhold = 0.88;
   private readonly _tilemapSpritesheetName = SpriteSheetName.TERRAIN;
   private readonly _tilemap: Map<string, TilemapTile> = new Map();
-  private readonly tileSize: number;
 
   constructor(
     private spriteManager: SpriteManager,
@@ -275,7 +275,7 @@ export class WorldTilemapManager {
     for (let y = 0; y < this._maxNumberTilesY; y++) {
       for (let x = 0; x < this._maxNumberTilesX; x++) {
         if (noiseValue[y][x] >= this.noiseValueTreshhold) {
-          this._generatedWalls.push({ x, y });
+          this.generatedWalls.push({ x, y });
         }
       }
     }
