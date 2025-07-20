@@ -10,9 +10,11 @@ import { EnemyDead } from "../components/enemy-dead.component.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
+import { LevelManager } from "../core/level-manager.js";
 
 export class EnemySpawnSystem implements ISystem {
     private timeSinceLastSpawn = 0;
+
 
     constructor(
         private positionComponentStore: ComponentStore<PositionComponent>,
@@ -22,15 +24,23 @@ export class EnemySpawnSystem implements ISystem {
         private entityFactory: EntityFactory,
         private worldTilemapManager: WorldTilemapManager,
         private spriteManager: SpriteManager,
-
+        private levelManager: LevelManager,
     ) {
     }
 
     update(deltaTime: number): void {
         this.timeSinceLastSpawn += deltaTime;
-        const spawnIntervalsInSeconds = 3;
+        const spawnIntervalsInSeconds = 5;
         const previousTime = this.timeSinceLastSpawn - deltaTime;
 
+        if (previousTime < spawnIntervalsInSeconds && this.timeSinceLastSpawn >= spawnIntervalsInSeconds) {
+            this.timeSinceLastSpawn = 0;
+            this.spawnEnemy();
+        }
+
+    }
+
+    spawnEnemy() {
         const enemyTypes: EnemyType[] = Object.keys(EnemyType).map((k) => (EnemyType as any)[k]) as EnemyType[];
         //const hp = EnemyConfig[EnemyType.SOLDIER].hp;
 
@@ -46,7 +56,6 @@ export class EnemySpawnSystem implements ISystem {
         }
 
         const spawnRoll = Math.random();
-        const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
 
         // xRoll and yRoll as placeholder for now, must be improved to check collision,
         // another enemy its in the vicinity, must not spawn in the vicinity of the player
@@ -54,61 +63,123 @@ export class EnemySpawnSystem implements ISystem {
         // to be implemented: time elapsed || bypass logic for spawn logic
         // bypass being used to spawn a bunch of enemies on level start
 
-        if (previousTime < spawnIntervalsInSeconds && this.timeSinceLastSpawn >= spawnIntervalsInSeconds) {
-            this.timeSinceLastSpawn = 0;
-            // const posRoll = this.trySpawn(spawnRoll);
-            // if (spawnRoll <= spawnChancesAccumulated[0]) {
-            //     this.entityFactory.createSoldier(
-            //         posRoll.x, posRoll.y,
-            //         EnemyConfig[EnemyType.SOLDIER].hp,
-            //         EnemyConfig[EnemyType.SOLDIER].damage,
-            //         EnemyConfig[EnemyType.SOLDIER].attackCooldownInSeconds,
-            //         EnemyConfig[EnemyType.SOLDIER].attackRange,
-            //         EnemyConfig[EnemyType.SOLDIER].movementRadius,
-            //         EnemyConfig[EnemyType.SOLDIER].velocity);
-            // }
-            // if (spawnRoll > spawnChancesAccumulated[0] && spawnRoll < spawnChancesAccumulated[1]) {
-            //     this.entityFactory.createSniper(
-            //         posRoll.x, posRoll.y,
-            //         EnemyConfig[EnemyType.SNIPER].hp,
-            //         EnemyConfig[EnemyType.SNIPER].damage,
-            //         EnemyConfig[EnemyType.SNIPER].attackCooldownInSeconds,
-            //         EnemyConfig[EnemyType.SNIPER].attackRange,
-            //         EnemyConfig[EnemyType.SNIPER].movementRadius,
-            //         EnemyConfig[EnemyType.SNIPER].velocity);
-            // }
-            // if (spawnRoll > spawnChancesAccumulated[1] && spawnRoll < spawnChancesAccumulated[2]) {
-            //     //kmkz
-            //     this.entityFactory.createKamikaze(
-            //         posRoll.x, posRoll.y,
-            //         EnemyConfig[EnemyType.KAMIKAZE].hp,
-            //         EnemyConfig[EnemyType.KAMIKAZE].damage,
-            //         EnemyConfig[EnemyType.KAMIKAZE].attackCooldownInSeconds,
-            //         EnemyConfig[EnemyType.KAMIKAZE].attackRange,
-            //         EnemyConfig[EnemyType.KAMIKAZE].movementRadius,
-            //         EnemyConfig[EnemyType.KAMIKAZE].velocity);
-            // }
-            // if (spawnRoll > spawnChancesAccumulated[2] && spawnRoll < spawnChancesAccumulated[3]) {
-            //     //JUGG
-            //     this.entityFactory.createJuggernaut(
-            //         posRoll.x, posRoll.y,
-            //         EnemyConfig[EnemyType.JUGG].hp,
-            //         EnemyConfig[EnemyType.JUGG].damage,
-            //         EnemyConfig[EnemyType.JUGG].attackCooldownInSeconds,
-            //         EnemyConfig[EnemyType.JUGG].attackRange,
-            //         EnemyConfig[EnemyType.JUGG].movementRadius,
-            //         EnemyConfig[EnemyType.JUGG].velocity);
-            // }
-            // if (spawnRoll > spawnChancesAccumulated[3] && spawnRoll < spawnChancesAccumulated[4]) {
-            //     this.entityFactory.createBomber(
-            //         posRoll.x, posRoll.y,
-            //         EnemyConfig[EnemyType.BOMBER].hp,
-            //         EnemyConfig[EnemyType.BOMBER].damage,
-            //         EnemyConfig[EnemyType.BOMBER].attackCooldownInSeconds,
-            //         EnemyConfig[EnemyType.BOMBER].attackRange,
-            //         EnemyConfig[EnemyType.BOMBER].movementRadius,
-            //         EnemyConfig[EnemyType.BOMBER].velocity);
-            // }
+        const posRoll = this.trySpawn();
+        if (spawnRoll <= spawnChancesAccumulated[0]) {
+            this.entityFactory.createSoldier(
+                posRoll.x, posRoll.y,
+                EnemyConfig[EnemyType.SOLDIER].hp,
+                EnemyConfig[EnemyType.SOLDIER].damage,
+                EnemyConfig[EnemyType.SOLDIER].attackCooldownInSeconds,
+                EnemyConfig[EnemyType.SOLDIER].attackRange,
+                EnemyConfig[EnemyType.SOLDIER].movementRadius,
+                EnemyConfig[EnemyType.SOLDIER].velocity);
+        }
+        if (spawnRoll > spawnChancesAccumulated[0] && spawnRoll < spawnChancesAccumulated[1]) {
+            this.entityFactory.createSniper(
+                posRoll.x, posRoll.y,
+                EnemyConfig[EnemyType.SNIPER].hp,
+                EnemyConfig[EnemyType.SNIPER].damage,
+                EnemyConfig[EnemyType.SNIPER].attackCooldownInSeconds,
+                EnemyConfig[EnemyType.SNIPER].attackRange,
+                EnemyConfig[EnemyType.SNIPER].movementRadius,
+                EnemyConfig[EnemyType.SNIPER].velocity);
+        }
+        if (spawnRoll > spawnChancesAccumulated[1] && spawnRoll < spawnChancesAccumulated[2]) {
+            //kmkz
+            this.entityFactory.createKamikaze(
+                posRoll.x, posRoll.y,
+                EnemyConfig[EnemyType.KAMIKAZE].hp,
+                EnemyConfig[EnemyType.KAMIKAZE].damage,
+                EnemyConfig[EnemyType.KAMIKAZE].attackCooldownInSeconds,
+                EnemyConfig[EnemyType.KAMIKAZE].attackRange,
+                EnemyConfig[EnemyType.KAMIKAZE].movementRadius,
+                EnemyConfig[EnemyType.KAMIKAZE].velocity);
+        }
+        if (spawnRoll > spawnChancesAccumulated[2] && spawnRoll < spawnChancesAccumulated[3]) {
+            //JUGG
+            this.entityFactory.createJuggernaut(
+                posRoll.x, posRoll.y,
+                EnemyConfig[EnemyType.JUGG].hp,
+                EnemyConfig[EnemyType.JUGG].damage,
+                EnemyConfig[EnemyType.JUGG].attackCooldownInSeconds,
+                EnemyConfig[EnemyType.JUGG].attackRange,
+                EnemyConfig[EnemyType.JUGG].movementRadius,
+                EnemyConfig[EnemyType.JUGG].velocity);
+        }
+        if (spawnRoll > spawnChancesAccumulated[3] && spawnRoll < spawnChancesAccumulated[4]) {
+            this.entityFactory.createBomber(
+                posRoll.x, posRoll.y,
+                EnemyConfig[EnemyType.BOMBER].hp,
+                EnemyConfig[EnemyType.BOMBER].damage,
+                EnemyConfig[EnemyType.BOMBER].attackCooldownInSeconds,
+                EnemyConfig[EnemyType.BOMBER].attackRange,
+                EnemyConfig[EnemyType.BOMBER].movementRadius,
+                EnemyConfig[EnemyType.BOMBER].velocity);
+        }
+    }
+
+    public initialEnemiesSpawn(spawnList: { name: EnemyType, quantity: number }[]) {
+
+        const enemyTypes: EnemyType[] = Object.keys(EnemyType).map((k) => (EnemyType as any)[k]) as EnemyType[];
+        
+        for (const spawn of spawnList) {
+            for (let i = 0; i < spawn.quantity; i++) {
+                if (spawn.name == EnemyType.SOLDIER) {
+                    const posRoll = this.trySpawn();
+                    this.entityFactory.createSoldier(
+                        posRoll.x, posRoll.y,
+                        EnemyConfig[EnemyType.SOLDIER].hp,
+                        EnemyConfig[EnemyType.SOLDIER].damage,
+                        EnemyConfig[EnemyType.SOLDIER].attackCooldownInSeconds,
+                        EnemyConfig[EnemyType.SOLDIER].attackRange,
+                        EnemyConfig[EnemyType.SOLDIER].movementRadius,
+                        EnemyConfig[EnemyType.SOLDIER].velocity);
+                }
+                if (spawn.name == EnemyType.SNIPER) {
+                    const posRoll = this.trySpawn();
+                    this.entityFactory.createSniper(
+                        posRoll.x, posRoll.y,
+                        EnemyConfig[EnemyType.SNIPER].hp,
+                        EnemyConfig[EnemyType.SNIPER].damage,
+                        EnemyConfig[EnemyType.SNIPER].attackCooldownInSeconds,
+                        EnemyConfig[EnemyType.SNIPER].attackRange,
+                        EnemyConfig[EnemyType.SNIPER].movementRadius,
+                        EnemyConfig[EnemyType.SNIPER].velocity);
+                }
+                if (spawn.name == EnemyType.JUGG) {
+                    const posRoll = this.trySpawn();
+                    this.entityFactory.createJuggernaut(
+                        posRoll.x, posRoll.y,
+                        EnemyConfig[EnemyType.JUGG].hp,
+                        EnemyConfig[EnemyType.JUGG].damage,
+                        EnemyConfig[EnemyType.JUGG].attackCooldownInSeconds,
+                        EnemyConfig[EnemyType.JUGG].attackRange,
+                        EnemyConfig[EnemyType.JUGG].movementRadius,
+                        EnemyConfig[EnemyType.JUGG].velocity);
+                }
+                if (spawn.name == EnemyType.KAMIKAZE) {
+                    const posRoll = this.trySpawn();
+                    this.entityFactory.createKamikaze(
+                        posRoll.x, posRoll.y,
+                        EnemyConfig[EnemyType.KAMIKAZE].hp,
+                        EnemyConfig[EnemyType.KAMIKAZE].damage,
+                        EnemyConfig[EnemyType.KAMIKAZE].attackCooldownInSeconds,
+                        EnemyConfig[EnemyType.KAMIKAZE].attackRange,
+                        EnemyConfig[EnemyType.KAMIKAZE].movementRadius,
+                        EnemyConfig[EnemyType.KAMIKAZE].velocity);
+                }
+                if (spawn.name == EnemyType.BOMBER) {
+                    const posRoll = this.trySpawn();
+                    this.entityFactory.createBomber(
+                        posRoll.x, posRoll.y,
+                        EnemyConfig[EnemyType.BOMBER].hp,
+                        EnemyConfig[EnemyType.BOMBER].damage,
+                        EnemyConfig[EnemyType.BOMBER].attackCooldownInSeconds,
+                        EnemyConfig[EnemyType.BOMBER].attackRange,
+                        EnemyConfig[EnemyType.BOMBER].movementRadius,
+                        EnemyConfig[EnemyType.BOMBER].velocity);
+                }
+            }
         }
     }
 
@@ -121,7 +192,7 @@ export class EnemySpawnSystem implements ISystem {
         }
     }
 
-    trySpawn(spawnRoll: number): { x: number, y: number } {
+    trySpawn(): { x: number, y: number } {
         const enemyEntities = this.enemyComponentStore.getAllEntities();
         const deadEnemiesEntities = this.enemyDeadComponentStore.getAllEntities();
         const spriteProperties = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.ENEMY);
@@ -205,11 +276,11 @@ export class EnemySpawnSystem implements ISystem {
             }
 
         } while ((checkWallLogic === false || checkPlayerEnemyLogic === false) && tries < maxTries);
-        console.log("Check final:", { checkWallLogic, checkPlayerEnemyLogic, foundValidPosition, tries });
+        //console.log("Check final:", { checkWallLogic, checkPlayerEnemyLogic, foundValidPosition, tries });
 
         if (!foundValidPosition) {
             console.warn("Nenhuma posição válida encontrada para o spawn.");
-            return {x: 640, y: 640};
+            return { x: 640, y: 640 };
         }
 
         return {

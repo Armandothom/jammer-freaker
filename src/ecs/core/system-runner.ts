@@ -107,7 +107,6 @@ export class SystemRunner {
     private levelManager: LevelManager,
   ) {
     this.cameraManager = new CameraManager(this.worldTilemapManager, this.spriteManager);
-    this.levelManager = new LevelManager();
     this.playerProperties = new PlayerProperties();
     this.entityFactory = new EntityFactory(entityManager, this.playerComponentStore, this.enemyComponentStore, this.positionComponentStore, this.spriteComponentStore, this.projectileComponentStore, this.shooterComponentStore, this.velocityComponentStore, this.movementIntentComponentStore, this.soldierComponentStore, this.animationComponentStore, this.directionAnimComponentStore, this.collisionComponentStore, this.aiComponentStore, this.healthComponentStore, this.shotOriginComponentStore, this.damageComponentStore, this.shootingCooldownComponentStore, this.aiAttackRangeComponentStore, this.aiMovementRadiusComponentStore, this.enemyDeadComponentStore, this.aimShootingComponent);
     this.renderSystem = new RenderSystem(this.positionComponentStore, this.spriteComponentStore, this.cameraManager, this.worldTilemapManager, this.rendererEngine, this.spriteManager, this.directionAnimComponentStore);
@@ -122,8 +121,10 @@ export class SystemRunner {
     this.animationSpriteSystem = new AnimationSpriteSystem(this.animationComponentStore, this.spriteComponentStore);
     this.aiMovementBehaviorSystem = new AiMovementBehaviorSystem(this.positionComponentStore, this.velocityComponentStore, this.movimentIntentComponentStore, this.aiComponentStore, this.aiMovementOrderComponentStore, this.playerComponentStore, this.pathFindingManager);
     this.aiAttackBehaviorSystem = new AiAttackBehaviorSystem(this.positionComponentStore, this.intentShotComponentStore, this.aiComponentStore, this.aiAttackOrderComponentStore, this.playerComponentStore);
+    this.enemySpawnSystem = new EnemySpawnSystem(this.positionComponentStore, this.playerComponentStore, this.enemyComponentStore, this.enemyDeadComponentStore, this.entityFactory, this.worldTilemapManager, this.spriteManager, this.levelManager);
+    this.levelManager = new LevelManager(this.enemySpawnSystem, this.entityFactory, this.soundManager, this.enemyComponentStore);
     this.levelProgressionSystem = new LevelProgressionSystem(this.enemiesKilledComponentStore, this.levelManager);
-    this.enemySpawnSystem = new EnemySpawnSystem(this.positionComponentStore, this.playerComponentStore, this.enemyComponentStore, this.enemyDeadComponentStore, this.entityFactory, this.worldTilemapManager, this.spriteManager);
+
   }
 
   update() {
@@ -145,5 +146,6 @@ export class SystemRunner {
 
   initialize() {
     this.entityFactory.createPlayer(30, 30, this.playerProperties.hp, this.playerProperties.damage, this.playerProperties.velocity);
+    this.levelManager.update()
   }
 }

@@ -6,8 +6,8 @@ import { TilemapTile } from './types/tilemap-tile.js';
 import { SpriteManager } from '../asset-manager/sprite-manager.js';
 
 export class WorldTilemapManager {
-  public _maxNumberTilesX = 8;
-  public _maxNumberTilesY = 8;
+  public _maxNumberTilesX = 20;
+  public _maxNumberTilesY = 20;
   public _generatedWalls: { x: number, y: number }[] = []
   private readonly noiseValueTreshhold = 0.88;
   private readonly _tilemapSpritesheetName = SpriteSheetName.TERRAIN;

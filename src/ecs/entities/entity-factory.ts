@@ -25,6 +25,7 @@ import { AiMovementRadiusComponent } from "../components/ai-movement-radius.comp
 import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
 import { EnemyDead } from "../components/enemy-dead.component.js";
 import { AimShootingComponent } from "../components/aim-shooting.component.js";
+import { VelocityMagnitude } from "../components/velocity-magnitude.component.js";
 
 export class EntityFactory {
   constructor(

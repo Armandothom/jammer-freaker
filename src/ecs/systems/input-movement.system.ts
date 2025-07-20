@@ -29,7 +29,6 @@ export class InputMovementSystem implements ISystem {
 }
 
 function getInputForEntity(entityId: number): { dx: number, dy: number } | null {
-
     let dx = 0, dy = 0;
     const speed = 1;
     if (keys["arrowup"] || keys["w"]) dy -= speed;
@@ -37,11 +36,15 @@ function getInputForEntity(entityId: number): { dx: number, dy: number } | null 
     if (keys["arrowleft"] || keys["a"]) dx -= speed;
     if (keys["arrowright"] || keys["d"]) dx += speed;
 
-    if (dx !== 0 || dy !== 0) {
-        return { dx, dy };
-    }
+    if (dx === 0 && dy === 0) return null;
 
-    return null;
+    const vectorLength = Math.hypot(dx, dy);
+    if (vectorLength > 0) {
+        dx = (dx / vectorLength);
+        dy = (dy / vectorLength);
+    }
+    return {dx, dy};
+
 }
 
 window.addEventListener("keydown", (e) => {

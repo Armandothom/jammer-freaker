@@ -32,7 +32,7 @@ export class AiMovementBehaviorSystem implements ISystem {
         for (const aiEntityId of aiEntities) {
             const aiHasMovementOrder = this.aiMovementOrderComponentStore.has(aiEntityId);
             if (!aiHasMovementOrder) {
-                
+
                 this.setNewMovement(aiEntityId, playerEntityId)
                 continue;
             }
@@ -49,7 +49,7 @@ export class AiMovementBehaviorSystem implements ISystem {
                     this.saveMoveIntent(aiMovementOrder, aiEntityId);
                     break;
                 case AiMovementOrder.STAND_STILL:
-                    if(aiMovementOrder.endMovementSeconds < CoreManager.timeGlobalSinceStart) {
+                    if (aiMovementOrder.endMovementSeconds < CoreManager.timeGlobalSinceStart) {
                         this.aiMovementOrderComponentStore.remove(aiEntityId);
                     }
                 default:
@@ -70,11 +70,11 @@ export class AiMovementBehaviorSystem implements ISystem {
 
         if (randomNumber <= 4) {
             const isTooClose = detectByRadius({
-                x : playerPosition.x,
-                y : playerPosition.y
+                x: playerPosition.x,
+                y: playerPosition.y
             }, {
-                x : aiPosition.x,
-                y : aiPosition.y
+                x: aiPosition.x,
+                y: aiPosition.y
             }, 120)
             this.setMoveRelatedToPlayer(aiEntityId, playerPosition, aiPosition, isTooClose ? false : true);
         } else if (randomNumber > 4 && randomNumber <= 8) {
@@ -108,6 +108,8 @@ export class AiMovementBehaviorSystem implements ISystem {
     private saveMoveIntent(aiMovementOrder: AIMovementOrderComponent, aiEntityId: number) {
         const aiPosition = this.positionComponentStore.get(aiEntityId);
         const aiVelocity = this.velocityComponentStore.get(aiEntityId);
+        const velocityLength = 1;
+
         //console.log(aiMovementOrder.pathList[0].x, aiPosition.x, aiMovementOrder.pathList[0].y, aiPosition.y);
         if (aiMovementOrder.pathList[0].x == aiPosition.x && aiMovementOrder.pathList[0].y == aiPosition.y) {
             aiMovementOrder.pathList.shift();
@@ -117,7 +119,20 @@ export class AiMovementBehaviorSystem implements ISystem {
             //Math.sign to get the sign if we should increment or subtract axis
             const offsetX = Math.sign(aiMovementOrder.pathList[0].x - aiPosition.x);
             const offsetY = Math.sign(aiMovementOrder.pathList[0].y - aiPosition.y);
-            this.movementIntentComponentStore.add(aiEntityId, new MovementIntentComponent(aiPosition.x + (aiVelocity.velX * offsetX), aiPosition.y + (aiVelocity.velY * offsetY)))
+
+            const magnitude = Math.hypot(offsetX, offsetY);
+            if (magnitude === 0) {
+                aiMovementOrder.pathList.shift();
+            } else {
+                let dirX = offsetX / magnitude;
+                let dirY = offsetY / magnitude;
+
+                this.movementIntentComponentStore.add(aiEntityId, new MovementIntentComponent(
+                    Math.floor(aiPosition.x + dirX * velocityLength), 
+                    Math.floor(aiPosition.y + dirY * velocityLength),
+                ))
+
+            }
         }
     }
 

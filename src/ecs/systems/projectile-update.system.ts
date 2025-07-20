@@ -25,14 +25,24 @@ export class ProjectileUpdateSystem implements ISystem {
         for (const entity of projectileEntities) {
             const position = this.positionComponentStore.get(entity);
             const velocity = this.velocityComponentStore.get(entity);
-            const intent = {
-                x: position.x + velocity.velX * deltaTime,
-                y: position.y + velocity.velY * deltaTime
+            let dirX = velocity.velX;
+            let dirY = velocity.velY;
+            const magnitude = Math.sqrt(dirX * dirX + dirY * dirY);
+
+            if (magnitude > 0) {
+                dirX = dirX / magnitude;
+                dirY = dirY / magnitude;
             }
-            this.movementIntentComponentStore.add(entity,intent);
-            if (intent.x > this.canvas.width || intent.y > this.canvas.height || intent.x < 0 || intent.y < 0){
-                this.projectileComponentStore.remove(entity);   
-          
+
+            const intent = {
+                x: position.x + dirX * 100 * deltaTime,
+                y: position.y + dirY * 100 * deltaTime
+            };
+
+            this.movementIntentComponentStore.add(entity, intent);
+            if (intent.x > this.canvas.width || intent.y > this.canvas.height || intent.x < 0 || intent.y < 0) {
+                this.projectileComponentStore.remove(entity);
+
             }
             this.positionComponentStore.add(entity, intent); // atualiza posição
         }
