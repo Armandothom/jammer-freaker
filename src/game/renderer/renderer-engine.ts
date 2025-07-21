@@ -111,9 +111,6 @@ export class RendererEngine {
           { x: width, y: 0 },         // top-right
           { x: 0, y: height }         // bottom-left
         ];
-        if(offsetRotation) {
-          console.log(offsetRotation)
-        }
         const pivot = { x: 0, y: isMirrored ? height - offsetRotation : offsetRotation };
         for (const point of localQuad) {
           const dx = point.x - pivot.x;

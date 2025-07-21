@@ -9,15 +9,17 @@ import { DirectionAnimComponent } from "../components/direction-anim.component.j
 import { PositionComponent } from "../components/position.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { AnimDirection } from "../components/types/anim-direction.js";
+import { ZLayerComponent } from "../components/z-layer.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityManager } from "../core/entity-manager.js";
 import { ISystem } from "./system.interface.js";
 
 export class RenderSystem implements ISystem {
-  private readonly layerMultiplicator = {
+  private readonly layerMultiplicator : Record<string, number> = {
     "1": 1,
     "2": 2,
-    "3": 3
+    "3": 3,
+    "4": 4
   };
   constructor(
     private positionComponentStore: ComponentStore<PositionComponent>,
@@ -27,7 +29,8 @@ export class RenderSystem implements ISystem {
     private rendererEngine: RendererEngine,
     private spriteManager: SpriteManager,
     private directionAnimComponentStore : ComponentStore<DirectionAnimComponent>,
-    private aimShootingComponentStore : ComponentStore<AimShootingComponent>,) {
+    private aimShootingComponentStore : ComponentStore<AimShootingComponent>,
+    private zLayerComponentStore : ComponentStore<ZLayerComponent>) {
 
   }
 
@@ -76,6 +79,7 @@ export class RenderSystem implements ISystem {
       const mirrorSpriteX = this.directionAnimComponentStore.getOrNull(entity)?.xDirection == AnimDirection.LEFT ? true : false;
       const mirrorSpriteY = this.directionAnimComponentStore.getOrNull(entity)?.yDirection == AnimDirection.BOTTOM ? true : false;
       const spriteProperties = this.spriteManager.getSpriteProperties(sprite.spriteName, sprite.spriteSheetName);
+      const layerComponent = this.zLayerComponentStore.get(entity);
       renderObject.push({
         xWorldPosition: position.x,
         yWorldPosition: position.y,
@@ -85,7 +89,7 @@ export class RenderSystem implements ISystem {
         width: sprite.width,
         angleRotation: aimComponent?.aimAngle || null,
         offsetRotation : aimComponent?.offsetAimAngle || 0,
-        zLevel : (position.y * 0.1) * this.layerMultiplicator["2"]
+        zLevel : (position.y * 0.1) * this.layerMultiplicator[layerComponent.layer]
       })
     }
     return renderObject;

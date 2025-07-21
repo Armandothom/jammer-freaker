@@ -27,6 +27,7 @@ import { EnemyDead } from "../components/enemy-dead.component.js";
 import { AimShootingComponent } from "../components/aim-shooting.component.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
 import { SPRITESHEET_MAPPED_VALUES } from "../../game/asset-manager/consts/sprite-mapped-values.js";
+import { ZLayerComponent } from "../components/z-layer.component.js";
 
 export class EntityFactory {
   constructor(
@@ -53,6 +54,7 @@ export class EntityFactory {
     private enemyDeadComponentStore: ComponentStore<EnemyDead>,
     private aimShootingComponentStore: ComponentStore<AimShootingComponent>,
     private weaponSpriteAttachmentComponentStore: ComponentStore<WeaponSpriteAttachmentComponent>,
+    private zLayerComponentStore : ComponentStore<ZLayerComponent>
   ) {
 
   }
@@ -71,6 +73,7 @@ export class EntityFactory {
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.damageComponentStore.add(entityId, new DamageComponent(damage));
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
     this.createSmg(entityId);
     return entityId;
   }
@@ -83,6 +86,7 @@ export class EntityFactory {
     this.velocityComponentStore.add(entityId, new VelocityComponent(velX, velY));
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.shotOriginComponentStore.add(entityId, new ShotOriginComponent(entityShooterId))
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
     return entityId;
   }
 
@@ -104,6 +108,7 @@ export class EntityFactory {
     this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
     return entityId;
   }
 
@@ -125,6 +130,7 @@ export class EntityFactory {
     this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
     return entityId;
   }
 
@@ -146,6 +152,7 @@ export class EntityFactory {
     this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
     return entityId;
   }
 
@@ -167,6 +174,7 @@ export class EntityFactory {
     this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
     return entityId;
   }
 
@@ -188,6 +196,7 @@ export class EntityFactory {
     this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
     return entityId;
   }
 
@@ -215,9 +224,10 @@ export class EntityFactory {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(0, 0));
     this.aimShootingComponentStore.add(entityId, new AimShootingComponent(0, 5));
-    this.weaponSpriteAttachmentComponentStore.add(entityId, new WeaponSpriteAttachmentComponent(parentEntityId, 12, 20, 18, 18));
+    this.weaponSpriteAttachmentComponentStore.add(entityId, new WeaponSpriteAttachmentComponent(parentEntityId, 8, 20, 18, 18));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.WEAPON_SMG));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.SMG, SpriteSheetName.WEAPON, 36, 20));
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
   }
 
 }
