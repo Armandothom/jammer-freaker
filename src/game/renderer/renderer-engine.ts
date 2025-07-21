@@ -2,7 +2,7 @@ import { RenderObject } from "./types/render-objects.js";
 
 export class RendererEngine {
   private _isLoaded: boolean = false;
-  private _debugMode: boolean = true;
+  private _debugMode: boolean = false;
   private _program: WebGLProgram | undefined;
   private _canvas: HTMLCanvasElement;
   private _gl: WebGL2RenderingContext;
@@ -111,6 +111,9 @@ export class RendererEngine {
           { x: width, y: 0 },         // top-right
           { x: 0, y: height }         // bottom-left
         ];
+        if(offsetRotation) {
+          console.log(offsetRotation)
+        }
         const pivot = { x: 0, y: isMirrored ? height - offsetRotation : offsetRotation };
         for (const point of localQuad) {
           const dx = point.x - pivot.x;
