@@ -1,8 +1,10 @@
 import { AnimDirection } from "./types/anim-direction.js";
 
 export class DirectionAnimComponent {
-  public direction : AnimDirection
-  constructor(direction : AnimDirection) {
-    this.direction = direction;
+  public xDirection : AnimDirection
+  public yDirection : AnimDirection
+  constructor(xDirection : AnimDirection, yDirection = AnimDirection.TOP) {
+    this.xDirection = xDirection;
+    this.yDirection = yDirection;
   }
 }

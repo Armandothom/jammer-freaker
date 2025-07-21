@@ -39,7 +39,7 @@ export class SpriteManager {
    * It is assumed that the spriteSheet image is flipped (since WebGL renders from bottom-left https://stackoverflow.com/a/74483656)
    * @param spriteName the name of the sprite for this BaseSprite.
    */
-  public getUvCoordinates(spriteName: SpriteName, spriteSheetName: SpriteSheetName, mirrored = false) {
+  public getUvCoordinates(spriteName: SpriteName, spriteSheetName: SpriteSheetName, mirroredX = false, mirroredY = false) {
   const spriteProperties = this.getSpriteProperties(spriteName, spriteSheetName);
   const spriteCellOffset = spriteProperties.sprite.spriteCellOffset;
   const spriteSheetWidth = spriteProperties.spriteSheet.width;
@@ -65,7 +65,7 @@ export class SpriteManager {
   const yTopNormalized = 1 - (yTop / spriteSheetHeight);
   const yBottomNormalized = 1 - (yBottom / spriteSheetHeight);
   
-  const normalUv = [
+  const mappedUv = [
     xLeftNormalized, yTopNormalized,       //topleft
     xLeftNormalized, yBottomNormalized,    //bottomleft
     xRightNormalized, yTopNormalized,      //rightleft
@@ -74,17 +74,23 @@ export class SpriteManager {
     xRightNormalized, yTopNormalized,      //topright
     xLeftNormalized, yBottomNormalized     //bottomleft
   ];
-  const mirroredUv = [
-    xRightNormalized, yTopNormalized,      //topright
-    xRightNormalized, yBottomNormalized,   //bottomright
-    xLeftNormalized, yTopNormalized,       //topleft
-
-    xLeftNormalized, yBottomNormalized,    //bottoleft
-    xLeftNormalized, yTopNormalized,       //topleft
-    xRightNormalized, yBottomNormalized    //bottomright
-
-  ]
-  return mirrored ? mirroredUv : normalUv;
+  if(mirroredX) {
+    mappedUv[0] = xRightNormalized;
+    mappedUv[2] = xRightNormalized;
+    mappedUv[4] = xLeftNormalized;
+    mappedUv[6] = xLeftNormalized;
+    mappedUv[8] = xLeftNormalized;
+    mappedUv[10] = xRightNormalized;
+  }
+  if(mirroredY) {
+    mappedUv[1] = yBottomNormalized;
+    mappedUv[3] = yTopNormalized;
+    mappedUv[5] = yBottomNormalized;
+    mappedUv[7] = yTopNormalized;
+    mappedUv[9] = yBottomNormalized;
+    mappedUv[11] = yTopNormalized;
+  }
+  return mappedUv;
 }
 
   public getSpriteProperties(spriteName: SpriteName, spriteSheetName: SpriteSheetName) {

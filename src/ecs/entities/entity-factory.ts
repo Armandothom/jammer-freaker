@@ -215,7 +215,7 @@ export class EntityFactory {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(0, 0));
     this.aimShootingComponentStore.add(entityId, new AimShootingComponent(0));
-    this.weaponSpriteAttachmentComponentStore.add(entityId, new WeaponSpriteAttachmentComponent(parentEntityId, 20, 20, 16, 16));
+    this.weaponSpriteAttachmentComponentStore.add(entityId, new WeaponSpriteAttachmentComponent(parentEntityId, 12, 20, 16, 16));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.WEAPON_SMG));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.SMG, SpriteSheetName.WEAPON, 36, 20));
   }

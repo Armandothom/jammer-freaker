@@ -57,8 +57,10 @@ export class AnimationSetterSystem implements ISystem {
             if(isAttachedWeapon) {
                 const attachedWeapon = this.weaponSpriteAttachmentComponent.get(entityWithAnim);
                 const aimShootingComponent = this.aimShootingComponent.get(entityWithAnim);
-                const directionAnim = Math.cos(aimShootingComponent.aimAngle) > 0 ? AnimDirection.RIGHT : AnimDirection.LEFT;
-                this.directionAnimComponentStore.add(attachedWeapon.parentEntityId, new DirectionAnimComponent(directionAnim));
+                const directionAnimActor = Math.cos(aimShootingComponent.aimAngle) > 0 ? AnimDirection.RIGHT : AnimDirection.LEFT;
+                const directionAnimWeapon = Math.cos(aimShootingComponent.aimAngle) > 0 ? AnimDirection.TOP : AnimDirection.BOTTOM;
+                this.directionAnimComponentStore.add(attachedWeapon.parentEntityId, new DirectionAnimComponent(directionAnimActor));
+                this.directionAnimComponentStore.add(entityWithAnim, new DirectionAnimComponent(AnimDirection.RIGHT, directionAnimWeapon));
             }
 
             if(isNpc) {

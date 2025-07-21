@@ -97,7 +97,10 @@ export class RendererEngine {
 
       for (const obj of renderObjects) {
         const { xWorldPosition, yWorldPosition, zLevel, width, height, uvCoordinates, offsetRotation } = obj;
-        const angle = obj.angleRotation || 0; //
+        const angle = obj.angleRotation || 0;
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
+        const isMirrored = cos < 0 ? true : false;
 
 
         const localQuad = [
@@ -108,10 +111,8 @@ export class RendererEngine {
           { x: width, y: 0 },         // top-right
           { x: 0, y: height }         // bottom-left
         ];
-        const pivot = { x: 0, y: offsetRotation };
+        const pivot = { x: 0, y: isMirrored ? height - offsetRotation : offsetRotation };
         for (const point of localQuad) {
-          const cos = Math.cos(angle);
-          const sin = Math.sin(angle);
           const dx = point.x - pivot.x;
           const dy = point.y - pivot.y;
           const rotatedX = dx * cos - dy * sin;
