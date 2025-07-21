@@ -64,7 +64,7 @@ export class ShootingSystem implements ISystem {
         const mousePosY = e.clientY - rect.top;
         const dx = mousePosX - weaponPosition.x;
         const dy = mousePosY - weaponPosition.y;
-        const angle = Math.atan2(dy, dx);
+        const angle = Math.atan2(dy,dx);
         this.aimShootingComponentStore.add(weaponAttachment[0], new AimShootingComponent(angle, weaponAttachment[1].barrelOffset));
         this.currentMousePos = {
             x: mousePosX,

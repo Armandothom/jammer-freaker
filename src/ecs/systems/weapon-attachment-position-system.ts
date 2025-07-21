@@ -10,7 +10,7 @@ export class WeaponSpriteAttachmenPositiontSystem implements ISystem {
     constructor(
         private positionComponentStore: ComponentStore<PositionComponent>,
         private weaponSpriteAttachmentComponentStore: ComponentStore<WeaponSpriteAttachmentComponent>,
-        private zLayerComponentStore : ComponentStore<ZLayerComponent>,
+        private zLayerComponentStore: ComponentStore<ZLayerComponent>,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
         private aimShootingComponentStore: ComponentStore<AimShootingComponent>,
     ) { }
@@ -25,13 +25,14 @@ export class WeaponSpriteAttachmenPositiontSystem implements ISystem {
             const aimShooting = this.aimShootingComponentStore.get(attachedEntityId);
             const isAimingLeft = Math.cos(aimShooting.aimAngle) < 0 ? true : false;
             const isAimingUp = Math.sin(aimShooting.aimAngle) < -0.45 ? true : false;
-            const radiusWeapon = Math.sqrt((sprite.height * sprite.height) + (sprite.width * sprite.width)) / 2;
+            const radiusWeapon = Math.sqrt((sprite.height * sprite.height) + (sprite.width * sprite.width));
+            const spriteNaturalAngle = Math.atan(sprite.height / sprite.width);
             const offsetX = isAimingLeft ? attachedWeapon.offsetXAimLeft : attachedWeapon.offsetXAimRight;
             const offsetY = isAimingLeft ? attachedWeapon.offsetYAimLeft : attachedWeapon.offsetYAimRight;
             attachedWeaponPosition.x = parentEntityPosition.x + offsetX;
             attachedWeaponPosition.y = parentEntityPosition.y + offsetY;
-            attachedWeapon.barrelX = attachedWeaponPosition.x + (radiusWeapon * Math.cos(aimShooting.aimAngle));
-            attachedWeapon.barrelY = attachedWeaponPosition.y + (radiusWeapon * Math.sin(aimShooting.aimAngle));
+            attachedWeapon.barrelX = attachedWeaponPosition.x + sprite.width * (Math.cos(aimShooting.aimAngle));
+            attachedWeapon.barrelY = attachedWeaponPosition.y + sprite.width * (Math.sin(aimShooting.aimAngle));
             this.zLayerComponentStore.add(attachedEntityId, new ZLayerComponent(isAimingUp ? 2 : 4));
         }
     }

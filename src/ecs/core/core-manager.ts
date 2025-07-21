@@ -40,7 +40,7 @@ export class CoreManager {
         this._systemRunner = new SystemRunner(this._worldTilemapManager, this._spriteManager, this._entityManager, this._soundManager, this._rendererEngine, this._levelManager);
         this._systemRunner.initialize();        
         this._soundManager.resumeOnUserGesture();
-        this._soundManager.playSound("THEME", true, 0.1);
+        //this._soundManager.playSound("THEME", true, 0.1);
         CoreManager.timeGlobalSinceStart = 0;
         window.requestAnimationFrame(this.runLoop.bind(this));
     }
