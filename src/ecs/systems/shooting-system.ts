@@ -61,14 +61,14 @@ export class ShootingSystem implements ISystem {
         const weaponAttachments = this.weaponAttachmentComponentStore.getValuesAndEntityId();
         const weaponAttachment = weaponAttachments.find((weaponAttachmentEntry) => weaponAttachmentEntry[1].parentEntityId == playerId)!;
         const weaponPosition = this.positionComponentStore.get(weaponAttachment[0]);
-        const sprite = this.spriteComponentStore.get(weaponAttachment[0]);
+        const weaponSprite = this.spriteComponentStore.get(weaponAttachment[0]);
         const rect = this.canvas.getBoundingClientRect();
         const mousePosX = e.clientX - rect.left;
         const mousePosY = e.clientY - rect.top;
         const dx = mousePosX - weaponPosition.x;
         const dy = mousePosY - weaponPosition.y;
         const angle = Math.atan2(dy, dx);
-        this.aimShootingComponentStore.add(weaponAttachment[0], new AimShootingComponent(angle, sprite.height * 5 / 20));
+        this.aimShootingComponentStore.add(weaponAttachment[0], new AimShootingComponent(angle, weaponSprite.height * 5 / 20));
         this.currentMousePos = {
             x: mousePosX,
             y: mousePosY,
