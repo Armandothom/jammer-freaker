@@ -56,16 +56,16 @@ export class EnemySpawnSystem implements ISystem {
         if (previousTime < spawnIntervalsInSeconds && this.timeSinceLastSpawn >= spawnIntervalsInSeconds) {
             this.timeSinceLastSpawn = -120; // for debug, should be 0
             const posRoll = this.trySpawn(spawnRoll);
-            if (spawnRoll <= spawnChancesAccumulated[0]) {
-                this.entityFactory.createSoldier(
-                    posRoll.x, posRoll.y,
-                    EnemyConfig[EnemyType.SOLDIER].hp,
-                    EnemyConfig[EnemyType.SOLDIER].damage,
-                    EnemyConfig[EnemyType.SOLDIER].attackCooldownInSeconds,
-                    EnemyConfig[EnemyType.SOLDIER].attackRange,
-                    EnemyConfig[EnemyType.SOLDIER].movementRadius,
-                    EnemyConfig[EnemyType.SOLDIER].velocity);
-            }
+            // if (spawnRoll <= spawnChancesAccumulated[0]) {
+            //     this.entityFactory.createSoldier(
+            //         posRoll.x, posRoll.y,
+            //         EnemyConfig[EnemyType.SOLDIER].hp,
+            //         EnemyConfig[EnemyType.SOLDIER].damage,
+            //         EnemyConfig[EnemyType.SOLDIER].attackCooldownInSeconds,
+            //         EnemyConfig[EnemyType.SOLDIER].attackRange,
+            //         EnemyConfig[EnemyType.SOLDIER].movementRadius,
+            //         EnemyConfig[EnemyType.SOLDIER].velocity);
+            // }
             // if (spawnRoll > spawnChancesAccumulated[0] && spawnRoll < spawnChancesAccumulated[1]) {
             //     this.entityFactory.createSniper(
             //         posRoll.x, posRoll.y,
@@ -202,7 +202,6 @@ export class EnemySpawnSystem implements ISystem {
             }
 
         } while ((checkWallLogic === false || checkPlayerEnemyLogic === false) && tries < maxTries);
-        //console.log("Check final:", { checkWallLogic, checkPlayerEnemyLogic, foundValidPosition, tries });
 
         if (!foundValidPosition) {
             console.warn("Nenhuma posição válida encontrada para o spawn.");

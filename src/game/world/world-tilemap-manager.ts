@@ -6,8 +6,8 @@ import { TilemapTile } from './types/tilemap-tile.js';
 import { SpriteManager } from '../asset-manager/sprite-manager.js';
 
 export class WorldTilemapManager {
-  public _maxNumberTilesX = 200;
-  public _maxNumberTilesY = 200;
+  public _maxNumberTilesX: number;
+  public _maxNumberTilesY: number;
   public generatedWalls: { x: number, y: number }[] = []
   public tileSize: number;
   private readonly noiseValueTreshhold = 0.88;
@@ -17,9 +17,13 @@ export class WorldTilemapManager {
   constructor(
     private spriteManager: SpriteManager,
   ) {
-    this.generateTilemap();
 
     this.tileSize = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN).originalRenderSpriteHeight;
+
+    this._maxNumberTilesX = 10;
+    this._maxNumberTilesY = 10;
+
+    this.generateTilemap();
   }
 
   async generateTilemap() {
@@ -45,7 +49,7 @@ export class WorldTilemapManager {
           x: x,
           spriteName: selectedSpriteName,
         });
-        
+
       }
     }
     console.log("tileMap generated");

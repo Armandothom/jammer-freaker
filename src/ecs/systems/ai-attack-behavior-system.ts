@@ -57,7 +57,6 @@ export class AiAttackBehaviorSystem implements ISystem {
                         const dx = playerPos.x - weaponPosition.x;
                         const dy = playerPos.y - weaponPosition.y;
                         const angle = Math.atan2(dy, dx);
-                        console.log(angle);
                         //offsetShooting to return
                         this.intentShotComponent.add(aiEntityId, new IntentShotComponent(playerPos.x + playerSprite.width / 2, playerPos.y));
                         this.aimShootingComponentStore.add(weaponAttachment[0], new AimShootingComponent(angle, weaponSprite.height * 5 / 20));

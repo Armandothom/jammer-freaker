@@ -54,7 +54,7 @@ export class EntityFactory {
     private enemyDeadComponentStore: ComponentStore<EnemyDead>,
     private aimShootingComponentStore: ComponentStore<AimShootingComponent>,
     private weaponSpriteAttachmentComponentStore: ComponentStore<WeaponSpriteAttachmentComponent>,
-    private zLayerComponentStore : ComponentStore<ZLayerComponent>
+    private zLayerComponentStore: ComponentStore<ZLayerComponent>
   ) {
 
   }
@@ -210,7 +210,7 @@ export class EntityFactory {
     this.collisionComponentStore.remove(entityId);
   }
 
-  destroyEnemy(entityId: number): void {  
+  destroyEnemy(entityId: number): void {
     this.enemyDeadComponentStore.add(entityId, new EnemyDead());
     this.positionComponentStore.remove(entityId);
     this.spriteComponentStore.remove(entityId);
@@ -218,11 +218,12 @@ export class EntityFactory {
     this.shooterComponentStore.remove(entityId);
     this.velocityComponentStore.remove(entityId);
     this.aiComponentStore.remove(entityId);
+    this.destroyWeapon(entityId);
   }
 
 
   //Temporary, only to test rendering
-  createSmg(parentEntityId : number) {
+  createSmg(parentEntityId: number) {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(0, 0));
     this.aimShootingComponentStore.add(entityId, new AimShootingComponent(0, 5));
@@ -230,6 +231,18 @@ export class EntityFactory {
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.WEAPON_SMG));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.SMG, SpriteSheetName.WEAPON, 36, 20));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
+  }
+
+  destroyWeapon(parentEntityId: number) {
+    const weaponAttachments = this.weaponSpriteAttachmentComponentStore.getValuesAndEntityId();
+    const weaponAttachment = weaponAttachments.find((weaponAttachmentEntry) => weaponAttachmentEntry[1].parentEntityId == parentEntityId)!;
+    const weaponEntityId = weaponAttachment[0];
+    this.positionComponentStore.remove(weaponEntityId);
+    this.aimShootingComponentStore.remove(weaponEntityId);
+    this.weaponSpriteAttachmentComponentStore.remove(weaponEntityId);
+    this.animationComponentStore.remove(weaponEntityId);
+    this.spriteComponentStore.remove(weaponEntityId);
+    this.zLayerComponentStore.remove(weaponEntityId);
   }
 
 }

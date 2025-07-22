@@ -12,10 +12,11 @@ import { AnimDirection } from "../components/types/anim-direction.js";
 import { ZLayerComponent } from "../components/z-layer.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityManager } from "../core/entity-manager.js";
+import { LevelManager } from "../core/level-manager.js";
 import { ISystem } from "./system.interface.js";
 
 export class RenderSystem implements ISystem {
-  private readonly layerMultiplicator : Record<string, number> = {
+  private readonly layerMultiplicator: Record<string, number> = {
     "1": 1,
     "2": 2,
     "3": 3,
@@ -28,9 +29,11 @@ export class RenderSystem implements ISystem {
     private tilemapManager: WorldTilemapManager,
     private rendererEngine: RendererEngine,
     private spriteManager: SpriteManager,
-    private directionAnimComponentStore : ComponentStore<DirectionAnimComponent>,
-    private aimShootingComponentStore : ComponentStore<AimShootingComponent>,
-    private zLayerComponentStore : ComponentStore<ZLayerComponent>) {
+    private directionAnimComponentStore: ComponentStore<DirectionAnimComponent>,
+    private aimShootingComponentStore: ComponentStore<AimShootingComponent>,
+    private zLayerComponentStore: ComponentStore<ZLayerComponent>,
+    private levelManager: LevelManager,
+  ) {
 
   }
 
@@ -46,17 +49,19 @@ export class RenderSystem implements ISystem {
     const terrainRenderObjects: Array<RenderObject> = [];
     const terrainTilesInViewport = this.tilemapManager.getTilesInArea(viewport);
     const terrainSpritesheet = this.tilemapManager.appliedSpriteSheetName;
+    const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;
+
     for (const terrainTile of terrainTilesInViewport) {
       const spriteDetails = this.spriteManager.getSpriteProperties(terrainTile.spriteName, terrainSpritesheet);
       terrainRenderObjects.push({
-        xWorldPosition: terrainTile.x * spriteDetails.spriteSheet.originalRenderSpriteHeight,
-        yWorldPosition: terrainTile.y * spriteDetails.spriteSheet.originalRenderSpriteWidth,
+        xWorldPosition: terrainTile.x * spriteDetails.spriteSheet.originalRenderSpriteHeight * zoomProgressionFactor,
+        yWorldPosition: terrainTile.y * spriteDetails.spriteSheet.originalRenderSpriteWidth * zoomProgressionFactor,
         spriteSheetTexture: spriteDetails.spriteSheet.texture,
         uvCoordinates: this.spriteManager.getUvCoordinates(terrainTile.spriteName, terrainSpritesheet),
-        height: spriteDetails.spriteSheet.originalRenderSpriteHeight,
-        width: spriteDetails.spriteSheet.originalRenderSpriteWidth,
+        height: spriteDetails.spriteSheet.originalRenderSpriteHeight * zoomProgressionFactor,
+        width: spriteDetails.spriteSheet.originalRenderSpriteWidth * zoomProgressionFactor,
         angleRotation: null,
-        offsetRotation : 0,
+        offsetRotation: 0,
         zLevel: (terrainTile.y * 0.1) * this.layerMultiplicator["1"]
       })
     }
@@ -65,7 +70,7 @@ export class RenderSystem implements ISystem {
 
   private getOverTerrainRenderObjects(viewport: CameraViewport): Array<RenderObject> {
     let renderObject: Array<RenderObject> = [];
-    const entities = this.positionComponentStore.getAllEntities();    
+    const entities = this.positionComponentStore.getAllEntities();
     for (const entity of entities) {
       const sprite = this.spriteComponentStore.get(entity);
       const position = this.positionComponentStore.get(entity);
@@ -88,8 +93,8 @@ export class RenderSystem implements ISystem {
         height: sprite.height,
         width: sprite.width,
         angleRotation: aimComponent?.aimAngle || null,
-        offsetRotation : aimComponent?.offsetAimAngle || 0,
-        zLevel : (position.y * 0.1) * this.layerMultiplicator[layerComponent.layer]
+        offsetRotation: aimComponent?.offsetAimAngle || 0,
+        zLevel: (position.y * 0.1) * this.layerMultiplicator[layerComponent.layer]
       })
     }
     return renderObject;

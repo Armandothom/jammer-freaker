@@ -17,13 +17,14 @@ export class LevelProgressionSystem implements ISystem {
     update(deltaTime: number): void {
         const enemiesKilledReference = this.enemiesKilledComponentStore.getAllEntities();
         const totalEnemiesKilled = enemiesKilledReference.length;
-        const levelTimeInSeconds = 3;
+        const levelTimeInSeconds = 5;
         const enemyKillIncrease = 10;
 
         this.timeInLevel += deltaTime;
         const previousTime = this.timeInLevel - deltaTime;
 
-        if (previousTime < levelTimeInSeconds && this.timeInLevel >= levelTimeInSeconds && totalEnemiesKilled >= this.totalKillsToProgress / 2) {
+        //&& totalEnemiesKilled >= this.totalKillsToProgress / 2
+        if (previousTime < levelTimeInSeconds && this.timeInLevel >= levelTimeInSeconds) {
             this.timeInLevel = 0;
             console.log("Level update");
             this.levelManager.update();

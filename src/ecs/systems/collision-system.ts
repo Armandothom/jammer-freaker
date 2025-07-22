@@ -191,6 +191,7 @@ export class CollisionSystem implements ISystem {
         };
 
         const wallPosition = this.worldTilemapManager.generatedWalls;
+        console.log(wallPosition);
         const tilemapProperties = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN);
 
         for (const { x, y } of wallPosition) {

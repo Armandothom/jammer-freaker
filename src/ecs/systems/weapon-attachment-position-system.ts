@@ -14,32 +14,28 @@ export class WeaponSpriteAttachmenPositiontSystem implements ISystem {
         private zLayerComponentStore: ComponentStore<ZLayerComponent>,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
         private aimShootingComponentStore: ComponentStore<AimShootingComponent>,
-        private playerComponentStore: ComponentStore<PlayerComponent>,
     ) { }
 
     update(deltaTime: number): void {
         const attachedEntityIds = this.weaponSpriteAttachmentComponentStore.getAllEntities();
-        const playerEntitiesId = this.playerComponentStore.getAllEntities();
-        let playerId: number;
-        for (const playerEntityId of playerEntitiesId) {
-            playerId = this.playerComponentStore.getAllEntities()[0];
-        }
         for (const attachedEntityId of attachedEntityIds) {
-            const sprite = this.spriteComponentStore.get(attachedEntityId);
+            const weaponSprite = this.spriteComponentStore.get(attachedEntityId);
             const attachedWeapon = this.weaponSpriteAttachmentComponentStore.get(attachedEntityId);
             const attachedWeaponPosition = this.positionComponentStore.get(attachedEntityId);
             const parentEntityPosition = this.positionComponentStore.get(attachedWeapon.parentEntityId);
-            const playerPosition = this.positionComponentStore.get(playerId!);
+            const parentEntitySprite = this.spriteComponentStore.get(attachedWeapon.parentEntityId);
             const aimShooting = this.aimShootingComponentStore.get(attachedEntityId);
             const isAimingLeft = Math.cos(aimShooting.aimAngle) < 0 ? true : false;
             const isAimingUp = Math.sin(aimShooting.aimAngle) < -0.45 ? true : false;
             const offsetX = isAimingLeft ? attachedWeapon.offsetXAimLeft : attachedWeapon.offsetXAimRight;
             const offsetY = isAimingLeft ? attachedWeapon.offsetYAimLeft : attachedWeapon.offsetYAimRight;
-            attachedWeaponPosition.x = parentEntityPosition.x + offsetX;
-            attachedWeaponPosition.y = parentEntityPosition.y + offsetY;
+            console.log("offset", offsetX, offsetY);
+            console.log("parentEntityPosition", parentEntityPosition.x, parentEntityPosition.y);
+            attachedWeaponPosition.x = parentEntityPosition.x + offsetX * parentEntitySprite.width / 32;
+            attachedWeaponPosition.y = parentEntityPosition.y + offsetY * parentEntitySprite.height / 32;
 
-            attachedWeapon.barrelX = attachedWeaponPosition.x + sprite.width * (Math.cos(aimShooting.aimAngle));
-            attachedWeapon.barrelY = attachedWeaponPosition.y + sprite.width * (Math.sin(aimShooting.aimAngle));
+            attachedWeapon.barrelX = attachedWeaponPosition.x + weaponSprite.width * (Math.cos(aimShooting.aimAngle));
+            attachedWeapon.barrelY = attachedWeaponPosition.y + weaponSprite.width * (Math.sin(aimShooting.aimAngle));
             this.zLayerComponentStore.add(attachedEntityId, new ZLayerComponent(isAimingUp ? 2 : 4));
         }
     }

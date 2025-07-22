@@ -4,19 +4,26 @@ import { CameraViewport } from "./types/camera-viewport.js";
 import { WorldTilemapManager } from "./world-tilemap-manager.js";
 
 export class CameraManager {
-  private viewportXAxisTiles: number = 32;
-  private viewportYAxisTiles: number = 32;
-  private tileSize: number; 
+  public viewportXAxisTiles: number;
+  public viewportYAxisTiles: number;
+  public tileSize: number;
   coordinateX: number = 0;
   coordinateY: number = 0;
 
   constructor(private tilemapManager: WorldTilemapManager, private spriteManager: SpriteManager) {
+
     this.tilemapManager = tilemapManager;
-    this.setInitialPosition();
     this.tileSize = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN).originalRenderSpriteHeight;
+
+    this.viewportXAxisTiles = 10;
+    this.viewportYAxisTiles = 10;
+    this.setInitialPosition();
   }
 
   public getViewport(): CameraViewport {
+    //console.log("cameraManager", this.tileSize, this.viewportXAxisTiles, this.viewportYAxisTiles);
+    this.coordinateX = this.viewportXAxisTiles / 2;
+    this.coordinateY = this.viewportYAxisTiles / 2;
     return this.calcViewport(this.coordinateX, this.coordinateY);
   }
 
