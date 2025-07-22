@@ -109,6 +109,8 @@ export class EntityFactory {
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
+    this.createSmg(entityId);
+    console.log("Soldier ID", entityId);
     return entityId;
   }
 

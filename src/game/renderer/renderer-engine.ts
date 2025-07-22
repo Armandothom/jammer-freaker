@@ -115,10 +115,19 @@ export class RendererEngine {
         for (const point of localQuad) {
           const dx = point.x - pivot.x;
           const dy = point.y - pivot.y;
-          const rotatedX = dx * cos - dy * sin;
-          const rotatedY = dx * sin + dy * cos;
-          const worldX = xWorldPosition + rotatedX;
-          const worldY = yWorldPosition + rotatedY;
+          let worldX: number;
+          let worldY: number;
+
+          if (obj.angleRotation !== null) {
+            const rotatedX = dx * cos - dy * sin;
+            const rotatedY = dx * sin + dy * cos;
+            worldX = xWorldPosition + rotatedX;
+            worldY = yWorldPosition + rotatedY;
+          } else {
+            worldX = xWorldPosition + dx;
+            worldY = yWorldPosition + dy;
+          }
+
           const [clipX, clipY, clipZ] = this.toClipSpace(worldX, worldY, zLevel, this._canvas);
           vertices.push(clipX, clipY, clipZ);
         }

@@ -28,11 +28,10 @@ export class EnemySpawnSystem implements ISystem {
 
     update(deltaTime: number): void {
         this.timeSinceLastSpawn += deltaTime;
-        const spawnIntervalsInSeconds = 3;
+        let spawnIntervalsInSeconds = 2;
         const previousTime = this.timeSinceLastSpawn - deltaTime;
 
         const enemyTypes: EnemyType[] = Object.keys(EnemyType).map((k) => (EnemyType as any)[k]) as EnemyType[];
-        //const hp = EnemyConfig[EnemyType.SOLDIER].hp;
 
         const enemySpawnChances: number[] = enemyTypes.map((enemyType) => EnemyConfig[enemyType].spawnFrequency);
         let spawnChancesAccumulated: number[] = [];
@@ -45,7 +44,7 @@ export class EnemySpawnSystem implements ISystem {
             }
         }
 
-        const spawnRoll = Math.random();
+        let spawnRoll = Math.random();
         const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
 
         // xRoll and yRoll as placeholder for now, must be improved to check collision,
@@ -53,19 +52,20 @@ export class EnemySpawnSystem implements ISystem {
 
         // to be implemented: time elapsed || bypass logic for spawn logic
         // bypass being used to spawn a bunch of enemies on level start
+        spawnRoll = 0.2;
         if (previousTime < spawnIntervalsInSeconds && this.timeSinceLastSpawn >= spawnIntervalsInSeconds) {
-            this.timeSinceLastSpawn = 0;
-            // const posRoll = this.trySpawn(spawnRoll);
-            // if (spawnRoll <= spawnChancesAccumulated[0]) {
-            //     this.entityFactory.createSoldier(
-            //         posRoll.x, posRoll.y,
-            //         EnemyConfig[EnemyType.SOLDIER].hp,
-            //         EnemyConfig[EnemyType.SOLDIER].damage,
-            //         EnemyConfig[EnemyType.SOLDIER].attackCooldownInSeconds,
-            //         EnemyConfig[EnemyType.SOLDIER].attackRange,
-            //         EnemyConfig[EnemyType.SOLDIER].movementRadius,
-            //         EnemyConfig[EnemyType.SOLDIER].velocity);
-            // }
+            this.timeSinceLastSpawn = -120; // for debug, should be 0
+            const posRoll = this.trySpawn(spawnRoll);
+            if (spawnRoll <= spawnChancesAccumulated[0]) {
+                this.entityFactory.createSoldier(
+                    posRoll.x, posRoll.y,
+                    EnemyConfig[EnemyType.SOLDIER].hp,
+                    EnemyConfig[EnemyType.SOLDIER].damage,
+                    EnemyConfig[EnemyType.SOLDIER].attackCooldownInSeconds,
+                    EnemyConfig[EnemyType.SOLDIER].attackRange,
+                    EnemyConfig[EnemyType.SOLDIER].movementRadius,
+                    EnemyConfig[EnemyType.SOLDIER].velocity);
+            }
             // if (spawnRoll > spawnChancesAccumulated[0] && spawnRoll < spawnChancesAccumulated[1]) {
             //     this.entityFactory.createSniper(
             //         posRoll.x, posRoll.y,
@@ -77,7 +77,6 @@ export class EnemySpawnSystem implements ISystem {
             //         EnemyConfig[EnemyType.SNIPER].velocity);
             // }
             // if (spawnRoll > spawnChancesAccumulated[1] && spawnRoll < spawnChancesAccumulated[2]) {
-            //     //kmkz
             //     this.entityFactory.createKamikaze(
             //         posRoll.x, posRoll.y,
             //         EnemyConfig[EnemyType.KAMIKAZE].hp,
@@ -88,7 +87,6 @@ export class EnemySpawnSystem implements ISystem {
             //         EnemyConfig[EnemyType.KAMIKAZE].velocity);
             // }
             // if (spawnRoll > spawnChancesAccumulated[2] && spawnRoll < spawnChancesAccumulated[3]) {
-            //     //JUGG
             //     this.entityFactory.createJuggernaut(
             //         posRoll.x, posRoll.y,
             //         EnemyConfig[EnemyType.JUGG].hp,
@@ -204,7 +202,7 @@ export class EnemySpawnSystem implements ISystem {
             }
 
         } while ((checkWallLogic === false || checkPlayerEnemyLogic === false) && tries < maxTries);
-        console.log("Check final:", { checkWallLogic, checkPlayerEnemyLogic, foundValidPosition, tries });
+        //console.log("Check final:", { checkWallLogic, checkPlayerEnemyLogic, foundValidPosition, tries });
 
         if (!foundValidPosition) {
             console.warn("Nenhuma posição válida encontrada para o spawn.");

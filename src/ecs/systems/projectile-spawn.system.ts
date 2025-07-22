@@ -79,7 +79,7 @@ export class ProjectileSpawnSystem implements ISystem {
         const entity = this.entityFactory.createProjectile(
             attachedWeapon.barrelX,
             attachedWeapon.barrelY,
-            shooterId, // por enquanto player ID
+            shooterId,
             dir.x * 120, // cte --> pode mudar
             dir.y * 120
         );
