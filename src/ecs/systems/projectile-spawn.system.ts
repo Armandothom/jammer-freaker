@@ -39,16 +39,20 @@ export class ProjectileSpawnSystem implements ISystem {
         const shooters = this.shooterComponentStore.getAllEntities();
         const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
         const canvasWidthHeightInTiles = canvas.width / this.tileSize;
+        const attachedWeapons = this.attachedSpriteComponent.getValuesAndEntityId();
 
         for (const entity of shooters) {
             const shooterPos = this.positionComponentStore.get(entity);
-
+            const attachedWeaponEntry = attachedWeapons.find((value) => value[1].parentEntityId == entity);
+            if(!attachedWeaponEntry) {
+                throw new Error("No weapon entry found");
+            }
+            const attachedWeapon = attachedWeaponEntry[1];
             const intent = this.intentShotComponentStore.getOrNull(entity);
-
             if (!shooterPos || !intent) continue;
 
-            let shooterPosXConverted = shooterPos.x / canvas.width * canvasWidthHeightInTiles;
-            let shooterPosYConverted = shooterPos.y / canvas.height * canvasWidthHeightInTiles;
+            let shooterPosXConverted = attachedWeapon.barrelX / canvas.width * canvasWidthHeightInTiles;
+            let shooterPosYConverted = attachedWeapon.barrelY / canvas.height * canvasWidthHeightInTiles;
 
             let intentXConverted = intent.x / canvas.width * canvasWidthHeightInTiles;
             let intentYConverted = intent.y / canvas.height * canvasWidthHeightInTiles;
@@ -62,24 +66,18 @@ export class ProjectileSpawnSystem implements ISystem {
 
             const cooldown = this.shootingCooldownComponentStore.has(entity);
             if (!cooldown) {
-                this.spawnProjectile(dir, entity);
+                this.spawnProjectile(dir, attachedWeapon);
                 const cooldownAdd = this.shootingCooldownComponentStore.add(entity, new ShootingCooldownComponent(0.2));
             }
         }
     }
 
-    private spawnProjectile(dir: { x: number; y: number }, shooterId: number): void {
-        const attachedWeapons = this.attachedSpriteComponent.getValuesAndEntityId();
-        const attachedWeaponEntry = attachedWeapons.find((value) => value[1].parentEntityId == shooterId);
-        if(!attachedWeaponEntry) {
-            throw new Error("No weapon entry found");
-        }
-        const attachedWeapon = attachedWeaponEntry[1];
+    private spawnProjectile(dir: { x: number; y: number }, shootingWeapon : WeaponSpriteAttachmentComponent): void {
         this.soundManager.playSound("SMG_FIRE");
         const entity = this.entityFactory.createProjectile(
-            attachedWeapon.barrelX,
-            attachedWeapon.barrelY,
-            shooterId,
+            shootingWeapon.barrelX,
+            shootingWeapon.barrelY,
+            shootingWeapon.parentEntityId,
             dir.x * 120, // cte --> pode mudar
             dir.y * 120
         );

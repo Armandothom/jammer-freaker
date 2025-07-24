@@ -56,8 +56,6 @@ export class WorldTilemapManager {
     const rightTileNumberThreshold = (viewport.right / this.tileSize) / 2;
     const topTileNumberThreshold = viewport.top / this.tileSize;
     const bottomTileNumberThreshold = (viewport.bottom / this.tileSize) / 2;
-    //console.log("tileSize in viewport", this.tileSize);
-    console.log(leftTileNumberThreshold, rightTileNumberThreshold, topTileNumberThreshold, bottomTileNumberThreshold);
     for (let x = leftTileNumberThreshold; x < rightTileNumberThreshold; x++) {
       for (let y = topTileNumberThreshold; y < bottomTileNumberThreshold; y++) {
         const tile = this.getTile(x, y);
