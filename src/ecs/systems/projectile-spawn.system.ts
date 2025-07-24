@@ -43,6 +43,7 @@ export class ProjectileSpawnSystem implements ISystem {
 
         for (const entity of shooters) {
             const shooterPos = this.positionComponentStore.get(entity);
+            const spriteBullet = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.BULLET);
             const attachedWeaponEntry = attachedWeapons.find((value) => value[1].parentEntityId == entity);
             if(!attachedWeaponEntry) {
                 throw new Error("No weapon entry found");
@@ -54,8 +55,8 @@ export class ProjectileSpawnSystem implements ISystem {
             let shooterPosXConverted = attachedWeapon.barrelX / canvas.width * canvasWidthHeightInTiles;
             let shooterPosYConverted = attachedWeapon.barrelY / canvas.height * canvasWidthHeightInTiles;
 
-            let intentXConverted = intent.x / canvas.width * canvasWidthHeightInTiles;
-            let intentYConverted = intent.y / canvas.height * canvasWidthHeightInTiles;
+            let intentXConverted = (intent.x - (spriteBullet.width / 2)) / canvas.width * canvasWidthHeightInTiles;
+            let intentYConverted = (intent.y - (spriteBullet.width / 2)) / canvas.height * canvasWidthHeightInTiles;
 
             const dx = intentXConverted - (shooterPosXConverted);
             const dy = intentYConverted - (shooterPosYConverted);
@@ -63,7 +64,7 @@ export class ProjectileSpawnSystem implements ISystem {
             if (magnitude === 0) continue; // Podemos alterar para que não spawne projetil se ele clicar tão perto do sprite do player
 
             const dir = { x: dx / magnitude, y: dy / magnitude }; // Vetor de direção normalizado
-
+            console.log(dir.y)
             const cooldown = this.shootingCooldownComponentStore.has(entity);
             if (!cooldown) {
                 this.spawnProjectile(dir, attachedWeapon);
