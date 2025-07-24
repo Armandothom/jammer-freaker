@@ -22,18 +22,18 @@ export class LevelManager {
         this.levelNumber = newLevel;
 
         //const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!
+        this.levelNumber = 5;
 
         if (this.levelNumber >= 0 && this.levelNumber <= 8) {
-        this.cameraManager.viewportXAxisTiles += this.tileProgressionFactor;
-        this.cameraManager.viewportYAxisTiles += this.tileProgressionFactor;
-        this.tilemapManager._maxNumberTilesX += this.tileProgressionFactor;
-        this.tilemapManager._maxNumberTilesY += this.tileProgressionFactor;
+            this.cameraManager.viewportXAxisTiles = 10 + (this.tileProgressionFactor) * this.levelNumber;
+            this.cameraManager.viewportYAxisTiles = 10 + (this.tileProgressionFactor) * this.levelNumber;
+            this.tilemapManager._maxNumberTilesX = 10 + (this.tileProgressionFactor) * this.levelNumber;
+            this.tilemapManager._maxNumberTilesY = 10 + (this.tileProgressionFactor) * this.levelNumber;
 
-        this.cameraManager.getViewport();
-        this.tilemapManager.generateTilemap();
+            this.cameraManager.getViewport();
+            this.tilemapManager.generateTilemap();
 
-        
-            this.zoomProgressionFactor = this.zoomProgressionFactor * (1 - 1 / 6);
+            this.zoomProgressionFactor = 2 - (1.5 / 8) * this.levelNumber;
         }
     }
 }

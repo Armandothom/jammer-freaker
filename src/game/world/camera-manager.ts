@@ -22,7 +22,7 @@ export class CameraManager {
 
   public getViewport(): CameraViewport {
     //console.log("cameraManager", this.tileSize, this.viewportXAxisTiles, this.viewportYAxisTiles);
-    this.coordinateX = this.viewportXAxisTiles / 2;
+    this.coordinateX = this.viewportYAxisTiles / 2;
     this.coordinateY = this.viewportYAxisTiles / 2;
     return this.calcViewport(this.coordinateX, this.coordinateY);
   }
@@ -43,9 +43,9 @@ export class CameraManager {
     const halfH = this.viewportYAxisTiles / 2;
     const halfW = this.viewportXAxisTiles / 2;
     const left = (x - halfW) * this.tileSize;
-    const right = (x + halfW) * this.tileSize;
+    const right = (x + halfW) * this.tileSize * 2;
     const top = (y - halfH) * this.tileSize;
-    const bottom = (y + halfH) * this.tileSize;
+    const bottom = (y + halfH) * this.tileSize * 2;
     return {
       left,
       right,

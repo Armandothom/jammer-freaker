@@ -16,6 +16,7 @@ import { ShotOriginComponent } from "../components/shot-origin.component.js";
 import { EnemiesKilledComponent } from "../components/enemies-killed.component.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
+import { LevelManager } from "../core/level-manager.js";
 
 export class CollisionSystem implements ISystem {
     constructor(
@@ -33,6 +34,7 @@ export class CollisionSystem implements ISystem {
         private shotOriginComponentStore: ComponentStore<ShotOriginComponent>,
         private enemiesKilledComponentStore: ComponentStore<EnemiesKilledComponent>,
         private worldTilemapManager: WorldTilemapManager,
+        private levelManager: LevelManager,
     ) {
 
     }
@@ -54,7 +56,7 @@ export class CollisionSystem implements ISystem {
 
             const spriteSheetOriginProperties = this.spriteManager.getSpriteSheetProperties(spriteComponent.spriteSheetName);
             const wouldCollideCheckEntity = this.wouldCollideAABB(intent, entity, spriteSheetOriginProperties.originalRenderSpriteHeight);
-            const wallCollisionCheck = this.wallCollision(intent, entity, spriteSheetOriginProperties.originalRenderSpriteHeight);
+            //const wallCollisionCheck = this.wallCollision(intent, entity, spriteSheetOriginProperties.originalRenderSpriteHeight);
 
             if (wouldCollideCheckEntity.wouldCollide) {
                 this.movementIntentComponentStore.remove(entity); // Cancelamento do intent pra questões de movimento            
@@ -96,14 +98,18 @@ export class CollisionSystem implements ISystem {
             }
 
             const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
-            if (wallCollisionCheck) {
-                this.movementIntentComponentStore.remove(entity);
-                if (this.projectileComponentStore.has(entity)) {
-                    this.entityFactory.destroyProjectile(entity);
-                }
-            }
-
-            if (intent.x > canvas.width - spriteSheetOriginProperties.originalRenderSpriteWidth  || intent.y > canvas.height - spriteSheetOriginProperties.originalRenderSpriteHeight || intent.x < 0 || intent.y < 0) {
+            // if (wallCollisionCheck) {
+            //     this.movementIntentComponentStore.remove(entity);
+            //     if (this.projectileComponentStore.has(entity)) {
+            //         this.entityFactory.destroyProjectile(entity);
+            //     }
+            // }
+            const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;
+            if (
+                intent.x > canvas.width - spriteSheetOriginProperties.originalRenderSpriteWidth * zoomProgressionFactor || 
+                intent.y > canvas.height - spriteSheetOriginProperties.originalRenderSpriteHeight * zoomProgressionFactor || 
+                intent.x < 0 || intent.y < 0
+            ) {
                 this.movementIntentComponentStore.remove(entity);
             }
 

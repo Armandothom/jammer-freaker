@@ -8,9 +8,9 @@ import { ISystem } from "./system.interface.js";
 export class SpriteLevelScalerSystem implements ISystem {
     constructor(
         private spriteComponentStore: ComponentStore<SpriteComponent>,
-        private spriteManager : SpriteManager,
-        private levelManager : LevelManager,
-        private tilemapManager : WorldTilemapManager
+        private spriteManager: SpriteManager,
+        private levelManager: LevelManager,
+        private tilemapManager: WorldTilemapManager
     ) { }
 
     update(deltaTime: number): void {
