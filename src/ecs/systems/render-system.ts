@@ -49,7 +49,7 @@ export class RenderSystem implements ISystem {
     const terrainRenderObjects: Array<RenderObject> = [];
     const terrainTilesInViewport = this.tilemapManager.getTilesInArea(viewport);
     const terrainSpritesheet = this.tilemapManager.appliedSpriteSheetName;
-    const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;
+    const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;    
 
     for (const terrainTile of terrainTilesInViewport) {
       const spriteDetails = this.spriteManager.getSpriteProperties(terrainTile.spriteName, terrainSpritesheet);

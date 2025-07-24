@@ -56,7 +56,7 @@ export class CollisionSystem implements ISystem {
 
             const spriteSheetOriginProperties = this.spriteManager.getSpriteSheetProperties(spriteComponent.spriteSheetName);
             const wouldCollideCheckEntity = this.wouldCollideAABB(intent, entity, spriteSheetOriginProperties.originalRenderSpriteHeight);
-            //const wallCollisionCheck = this.wallCollision(intent, entity, spriteSheetOriginProperties.originalRenderSpriteHeight);
+            const wallCollisionCheck = this.wallCollision(intent, entity, spriteSheetOriginProperties.originalRenderSpriteHeight);
 
             if (wouldCollideCheckEntity.wouldCollide) {
                 this.movementIntentComponentStore.remove(entity); // Cancelamento do intent pra questões de movimento            
@@ -98,17 +98,18 @@ export class CollisionSystem implements ISystem {
             }
 
             const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
-            // if (wallCollisionCheck) {
-            //     this.movementIntentComponentStore.remove(entity);
-            //     if (this.projectileComponentStore.has(entity)) {
-            //         this.entityFactory.destroyProjectile(entity);
-            //     }
-            // }
+            if (wallCollisionCheck) {
+                this.movementIntentComponentStore.remove(entity);
+                if (this.projectileComponentStore.has(entity)) {
+                    this.entityFactory.destroyProjectile(entity);
+                }
+            }
             const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;
+            console.log(intent);
             if (
-                intent.x > canvas.width - spriteSheetOriginProperties.originalRenderSpriteWidth * zoomProgressionFactor || 
-                intent.y > canvas.height - spriteSheetOriginProperties.originalRenderSpriteHeight * zoomProgressionFactor || 
-                intent.x < 0 || intent.y < 0
+                intent.x > canvas.width - spriteSheetOriginProperties.originalRenderSpriteWidth * zoomProgressionFactor ||
+                intent.y > canvas.height - spriteSheetOriginProperties.originalRenderSpriteHeight * zoomProgressionFactor ||
+                intent.x <= 0 || intent.y <= 0
             ) {
                 this.movementIntentComponentStore.remove(entity);
             }
@@ -188,26 +189,28 @@ export class CollisionSystem implements ISystem {
         self: number,
         tileSize: number,
     ) {
-
+        const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;
         const intendedMovement = {
             left: intent.x,
-            right: intent.x + tileSize,
+            right: intent.x + tileSize * zoomProgressionFactor,
             top: intent.y,
-            bottom: intent.y + tileSize,
+            bottom: intent.y + tileSize * zoomProgressionFactor,
         };
 
         const wallPosition = this.worldTilemapManager.generatedWalls;
-        console.log(wallPosition);
         const tilemapProperties = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN);
 
+
         for (const { x, y } of wallPosition) {
-            // const key = `${x * wallWidth}_${y * wallHeight}`;
-            // coordWallMap.set(key, true);
+            const tileWidth = tilemapProperties.originalRenderSpriteWidth * zoomProgressionFactor;
+            const tileHeight = tilemapProperties.originalRenderSpriteHeight * zoomProgressionFactor;
             const wallRect = {
-                left: (x * tilemapProperties.originalRenderSpriteWidth + 6),
-                right: (x * tilemapProperties.originalRenderSpriteWidth + tilemapProperties.originalRenderSpriteWidth - 6),
-                top: (y * tilemapProperties.originalRenderSpriteHeight + 6),
-                bottom: (y * tilemapProperties.originalRenderSpriteHeight + tilemapProperties.originalRenderSpriteHeight - 6)
+                //* tilemapProperties.originalRenderSpriteWidth * zoomProgressionFactor
+                //* tilemapProperties.originalRenderSpriteHeight * zoomProgressionFactor
+                left: (x * tileWidth),
+                right: ((x + 1) * tileWidth),
+                top: (y * tileHeight),
+                bottom: ((y + 1) * tileHeight)
             }
 
             const intersect =
@@ -219,6 +222,7 @@ export class CollisionSystem implements ISystem {
             if (intersect) {
                 return true;
             }
+
         }
 
 

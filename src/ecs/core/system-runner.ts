@@ -162,6 +162,6 @@ export class SystemRunner {
   }
 
   initialize() {
-    this.entityFactory.createPlayer(30, 30, this.playerProperties.hp, this.playerProperties.damage, this.playerProperties.velocity);
+    this.entityFactory.createPlayer(30, 320, this.playerProperties.hp, this.playerProperties.damage, this.playerProperties.velocity);
   }
 }

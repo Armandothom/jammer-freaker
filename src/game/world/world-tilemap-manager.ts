@@ -24,7 +24,6 @@ export class WorldTilemapManager {
   }
 
   async generateTilemap() {
-
     const noiseValue = this.wallGeneration();
 
     for (let y = 0; y < this._maxNumberTilesY; y++) {
@@ -101,6 +100,7 @@ export class WorldTilemapManager {
     const noise2D_sector4 = createNoise2D();
     const noise2D_centralSector = createNoise2D();
     let nodeInSectorCount: number[] = [0, 0, 0, 0];
+    this.generatedWalls = [];
 
     let sectorSizeX = this._maxNumberTilesX / 2;
     let sectorSizeY = this._maxNumberTilesY / 2;
@@ -328,7 +328,7 @@ export class WorldTilemapManager {
       const step = direction.x;
       for (let n = 0; n < lengthX; n++) {
         const nextX = x + n * step;
-        if (nextX === 0 || nextX > rightBoundary - 1 || nextX < 0) continue;
+        if (nextX <= 0 || nextX >= rightBoundary - 1) continue;
         noiseValue[y][nextX] = this.noiseValueThreshold;
         wallNodeMap.get(nodeId)!.push([y, nextX]);
       }
@@ -338,7 +338,7 @@ export class WorldTilemapManager {
       const step = direction.y;
       for (let n = 0; n < lengthY; n++) {
         const nextY = y + n * step;
-        if (nextY === 0 || nextY > bottomBoundary - 1 || nextY < 0) continue;
+        if (nextY <= 0 || nextY >= bottomBoundary - 1) continue;
         noiseValue[nextY][x] = this.noiseValueThreshold;
         wallNodeMap.get(nodeId)!.push([nextY, x]);
       }

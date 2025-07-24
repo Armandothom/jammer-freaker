@@ -34,6 +34,7 @@ export class LevelManager {
             this.tilemapManager.generateTilemap();
 
             this.zoomProgressionFactor = 2 - (1.5 / 8) * this.levelNumber;
+            console.log("zoomProg levelManager", this.zoomProgressionFactor);
         }
     }
 }
