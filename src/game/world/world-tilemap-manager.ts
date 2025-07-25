@@ -143,7 +143,6 @@ export class WorldTilemapManager {
 
       sectorSizeX = Math.floor(rightBoundary / 2);
       sectorSizeY = Math.floor(bottomBoundary / 2);
-      console.log("sectorSize", sectorSizeX);
     }
 
     const wallLengthX = Math.floor((3 / 5) * sectorSizeX);
@@ -193,7 +192,6 @@ export class WorldTilemapManager {
         let yRandom = Math.floor(Math.random() * sectorSizeY);
         if (xRandom == 0) xRandom++;
         if (yRandom == 0) yRandom++;
-        console.log("yRandom", yRandom);
 
         noiseValue[yRandom][xRandom] = this.noiseValueThreshold;
       }

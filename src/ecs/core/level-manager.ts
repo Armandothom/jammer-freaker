@@ -22,7 +22,7 @@ export class LevelManager {
         this.levelNumber = newLevel;
 
         //const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!
-        this.levelNumber = 5;
+        this.levelNumber = 2;
 
         if (this.levelNumber >= 0 && this.levelNumber <= 8) {
             this.cameraManager.viewportXAxisTiles = 10 + (this.tileProgressionFactor) * this.levelNumber;

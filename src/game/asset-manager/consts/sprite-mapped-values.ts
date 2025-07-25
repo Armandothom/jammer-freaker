@@ -153,5 +153,104 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
         }]
       ])
     }
-  ]
+  ],
+
+  [
+    SpriteSheetName.BULLET_WALL_HIT,
+    {
+      rows: 1,
+      columns: 16,
+      eachSpriteCellSizeHeight: 64,
+      eachSpriteCellSizeWidth: 64,
+      originalRenderSpriteHeight: 16,
+      originalRenderSpriteWidth: 16,
+      srcImagePath: 'src/assets/images/bullet_wall_hit.png',
+      sprites: new Map([
+
+        [SpriteName.BULLET_WALL_HIT_1, {
+          row: 1,
+          column: 1,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+        [SpriteName.BULLET_WALL_HIT_2, {
+          row: 1,
+          column: 2,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+        [SpriteName.BULLET_WALL_HIT_3, {
+          row: 1,
+          column: 3,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+        [SpriteName.BULLET_WALL_HIT_4, {
+          row: 1,
+          column: 4,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+        [SpriteName.BULLET_WALL_HIT_5, {
+          row: 1,
+          column: 5,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+        [SpriteName.BULLET_WALL_HIT_6, {
+          row: 1,
+          column: 6,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+        [SpriteName.BULLET_WALL_HIT_7, {
+          row: 1,
+          column: 7,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+        [SpriteName.BULLET_WALL_HIT_8, {
+          row: 1,
+          column: 8,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+        [SpriteName.BULLET_WALL_HIT_9, {
+          row: 1,
+          column: 9,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+        [SpriteName.BULLET_WALL_HIT_10, {
+          row: 1,
+          column: 10,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+        [SpriteName.BULLET_WALL_HIT_11, {
+          row: 1,
+          column: 11,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+        [SpriteName.BULLET_WALL_HIT_12, {
+          row: 1,
+          column: 12,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+        [SpriteName.BULLET_WALL_HIT_13, {
+          row: 1,
+          column: 13,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+        [SpriteName.BULLET_WALL_HIT_14, {
+          row: 1,
+          column: 14,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+        [SpriteName.BULLET_WALL_HIT_15, {
+          row: 1,
+          column: 15,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+        [SpriteName.BULLET_WALL_HIT_16, {
+          row: 1,
+          column: 16,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+
+      ])
+    }
+  ],
+
+
 ]);

@@ -1,6 +1,7 @@
 
 import { ANIMATION_MAPPED } from "../../game/asset-manager/consts/animation-mapped.values.js";
 import { AnimationComponent } from "../components/animation.component.js";
+import { HitComponent } from "../components/wall-hit.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { CoreManager } from "../core/core-manager.js";
@@ -10,7 +11,7 @@ import { ISystem } from "./system.interface.js";
 export class AnimationSpriteSystem implements ISystem {
     constructor(
         private animationComponentStore: ComponentStore<AnimationComponent>,
-        private spriteComponentStore: ComponentStore<SpriteComponent>
+        private spriteComponentStore: ComponentStore<SpriteComponent>,
     ) { }
 
     update(deltaTime: number): void {
@@ -32,14 +33,14 @@ export class AnimationSpriteSystem implements ISystem {
             let accumulator = 0;
             let currentFrame = sortedFrames[0];
             for (const frame of sortedFrames) {
+                //console.log(frame.order, sortedFrames.length);
                 accumulator += frame.durationKeyFrame;
                 if (loopedTime <= accumulator) {
                     currentFrame = frame;
                     break;
                 }
             }
-
-
+            
             this.spriteComponentStore.add(entityId, new SpriteComponent(
                 currentFrame.spriteName,
                 currentFrame.spriteSheetName

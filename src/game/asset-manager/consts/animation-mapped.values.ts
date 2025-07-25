@@ -14,6 +14,7 @@ export const ANIMATION_MAPPED: Map<AnimationName, Map<SpriteName, AnimationKeyMa
       }]
     ])
   ],
+
   [
     AnimationName.PLAYER_RUN,
     new Map<SpriteName, AnimationKeyMap>([
@@ -49,6 +50,7 @@ export const ANIMATION_MAPPED: Map<AnimationName, Map<SpriteName, AnimationKeyMa
       }],
     ])
   ],
+
   [
     AnimationName.ENEMY_STILL,
     new Map<SpriteName, AnimationKeyMap>([
@@ -60,6 +62,7 @@ export const ANIMATION_MAPPED: Map<AnimationName, Map<SpriteName, AnimationKeyMa
       }]
     ])
   ],
+
   [
     AnimationName.WEAPON_SMG,
     new Map<SpriteName, AnimationKeyMap>([
@@ -71,39 +74,120 @@ export const ANIMATION_MAPPED: Map<AnimationName, Map<SpriteName, AnimationKeyMa
       }]
     ])
   ],
+
   [
-    AnimationName.ENEMY_RUN,
+    AnimationName.BULLET_FIRED,
     new Map<SpriteName, AnimationKeyMap>([
-      [SpriteName.ENEMY_RUNNING_1, {
-        spriteName: SpriteName.ENEMY_RUNNING_1,
-        spriteSheetName: SpriteSheetName.ENEMY,
+      [SpriteName.BULLET_1, {
+        spriteName: SpriteName.BULLET_1,
+        spriteSheetName: SpriteSheetName.BULLET,
         order: 1,
-        durationKeyFrame: 0.25
+        durationKeyFrame: 1
+      }]
+    ])
+  ],
+
+  [
+    AnimationName.BULLET_WALL_HIT,
+    new Map<SpriteName, AnimationKeyMap>([
+
+      [SpriteName.BULLET_WALL_HIT_1, {
+        spriteName: SpriteName.BULLET_WALL_HIT_1,
+        spriteSheetName: SpriteSheetName.BULLET_WALL_HIT,
+        order: 1,
+        durationKeyFrame: 0.05
       }],
-      [SpriteName.ENEMY_RUNNING_2, {
-        spriteName: SpriteName.ENEMY_RUNNING_2,
-        spriteSheetName: SpriteSheetName.ENEMY,
+      [SpriteName.BULLET_WALL_HIT_2, {
+        spriteName: SpriteName.BULLET_WALL_HIT_2,
+        spriteSheetName: SpriteSheetName.BULLET_WALL_HIT,
         order: 2,
-        durationKeyFrame: 0.25
+        durationKeyFrame: 0.05
       }],
-      [SpriteName.ENEMY_RUNNING_3, {
-        spriteName: SpriteName.ENEMY_RUNNING_3,
-        spriteSheetName: SpriteSheetName.ENEMY,
+      [SpriteName.BULLET_WALL_HIT_3, {
+        spriteName: SpriteName.BULLET_WALL_HIT_3,
+        spriteSheetName: SpriteSheetName.BULLET_WALL_HIT,
         order: 3,
-        durationKeyFrame: 0.25
+        durationKeyFrame: 0.05
       }],
-      [SpriteName.ENEMY_RUNNING_4, {
-        spriteName: SpriteName.ENEMY_RUNNING_4,
-        spriteSheetName: SpriteSheetName.ENEMY,
+      [SpriteName.BULLET_WALL_HIT_4, {
+        spriteName: SpriteName.BULLET_WALL_HIT_4,
+        spriteSheetName: SpriteSheetName.BULLET_WALL_HIT,
         order: 4,
-        durationKeyFrame: 0.25
+        durationKeyFrame: 0.05
       }],
-      [SpriteName.ENEMY_RUNNING_5, {
-        spriteName: SpriteName.ENEMY_RUNNING_5,
-        spriteSheetName: SpriteSheetName.ENEMY,
+      [SpriteName.BULLET_WALL_HIT_5, {
+        spriteName: SpriteName.BULLET_WALL_HIT_5,
+        spriteSheetName: SpriteSheetName.BULLET_WALL_HIT,
         order: 5,
-        durationKeyFrame: 0.25
+        durationKeyFrame: 0.05
+      }],
+      [SpriteName.BULLET_WALL_HIT_6, {
+        spriteName: SpriteName.BULLET_WALL_HIT_6,
+        spriteSheetName: SpriteSheetName.BULLET_WALL_HIT,
+        order: 6,
+        durationKeyFrame: 0.05
+      }],
+      [SpriteName.BULLET_WALL_HIT_7, {
+        spriteName: SpriteName.BULLET_WALL_HIT_7,
+        spriteSheetName: SpriteSheetName.BULLET_WALL_HIT,
+        order: 7,
+        durationKeyFrame: 0.05
+      }],
+      [SpriteName.BULLET_WALL_HIT_8, {
+        spriteName: SpriteName.BULLET_WALL_HIT_8,
+        spriteSheetName: SpriteSheetName.BULLET_WALL_HIT,
+        order: 8,
+        durationKeyFrame: 0.05
+      }],
+      [SpriteName.BULLET_WALL_HIT_9, {
+        spriteName: SpriteName.BULLET_WALL_HIT_9,
+        spriteSheetName: SpriteSheetName.BULLET_WALL_HIT,
+        order: 9,
+        durationKeyFrame: 0.05
+      }],
+      [SpriteName.BULLET_WALL_HIT_10, {
+        spriteName: SpriteName.BULLET_WALL_HIT_10,
+        spriteSheetName: SpriteSheetName.BULLET_WALL_HIT,
+        order: 10,
+        durationKeyFrame: 0.05
+      }],
+      [SpriteName.BULLET_WALL_HIT_11, {
+        spriteName: SpriteName.BULLET_WALL_HIT_11,
+        spriteSheetName: SpriteSheetName.BULLET_WALL_HIT,
+        order: 11,
+        durationKeyFrame: 0.05
+      }],
+      [SpriteName.BULLET_WALL_HIT_12, {
+        spriteName: SpriteName.BULLET_WALL_HIT_12,
+        spriteSheetName: SpriteSheetName.BULLET_WALL_HIT,
+        order: 12,
+        durationKeyFrame: 0.05
+      }],
+      [SpriteName.BULLET_WALL_HIT_13, {
+        spriteName: SpriteName.BULLET_WALL_HIT_13,
+        spriteSheetName: SpriteSheetName.BULLET_WALL_HIT,
+        order: 13,
+        durationKeyFrame: 0.05
+      }],
+      [SpriteName.BULLET_WALL_HIT_14, {
+        spriteName: SpriteName.BULLET_WALL_HIT_14,
+        spriteSheetName: SpriteSheetName.BULLET_WALL_HIT,
+        order: 14,
+        durationKeyFrame: 0.05
+      }],
+      [SpriteName.BULLET_WALL_HIT_15, {
+        spriteName: SpriteName.BULLET_WALL_HIT_15,
+        spriteSheetName: SpriteSheetName.BULLET_WALL_HIT,
+        order: 15,
+        durationKeyFrame: 0.05
+      }],
+      [SpriteName.BULLET_WALL_HIT_16, {
+        spriteName: SpriteName.BULLET_WALL_HIT_16,
+        spriteSheetName: SpriteSheetName.BULLET_WALL_HIT,
+        order: 16,
+        durationKeyFrame: 0.05
       }],
     ])
   ]
+  // next map
 ]);

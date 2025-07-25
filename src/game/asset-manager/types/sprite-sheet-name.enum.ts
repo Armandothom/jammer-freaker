@@ -3,5 +3,6 @@ export enum SpriteSheetName {
   PLAYER = "player",
   ENEMY = "enemy",
   BULLET = "bullet",
-  WEAPON = "weapon"
+  WEAPON = "weapon",
+  BULLET_WALL_HIT = "bullet_wall_hit",
 }

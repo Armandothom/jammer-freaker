@@ -28,6 +28,7 @@ import { AimShootingComponent } from "../components/aim-shooting.component.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
 import { SPRITESHEET_MAPPED_VALUES } from "../../game/asset-manager/consts/sprite-mapped-values.js";
 import { ZLayerComponent } from "../components/z-layer.component.js";
+import { HitComponent } from "../components/wall-hit.component.js";
 
 export class EntityFactory {
   constructor(
@@ -54,7 +55,8 @@ export class EntityFactory {
     private enemyDeadComponentStore: ComponentStore<EnemyDead>,
     private aimShootingComponentStore: ComponentStore<AimShootingComponent>,
     private weaponSpriteAttachmentComponentStore: ComponentStore<WeaponSpriteAttachmentComponent>,
-    private zLayerComponentStore: ComponentStore<ZLayerComponent>
+    private zLayerComponentStore: ComponentStore<ZLayerComponent>,
+    private hitComponentStore: ComponentStore<HitComponent>,
   ) {
 
   }
@@ -82,6 +84,7 @@ export class EntityFactory {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.BULLET_1, SpriteSheetName.BULLET)); //placeholder
+    this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.BULLET_FIRED));
     this.projectileComponentStore.add(entityId, new ProjectileComponent());
     this.velocityComponentStore.add(entityId, new VelocityComponent(velX, velY));
     this.collisionComponentStore.add(entityId, new CollisionComponent());

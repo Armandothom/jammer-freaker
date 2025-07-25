@@ -45,7 +45,7 @@ export class ProjectileSpawnSystem implements ISystem {
             const shooterPos = this.positionComponentStore.get(entity);
             const spriteBullet = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.BULLET);
             const attachedWeaponEntry = attachedWeapons.find((value) => value[1].parentEntityId == entity);
-            if(!attachedWeaponEntry) {
+            if (!attachedWeaponEntry) {
                 throw new Error("No weapon entry found");
             }
             const attachedWeapon = attachedWeaponEntry[1];
@@ -60,11 +60,12 @@ export class ProjectileSpawnSystem implements ISystem {
 
             const dx = intentXConverted - (shooterPosXConverted);
             const dy = intentYConverted - (shooterPosYConverted);
-            const magnitude = Math.hypot(dx, dy); // Distancia do player e do click
-            if (magnitude === 0) continue; // Podemos alterar para que não spawne projetil se ele clicar tão perto do sprite do player
+            //const magnitude = Math.hypot(dx, dy); // Distancia do player e do click
+            const angle = Math.atan2(dy, dx);
+            //if (magnitude === 0) continue; // Podemos alterar para que não spawne projetil se ele clicar tão perto do sprite do player
+            //let dir = { x: dx / magnitude, y: dy / magnitude };
+            let dir = { x: Math.cos(angle), y: Math.sin(angle) }; // Vetor de direção normalizado
 
-            const dir = { x: dx / magnitude, y: dy / magnitude }; // Vetor de direção normalizado
-            console.log(dir.y)
             const cooldown = this.shootingCooldownComponentStore.has(entity);
             if (!cooldown) {
                 this.spawnProjectile(dir, attachedWeapon);
@@ -73,7 +74,7 @@ export class ProjectileSpawnSystem implements ISystem {
         }
     }
 
-    private spawnProjectile(dir: { x: number; y: number }, shootingWeapon : WeaponSpriteAttachmentComponent): void {
+    private spawnProjectile(dir: { x: number; y: number }, shootingWeapon: WeaponSpriteAttachmentComponent): void {
         this.soundManager.playSound("SMG_FIRE");
         const entity = this.entityFactory.createProjectile(
             shootingWeapon.barrelX,

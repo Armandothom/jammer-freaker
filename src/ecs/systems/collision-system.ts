@@ -17,6 +17,11 @@ import { EnemiesKilledComponent } from "../components/enemies-killed.component.j
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
 import { LevelManager } from "../core/level-manager.js";
+import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
+import { WallHitComponent } from "../components/wall-hit.component.js";
+import { AnimationComponent } from "../components/animation.component.js";
+import { VelocityComponent } from "../components/velocity-component.js";
 
 export class CollisionSystem implements ISystem {
     constructor(
@@ -33,8 +38,11 @@ export class CollisionSystem implements ISystem {
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private shotOriginComponentStore: ComponentStore<ShotOriginComponent>,
         private enemiesKilledComponentStore: ComponentStore<EnemiesKilledComponent>,
+        private wallHitComponentStore: ComponentStore<WallHitComponent>,
         private worldTilemapManager: WorldTilemapManager,
         private levelManager: LevelManager,
+        private animationComponentStore: ComponentStore<AnimationComponent>,
+        private velocityComponentStore: ComponentStore<VelocityComponent>,
     ) {
 
     }
@@ -58,6 +66,7 @@ export class CollisionSystem implements ISystem {
             const wouldCollideCheckEntity = this.wouldCollideAABB(intent, entity, spriteSheetOriginProperties.originalRenderSpriteHeight);
             const wallCollisionCheck = this.wallCollision(intent, entity, spriteSheetOriginProperties.originalRenderSpriteHeight);
 
+            // REMINDER: WALLS ARE NOT ENTITIES, THIS BELOW WILL CHECK ENTITIES
             if (wouldCollideCheckEntity.wouldCollide) {
                 this.movementIntentComponentStore.remove(entity); // Cancelamento do intent pra questões de movimento            
                 if (this.projectileComponentStore.has(entity)) {
@@ -93,19 +102,33 @@ export class CollisionSystem implements ISystem {
                             }
                         }
                     }
+
+
                     this.entityFactory.destroyProjectile(entity);
                 }
             }
 
             const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
-            if (wallCollisionCheck) {
+            const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;
+
+            if (wallCollisionCheck && this.wallHitComponentStore.has(entity) == false) {
                 this.movementIntentComponentStore.remove(entity);
                 if (this.projectileComponentStore.has(entity)) {
-                    this.entityFactory.destroyProjectile(entity);
+                    console.log("about to destroy");
+                    // let initialPosition = this.positionComponentStore.get(entity);
+                    // const offsetX = this.spriteComponentStore.get(entity).width  / 4;
+                    // const offsetY = this.spriteComponentStore.get(entity).height / 4;
+                    // initialPosition.x -= offsetX;
+                    // console.log("offsetY", offsetY);
+                    // initialPosition.y -= offsetY;
+
+                    this.wallHitComponentStore.add(entity, new WallHitComponent(0.8));
+                    this.velocityComponentStore.add(entity, new VelocityComponent(0, 0));
+                    this.collisionComponentStore.add(entity, new CollisionComponent(false));
+                    //this.entityFactory.destroyProjectile(entity);
                 }
             }
-            const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;
-            console.log(intent);
+
             if (
                 intent.x > canvas.width - spriteSheetOriginProperties.originalRenderSpriteWidth * zoomProgressionFactor ||
                 intent.y > canvas.height - spriteSheetOriginProperties.originalRenderSpriteHeight * zoomProgressionFactor ||
@@ -115,6 +138,7 @@ export class CollisionSystem implements ISystem {
             }
 
         }
+
     }
 
     private wouldCollideAABB(
@@ -171,6 +195,7 @@ export class CollisionSystem implements ISystem {
                 intendedMovement.bottom > current.top;
 
             if (intersect) {
+
                 return {
                     wouldCollide: true,
                     collidingEntity: other
@@ -191,10 +216,10 @@ export class CollisionSystem implements ISystem {
     ) {
         const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;
         const intendedMovement = {
-            left: intent.x,
-            right: intent.x + tileSize * zoomProgressionFactor,
-            top: intent.y,
-            bottom: intent.y + tileSize * zoomProgressionFactor,
+            left: Math.floor(intent.x),
+            right: Math.floor(intent.x + tileSize * zoomProgressionFactor),
+            top: Math.floor(intent.y),
+            bottom: Math.floor(intent.y + tileSize * zoomProgressionFactor),
         };
 
         const wallPosition = this.worldTilemapManager.generatedWalls;
@@ -219,15 +244,12 @@ export class CollisionSystem implements ISystem {
                 intendedMovement.top < wallRect.bottom &&
                 intendedMovement.bottom > wallRect.top;
 
+
             if (intersect) {
+                // console.log("wallRect", wallRect);
+                // console.log("intentedMovement", intendedMovement);
                 return true;
             }
-
         }
-
-
-
-
-
     }
 }

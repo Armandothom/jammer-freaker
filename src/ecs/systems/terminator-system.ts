@@ -3,8 +3,10 @@ import { IntentClickComponent } from "../components/intent-click.component.js";
 import { IntentShotComponent } from "../components/intent-shot.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
+import { WallHitComponent } from "../components/wall-hit.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { CoreManager } from "../core/core-manager.js";
+import { EntityFactory } from "../entities/entity-factory.js";
 import { ISystem } from "./system.interface.js";
 
 
@@ -15,6 +17,8 @@ export class TerminatorSystem implements ISystem {
         private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
         private shootingCooldownComponentStore: ComponentStore<ShootingCooldownComponent>,
         private intentShotComponentStore: ComponentStore<IntentShotComponent>,
+        private wallHitComponentStore: ComponentStore<WallHitComponent>,
+        private entityFactory: EntityFactory,
 
     ) { }
 
@@ -36,10 +40,18 @@ export class TerminatorSystem implements ISystem {
 
         const shootingCooldownComponentEntities = this.shootingCooldownComponentStore.getAllEntities();
         for (const shootingCooldownComponentEntity of shootingCooldownComponentEntities) {
-
             const cooldown = this.shootingCooldownComponentStore.get(shootingCooldownComponentEntity);
             if (cooldown.endCooldown < CoreManager.timeGlobalSinceStart) {
                 this.shootingCooldownComponentStore.remove(shootingCooldownComponentEntity);
+            }
+        }
+
+        const projectileCompletedAnimEntities = this.wallHitComponentStore.getAllEntities();
+        for (const projectileCompletedAnimEntity of projectileCompletedAnimEntities) {
+            this.wallHitComponentStore.get(projectileCompletedAnimEntity).animEndTime -= deltaTime;
+            if (this.wallHitComponentStore.get(projectileCompletedAnimEntity).animEndTime <= 0) {
+                this.entityFactory.destroyProjectile(projectileCompletedAnimEntity);
+                
             }
         }
     }
