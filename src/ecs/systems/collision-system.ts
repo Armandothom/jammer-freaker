@@ -90,7 +90,6 @@ export class CollisionSystem implements ISystem {
 
                     if (validTarget) {
                         const targetDamage = this.healthComponentStore.get(target).takeDamage(20);
-                        //console.log("target x HP:", target, this.healthComponentStore.get(target).hp);
 
                         if (this.healthComponentStore.get(target).hp <= 0) {
 
@@ -114,13 +113,7 @@ export class CollisionSystem implements ISystem {
             if (wallCollisionCheck && this.wallHitComponentStore.has(entity) == false) {
                 this.movementIntentComponentStore.remove(entity);
                 if (this.projectileComponentStore.has(entity)) {
-                    console.log("about to destroy");
-                    // let initialPosition = this.positionComponentStore.get(entity);
-                    // const offsetX = this.spriteComponentStore.get(entity).width  / 4;
-                    // const offsetY = this.spriteComponentStore.get(entity).height / 4;
-                    // initialPosition.x -= offsetX;
-                    // console.log("offsetY", offsetY);
-                    // initialPosition.y -= offsetY;
+
 
                     this.wallHitComponentStore.add(entity, new WallHitComponent(0.8));
                     this.velocityComponentStore.add(entity, new VelocityComponent(0, 0));
@@ -246,8 +239,6 @@ export class CollisionSystem implements ISystem {
 
 
             if (intersect) {
-                // console.log("wallRect", wallRect);
-                // console.log("intentedMovement", intendedMovement);
                 return true;
             }
         }

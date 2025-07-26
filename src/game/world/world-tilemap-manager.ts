@@ -104,7 +104,6 @@ export class WorldTilemapManager {
     let sectorSizeY = this._maxNumberTilesY / 2;
     let rightBoundary = this._maxNumberTilesX;
     let bottomBoundary = this._maxNumberTilesY;
-    //console.log("boundary", rightBoundary, bottomBoundary);
     if (this._maxNumberTilesX !== 10) {
       // we have to do this due to the imprecision of tileProgressionFactor and zoom progression factor
       // only in 10, 20, 40, 80 ... we have a integer between the canvas and the sprite size

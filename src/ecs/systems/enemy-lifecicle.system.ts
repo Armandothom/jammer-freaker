@@ -10,10 +10,14 @@ import { EnemyDead } from "../components/enemy-dead.component.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
+import { LevelManager } from "../core/level-manager.js";
+import { sleep } from "../../utils/sleep.js";
+import { SoundManager } from "../../game/asset-manager/sound-manager.js";
+import { FreezeManager } from "../core/freeze-manager.js";
 
-export class EnemySpawnSystem implements ISystem {
+export class EnemyLifecicleSystem implements ISystem {
     private timeSinceLastSpawn = 0;
-
+    private expectedLevel: number = 0;
 
     constructor(
         private positionComponentStore: ComponentStore<PositionComponent>,
@@ -23,19 +27,33 @@ export class EnemySpawnSystem implements ISystem {
         private entityFactory: EntityFactory,
         private worldTilemapManager: WorldTilemapManager,
         private spriteManager: SpriteManager,
+        private soundManager: SoundManager,
+        private freezeManager: FreezeManager,
     ) {
+
     }
 
     update(deltaTime: number): void {
         this.timeSinceLastSpawn += deltaTime;
-        let spawnIntervalsInSeconds = 2;
+        let spawnIntervalsInSeconds = 20;
         const previousTime = this.timeSinceLastSpawn - deltaTime;
 
         if (previousTime < spawnIntervalsInSeconds && this.timeSinceLastSpawn >= spawnIntervalsInSeconds) {
             this.timeSinceLastSpawn = 0;
             this.spawnEnemy();
         }
+    }
 
+    async levelUpdate(enemySpawnTable: { name: string; quantity: number }[], currentLevel: number): Promise<void> {
+        if (currentLevel >= this.expectedLevel || this.expectedLevel === 1) {
+            if (currentLevel == 1) {
+                this.initialEnemiesSpawn(enemySpawnTable);
+            } else {
+                await this.killAllEnemies();
+                this.initialEnemiesSpawn(enemySpawnTable);
+            }
+            this.expectedLevel = currentLevel + 1;
+        }
     }
 
     spawnEnemy() {
@@ -116,10 +134,39 @@ export class EnemySpawnSystem implements ISystem {
         }
     }
 
-    public initialEnemiesSpawn(spawnList: { name: EnemyType, quantity: number }[]) {
+    async killAllEnemies() {
+        console.log("killallenemies call");
+        //this.freezeManager.freezeGame();
+        const enemyEntities = this.enemyComponentStore.getAllEntities();
+        const deadEnemiesEntities = this.enemyDeadComponentStore.getAllEntities();
+
+        const inCommon = deadEnemiesEntities.filter(function (v) {
+            return enemyEntities.indexOf(v) > -1;
+        });
+        const exclusiveA = deadEnemiesEntities.filter(function (v) {
+            return inCommon.indexOf(v) === -1;
+        });
+        const exclusiveB = enemyEntities.filter(function (v) {
+            return inCommon.indexOf(v) === -1;
+        });
+
+        const livingEnemyEntities = exclusiveA.concat(exclusiveB);
+        this.soundManager.playSound("A10_BARRAGE");
+
+        await sleep(2);
+        for (const livingEnemyEntity of livingEnemyEntities) {
+            this.entityFactory.destroyEnemy(livingEnemyEntity);
+        }
+        await sleep(2);
+        //this.freezeManager.unfreezeGame();
+
+        return;
+    }
+
+    initialEnemiesSpawn(spawnList: { name: string; quantity: number }[]) {
 
         const enemyTypes: EnemyType[] = Object.keys(EnemyType).map((k) => (EnemyType as any)[k]) as EnemyType[];
-        
+
         for (const spawn of spawnList) {
             for (let i = 0; i < spawn.quantity; i++) {
                 if (spawn.name == EnemyType.SOLDIER) {
@@ -285,4 +332,5 @@ export class EnemySpawnSystem implements ISystem {
             y: rolledPosition.y
         };
     }
+
 }

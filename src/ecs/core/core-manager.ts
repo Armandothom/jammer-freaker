@@ -21,7 +21,7 @@ export class CoreManager {
     private _entityManager: EntityManager;
     private _soundManager!: SoundManager;
     private _levelManager!: LevelManager;
-    private _freezeMnager!: FreezeManager;
+    private _freezeManager!: FreezeManager;
 
     constructor() {
         this._assetManager = new AssetManager();

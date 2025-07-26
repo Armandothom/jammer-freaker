@@ -21,7 +21,6 @@ export class CameraManager {
   }
 
   public getViewport(): CameraViewport {
-    //console.log("cameraManager", this.tileSize, this.viewportXAxisTiles, this.viewportYAxisTiles);
     this.coordinateX = this.viewportYAxisTiles / 2;
     this.coordinateY = this.viewportYAxisTiles / 2;
     return this.calcViewport(this.coordinateX, this.coordinateY);

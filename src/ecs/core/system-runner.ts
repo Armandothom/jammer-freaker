@@ -44,7 +44,7 @@ import { AimShootingComponent } from "../components/aim-shooting.component.js";
 import { LevelManager } from "./level-manager.js";
 import { EnemiesKilledComponent } from "../components/enemies-killed.component.js";
 import { LevelProgressionSystem } from "../systems/level-progression.system.js";
-import { EnemySpawnSystem } from "../systems/enemy-spawn.system.js";
+import { EnemyLifecicleSystem } from "../systems/enemy-lifecicle.system.js";
 import { DamageComponent } from "../components/damage.component.js";
 import { AiAttackRangeComponent } from "../components/ai-attack-range.component.js";
 import { AiMovementRadiusComponent } from "../components/ai-movement-radius.component.js";
@@ -57,6 +57,7 @@ import { ZLayerComponent } from "../components/z-layer.component.js";
 import { FreezeManager } from "./freeze-manager.js";
 import { WallHitComponent } from "../components/wall-hit.component.js";
 import { OffsetAppliedComponent } from "../components/offset-applied.component.js";
+import { LevelUpdateSystem } from "../systems/level-update.system.js";
 
 export class SystemRunner {
   private renderSystem: RenderSystem;
@@ -105,11 +106,12 @@ export class SystemRunner {
   private aiMovementBehaviorSystem: AiMovementBehaviorSystem;
   private aiAttackBehaviorSystem: AiAttackBehaviorSystem;
   private levelProgressionSystem: LevelProgressionSystem;
-  private enemySpawnSystem: EnemySpawnSystem;
+  private enemyLifecicleSystem: EnemyLifecicleSystem;
   private weaponSpriteAttachmentSystem: WeaponSpriteAttachmenPositiontSystem;
   private entityFactory: EntityFactory;
   private playerProperties: PlayerProperties;
-  private spriteLevelScaler: SpriteLevelScalerSystem
+  private spriteLevelScaler: SpriteLevelScalerSystem;
+  private levelUpdateSystem: LevelUpdateSystem;
 
   constructor(
     private worldTilemapManager: WorldTilemapManager,
@@ -124,6 +126,9 @@ export class SystemRunner {
     this.freezeManager = new FreezeManager();
     this.playerProperties = new PlayerProperties();
     this.entityFactory = new EntityFactory(entityManager, this.playerComponentStore, this.enemyComponentStore, this.positionComponentStore, this.spriteComponentStore, this.projectileComponentStore, this.shooterComponentStore, this.velocityComponentStore, this.movementIntentComponentStore, this.soldierComponentStore, this.animationComponentStore, this.directionAnimComponentStore, this.collisionComponentStore, this.aiComponentStore, this.healthComponentStore, this.shotOriginComponentStore, this.damageComponentStore, this.shootingCooldownComponentStore, this.aiAttackRangeComponentStore, this.aiMovementRadiusComponentStore, this.enemyDeadComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.zLayerComponentStore, this.wallHitComponentStore);
+    this.enemyLifecicleSystem = new EnemyLifecicleSystem(this.positionComponentStore, this.playerComponentStore, this.enemyComponentStore, this.enemyDeadComponentStore, this.entityFactory, this.worldTilemapManager, this.spriteManager, this.soundManager, this.freezeManager);
+    this.levelManager = new LevelManager(this.enemyLifecicleSystem, this.worldTilemapManager, this.cameraManager);
+    this.levelUpdateSystem = new LevelUpdateSystem(this.levelManager);
     this.renderSystem = new RenderSystem(this.positionComponentStore, this.spriteComponentStore, this.cameraManager, this.worldTilemapManager, this.rendererEngine, this.spriteManager, this.directionAnimComponentStore, this.aimShootingComponent, this.zLayerComponentStore, this.levelManager);
     this.inputMovementSystem = new InputMovementSystem(this.positionComponentStore, this.movimentIntentComponentStore, this.playerComponentStore)
     this.shootingSystem = new ShootingSystem(this.playerComponentStore, this.enemyComponentStore, this.intentShotComponentStore, this.positionComponentStore, this.shooterComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.spriteComponentStore);
@@ -136,11 +141,9 @@ export class SystemRunner {
     this.animationSpriteSystem = new AnimationSpriteSystem(this.animationComponentStore, this.spriteComponentStore);
     this.aiMovementBehaviorSystem = new AiMovementBehaviorSystem(this.positionComponentStore, this.velocityComponentStore, this.movimentIntentComponentStore, this.aiComponentStore, this.aiMovementOrderComponentStore, this.playerComponentStore, this.pathFindingManager);
     this.aiAttackBehaviorSystem = new AiAttackBehaviorSystem(this.positionComponentStore, this.intentShotComponentStore, this.aiComponentStore, this.aiAttackOrderComponentStore, this.playerComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.spriteComponentStore);
-    this.levelProgressionSystem = new LevelProgressionSystem(this.enemiesKilledComponentStore, this.levelManager);
-    this.weaponSpriteAttachmentSystem = new WeaponSpriteAttachmenPositiontSystem(this.positionComponentStore, this.weaponSpriteAttachmentComponentStore, this.zLayerComponentStore, this.spriteComponentStore, this.aimShootingComponent);
-    this.enemySpawnSystem = new EnemySpawnSystem(this.positionComponentStore, this.playerComponentStore, this.enemyComponentStore, this.enemyDeadComponentStore, this.entityFactory, this.worldTilemapManager, this.spriteManager);
     this.spriteLevelScaler = new SpriteLevelScalerSystem(this.spriteComponentStore, this.spriteManager, this.levelManager, this.worldTilemapManager);
-    this.levelManager = new LevelManager(this.enemySpawnSystem, this.entityFactory, this.soundManager, this.enemyComponentStore, this.worldTilemapManager, this.cameraManager);
+    this.weaponSpriteAttachmentSystem = new WeaponSpriteAttachmenPositiontSystem(this.positionComponentStore, this.weaponSpriteAttachmentComponentStore, this.zLayerComponentStore, this.spriteComponentStore, this.aimShootingComponent);
+    this.levelProgressionSystem = new LevelProgressionSystem(this.enemiesKilledComponentStore, this.levelManager);
 
   }
 
@@ -148,7 +151,7 @@ export class SystemRunner {
     if (!this.freezeManager.gameFrozen) {
       this.levelProgressionSystem.update(CoreManager.timeSinceLastRender);
       this.spriteLevelScaler.update(CoreManager.timeSinceLastRender);
-      this.enemySpawnSystem.update(CoreManager.timeSinceLastRender);
+      this.enemyLifecicleSystem.update(CoreManager.timeSinceLastRender);
       this.inputMovementSystem.update(CoreManager.timeSinceLastRender);
       this.aiMovementBehaviorSystem.update(CoreManager.timeSinceLastRender);
       this.aiAttackBehaviorSystem.update(CoreManager.timeSinceLastRender)
@@ -163,10 +166,15 @@ export class SystemRunner {
       this.weaponSpriteAttachmentSystem.update(CoreManager.timeSinceLastRender);
       this.renderSystem.update(CoreManager.timeSinceLastRender);
       this.terminatorSystem.update(CoreManager.timeSinceLastRender);
-    } // select which systems should remain unfrozen
+      this.levelUpdateSystem.update();
+    }
+    // systems that should remain unfrozen
+
+
   }
 
   initialize() {
     this.entityFactory.createPlayer(30, 320, this.playerProperties.hp, this.playerProperties.damage, this.playerProperties.velocity);
+    this.levelManager.update();
   }
 }

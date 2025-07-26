@@ -136,6 +136,7 @@ export class EntityFactory {
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
+    this.createSmg(entityId);
     return entityId;
   }
 
@@ -158,6 +159,7 @@ export class EntityFactory {
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
+    this.createSmg(entityId);
     return entityId;
   }
 
@@ -180,6 +182,7 @@ export class EntityFactory {
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
+    this.createSmg(entityId);
     return entityId;
   }
 
@@ -202,6 +205,7 @@ export class EntityFactory {
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
+    this.createSmg(entityId);
     return entityId;
   }
 
@@ -240,6 +244,7 @@ export class EntityFactory {
     const weaponAttachments = this.weaponSpriteAttachmentComponentStore.getValuesAndEntityId();
     const weaponAttachment = weaponAttachments.find((weaponAttachmentEntry) => weaponAttachmentEntry[1].parentEntityId == parentEntityId)!;
     const weaponEntityId = weaponAttachment[0];
+    console.log("weaponEntityId", weaponEntityId);
     this.positionComponentStore.remove(weaponEntityId);
     this.aimShootingComponentStore.remove(weaponEntityId);
     this.weaponSpriteAttachmentComponentStore.remove(weaponEntityId);

@@ -86,14 +86,12 @@ export class AnimationSetterSystem implements ISystem {
             if (isProjectile) {
                 //segregate here is the hit is of wall, player
                 if (this.wallHitComponentStore.has(entityWithAnim)) {
-                    console.log("animset");
                     animToUse = AnimationName.BULLET_WALL_HIT;
                     if (!this.offsetAppliedComponentStore.has(entityWithAnim)) {
                         let initialPosition = this.positionComponentStore.get(entityWithAnim);
                         const offsetX = this.spriteComponentStore.get(entityWithAnim).width / 4;
                         const offsetY = this.spriteComponentStore.get(entityWithAnim).height / 4;
                         initialPosition.x -= offsetX;
-                        console.log("offsetY", offsetY);
                         initialPosition.y -= offsetY;
                         this.offsetAppliedComponentStore.add(entityWithAnim, new OffsetAppliedComponent());
                     }

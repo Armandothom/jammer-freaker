@@ -33,7 +33,6 @@ export class AnimationSpriteSystem implements ISystem {
             let accumulator = 0;
             let currentFrame = sortedFrames[0];
             for (const frame of sortedFrames) {
-                //console.log(frame.order, sortedFrames.length);
                 accumulator += frame.durationKeyFrame;
                 if (loopedTime <= accumulator) {
                     currentFrame = frame;
