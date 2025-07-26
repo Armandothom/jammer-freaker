@@ -10,8 +10,6 @@ import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 
 export type EnemyInitialSpawn = { name: string; quantity: number };
 
-
-
 export class LevelManager {
     public previousLevel = 0;
     private levelNumber: number;

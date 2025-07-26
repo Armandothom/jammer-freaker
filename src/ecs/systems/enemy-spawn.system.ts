@@ -10,7 +10,6 @@ import { EnemyDead } from "../components/enemy-dead.component.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
-import { LevelManager } from "../core/level-manager.js";
 
 export class EnemySpawnSystem implements ISystem {
     private timeSinceLastSpawn = 0;
@@ -24,7 +23,6 @@ export class EnemySpawnSystem implements ISystem {
         private entityFactory: EntityFactory,
         private worldTilemapManager: WorldTilemapManager,
         private spriteManager: SpriteManager,
-        private levelManager: LevelManager,
     ) {
     }
 

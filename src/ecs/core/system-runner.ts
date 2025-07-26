@@ -55,7 +55,7 @@ import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment
 import { SpriteLevelScalerSystem } from "../systems/zoom-level-scaler-system.js";
 import { ZLayerComponent } from "../components/z-layer.component.js";
 import { FreezeManager } from "./freeze-manager.js";
-import { HitComponent, WallHitComponent } from "../components/wall-hit.component.js";
+import { WallHitComponent } from "../components/wall-hit.component.js";
 import { OffsetAppliedComponent } from "../components/offset-applied.component.js";
 
 export class SystemRunner {
@@ -121,10 +121,9 @@ export class SystemRunner {
     private freezeManager: FreezeManager,
   ) {
     this.cameraManager = new CameraManager(this.worldTilemapManager, this.spriteManager);
-    this.levelManager = new LevelManager(this.worldTilemapManager, this.cameraManager);
     this.freezeManager = new FreezeManager();
     this.playerProperties = new PlayerProperties();
-    this.entityFactory = new EntityFactory(entityManager, this.playerComponentStore, this.enemyComponentStore, this.positionComponentStore, this.spriteComponentStore, this.projectileComponentStore, this.shooterComponentStore, this.velocityComponentStore, this.movementIntentComponentStore, this.soldierComponentStore, this.animationComponentStore, this.directionAnimComponentStore, this.collisionComponentStore, this.aiComponentStore, this.healthComponentStore, this.shotOriginComponentStore, this.damageComponentStore, this.shootingCooldownComponentStore, this.aiAttackRangeComponentStore, this.aiMovementRadiusComponentStore, this.enemyDeadComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.zLayerComponentStore, this.hitComponentStore);
+    this.entityFactory = new EntityFactory(entityManager, this.playerComponentStore, this.enemyComponentStore, this.positionComponentStore, this.spriteComponentStore, this.projectileComponentStore, this.shooterComponentStore, this.velocityComponentStore, this.movementIntentComponentStore, this.soldierComponentStore, this.animationComponentStore, this.directionAnimComponentStore, this.collisionComponentStore, this.aiComponentStore, this.healthComponentStore, this.shotOriginComponentStore, this.damageComponentStore, this.shootingCooldownComponentStore, this.aiAttackRangeComponentStore, this.aiMovementRadiusComponentStore, this.enemyDeadComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.zLayerComponentStore, this.wallHitComponentStore);
     this.renderSystem = new RenderSystem(this.positionComponentStore, this.spriteComponentStore, this.cameraManager, this.worldTilemapManager, this.rendererEngine, this.spriteManager, this.directionAnimComponentStore, this.aimShootingComponent, this.zLayerComponentStore, this.levelManager);
     this.inputMovementSystem = new InputMovementSystem(this.positionComponentStore, this.movimentIntentComponentStore, this.playerComponentStore)
     this.shootingSystem = new ShootingSystem(this.playerComponentStore, this.enemyComponentStore, this.intentShotComponentStore, this.positionComponentStore, this.shooterComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.spriteComponentStore);
@@ -141,6 +140,8 @@ export class SystemRunner {
     this.weaponSpriteAttachmentSystem = new WeaponSpriteAttachmenPositiontSystem(this.positionComponentStore, this.weaponSpriteAttachmentComponentStore, this.zLayerComponentStore, this.spriteComponentStore, this.aimShootingComponent);
     this.enemySpawnSystem = new EnemySpawnSystem(this.positionComponentStore, this.playerComponentStore, this.enemyComponentStore, this.enemyDeadComponentStore, this.entityFactory, this.worldTilemapManager, this.spriteManager);
     this.spriteLevelScaler = new SpriteLevelScalerSystem(this.spriteComponentStore, this.spriteManager, this.levelManager, this.worldTilemapManager);
+    this.levelManager = new LevelManager(this.enemySpawnSystem, this.entityFactory, this.soundManager, this.enemyComponentStore, this.worldTilemapManager, this.cameraManager);
+
   }
 
   update() {
