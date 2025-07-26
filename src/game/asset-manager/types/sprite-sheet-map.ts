@@ -4,20 +4,22 @@ import { SpriteName } from "../../world/types/sprite-name.enum.js";
 /**
  * The size inside the sprite cell
  */
-export abstract class SpriteSpriteSheetCollisionBox {
+export abstract class SpriteSpriteSheetspriteCellOffset {
     offsetX! : number //Where the sprite starts on the sprite cell X axis
     offsetY! : number //Where the sprite starts on the sprite cell Y axis
-    width! : number //The real width of the sprite
-    height! : number //The real height of the sprite
+    width! : number //The real width of the sprite (not the tile cell)
+    height! : number //The real height of the sprite (not the tile)
 }
 export abstract class SpriteSpriteSheetProperty {
   row! : number
   column! : number
-  collisionBox! : SpriteSpriteSheetCollisionBox
+  spriteCellOffset! : SpriteSpriteSheetspriteCellOffset
 }
 export abstract class SpriteSheetBlueprint {
-  eachSpriteCellSize!: number
-  afterRenderSpriteCellSize!: number
+  eachSpriteCellSizeHeight!: number
+  eachSpriteCellSizeWidth!: number
+  originalRenderSpriteHeight!: number
+  originalRenderSpriteWidth!: number
   rows!: number;
   columns!: number;
   sprites!: Map<SpriteName, SpriteSpriteSheetProperty>

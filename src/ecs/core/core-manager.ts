@@ -7,6 +7,7 @@ import { EntityManager } from "./entity-manager.js";
 import { LevelManager } from "./level-manager.js";
 import { SystemRunner } from "./system-runner.js";
 import { SoundMap } from "../../game/asset-manager/consts/sound-mapped.values.js"
+import { FreezeManager } from "./freeze-manager.js";
 
 export class CoreManager {
     private previousTimestamp = 0;
@@ -20,6 +21,7 @@ export class CoreManager {
     private _entityManager: EntityManager;
     private _soundManager!: SoundManager;
     private _levelManager!: LevelManager;
+    private _freezeMnager!: FreezeManager;
 
     constructor() {
         this._assetManager = new AssetManager();
@@ -37,7 +39,7 @@ export class CoreManager {
         console.log("Game generated");
         
         this._worldTilemapManager = new WorldTilemapManager(this._spriteManager);
-        this._systemRunner = new SystemRunner(this._worldTilemapManager, this._spriteManager, this._entityManager, this._soundManager, this._rendererEngine, this._levelManager);
+        this._systemRunner = new SystemRunner(this._worldTilemapManager, this._spriteManager, this._entityManager, this._soundManager, this._rendererEngine, this._levelManager, this._freezeManager);
         this._systemRunner.initialize();        
         this._soundManager.resumeOnUserGesture();
         //this._soundManager.playSound("THEME", true, 0.1);

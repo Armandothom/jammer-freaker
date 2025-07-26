@@ -4,6 +4,8 @@ import { IntentShotComponent } from "../components/intent-shot.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ShooterComponent } from "../components/shooter-component.js";
+import { SpriteComponent } from "../components/sprite.component.js";
+import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { ISystem } from "./system.interface.js";
 
@@ -20,7 +22,8 @@ export class ShootingSystem implements ISystem {
         private positionComponentStore: ComponentStore<PositionComponent>,
         private shooterComponentStore: ComponentStore<ShooterComponent>,
         private aimShootingComponentStore: ComponentStore<AimShootingComponent>,
-
+        private weaponAttachmentComponentStore: ComponentStore<WeaponSpriteAttachmentComponent>,
+        private spriteComponentStore: ComponentStore<SpriteComponent>,
     ) {
         this.canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
         this.initListeners();
@@ -55,16 +58,20 @@ export class ShootingSystem implements ISystem {
     private updateMousePosition = (e: MouseEvent) => {
         const playerIdRes = this.playerComponentStore.getAllEntities();
         const playerId = playerIdRes[0];
-        const positionPlayerComponent = this.positionComponentStore.get(playerId);
+        const weaponAttachments = this.weaponAttachmentComponentStore.getValuesAndEntityId();
+        const weaponAttachment = weaponAttachments.find((weaponAttachmentEntry) => weaponAttachmentEntry[1].parentEntityId == playerId)!;
+        const weaponPosition = this.positionComponentStore.get(weaponAttachment[0]);
+        const weaponSprite = this.spriteComponentStore.get(weaponAttachment[0]);
         const rect = this.canvas.getBoundingClientRect();
-        const dx = e.clientX - rect.left - positionPlayerComponent.x;
-        const dy = e.clientY - rect.top - positionPlayerComponent.y;
+        const mousePosX = e.clientX - rect.left;
+        const mousePosY = e.clientY - rect.top;
+        const dx = mousePosX - weaponPosition.x;
+        const dy = mousePosY - weaponPosition.y;
         const angle = Math.atan2(dy, dx);
-        this.aimShootingComponentStore.add(playerId, new AimShootingComponent(angle));
-        
+        this.aimShootingComponentStore.add(weaponAttachment[0], new AimShootingComponent(angle, weaponSprite.height * 5 / 20));
         this.currentMousePos = {
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top,
+            x: mousePosX,
+            y: mousePosY,
         };
     }
 

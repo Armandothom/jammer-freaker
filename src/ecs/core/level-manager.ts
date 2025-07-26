@@ -5,32 +5,31 @@ import { sleep } from "../../utils/sleep.js";
 import { ComponentStore } from "./component-store.js";
 import { EnemyComponent } from "../components/enemy.component.js";
 import { SoundManager } from "../../game/asset-manager/sound-manager.js";
+import { CameraManager } from "../../game/world/camera-manager.js";
+import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 
 export type EnemyInitialSpawn = { name: string; quantity: number };
+
+
 
 export class LevelManager {
     public previousLevel = 0;
     private levelNumber: number;
     public zoomProgressionFactor: number;
     public tileProgressionFactor: number;
-    public levelStartBypassFlag: boolean;
 
     constructor(
         private enemySpawnSystem: EnemySpawnSystem,
         private entityFactory: EntityFactory,
         private soundManager: SoundManager,
         private enemyComponentStore: ComponentStore<EnemyComponent>,
+        private tilemapManager: WorldTilemapManager,
+        private cameraManager: CameraManager,
     ) {
         this.levelNumber = this.previousLevel + 1;
-        this.zoomProgressionFactor = 0;
-        this.tileProgressionFactor = 0;
-        if (this.levelNumber >= 0 && this.levelNumber <= 8) {
-            this.zoomProgressionFactor = 1.5 * this.levelNumber;
-            this.tileProgressionFactor = 4 * this.levelNumber;
-        }
-        this.levelStartBypassFlag = false;
+        this.zoomProgressionFactor = 2;
+        this.tileProgressionFactor = 4;
     }
-
     async update() {
         const newLevel = this.previousLevel + 1;
         this.previousLevel = newLevel;
@@ -44,11 +43,26 @@ export class LevelManager {
             this.killAllEnemies();
             await sleep(10);
         }
-        
+
         const initialEnemiesTable = this.levelInitialEnemies(this.levelNumber);
 
         this.enemySpawnSystem.initialEnemiesSpawn(initialEnemiesTable);
         //console.log("Level Progredido:", levelNumber);
+        //const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!
+        this.levelNumber = 2;
+
+        if (this.levelNumber >= 0 && this.levelNumber <= 8) {
+            this.cameraManager.viewportXAxisTiles = 10 + (this.tileProgressionFactor) * this.levelNumber;
+            this.cameraManager.viewportYAxisTiles = 10 + (this.tileProgressionFactor) * this.levelNumber;
+            this.tilemapManager._maxNumberTilesX = 10 + (this.tileProgressionFactor) * this.levelNumber;
+            this.tilemapManager._maxNumberTilesY = 10 + (this.tileProgressionFactor) * this.levelNumber;
+
+            this.cameraManager.getViewport();
+            this.tilemapManager.generateTilemap();
+
+            this.zoomProgressionFactor = 2 - (1.5 / 8) * this.levelNumber;
+            console.log("zoomProg levelManager", this.zoomProgressionFactor);
+        }
     }
 
     levelInitialEnemies(level: number): { name: EnemyType, quantity: number }[] {

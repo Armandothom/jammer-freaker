@@ -4,19 +4,26 @@ import { CameraViewport } from "./types/camera-viewport.js";
 import { WorldTilemapManager } from "./world-tilemap-manager.js";
 
 export class CameraManager {
-  private viewportXAxisTiles: number = 20;
-  private viewportYAxisTiles: number = 20;
-  private tileSize: number; 
+  public viewportXAxisTiles: number;
+  public viewportYAxisTiles: number;
+  public tileSize: number;
   coordinateX: number = 0;
   coordinateY: number = 0;
 
   constructor(private tilemapManager: WorldTilemapManager, private spriteManager: SpriteManager) {
+
     this.tilemapManager = tilemapManager;
+    this.tileSize = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN).originalRenderSpriteHeight;
+
+    this.viewportXAxisTiles = 10;
+    this.viewportYAxisTiles = 10;
     this.setInitialPosition();
-    this.tileSize = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN).afterRenderSpriteCellSize;
   }
 
   public getViewport(): CameraViewport {
+    //console.log("cameraManager", this.tileSize, this.viewportXAxisTiles, this.viewportYAxisTiles);
+    this.coordinateX = this.viewportYAxisTiles / 2;
+    this.coordinateY = this.viewportYAxisTiles / 2;
     return this.calcViewport(this.coordinateX, this.coordinateY);
   }
 
@@ -36,9 +43,9 @@ export class CameraManager {
     const halfH = this.viewportYAxisTiles / 2;
     const halfW = this.viewportXAxisTiles / 2;
     const left = (x - halfW) * this.tileSize;
-    const right = (x + halfW) * this.tileSize;
+    const right = (x + halfW) * this.tileSize * 2;
     const top = (y - halfH) * this.tileSize;
-    const bottom = (y + halfH) * this.tileSize;
+    const bottom = (y + halfH) * this.tileSize * 2;
     return {
       left,
       right,

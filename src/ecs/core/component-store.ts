@@ -42,4 +42,8 @@ export class ComponentStore<T> {
   public getAllValues() {
     return Array.from(this.components.values());
   }
+
+  public getValuesAndEntityId() {
+    return Array.from(this.components.entries());
+  }
 }

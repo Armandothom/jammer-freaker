@@ -37,7 +37,6 @@ export class AiMovementBehaviorSystem implements ISystem {
                 continue;
             }
             const aiMovementOrder = this.aiMovementOrderComponentStore.get(aiEntityId);
-            //console.log("aimovementOrder", aiEntityId, aiMovementOrder.movementOrder, aiMovementOrder.pathList.length);
             switch (aiMovementOrder.movementOrder) {
                 case AiMovementOrder.MOVE_TO_PLAYER:
                 case AiMovementOrder.MOVE_AWAY_FROM_PLAYER:
@@ -108,9 +107,6 @@ export class AiMovementBehaviorSystem implements ISystem {
     private saveMoveIntent(aiMovementOrder: AIMovementOrderComponent, aiEntityId: number) {
         const aiPosition = this.positionComponentStore.get(aiEntityId);
         const aiVelocity = this.velocityComponentStore.get(aiEntityId);
-        const velocityLength = 1;
-
-        //console.log(aiMovementOrder.pathList[0].x, aiPosition.x, aiMovementOrder.pathList[0].y, aiPosition.y);
         if (aiMovementOrder.pathList[0].x == aiPosition.x && aiMovementOrder.pathList[0].y == aiPosition.y) {
             aiMovementOrder.pathList.shift();
         }

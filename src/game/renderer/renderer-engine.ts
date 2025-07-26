@@ -2,7 +2,7 @@ import { RenderObject } from "./types/render-objects.js";
 
 export class RendererEngine {
   private _isLoaded: boolean = false;
-  private _debugMode: boolean = true;
+  private _debugMode: boolean = false;
   private _program: WebGLProgram | undefined;
   private _canvas: HTMLCanvasElement;
   private _gl: WebGL2RenderingContext;
@@ -18,14 +18,14 @@ export class RendererEngine {
 
   public init() {
     const vertexShaderSource = `
-      attribute vec2 a_position;
+      attribute vec3 a_position;
       attribute vec2 a_uv;
       attribute vec2 a_local_uv;
       varying vec2 v_uv;
       varying vec2 v_local_uv;
 
       void main() {
-        gl_Position = vec4(a_position, 0.0, 1.0);
+        gl_Position = vec4(a_position, 1.0);
         v_uv = a_uv;
         v_local_uv = a_local_uv;
       }
@@ -47,12 +47,21 @@ export class RendererEngine {
             gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
           } else {
             vec4 texColor = texture2D(u_texture, v_uv);
+            if (texColor.a == 0.00) {
+              discard; 
+            }
             gl_FragColor = texColor;
         }
       }
     `;
     const vertexShader = this.createShader(this._gl.VERTEX_SHADER, vertexShaderSource);
     const fragmentShader = this.createShader(this._gl.FRAGMENT_SHADER, fragmentShaderSource);
+    this._gl.enable(this._gl.DEPTH_TEST);
+    this._gl.depthMask(true);
+    this._gl.depthFunc(this._gl.LEQUAL);
+    this._gl.clearDepth(1.0);
+    this._gl.enable(this._gl.BLEND);
+    this._gl.blendFunc(this._gl.SRC_ALPHA, this._gl.ONE_MINUS_SRC_ALPHA);
     this.createProgram(vertexShader, fragmentShader);
     this.setDebugMode();
 
@@ -61,7 +70,7 @@ export class RendererEngine {
     this._gl.uniform1i(textureLocation, 0);
   }
 
-  public render(terrainObjects: Array<RenderObject>, overTerrainObjects: Array<RenderObject>) {
+  public render(renderObjects: Array<RenderObject>) {
     const uvBorderPattern = [
       0.0, 0.0,  // top left
       0.0, 1.0,  // bottom left
@@ -71,11 +80,10 @@ export class RendererEngine {
       1.0, 0.0,  // top right
       0.0, 1.0   // bottom left
     ];
-    const allObjects = [...terrainObjects, ...overTerrainObjects];
 
     // Group based on texture
     const groups = new Map<WebGLTexture, RenderObject[]>();
-    for (const obj of allObjects) {
+    for (const obj of renderObjects) {
       if (!groups.has(obj.spriteSheetTexture)) {
         groups.set(obj.spriteSheetTexture, []);
       }
@@ -88,20 +96,41 @@ export class RendererEngine {
       const uvLocal: number[] = [];
 
       for (const obj of renderObjects) {
-        const { xWorldPosition, yWorldPosition, width, height, uvCoordinates } = obj;
-        const topLeft = this.toClipSpace(xWorldPosition, yWorldPosition, this._canvas);
-        const bottomLeft = this.toClipSpace(xWorldPosition, yWorldPosition + height, this._canvas);
-        const topRight = this.toClipSpace(xWorldPosition + width, yWorldPosition, this._canvas);
-        const bottomRight = this.toClipSpace(xWorldPosition + width, yWorldPosition + height, this._canvas);
+        const { xWorldPosition, yWorldPosition, zLevel, width, height, uvCoordinates, offsetRotation } = obj;
+        const angle = obj.angleRotation || 0;
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
+        const isMirrored = cos < 0 ? true : false;
 
-        vertices.push(
-          ...topLeft,
-          ...bottomLeft,
-          ...topRight,
-          ...bottomRight,
-          ...topRight,
-          ...bottomLeft
-        );
+
+        const localQuad = [
+          { x: 0, y: 0 },             // top-left
+          { x: 0, y: height },        // bottom-left
+          { x: width, y: 0 },         // top-right
+          { x: width, y: height },    // bottom-right
+          { x: width, y: 0 },         // top-right
+          { x: 0, y: height }         // bottom-left
+        ];
+        const pivot = { x: 0, y: isMirrored ? height - offsetRotation : offsetRotation };
+        for (const point of localQuad) {
+          const dx = point.x - pivot.x;
+          const dy = point.y - pivot.y;
+          let worldX: number;
+          let worldY: number;
+
+          if (obj.angleRotation !== null) {
+            const rotatedX = dx * cos - dy * sin;
+            const rotatedY = dx * sin + dy * cos;
+            worldX = xWorldPosition + rotatedX;
+            worldY = yWorldPosition + rotatedY;
+          } else {
+            worldX = xWorldPosition + dx;
+            worldY = yWorldPosition + dy;
+          }
+
+          const [clipX, clipY, clipZ] = this.toClipSpace(worldX, worldY, zLevel, this._canvas);
+          vertices.push(clipX, clipY, clipZ);
+        }
 
         uvTextures.push(...uvCoordinates);
         uvLocal.push(...uvBorderPattern);
@@ -116,7 +145,7 @@ export class RendererEngine {
       this._gl.bindBuffer(this._gl.ARRAY_BUFFER, bufferLocation);
       this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(vertices), this._gl.STATIC_DRAW);
       this._gl.enableVertexAttribArray(positionAttribLocation);
-      this._gl.vertexAttribPointer(positionAttribLocation, 2, this._gl.FLOAT, false, 0, 0);
+      this._gl.vertexAttribPointer(positionAttribLocation, 3, this._gl.FLOAT, false, 0, 0);
 
       // Send the UV vertices
       const uvAttributeLocation = this._gl.getAttribLocation(this.program, "a_uv");
@@ -135,7 +164,7 @@ export class RendererEngine {
       this._gl.vertexAttribPointer(uvLocalAttributeLocation, 2, this._gl.FLOAT, false, 0, 0);
 
       // Final call to render everything
-      this._gl.drawArrays(this._gl.TRIANGLES, 0, vertices.length / 2);
+      this._gl.drawArrays(this._gl.TRIANGLES, 0, vertices.length / 3);
     }
 
   }
@@ -153,10 +182,11 @@ export class RendererEngine {
   }
 
 
-  private toClipSpace(px: number, py: number, canvas: HTMLCanvasElement): [number, number] {
+  private toClipSpace(px: number, py: number, zLevel: number, canvas: HTMLCanvasElement): [number, number, number] {
     const clipX = (px / canvas.width) * 2 - 1;
     const clipY = 1 - (py / canvas.height) * 2;
-    return [clipX, clipY];
+    const clipZ = 1.0 - (zLevel / 1000) * 2.0;
+    return [clipX, clipY, clipZ];
   }
 
   private createProgram(vertexShader: WebGLShader, fragmentShader: WebGLShader) {

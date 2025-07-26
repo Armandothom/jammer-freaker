@@ -6,9 +6,11 @@ export enum RenderObjectLayer {
 export abstract class RenderObject {
   xWorldPosition! : number
   yWorldPosition! : number
+  zLevel! : number
   spriteSheetTexture!: WebGLTexture
   uvCoordinates!: number[]
   height!: number;
   width!: number;
   angleRotation!: number | null
+  offsetRotation!: number
 }

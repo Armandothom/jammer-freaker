@@ -1,4 +1,6 @@
 export enum AnimDirection {
   RIGHT = "right",
-  LEFT = "left"
+  LEFT = "left",
+  TOP = "top",
+  BOTTOM = "bottom"
 }

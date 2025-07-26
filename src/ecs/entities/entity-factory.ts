@@ -25,7 +25,10 @@ import { AiMovementRadiusComponent } from "../components/ai-movement-radius.comp
 import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
 import { EnemyDead } from "../components/enemy-dead.component.js";
 import { AimShootingComponent } from "../components/aim-shooting.component.js";
-import { VelocityMagnitude } from "../components/velocity-magnitude.component.js";
+import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
+import { SPRITESHEET_MAPPED_VALUES } from "../../game/asset-manager/consts/sprite-mapped-values.js";
+import { ZLayerComponent } from "../components/z-layer.component.js";
+import { WallHitComponent } from "../components/wall-hit.component.js";
 
 export class EntityFactory {
   constructor(
@@ -51,6 +54,9 @@ export class EntityFactory {
     private aiMovementRadiusComponentStore: ComponentStore<AiMovementRadiusComponent>,
     private enemyDeadComponentStore: ComponentStore<EnemyDead>,
     private aimShootingComponentStore: ComponentStore<AimShootingComponent>,
+    private weaponSpriteAttachmentComponentStore: ComponentStore<WeaponSpriteAttachmentComponent>,
+    private zLayerComponentStore: ComponentStore<ZLayerComponent>,
+    private hitComponentStore: ComponentStore<WallHitComponent>,
   ) {
 
   }
@@ -62,7 +68,6 @@ export class EntityFactory {
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.PLAYER_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity))
-    this.aimShootingComponentStore.add(entityId, new AimShootingComponent(0));
     this.playerComponentStore.add(entityId, new PlayerComponent());
     this.shooterComponentStore.add(entityId, new ShooterComponent());
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY))
@@ -70,7 +75,8 @@ export class EntityFactory {
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.damageComponentStore.add(entityId, new DamageComponent(damage));
-    console.log("Player criado com sucesso", entityId);
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
+    this.createSmg(entityId);
     return entityId;
   }
 
@@ -78,10 +84,12 @@ export class EntityFactory {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.BULLET_1, SpriteSheetName.BULLET)); //placeholder
+    this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.BULLET_FIRED));
     this.projectileComponentStore.add(entityId, new ProjectileComponent());
     this.velocityComponentStore.add(entityId, new VelocityComponent(velX, velY));
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.shotOriginComponentStore.add(entityId, new ShotOriginComponent(entityShooterId))
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
     return entityId;
   }
 
@@ -103,7 +111,9 @@ export class EntityFactory {
     this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
-    console.log("Soldier Spawnado", entityId, startX, startY);
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
+    this.createSmg(entityId);
+    console.log("Soldier ID", entityId);
     return entityId;
   }
 
@@ -114,7 +124,6 @@ export class EntityFactory {
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.ENEMY_STILL, SpriteSheetName.ENEMY));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.ENEMY_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
-    this.aimShootingComponentStore.add(entityId, new AimShootingComponent(0));
     this.enemyComponentStore.add(entityId, new EnemyComponent());
     this.shooterComponentStore.add(entityId, new ShooterComponent());
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY));
@@ -126,8 +135,7 @@ export class EntityFactory {
     this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
-    console.log("Juggernaut Spawnado", entityId, startX, startY);
-    //console.log(this.directionAnimationComponentStore.get(entityId));
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
     return entityId;
   }
 
@@ -149,8 +157,7 @@ export class EntityFactory {
     this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
-    console.log("Sniper Spawnado", entityId, startX, startY);
-    //console.log(this.directionAnimationComponentStore.get(entityId));
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
     return entityId;
   }
 
@@ -172,8 +179,7 @@ export class EntityFactory {
     this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
-    console.log("Kamikaze Spawnado", entityId, startX, startY);
-    //console.log(this.directionAnimationComponentStore.get(entityId));
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
     return entityId;
   }
 
@@ -195,8 +201,7 @@ export class EntityFactory {
     this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
-    console.log("Bomber Spawnado", entityId, startX, startY);
-    //console.log(this.directionAnimationComponentStore.get(entityId));
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
     return entityId;
   }
 
@@ -208,8 +213,7 @@ export class EntityFactory {
     this.collisionComponentStore.remove(entityId);
   }
 
-  destroyEnemy(entityId: number): void {  
-    console.log("Inimigo morto");
+  destroyEnemy(entityId: number): void {
     this.enemyDeadComponentStore.add(entityId, new EnemyDead());
     this.positionComponentStore.remove(entityId);
     this.spriteComponentStore.remove(entityId);
@@ -217,6 +221,31 @@ export class EntityFactory {
     this.shooterComponentStore.remove(entityId);
     this.velocityComponentStore.remove(entityId);
     this.aiComponentStore.remove(entityId);
+    this.destroyWeapon(entityId);
+  }
+
+
+  //Temporary, only to test rendering
+  createSmg(parentEntityId: number) {
+    const entityId = this.entityManager.registerEntity();
+    this.positionComponentStore.add(entityId, new PositionComponent(0, 0));
+    this.aimShootingComponentStore.add(entityId, new AimShootingComponent(0, 5));
+    this.weaponSpriteAttachmentComponentStore.add(entityId, new WeaponSpriteAttachmentComponent(parentEntityId, 16, 16, 18, 18));
+    this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.WEAPON_SMG));
+    this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.SMG, SpriteSheetName.WEAPON, 36, 20));
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
+  }
+
+  destroyWeapon(parentEntityId: number) {
+    const weaponAttachments = this.weaponSpriteAttachmentComponentStore.getValuesAndEntityId();
+    const weaponAttachment = weaponAttachments.find((weaponAttachmentEntry) => weaponAttachmentEntry[1].parentEntityId == parentEntityId)!;
+    const weaponEntityId = weaponAttachment[0];
+    this.positionComponentStore.remove(weaponEntityId);
+    this.aimShootingComponentStore.remove(weaponEntityId);
+    this.weaponSpriteAttachmentComponentStore.remove(weaponEntityId);
+    this.animationComponentStore.remove(weaponEntityId);
+    this.spriteComponentStore.remove(weaponEntityId);
+    this.zLayerComponentStore.remove(weaponEntityId);
   }
 
 }
