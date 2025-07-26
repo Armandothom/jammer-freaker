@@ -1,6 +1,7 @@
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
+import { VelocityComponent } from "../components/velocity-component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { ISystem } from "./system.interface.js";
 
@@ -10,20 +11,25 @@ export class InputMovementSystem implements ISystem {
     constructor(
         private positionComponentStore: ComponentStore<PositionComponent>,
         private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
-        private playerComponentStore: ComponentStore<PlayerComponent>
+        private playerComponentStore: ComponentStore<PlayerComponent>,
+        private velocityComponentStore: ComponentStore<VelocityComponent>
     ) { }
 
     update(deltaTime: number): void {
-        for (const entity of this.playerComponentStore.getAllEntities()) {
+        for (const playerId of this.playerComponentStore.getAllEntities()) {
+            const velocity = this.velocityComponentStore.get(playerId);
 
-            const input = getInputForEntity(entity); // Definido abaixo
+            const input = getInputForEntity(playerId); // Definido abaixo
             if (!input) continue;
 
-            const pos = this.positionComponentStore.get(entity);
+            const pos = this.positionComponentStore.get(playerId);
             if (!pos) continue;
 
-            const intent = new MovementIntentComponent(pos.x + input.dx, pos.y + input.dy);
-            this.movementIntentComponentStore.add(entity, intent);
+            const intent = new MovementIntentComponent(
+                pos.x + input.dx * velocity.currentVelocityX, 
+                pos.y + input.dy * velocity.currentVelocityY
+            );
+            this.movementIntentComponentStore.add(playerId, intent);
         }
     }
 }
@@ -43,7 +49,7 @@ function getInputForEntity(entityId: number): { dx: number, dy: number } | null 
         dx = (dx / vectorLength);
         dy = (dy / vectorLength);
     }
-    return {dx, dy};
+    return { dx, dy };
 
 }
 

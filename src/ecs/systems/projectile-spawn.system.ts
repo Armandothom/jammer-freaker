@@ -76,14 +76,15 @@ export class ProjectileSpawnSystem implements ISystem {
 
     private spawnProjectile(dir: { x: number; y: number }, shootingWeapon: WeaponSpriteAttachmentComponent): void {
         this.soundManager.playSound("SMG_FIRE");
+        console.log("projectile", dir.x, dir.y);
         const entity = this.entityFactory.createProjectile(
             shootingWeapon.barrelX,
             shootingWeapon.barrelY,
             shootingWeapon.parentEntityId,
-            dir.x * 120, // cte --> pode mudar
-            dir.y * 120
+            dir.x,
+            dir.y,
+            240 // Standard velocity ----> Must be changed by the shooting entity
         );
-        //Adição de mais componentes
     }
 
 }

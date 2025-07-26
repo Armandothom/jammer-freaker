@@ -29,6 +29,7 @@ import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment
 import { SPRITESHEET_MAPPED_VALUES } from "../../game/asset-manager/consts/sprite-mapped-values.js";
 import { ZLayerComponent } from "../components/z-layer.component.js";
 import { WallHitComponent } from "../components/wall-hit.component.js";
+import { DirectionComponent } from "../components/direction-component.js";
 
 export class EntityFactory {
   constructor(
@@ -56,7 +57,7 @@ export class EntityFactory {
     private aimShootingComponentStore: ComponentStore<AimShootingComponent>,
     private weaponSpriteAttachmentComponentStore: ComponentStore<WeaponSpriteAttachmentComponent>,
     private zLayerComponentStore: ComponentStore<ZLayerComponent>,
-    private hitComponentStore: ComponentStore<WallHitComponent>,
+    private directionComponentStore: ComponentStore<DirectionComponent>,
   ) {
 
   }
@@ -67,7 +68,7 @@ export class EntityFactory {
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.PLAYER_STILL, SpriteSheetName.PLAYER));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.PLAYER_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
-    this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity))
+    this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity))
     this.playerComponentStore.add(entityId, new PlayerComponent());
     this.shooterComponentStore.add(entityId, new ShooterComponent());
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY))
@@ -80,13 +81,14 @@ export class EntityFactory {
     return entityId;
   }
 
-  createProjectile(startX: number, startY: number, entityShooterId: number, velX: number, velY: number) {
+  createProjectile(startX: number, startY: number, entityShooterId: number, dirX: number, dirY: number, velocity: number) {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.BULLET_1, SpriteSheetName.BULLET)); //placeholder
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.BULLET_FIRED));
     this.projectileComponentStore.add(entityId, new ProjectileComponent());
-    this.velocityComponentStore.add(entityId, new VelocityComponent(velX, velY));
+    this.directionComponentStore.add(entityId, new DirectionComponent(dirX, dirY));
+    this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity));
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.shotOriginComponentStore.add(entityId, new ShotOriginComponent(entityShooterId))
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
@@ -96,7 +98,7 @@ export class EntityFactory {
   createSoldier(startX: number, startY: number, hp: number, damage: number, attackCooldownInSeconds: number, attackRange: number, movementRadius: number, velocity: number) {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
-    this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity));
+    this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.ENEMY_STILL, SpriteSheetName.ENEMY));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.ENEMY_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
@@ -120,7 +122,7 @@ export class EntityFactory {
   createJuggernaut(startX: number, startY: number, hp: number, damage: number, attackCooldownInSeconds: number, attackRange: number, movementRadius: number, velocity: number) {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
-    this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity));
+    this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.ENEMY_STILL, SpriteSheetName.ENEMY));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.ENEMY_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
@@ -143,7 +145,7 @@ export class EntityFactory {
   createSniper(startX: number, startY: number, hp: number, damage: number, attackCooldownInSeconds: number, attackRange: number, movementRadius: number, velocity: number) {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
-    this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity));
+    this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.ENEMY_STILL, SpriteSheetName.ENEMY));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.ENEMY_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
@@ -166,7 +168,7 @@ export class EntityFactory {
   createKamikaze(startX: number, startY: number, hp: number, damage: number, attackCooldownInSeconds: number, attackRange: number, movementRadius: number, velocity: number) {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
-    this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity));
+    this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.ENEMY_STILL, SpriteSheetName.ENEMY));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.ENEMY_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
@@ -189,7 +191,7 @@ export class EntityFactory {
   createBomber(startX: number, startY: number, hp: number, damage: number, attackCooldownInSeconds: number, attackRange: number, movementRadius: number, velocity: number) {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
-    this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity));
+    this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.ENEMY_STILL, SpriteSheetName.ENEMY));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.ENEMY_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));

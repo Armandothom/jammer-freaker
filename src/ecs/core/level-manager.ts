@@ -30,16 +30,16 @@ export class LevelManager {
         const newLevel = this.previousLevel + 1;
         this.levelNumber = newLevel;
 
+        this.levelNumber = 1;
         console.log("Level Number", this.levelNumber);
 
         if (this.levelNumber >= 0 && this.levelNumber <= 8) {
-            await this.enemyLifecicleSystem.levelUpdate(this.levelInitialEnemies(), this.levelNumber);
+            //await this.enemyLifecicleSystem.levelUpdate(this.levelInitialEnemies(), this.levelNumber);
             if (this.levelNumber > 1) {
                 this.cameraManager.viewportXAxisTiles = 10 + (this.tileProgressionFactor) * this.levelNumber;
                 this.cameraManager.viewportYAxisTiles = 10 + (this.tileProgressionFactor) * this.levelNumber;
                 this.tilemapManager._maxNumberTilesX = 10 + (this.tileProgressionFactor) * this.levelNumber;
                 this.tilemapManager._maxNumberTilesY = 10 + (this.tileProgressionFactor) * this.levelNumber;
-
 
                 this.cameraManager.getViewport();
                 this.tilemapManager.generateTilemap();

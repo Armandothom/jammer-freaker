@@ -116,7 +116,7 @@ export class CollisionSystem implements ISystem {
 
 
                     this.wallHitComponentStore.add(entity, new WallHitComponent(0.8));
-                    this.velocityComponentStore.add(entity, new VelocityComponent(0, 0));
+                    this.velocityComponentStore.add(entity, new VelocityComponent(0, 0, 0, 0));
                     this.collisionComponentStore.add(entity, new CollisionComponent(false));
                     //this.entityFactory.destroyProjectile(entity);
                 }
@@ -148,6 +148,7 @@ export class CollisionSystem implements ISystem {
 
         const shotOrigin = this.shotOriginComponentStore.getOrNull(self);
         const shooterId = shotOrigin?.shooterEntity;
+        const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;
 
         for (const other of this.collisionComponentStore.getAllEntities()) {
             if (other === self) continue;
@@ -176,9 +177,9 @@ export class CollisionSystem implements ISystem {
 
             const current = {
                 left: pos.x,
-                right: pos.x + otherTileSize,
+                right: pos.x + otherTileSize * zoomProgressionFactor,
                 top: pos.y,
-                bottom: pos.y + otherTileSize,
+                bottom: pos.y + otherTileSize * zoomProgressionFactor,
             };
 
             const intersect =

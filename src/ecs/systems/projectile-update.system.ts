@@ -1,3 +1,4 @@
+import { DirectionComponent } from "../components/direction-component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ProjectileComponent } from "../components/projectile-component.js";
@@ -15,6 +16,7 @@ export class ProjectileUpdateSystem implements ISystem {
         private projectileComponentStore: ComponentStore<ProjectileComponent>,
         private velocityComponentStore: ComponentStore<VelocityComponent>,
         private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
+        private directionComponentStore: ComponentStore<DirectionComponent>,
     ) { }
 
     canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
@@ -25,8 +27,9 @@ export class ProjectileUpdateSystem implements ISystem {
         for (const entity of projectileEntities) {
             const position = this.positionComponentStore.get(entity);
             const velocity = this.velocityComponentStore.get(entity);
-            let dirX = velocity.velX;
-            let dirY = velocity.velY;
+            const direction = this.directionComponentStore.get(entity);
+            let dirX = direction.dirX;
+            let dirY = direction.dirY;
             const magnitude = Math.sqrt(dirX * dirX + dirY * dirY);
 
             if (magnitude > 0) {
@@ -35,8 +38,8 @@ export class ProjectileUpdateSystem implements ISystem {
             }
 
             const intent = {
-                x: position.x + dirX * 100 * deltaTime,
-                y: position.y + dirY * 100 * deltaTime
+                x: position.x + dirX * velocity.currentVelocityX * deltaTime,
+                y: position.y + dirY * velocity.currentVelocityY * deltaTime
             };
 
             this.movementIntentComponentStore.add(entity, intent);

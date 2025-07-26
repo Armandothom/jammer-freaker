@@ -1,8 +1,10 @@
 export class VelocityComponent {
-  public velX : number;
-  public velY : number;
-  constructor(velX : number, velY: number) {
-    this.velX = velX;
-    this.velY = velY;
+  constructor(
+    public baseVelocityX: number,
+    public baseVelocityY: number,
+    public currentVelocityX: number,
+    public currentVelocityY: number,
+    public scaledAtLevel: number = -1,
+  ) {
   }
 }
