@@ -39,7 +39,8 @@ export class AnimationSpriteSystem implements ISystem {
                     break;
                 }
             }
-            
+
+            //console.log(currentFrame.spriteName, currentFrame.spriteSheetName);            
             this.spriteComponentStore.add(entityId, new SpriteComponent(
                 currentFrame.spriteName,
                 currentFrame.spriteSheetName

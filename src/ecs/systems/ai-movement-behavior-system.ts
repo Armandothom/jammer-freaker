@@ -122,12 +122,12 @@ export class AiMovementBehaviorSystem implements ISystem {
             } else {
                 let dirX = offsetX / magnitude;
                 let dirY = offsetY / magnitude;
+                //console.log("x, y", aiVelocity.currentVelocityX, aiVelocity.currentVelocityY);
 
                 this.movementIntentComponentStore.add(aiEntityId, new MovementIntentComponent(
-                    Math.floor(aiPosition.x + dirX * aiVelocity.currentVelocityX), 
+                    Math.floor(aiPosition.x + dirX * aiVelocity.currentVelocityX),
                     Math.floor(aiPosition.y + dirY * aiVelocity.currentVelocityY),
                 ))
-
             }
         }
     }

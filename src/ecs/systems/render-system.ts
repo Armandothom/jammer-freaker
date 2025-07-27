@@ -83,6 +83,7 @@ export class RenderSystem implements ISystem {
       const aimComponent = this.aimShootingComponentStore.getOrNull(entity);
       const mirrorSpriteX = this.directionAnimComponentStore.getOrNull(entity)?.xDirection == AnimDirection.LEFT ? true : false;
       const mirrorSpriteY = this.directionAnimComponentStore.getOrNull(entity)?.yDirection == AnimDirection.BOTTOM ? true : false;
+      //console.log(sprite.spriteName, sprite.spriteSheetName);
       const spriteProperties = this.spriteManager.getSpriteProperties(sprite.spriteName, sprite.spriteSheetName);
       const layerComponent = this.zLayerComponentStore.get(entity);
       renderObject.push({

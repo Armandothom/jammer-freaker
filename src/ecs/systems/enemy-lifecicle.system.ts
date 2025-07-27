@@ -4,13 +4,11 @@ import { ISystem } from "./system.interface.js";
 import { EnemyType, EnemyConfig } from "../components/types/enemy-type.js";
 import { EntityFactory } from "../entities/entity-factory.js";
 import { EnemyComponent } from "../components/enemy.component.js";
-import { CollisionComponent } from "../components/collision-component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { EnemyDead } from "../components/enemy-dead.component.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
-import { LevelManager } from "../core/level-manager.js";
 import { sleep } from "../../utils/sleep.js";
 import { SoundManager } from "../../game/asset-manager/sound-manager.js";
 import { FreezeManager } from "../core/freeze-manager.js";
@@ -35,11 +33,11 @@ export class EnemyLifecicleSystem implements ISystem {
 
     update(deltaTime: number): void {
         this.timeSinceLastSpawn += deltaTime;
-        let spawnIntervalsInSeconds = 20;
+        let spawnIntervalsInSeconds = 5;
         const previousTime = this.timeSinceLastSpawn - deltaTime;
 
         if (previousTime < spawnIntervalsInSeconds && this.timeSinceLastSpawn >= spawnIntervalsInSeconds) {
-            this.timeSinceLastSpawn = 0;
+            this.timeSinceLastSpawn = -999;
             this.spawnEnemy();
         }
     }
@@ -244,7 +242,6 @@ export class EnemyLifecicleSystem implements ISystem {
         const wallPosition = this.worldTilemapManager.generatedWalls;
         const playerId = this.playerComponentStore.getAllEntities()[0];
         const playerPos = this.positionComponentStore.get(playerId);
-        let counter = 0;
         let checkWallLogic = false;
         let checkPlayerEnemyLogic = false;
         let tries = 0;
@@ -297,9 +294,10 @@ export class EnemyLifecicleSystem implements ISystem {
             }
 
             const rolledPositionTile = {
-                x: Math.floor(rolledPosition.x / spriteProperties.originalRenderSpriteWidth),
-                y: Math.floor(rolledPosition.y / spriteProperties.originalRenderSpriteHeight)
+                x: Math.floor(rolledPosition.x / (spriteProperties.originalRenderSpriteWidth)),
+                y: Math.floor(rolledPosition.y / (spriteProperties.originalRenderSpriteHeight))
             }
+            console.log(rolledPositionTile);
 
             let counter = 0;
 

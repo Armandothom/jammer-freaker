@@ -157,7 +157,7 @@ export class SystemRunner {
       this.levelProgressionSystem.update(CoreManager.timeSinceLastRender);
       this.spriteLevelScaler.update(CoreManager.timeSinceLastRender);
       this.enemyLifecicleSystem.update(CoreManager.timeSinceLastRender);
-      this.dynamicAttributeSystem.update(CoreManager.timeSinceLastRender);
+      //this.dynamicAttributeSystem.update(CoreManager.timeSinceLastRender);
       this.inputMovementSystem.update(CoreManager.timeSinceLastRender);
       this.aiMovementBehaviorSystem.update(CoreManager.timeSinceLastRender);
       this.aiAttackBehaviorSystem.update(CoreManager.timeSinceLastRender)

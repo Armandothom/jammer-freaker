@@ -20,7 +20,8 @@ export class MovementSystem implements ISystem {
 
         for (const entity of entities) {
             
-            const intent = this.movementIntentComponentStore.getOrNull(entity); 
+            const intent = this.movementIntentComponentStore.getOrNull(entity);
+            //console.log("entity, intent", entity, intent);
 
             if (!intent) continue;
 

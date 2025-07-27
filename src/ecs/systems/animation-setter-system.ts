@@ -53,6 +53,7 @@ export class AnimationSetterSystem implements ISystem {
                 const initialPosition = this.positionComponentStore.get(entityWithAnim);
                 const deltaPosX = entityMovementIntent.x - initialPosition.x;
                 const deltaPosY = entityMovementIntent.y - initialPosition.y;
+                //console.log(deltaPosX, deltaPosY);
                 isMoving = (deltaPosX != 0 || deltaPosY != 0) ? true : false;
                 //Entity is not moving horizontally
             }

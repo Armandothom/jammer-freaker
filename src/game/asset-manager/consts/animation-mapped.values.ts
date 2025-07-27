@@ -64,6 +64,42 @@ export const ANIMATION_MAPPED: Map<AnimationName, Map<SpriteName, AnimationKeyMa
   ],
 
   [
+    AnimationName.ENEMY_RUN,
+    new Map<SpriteName, AnimationKeyMap>([
+      [SpriteName.ENEMY_RUNNING_1, {
+        spriteName: SpriteName.ENEMY_RUNNING_1,
+        spriteSheetName: SpriteSheetName.ENEMY,
+        order: 1,
+        durationKeyFrame: 0.25
+      }],
+      [SpriteName.ENEMY_RUNNING_2, {
+        spriteName: SpriteName.ENEMY_RUNNING_2,
+        spriteSheetName: SpriteSheetName.ENEMY,
+        order: 2,
+        durationKeyFrame: 0.25
+      }],
+      [SpriteName.ENEMY_RUNNING_3, {
+        spriteName: SpriteName.ENEMY_RUNNING_3,
+        spriteSheetName: SpriteSheetName.ENEMY,
+        order: 3,
+        durationKeyFrame: 0.25
+      }],
+      [SpriteName.ENEMY_RUNNING_4, {
+        spriteName: SpriteName.ENEMY_RUNNING_4,
+        spriteSheetName: SpriteSheetName.ENEMY,
+        order: 4,
+        durationKeyFrame: 0.25
+      }],
+      [SpriteName.ENEMY_RUNNING_5, {
+        spriteName: SpriteName.ENEMY_RUNNING_5,
+        spriteSheetName: SpriteSheetName.ENEMY,
+        order: 5,
+        durationKeyFrame: 0.25
+      }],
+    ])
+  ],
+
+  [
     AnimationName.WEAPON_SMG,
     new Map<SpriteName, AnimationKeyMap>([
       [SpriteName.SMG, {
