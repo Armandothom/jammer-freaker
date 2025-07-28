@@ -17,7 +17,7 @@ export class WorldTilemapManager {
   constructor(
     private spriteManager: SpriteManager,
   ) {
-    this.tileSize = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN).originalRenderSpriteHeight;
+    this.tileSize = this.spriteManager.getSpriteProperties(SpriteName.METAL_1,SpriteSheetName.TERRAIN).sprite.originalRenderSpriteHeight;
     this._maxNumberTilesX = 10;
     this._maxNumberTilesY = 10;
     this.generateTilemap();
@@ -265,6 +265,14 @@ export class WorldTilemapManager {
         }
       }
     )
+
+    //clear player SpawnPoint
+    const playerSpawn = { x: 1, y: this._maxNumberTilesY / 2 };
+    for (let j = -1; j <= 1; j++) {
+      for (let i = -1; i <= 1; i++) {
+        noiseValue[playerSpawn.y + j][playerSpawn.x + i] = 0;
+      }
+    }
 
     for (let y = 0; y < this._maxNumberTilesY; y++) {
       for (let x = 0; x < this._maxNumberTilesX; x++) {

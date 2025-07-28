@@ -101,7 +101,7 @@ export class SpriteManager {
     }
     return {
       sprite,
-      spriteSheet
+      spriteSheet,
     }
   }
    

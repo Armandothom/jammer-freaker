@@ -12,6 +12,7 @@ import { SpriteComponent } from "../components/sprite.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityFactory } from "../entities/entity-factory.js";
 import { ISystem } from "./system.interface.js";
+import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 
 export class ProjectileSpawnSystem implements ISystem {
     private readonly tileSize: number;
@@ -30,8 +31,8 @@ export class ProjectileSpawnSystem implements ISystem {
         private shooterComponentStore: ComponentStore<ShooterComponent>,
         private fireRateMs: number = 200
     ) {
-        const terrainSpriteSheet = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN);
-        this.tileSize = terrainSpriteSheet.originalRenderSpriteWidth;
+        const terrainSpriteSheet = this.spriteManager.getSpriteProperties(SpriteName.METAL_1,SpriteSheetName.TERRAIN);
+        this.tileSize = terrainSpriteSheet.sprite.originalRenderSpriteWidth;
     }
 
     update(deltaTime: number): void {

@@ -17,9 +17,9 @@ export class SpriteLevelScalerSystem implements ISystem {
         const sprites = this.spriteComponentStore.getValuesAndEntityId();
         const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;
         for (const sprite of sprites) {
-            const spriteProperties = this.spriteManager.getSpriteSheetProperties(sprite[1].spriteSheetName);
-            sprite[1].height = spriteProperties.originalRenderSpriteHeight * zoomProgressionFactor;
-            sprite[1].width = spriteProperties.originalRenderSpriteWidth * zoomProgressionFactor;
+            const spriteProperties = this.spriteManager.getSpriteProperties(sprite[1].spriteName,sprite[1].spriteSheetName);
+            sprite[1].height = spriteProperties.sprite.originalRenderSpriteHeight * zoomProgressionFactor;
+            sprite[1].width = spriteProperties.sprite.originalRenderSpriteWidth * zoomProgressionFactor;
         }
     }
 

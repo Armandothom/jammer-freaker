@@ -54,12 +54,12 @@ export class RenderSystem implements ISystem {
     for (const terrainTile of terrainTilesInViewport) {
       const spriteDetails = this.spriteManager.getSpriteProperties(terrainTile.spriteName, terrainSpritesheet);
       terrainRenderObjects.push({
-        xWorldPosition: terrainTile.x * spriteDetails.spriteSheet.originalRenderSpriteHeight * zoomProgressionFactor,
-        yWorldPosition: terrainTile.y * spriteDetails.spriteSheet.originalRenderSpriteWidth * zoomProgressionFactor,
+        xWorldPosition: terrainTile.x * spriteDetails.sprite.originalRenderSpriteHeight * zoomProgressionFactor,
+        yWorldPosition: terrainTile.y * spriteDetails.sprite.originalRenderSpriteWidth * zoomProgressionFactor,
         spriteSheetTexture: spriteDetails.spriteSheet.texture,
         uvCoordinates: this.spriteManager.getUvCoordinates(terrainTile.spriteName, terrainSpritesheet),
-        height: spriteDetails.spriteSheet.originalRenderSpriteHeight * zoomProgressionFactor,
-        width: spriteDetails.spriteSheet.originalRenderSpriteWidth * zoomProgressionFactor,
+        height: spriteDetails.sprite.originalRenderSpriteHeight * zoomProgressionFactor,
+        width: spriteDetails.sprite.originalRenderSpriteWidth * zoomProgressionFactor,
         angleRotation: null,
         offsetRotation: 0,
         zLevel: (terrainTile.y * 0.1) * this.layerMultiplicator["1"]
@@ -83,7 +83,7 @@ export class RenderSystem implements ISystem {
       const aimComponent = this.aimShootingComponentStore.getOrNull(entity);
       const mirrorSpriteX = this.directionAnimComponentStore.getOrNull(entity)?.xDirection == AnimDirection.LEFT ? true : false;
       const mirrorSpriteY = this.directionAnimComponentStore.getOrNull(entity)?.yDirection == AnimDirection.BOTTOM ? true : false;
-      //console.log(sprite.spriteName, sprite.spriteSheetName);
+
       const spriteProperties = this.spriteManager.getSpriteProperties(sprite.spriteName, sprite.spriteSheetName);
       const layerComponent = this.zLayerComponentStore.get(entity);
       renderObject.push({

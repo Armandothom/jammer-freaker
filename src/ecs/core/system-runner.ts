@@ -60,6 +60,7 @@ import { OffsetAppliedComponent } from "../components/offset-applied.component.j
 import { LevelUpdateSystem } from "../systems/level-update.system.js";
 import { DynamicAttributeSystem } from "../systems/dynamic-attribute.system.js";
 import { DirectionComponent } from "../components/direction-component.js";
+import { WeaponComponent } from "../components/weapon.component.js";
 
 export class SystemRunner {
   private renderSystem: RenderSystem;
@@ -97,6 +98,7 @@ export class SystemRunner {
   private wallHitComponentStore: ComponentStore<WallHitComponent> = new ComponentStore("WallHitComponent");
   private offsetAppliedComponentStore: ComponentStore<OffsetAppliedComponent> = new ComponentStore("OffsetAppliedComponent");
   private directionComponentStore: ComponentStore<DirectionComponent> = new ComponentStore("Direction Component");
+  private weaponComponentStore: ComponentStore<WeaponComponent> = new ComponentStore("WeaponComponent");
   private animationSpriteSystem: AnimationSpriteSystem;
   private inputMovementSystem: InputMovementSystem;
   private shootingSystem: ShootingSystem;
@@ -129,8 +131,8 @@ export class SystemRunner {
     this.cameraManager = new CameraManager(this.worldTilemapManager, this.spriteManager);
     this.freezeManager = new FreezeManager();
     this.playerInitialProperties = new PlayerInitialProperties();
-    this.entityFactory = new EntityFactory(entityManager, this.playerComponentStore, this.enemyComponentStore, this.positionComponentStore, this.spriteComponentStore, this.projectileComponentStore, this.shooterComponentStore, this.velocityComponentStore, this.movementIntentComponentStore, this.soldierComponentStore, this.animationComponentStore, this.directionAnimComponentStore, this.collisionComponentStore, this.aiComponentStore, this.healthComponentStore, this.shotOriginComponentStore, this.damageComponentStore, this.shootingCooldownComponentStore, this.aiAttackRangeComponentStore, this.aiMovementRadiusComponentStore, this.enemyDeadComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.zLayerComponentStore, this.directionComponentStore);
-    this.enemyLifecicleSystem = new EnemyLifecicleSystem(this.positionComponentStore, this.playerComponentStore, this.enemyComponentStore, this.enemyDeadComponentStore, this.entityFactory, this.worldTilemapManager, this.spriteManager, this.soundManager, this.freezeManager);
+    this.entityFactory = new EntityFactory(entityManager, this.playerComponentStore, this.enemyComponentStore, this.positionComponentStore, this.spriteComponentStore, this.projectileComponentStore, this.shooterComponentStore, this.velocityComponentStore, this.movementIntentComponentStore, this.animationComponentStore, this.directionAnimComponentStore, this.collisionComponentStore, this.aiComponentStore, this.healthComponentStore, this.shotOriginComponentStore, this.damageComponentStore, this.shootingCooldownComponentStore, this.aiAttackRangeComponentStore, this.aiMovementRadiusComponentStore, this.enemyDeadComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.zLayerComponentStore, this.directionComponentStore, this.weaponComponentStore);
+    this.enemyLifecicleSystem = new EnemyLifecicleSystem(this.positionComponentStore, this.playerComponentStore, this.enemyComponentStore, this.enemyDeadComponentStore, this.entityFactory, this.worldTilemapManager, this.spriteManager, this.soundManager, this.freezeManager, this.spriteComponentStore, this.worldTilemapManager);
     this.levelManager = new LevelManager(this.enemyLifecicleSystem, this.worldTilemapManager, this.cameraManager);
     this.dynamicAttributeSystem = new DynamicAttributeSystem(this.levelManager, this.velocityComponentStore, this.projectileComponentStore);
     this.levelUpdateSystem = new LevelUpdateSystem(this.levelManager);
@@ -157,7 +159,7 @@ export class SystemRunner {
       this.levelProgressionSystem.update(CoreManager.timeSinceLastRender);
       this.spriteLevelScaler.update(CoreManager.timeSinceLastRender);
       this.enemyLifecicleSystem.update(CoreManager.timeSinceLastRender);
-      //this.dynamicAttributeSystem.update(CoreManager.timeSinceLastRender);
+      this.dynamicAttributeSystem.update(CoreManager.timeSinceLastRender);
       this.inputMovementSystem.update(CoreManager.timeSinceLastRender);
       this.aiMovementBehaviorSystem.update(CoreManager.timeSinceLastRender);
       this.aiAttackBehaviorSystem.update(CoreManager.timeSinceLastRender)

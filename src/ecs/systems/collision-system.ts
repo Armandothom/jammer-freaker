@@ -62,9 +62,9 @@ export class CollisionSystem implements ISystem {
                 continue;
             }
 
-            const spriteSheetOriginProperties = this.spriteManager.getSpriteSheetProperties(spriteComponent.spriteSheetName);
-            const wouldCollideCheckEntity = this.wouldCollideAABB(intent, entity, spriteSheetOriginProperties.originalRenderSpriteHeight);
-            const wallCollisionCheck = this.wallCollision(intent, entity, spriteSheetOriginProperties.originalRenderSpriteHeight);
+            const spriteOriginProperties = this.spriteManager.getSpriteProperties(spriteComponent.spriteName, spriteComponent.spriteSheetName);
+            const wouldCollideCheckEntity = this.wouldCollideAABB(intent, entity, spriteOriginProperties.sprite.originalRenderSpriteHeight);
+            const wallCollisionCheck = this.wallCollision(intent, entity, spriteOriginProperties.sprite.originalRenderSpriteHeight);
 
             // REMINDER: WALLS ARE NOT ENTITIES, THIS BELOW WILL CHECK ENTITIES
             if (wouldCollideCheckEntity.wouldCollide) {
@@ -123,8 +123,8 @@ export class CollisionSystem implements ISystem {
             }
 
             if (
-                intent.x > canvas.width - spriteSheetOriginProperties.originalRenderSpriteWidth * zoomProgressionFactor ||
-                intent.y > canvas.height - spriteSheetOriginProperties.originalRenderSpriteHeight * zoomProgressionFactor ||
+                intent.x > canvas.width - spriteOriginProperties.sprite.originalRenderSpriteWidth * zoomProgressionFactor ||
+                intent.y > canvas.height - spriteOriginProperties.sprite.originalRenderSpriteHeight * zoomProgressionFactor ||
                 intent.x <= 0 || intent.y <= 0
             ) {
                 this.movementIntentComponentStore.remove(entity);
@@ -172,7 +172,7 @@ export class CollisionSystem implements ISystem {
 
             const otherSprite = this.spriteComponentStore.getOrNull(other);
             const otherTileSize = otherSprite
-                ? this.spriteManager.getSpriteSheetProperties(otherSprite.spriteSheetName)?.originalRenderSpriteHeight ?? tileSize
+                ? this.spriteManager.getSpriteProperties(otherSprite.spriteName, otherSprite.spriteSheetName)?.sprite.originalRenderSpriteHeight ?? tileSize
                 : tileSize;
 
             const current = {
@@ -217,15 +217,13 @@ export class CollisionSystem implements ISystem {
         };
 
         const wallPosition = this.worldTilemapManager.generatedWalls;
-        const tilemapProperties = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN);
+        const tilemapProperties = this.spriteManager.getSpriteProperties(SpriteName.WALL_1,SpriteSheetName.TERRAIN);
 
 
         for (const { x, y } of wallPosition) {
-            const tileWidth = tilemapProperties.originalRenderSpriteWidth * zoomProgressionFactor;
-            const tileHeight = tilemapProperties.originalRenderSpriteHeight * zoomProgressionFactor;
+            const tileWidth = tilemapProperties.sprite.originalRenderSpriteWidth * zoomProgressionFactor;
+            const tileHeight = tilemapProperties.sprite.originalRenderSpriteHeight * zoomProgressionFactor;
             const wallRect = {
-                //* tilemapProperties.originalRenderSpriteWidth * zoomProgressionFactor
-                //* tilemapProperties.originalRenderSpriteHeight * zoomProgressionFactor
                 left: (x * tileWidth),
                 right: ((x + 1) * tileWidth),
                 top: (y * tileHeight),

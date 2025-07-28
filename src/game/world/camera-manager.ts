@@ -1,6 +1,7 @@
 import { SpriteManager } from "../asset-manager/sprite-manager.js";
 import { SpriteSheetName } from "../asset-manager/types/sprite-sheet-name.enum.js";
 import { CameraViewport } from "./types/camera-viewport.js";
+import { SpriteName } from "./types/sprite-name.enum.js";
 import { WorldTilemapManager } from "./world-tilemap-manager.js";
 
 export class CameraManager {
@@ -13,7 +14,7 @@ export class CameraManager {
   constructor(private tilemapManager: WorldTilemapManager, private spriteManager: SpriteManager) {
 
     this.tilemapManager = tilemapManager;
-    this.tileSize = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.TERRAIN).originalRenderSpriteHeight;
+    this.tileSize = this.spriteManager.getSpriteProperties(SpriteName.METAL_1,SpriteSheetName.TERRAIN).sprite.originalRenderSpriteHeight;
 
     this.viewportXAxisTiles = 10;
     this.viewportYAxisTiles = 10;

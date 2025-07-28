@@ -124,9 +124,11 @@ export class AiMovementBehaviorSystem implements ISystem {
                 let dirY = offsetY / magnitude;
                 //console.log("x, y", aiVelocity.currentVelocityX, aiVelocity.currentVelocityY);
 
+
+                //We are using the base velocity below, I think the velocity property is different in the A* Pathing or smth
                 this.movementIntentComponentStore.add(aiEntityId, new MovementIntentComponent(
-                    Math.floor(aiPosition.x + dirX * aiVelocity.currentVelocityX),
-                    Math.floor(aiPosition.y + dirY * aiVelocity.currentVelocityY),
+                    Math.floor(aiPosition.x + dirX * aiVelocity.baseVelocityY),
+                    Math.floor(aiPosition.y + dirY * aiVelocity.baseVelocityY),
                 ))
             }
         }

@@ -12,6 +12,8 @@ import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-nam
 import { sleep } from "../../utils/sleep.js";
 import { SoundManager } from "../../game/asset-manager/sound-manager.js";
 import { FreezeManager } from "../core/freeze-manager.js";
+import { SpriteComponent } from "../components/sprite.component.js";
+import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 
 export class EnemyLifecicleSystem implements ISystem {
     private timeSinceLastSpawn = 0;
@@ -27,13 +29,15 @@ export class EnemyLifecicleSystem implements ISystem {
         private spriteManager: SpriteManager,
         private soundManager: SoundManager,
         private freezeManager: FreezeManager,
+        private spriteComponentStore: ComponentStore<SpriteComponent>,
+        private tilemapManager: WorldTilemapManager,
     ) {
 
     }
 
     update(deltaTime: number): void {
         this.timeSinceLastSpawn += deltaTime;
-        let spawnIntervalsInSeconds = 5;
+        let spawnIntervalsInSeconds = 10;
         const previousTime = this.timeSinceLastSpawn - deltaTime;
 
         if (previousTime < spawnIntervalsInSeconds && this.timeSinceLastSpawn >= spawnIntervalsInSeconds) {
@@ -228,10 +232,10 @@ export class EnemyLifecicleSystem implements ISystem {
 
     positionRoll(): { x: number, y: number } {
         const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
-        const spriteProperties = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.ENEMY);
+        const spriteProperties = this.spriteManager.getSpriteProperties(SpriteName.ENEMY_STILL,SpriteSheetName.ENEMY);
         return {
-            x: Math.floor((canvas.width - spriteProperties.originalRenderSpriteWidth) * Math.random()),
-            y: Math.floor((canvas.height - spriteProperties.originalRenderSpriteHeight) * Math.random()),
+            x: Math.floor((canvas.width - spriteProperties.sprite.originalRenderSpriteWidth) * Math.random()),
+            y: Math.floor((canvas.height - spriteProperties.sprite.originalRenderSpriteHeight) * Math.random()),
         }
     }
 
@@ -272,11 +276,12 @@ export class EnemyLifecicleSystem implements ISystem {
 
             //Enemy and player spawn check
             for (const enemyEntity of aliveEnemyEntities) {
-                const enemyPos: { x: number, y: number } = this.positionComponentStore.get(enemyEntity);
+                const enemyPos: { x: number, y: number } = this.positionComponentStore.get(enemyEntity)
+                const sprite = this.spriteComponentStore.get(enemyEntity);
 
                 const enemyDistance = Math.hypot(enemyPos.x - rolledPosition.x, enemyPos.y - rolledPosition.y);
                 const playerDistance = Math.hypot(playerPos.x - rolledPosition.x, playerPos.y - rolledPosition.y);
-                if (enemyDistance >= spriteProperties.originalRenderSpriteHeight * 2 && playerDistance >= spriteProperties.originalRenderSpriteWidth * 2) {
+                if (enemyDistance >= sprite.height * 2 && playerDistance >= sprite.width * 2) {
                     sucessCount++;
                 }
             }
@@ -294,10 +299,9 @@ export class EnemyLifecicleSystem implements ISystem {
             }
 
             const rolledPositionTile = {
-                x: Math.floor(rolledPosition.x / (spriteProperties.originalRenderSpriteWidth)),
-                y: Math.floor(rolledPosition.y / (spriteProperties.originalRenderSpriteHeight))
+                x: Math.floor(rolledPosition.x / this.tilemapManager.tileSize),
+                y: Math.floor(rolledPosition.y / this.tilemapManager.tileSize)
             }
-            console.log(rolledPositionTile);
 
             let counter = 0;
 
