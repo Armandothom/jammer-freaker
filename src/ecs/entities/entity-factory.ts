@@ -31,6 +31,7 @@ import { ZLayerComponent } from "../components/z-layer.component.js";
 import { WallHitComponent } from "../components/wall-hit.component.js";
 import { DirectionComponent } from "../components/direction-component.js";
 import { WeaponComponent } from "../components/weapon.component.js";
+import { WeaponConfig, WeaponType } from "../components/types/weapon-type.js";
 
 export class EntityFactory {
   constructor(
@@ -71,12 +72,14 @@ export class EntityFactory {
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity))
     this.playerComponentStore.add(entityId, new PlayerComponent());
-    this.shooterComponentStore.add(entityId, new ShooterComponent());
+    this.shooterComponentStore.add(entityId, new ShooterComponent(WeaponConfig[WeaponType.RIFLE].shootingCooldown));
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY))
     this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.RIFLE, SpriteSheetName.WEAPON, AnimationName.WEAPON_RIFLE));
+    //this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(WeaponConfig[WeaponType.RIFLE].shootingCooldown));
+    console.log("weaponConfig", WeaponConfig[WeaponType.RIFLE].shootingCooldown);
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
-    this.damageComponentStore.add(entityId, new DamageComponent(damage));
+    this.damageComponentStore.add(entityId, new DamageComponent(WeaponConfig[WeaponType.RIFLE].damage));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
     this.createWeapon(entityId);
     return entityId;
@@ -104,14 +107,14 @@ export class EntityFactory {
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.ENEMY_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
     this.enemyComponentStore.add(entityId, new EnemyComponent());
-    this.shooterComponentStore.add(entityId, new ShooterComponent());
+    this.shooterComponentStore.add(entityId, new ShooterComponent(attackCooldownInSeconds));
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY));
     this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.SMG, SpriteSheetName.WEAPON, AnimationName.WEAPON_SMG));
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.aiComponentStore.add(entityId, new AIComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.damageComponentStore.add(entityId, new DamageComponent(damage));
-    this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
+    //this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
@@ -128,14 +131,14 @@ export class EntityFactory {
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.ENEMY_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
     this.enemyComponentStore.add(entityId, new EnemyComponent());
-    this.shooterComponentStore.add(entityId, new ShooterComponent());
+    this.shooterComponentStore.add(entityId, new ShooterComponent(attackCooldownInSeconds));
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY));
     this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.SMG, SpriteSheetName.WEAPON, AnimationName.WEAPON_SMG, 36, 20));
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.aiComponentStore.add(entityId, new AIComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.damageComponentStore.add(entityId, new DamageComponent(damage));
-    this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
+    //this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
@@ -151,14 +154,14 @@ export class EntityFactory {
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.ENEMY_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
     this.enemyComponentStore.add(entityId, new EnemyComponent());
-    this.shooterComponentStore.add(entityId, new ShooterComponent());
+    this.shooterComponentStore.add(entityId, new ShooterComponent(attackCooldownInSeconds));
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY));
     this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.SMG, SpriteSheetName.WEAPON, AnimationName.WEAPON_SMG, 36, 20));
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.aiComponentStore.add(entityId, new AIComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.damageComponentStore.add(entityId, new DamageComponent(damage));
-    this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
+    //this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
@@ -174,14 +177,14 @@ export class EntityFactory {
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.ENEMY_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
     this.enemyComponentStore.add(entityId, new EnemyComponent());
-    this.shooterComponentStore.add(entityId, new ShooterComponent());
+    this.shooterComponentStore.add(entityId, new ShooterComponent(attackCooldownInSeconds));
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY));
     this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.SMG, SpriteSheetName.WEAPON, AnimationName.WEAPON_SMG, 36, 20));
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.aiComponentStore.add(entityId, new AIComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.damageComponentStore.add(entityId, new DamageComponent(damage));
-    this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
+    //this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
@@ -197,14 +200,14 @@ export class EntityFactory {
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.ENEMY_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
     this.enemyComponentStore.add(entityId, new EnemyComponent());
-    this.shooterComponentStore.add(entityId, new ShooterComponent());
+    this.shooterComponentStore.add(entityId, new ShooterComponent(attackCooldownInSeconds));
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY));
     this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.SMG, SpriteSheetName.WEAPON, AnimationName.WEAPON_SMG, 36, 20));
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.aiComponentStore.add(entityId, new AIComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.damageComponentStore.add(entityId, new DamageComponent(damage));
-    this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
+    //this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));

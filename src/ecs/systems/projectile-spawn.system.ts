@@ -13,6 +13,7 @@ import { ComponentStore } from "../core/component-store.js";
 import { EntityFactory } from "../entities/entity-factory.js";
 import { ISystem } from "./system.interface.js";
 import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+import { PlayerComponent } from "../components/player.component.js";
 
 export class ProjectileSpawnSystem implements ISystem {
     private readonly tileSize: number;
@@ -29,7 +30,8 @@ export class ProjectileSpawnSystem implements ISystem {
         private intentShotComponentStore: ComponentStore<IntentShotComponent>,
         private shootingCooldownComponentStore: ComponentStore<ShootingCooldownComponent>,
         private shooterComponentStore: ComponentStore<ShooterComponent>,
-        private fireRateMs: number = 200
+        private playerComponentStore: ComponentStore<PlayerComponent>,
+
     ) {
         const terrainSpriteSheet = this.spriteManager.getSpriteProperties(SpriteName.METAL_1,SpriteSheetName.TERRAIN);
         this.tileSize = terrainSpriteSheet.sprite.originalRenderSpriteWidth;
@@ -41,6 +43,7 @@ export class ProjectileSpawnSystem implements ISystem {
         const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
         const canvasWidthHeightInTiles = canvas.width / this.tileSize;
         const attachedWeapons = this.attachedSpriteComponent.getValuesAndEntityId();
+        const playerId = this.playerComponentStore.getAllEntities()[0];
 
         for (const entity of shooters) {
             const shooterPos = this.positionComponentStore.get(entity);
@@ -67,10 +70,11 @@ export class ProjectileSpawnSystem implements ISystem {
             //let dir = { x: dx / magnitude, y: dy / magnitude };
             let dir = { x: Math.cos(angle), y: Math.sin(angle) }; // Vetor de direção normalizado
 
+            const cooldownConfig = this.shooterComponentStore.get(entity).shootingCooldown;
             const cooldown = this.shootingCooldownComponentStore.has(entity);
             if (!cooldown) {
                 this.spawnProjectile(dir, attachedWeapon);
-                const cooldownAdd = this.shootingCooldownComponentStore.add(entity, new ShootingCooldownComponent(0.2));
+                const cooldownAdd = this.shootingCooldownComponentStore.add(entity, new ShootingCooldownComponent(cooldownConfig));
             }
         }
     }
@@ -85,6 +89,10 @@ export class ProjectileSpawnSystem implements ISystem {
             dir.y,
             240 // Standard velocity ----> Must be changed by the shooting entity
         );
+    }
+
+    private getCooldown(){
+
     }
 
 }

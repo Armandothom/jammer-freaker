@@ -1,4 +1,6 @@
 export class ShooterComponent {
-  constructor() {
+  public shootingCooldown: number;
+  constructor(shootingCooldown: number) {
+    this.shootingCooldown = shootingCooldown;
   }
 }
