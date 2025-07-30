@@ -19,8 +19,7 @@ export class TerminatorSystem implements ISystem {
         private intentShotComponentStore: ComponentStore<IntentShotComponent>,
         private wallHitComponentStore: ComponentStore<WallHitComponent>,
         private entityFactory: EntityFactory,
-
-    ) { }
+    ) {}
 
     update(deltaTime: number): void {
         const clickIntentComponentEntities = this.clickIntentComponentStore.getAllEntities();

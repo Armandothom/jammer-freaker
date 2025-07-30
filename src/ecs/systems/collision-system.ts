@@ -22,6 +22,7 @@ import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
 import { WallHitComponent } from "../components/wall-hit.component.js";
 import { AnimationComponent } from "../components/animation.component.js";
 import { VelocityComponent } from "../components/velocity-component.js";
+import { DamageTakenComponent } from "../components/damage-taken.component.js";
 
 export class CollisionSystem implements ISystem {
     constructor(
@@ -43,6 +44,7 @@ export class CollisionSystem implements ISystem {
         private levelManager: LevelManager,
         private animationComponentStore: ComponentStore<AnimationComponent>,
         private velocityComponentStore: ComponentStore<VelocityComponent>,
+        private damageTakenComponentStore: ComponentStore<DamageTakenComponent>,
     ) {
 
     }
@@ -89,17 +91,7 @@ export class CollisionSystem implements ISystem {
                         (projectileFromEnemy && targetPlayer);
 
                     if (validTarget) {
-                        const targetDamage = this.healthComponentStore.get(target).takeDamage(20);
-
-                        if (this.healthComponentStore.get(target).hp <= 0) {
-
-                            if (targetEnemy) {
-                                this.enemiesKilledComponentStore.add(target, new EnemiesKilledComponent());
-                                this.entityFactory.destroyEnemy(target);
-                            } else if (targetPlayer) {
-                                //console.log("Player dead - Game over");
-                            }
-                        }
+                        this.damageTakenComponentStore.add(target, new DamageTakenComponent(shooterId));                        
                     }
 
 

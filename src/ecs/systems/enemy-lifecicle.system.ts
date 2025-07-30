@@ -37,7 +37,7 @@ export class EnemyLifecicleSystem implements ISystem {
 
     update(deltaTime: number): void {
         this.timeSinceLastSpawn += deltaTime;
-        let spawnIntervalsInSeconds = 10;
+        let spawnIntervalsInSeconds = 999;
         const previousTime = this.timeSinceLastSpawn - deltaTime;
 
         if (previousTime < spawnIntervalsInSeconds && this.timeSinceLastSpawn >= spawnIntervalsInSeconds) {

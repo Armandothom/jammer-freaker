@@ -6,6 +6,7 @@ import { PositionComponent } from "../components/position.component.js";
 import { ShooterComponent } from "../components/shooter-component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
+import { WeaponMagazineComponent } from "../components/weapon-magazine.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { ISystem } from "./system.interface.js";
 
@@ -24,6 +25,7 @@ export class ShootingSystem implements ISystem {
         private aimShootingComponentStore: ComponentStore<AimShootingComponent>,
         private weaponAttachmentComponentStore: ComponentStore<WeaponSpriteAttachmentComponent>,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
+        private weaponMagazineComponentStore: ComponentStore<WeaponMagazineComponent>,
     ) {
         this.canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
         this.initListeners();
@@ -80,11 +82,13 @@ export class ShootingSystem implements ISystem {
         let playerPos: { x: number, y: number } | undefined;
         for (const playerId of playerIds) {
             playerPos = this.positionComponentStore.get(playerId);
-            this.intentShotComponentStore.add(playerId, new IntentShotComponent(
-                this.currentMousePos.x,
-                this.currentMousePos.y,
-                isHold
-            ))
+            if (!this.weaponMagazineComponentStore.get(playerId).isReloading) {
+                this.intentShotComponentStore.add(playerId, new IntentShotComponent(
+                    this.currentMousePos.x,
+                    this.currentMousePos.y,
+                    isHold
+                ))
+            }
         }
     }
 }

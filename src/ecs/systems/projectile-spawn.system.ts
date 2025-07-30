@@ -14,6 +14,7 @@ import { EntityFactory } from "../entities/entity-factory.js";
 import { ISystem } from "./system.interface.js";
 import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { PlayerComponent } from "../components/player.component.js";
+import { BulletFiredComponent } from "../components/bullet-fired.component.js";
 
 export class ProjectileSpawnSystem implements ISystem {
     private readonly tileSize: number;
@@ -31,7 +32,7 @@ export class ProjectileSpawnSystem implements ISystem {
         private shootingCooldownComponentStore: ComponentStore<ShootingCooldownComponent>,
         private shooterComponentStore: ComponentStore<ShooterComponent>,
         private playerComponentStore: ComponentStore<PlayerComponent>,
-
+        private bulletFiredComponent: ComponentStore<BulletFiredComponent>,
     ) {
         const terrainSpriteSheet = this.spriteManager.getSpriteProperties(SpriteName.METAL_1,SpriteSheetName.TERRAIN);
         this.tileSize = terrainSpriteSheet.sprite.originalRenderSpriteWidth;
@@ -75,6 +76,9 @@ export class ProjectileSpawnSystem implements ISystem {
             if (!cooldown) {
                 this.spawnProjectile(dir, attachedWeapon);
                 const cooldownAdd = this.shootingCooldownComponentStore.add(entity, new ShootingCooldownComponent(cooldownConfig));
+                if(this.playerComponentStore.has(entity)){
+                    this.bulletFiredComponent.add(entity, new BulletFiredComponent());
+                }
             }
         }
     }
@@ -90,9 +94,4 @@ export class ProjectileSpawnSystem implements ISystem {
             240 // Standard velocity ----> Must be changed by the shooting entity
         );
     }
-
-    private getCooldown(){
-
-    }
-
 }

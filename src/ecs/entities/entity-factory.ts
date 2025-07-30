@@ -32,6 +32,7 @@ import { WallHitComponent } from "../components/wall-hit.component.js";
 import { DirectionComponent } from "../components/direction-component.js";
 import { WeaponComponent } from "../components/weapon.component.js";
 import { WeaponConfig, WeaponType } from "../components/types/weapon-type.js";
+import { WeaponMagazineComponent } from "../components/weapon-magazine.component.js";
 
 export class EntityFactory {
   constructor(
@@ -60,6 +61,7 @@ export class EntityFactory {
     private zLayerComponentStore: ComponentStore<ZLayerComponent>,
     private directionComponentStore: ComponentStore<DirectionComponent>,
     private weaponComponentStore: ComponentStore<WeaponComponent>,
+    private weaponMagazineComponentStore: ComponentStore<WeaponMagazineComponent>,
   ) {
 
   }
@@ -75,11 +77,16 @@ export class EntityFactory {
     this.shooterComponentStore.add(entityId, new ShooterComponent(WeaponConfig[WeaponType.RIFLE].shootingCooldown));
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY))
     this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.RIFLE, SpriteSheetName.WEAPON, AnimationName.WEAPON_RIFLE));
-    //this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(WeaponConfig[WeaponType.RIFLE].shootingCooldown));
-    console.log("weaponConfig", WeaponConfig[WeaponType.RIFLE].shootingCooldown);
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.damageComponentStore.add(entityId, new DamageComponent(WeaponConfig[WeaponType.RIFLE].damage));
+    this.weaponMagazineComponentStore.add(entityId, new WeaponMagazineComponent(
+      1, 
+      WeaponConfig[WeaponType.RIFLE].maxBullets, 
+      WeaponConfig[WeaponType.RIFLE].maxBullets, 
+      WeaponConfig[WeaponType.RIFLE].reloadTime, 
+      false
+    ));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
     this.createWeapon(entityId);
     return entityId;
@@ -114,7 +121,6 @@ export class EntityFactory {
     this.aiComponentStore.add(entityId, new AIComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.damageComponentStore.add(entityId, new DamageComponent(damage));
-    //this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
@@ -138,7 +144,6 @@ export class EntityFactory {
     this.aiComponentStore.add(entityId, new AIComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.damageComponentStore.add(entityId, new DamageComponent(damage));
-    //this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
@@ -161,7 +166,6 @@ export class EntityFactory {
     this.aiComponentStore.add(entityId, new AIComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.damageComponentStore.add(entityId, new DamageComponent(damage));
-    //this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
@@ -184,7 +188,6 @@ export class EntityFactory {
     this.aiComponentStore.add(entityId, new AIComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.damageComponentStore.add(entityId, new DamageComponent(damage));
-    //this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
@@ -207,7 +210,6 @@ export class EntityFactory {
     this.aiComponentStore.add(entityId, new AIComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.damageComponentStore.add(entityId, new DamageComponent(damage));
-    //this.shootingCooldownComponentStore.add(entityId, new ShootingCooldownComponent(attackCooldownInSeconds));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
@@ -244,11 +246,11 @@ export class EntityFactory {
     this.weaponSpriteAttachmentComponentStore.add(entityId, new WeaponSpriteAttachmentComponent(parentEntityId, 16, 16, 18, 18));
     this.animationComponentStore.add(entityId, new AnimationComponent(wieldingEntityWeapon.animationName));
     this.spriteComponentStore.add(entityId, new SpriteComponent(
-        wieldingEntityWeapon.spriteName,
-        wieldingEntityWeapon.spriteSheetName,
-        wieldingEntityWeapon.weaponWidth,
-        wieldingEntityWeapon.weaponHeight
-      ));
+      wieldingEntityWeapon.spriteName,
+      wieldingEntityWeapon.spriteSheetName,
+      wieldingEntityWeapon.weaponWidth,
+      wieldingEntityWeapon.weaponHeight
+    ));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
   }
 
