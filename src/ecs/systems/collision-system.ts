@@ -139,16 +139,18 @@ export class CollisionSystem implements ISystem {
         self: number,
         tileSize: number
     ) {
+        const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;
+
         const intendedMovement = {
             left: intent.x,
-            right: intent.x + tileSize,
+            right: intent.x + tileSize * zoomProgressionFactor,
             top: intent.y,
-            bottom: intent.y + tileSize,
+            bottom: intent.y + tileSize * zoomProgressionFactor,
         };
 
         const shotOrigin = this.shotOriginComponentStore.getOrNull(self);
         const shooterId = shotOrigin?.shooterEntity;
-        const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;
+
 
         for (const other of this.collisionComponentStore.getAllEntities()) {
             if (other === self) continue;
@@ -181,6 +183,8 @@ export class CollisionSystem implements ISystem {
                 top: pos.y,
                 bottom: pos.y + otherTileSize * zoomProgressionFactor,
             };
+
+
 
             const intersect =
                 intendedMovement.left < current.right &&
@@ -217,7 +221,7 @@ export class CollisionSystem implements ISystem {
         };
 
         const wallPosition = this.worldTilemapManager.generatedWalls;
-        const tilemapProperties = this.spriteManager.getSpriteProperties(SpriteName.WALL_1,SpriteSheetName.TERRAIN);
+        const tilemapProperties = this.spriteManager.getSpriteProperties(SpriteName.WALL_1, SpriteSheetName.TERRAIN);
 
 
         for (const { x, y } of wallPosition) {

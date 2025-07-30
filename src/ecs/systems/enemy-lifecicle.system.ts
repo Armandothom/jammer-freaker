@@ -81,8 +81,9 @@ export class EnemyLifecicleSystem implements ISystem {
         // to be implemented: time elapsed || bypass logic for spawn logic
         // bypass being used to spawn a bunch of enemies on level start
 
-        const posRoll = this.trySpawn();
+
         if (spawnRoll <= spawnChancesAccumulated[0]) {
+            const posRoll = this.trySpawn();
             this.entityFactory.createSoldier(
                 posRoll.x, posRoll.y,
                 EnemyConfig[EnemyType.SOLDIER].hp,
@@ -93,6 +94,7 @@ export class EnemyLifecicleSystem implements ISystem {
                 EnemyConfig[EnemyType.SOLDIER].velocity);
         }
         if (spawnRoll > spawnChancesAccumulated[0] && spawnRoll < spawnChancesAccumulated[1]) {
+            const posRoll = this.trySpawn();
             this.entityFactory.createSniper(
                 posRoll.x, posRoll.y,
                 EnemyConfig[EnemyType.SNIPER].hp,
@@ -104,6 +106,7 @@ export class EnemyLifecicleSystem implements ISystem {
         }
         if (spawnRoll > spawnChancesAccumulated[1] && spawnRoll < spawnChancesAccumulated[2]) {
             //kmkz
+            const posRoll = this.trySpawn();
             this.entityFactory.createKamikaze(
                 posRoll.x, posRoll.y,
                 EnemyConfig[EnemyType.KAMIKAZE].hp,
@@ -115,6 +118,7 @@ export class EnemyLifecicleSystem implements ISystem {
         }
         if (spawnRoll > spawnChancesAccumulated[2] && spawnRoll < spawnChancesAccumulated[3]) {
             //JUGG
+            const posRoll = this.trySpawn();
             this.entityFactory.createJuggernaut(
                 posRoll.x, posRoll.y,
                 EnemyConfig[EnemyType.JUGG].hp,
@@ -125,6 +129,7 @@ export class EnemyLifecicleSystem implements ISystem {
                 EnemyConfig[EnemyType.JUGG].velocity);
         }
         if (spawnRoll > spawnChancesAccumulated[3] && spawnRoll < spawnChancesAccumulated[4]) {
+            const posRoll = this.trySpawn();
             this.entityFactory.createBomber(
                 posRoll.x, posRoll.y,
                 EnemyConfig[EnemyType.BOMBER].hp,
@@ -230,23 +235,22 @@ export class EnemyLifecicleSystem implements ISystem {
         }
     }
 
-    positionRoll(): { x: number, y: number } {
-        const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
-        const spriteProperties = this.spriteManager.getSpriteProperties(SpriteName.ENEMY_STILL,SpriteSheetName.ENEMY);
+    positionRoll(tries: number): { x: number, y: number } {
+        const randomTile = Math.floor(Math.random() * this.tilemapManager.validSpawnTile.length);
+        const spawnTile = this.tilemapManager.validSpawnTile[randomTile];
+
         return {
-            x: Math.floor((canvas.width - spriteProperties.sprite.originalRenderSpriteWidth) * Math.random()),
-            y: Math.floor((canvas.height - spriteProperties.sprite.originalRenderSpriteHeight) * Math.random()),
+            x: spawnTile.x,
+            y: spawnTile.y
         }
     }
 
-    trySpawn(): { x: number, y: number } {
+    trySpawn(): { x: number, y: number, success: boolean } {
         const enemyEntities = this.enemyComponentStore.getAllEntities();
         const deadEnemiesEntities = this.enemyDeadComponentStore.getAllEntities();
-        const spriteProperties = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.ENEMY);
-        const wallPosition = this.worldTilemapManager.generatedWalls;
+        const spriteProperties = this.spriteManager.getSpriteProperties(SpriteName.ENEMY_STILL, SpriteSheetName.ENEMY);
         const playerId = this.playerComponentStore.getAllEntities()[0];
         const playerPos = this.positionComponentStore.get(playerId);
-        let checkWallLogic = false;
         let checkPlayerEnemyLogic = false;
         let tries = 0;
         let maxTries = 5;
@@ -268,71 +272,52 @@ export class EnemyLifecicleSystem implements ISystem {
         let foundValidPosition = false;
 
         do {
-            rolledPosition = this.positionRoll();
+            rolledPosition = this.positionRoll(tries);
             let sucessCount = 0;
             tries++;
-            checkWallLogic = false;
             checkPlayerEnemyLogic = false;
 
-            //Enemy and player spawn check
+            //Enemy spawn check
             for (const enemyEntity of aliveEnemyEntities) {
                 const enemyPos: { x: number, y: number } = this.positionComponentStore.get(enemyEntity)
                 const sprite = this.spriteComponentStore.get(enemyEntity);
 
-                const enemyDistance = Math.hypot(enemyPos.x - rolledPosition.x, enemyPos.y - rolledPosition.y);
-                const playerDistance = Math.hypot(playerPos.x - rolledPosition.x, playerPos.y - rolledPosition.y);
-                if (enemyDistance >= sprite.height * 2 && playerDistance >= sprite.width * 2) {
+                const enemyDistance = Math.hypot(enemyPos.x - rolledPosition.x * sprite.width, enemyPos.y - rolledPosition.y * sprite.height);
+
+                if (enemyDistance >= sprite.width * 2) {
                     sucessCount++;
                 }
             }
             if (sucessCount == aliveEnemyEntities.length) {
-                checkPlayerEnemyLogic = true;
-            }
-
-            //Wall spawn check
-
-            const coordMap = new Map<string, boolean>();
-
-            for (const { x, y } of wallPosition) {
-                const key = `${x}_${y}`;
-                coordMap.set(key, true);
-            }
-
-            const rolledPositionTile = {
-                x: Math.floor(rolledPosition.x / this.tilemapManager.tileSize),
-                y: Math.floor(rolledPosition.y / this.tilemapManager.tileSize)
-            }
-
-            let counter = 0;
-
-            for (let dx = -1; dx <= 1; dx++) {
-                for (let dy = -1; dy <= 1; dy++) {
-                    if (dx == 0 && dy == 0) continue;
-                    const generatedKey = `${rolledPositionTile.x + dx}_${rolledPositionTile.y + dy}`;
-                    if (!coordMap.has(generatedKey)) {
-                        counter++;
-                    }
+                const playerDistance = Math.hypot(
+                    playerPos.x - rolledPosition.x * spriteProperties.sprite.originalRenderSpriteWidth * (canvas.width / (this.tilemapManager.tileSize * this.tilemapManager._maxNumberTilesX)),
+                    playerPos.y - rolledPosition.y * spriteProperties.sprite.originalRenderSpriteHeight * (canvas.height / (this.tilemapManager.tileSize * this.tilemapManager._maxNumberTilesY)));
+                if (playerDistance >= 180) {
+                    console.log("playerDistance", playerDistance);
+                    checkPlayerEnemyLogic = true;
                 }
             }
-            if (counter >= 8) {
-                checkWallLogic = true;
-            }
 
-            if (checkWallLogic && checkPlayerEnemyLogic) {
+            //Player spawn check
+
+            //Refactor to valid positions
+
+
+            if (checkPlayerEnemyLogic) {
                 foundValidPosition = true;
             }
+        } while ((checkPlayerEnemyLogic === false) && tries < maxTries);
 
-        } while ((checkWallLogic === false || checkPlayerEnemyLogic === false) && tries < maxTries);
 
         if (!foundValidPosition) {
             console.warn("Nenhuma posição válida encontrada para o spawn.");
-            return { x: 640, y: 640 };
+            return { x: 0, y: 0, success: false };
         }
 
         return {
-            x: rolledPosition.x,
-            y: rolledPosition.y
+            x: rolledPosition.x * spriteProperties.sprite.originalRenderSpriteWidth * (canvas.width / (this.tilemapManager.tileSize * this.tilemapManager._maxNumberTilesX)),
+            y: rolledPosition.y * spriteProperties.sprite.originalRenderSpriteHeight * (canvas.height / (this.tilemapManager.tileSize * this.tilemapManager._maxNumberTilesY)),
+            success: true
         };
     }
-
 }

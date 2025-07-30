@@ -9,6 +9,7 @@ export class WorldTilemapManager {
   public _maxNumberTilesX: number;
   public _maxNumberTilesY: number;
   public generatedWalls: { x: number, y: number }[] = []
+  public validSpawnTile: { x: number, y: number }[] = []
   public tileSize: number;
   private readonly noiseValueThreshold = 0.89;
   private readonly _tilemapSpritesheetName = SpriteSheetName.TERRAIN;
@@ -17,7 +18,7 @@ export class WorldTilemapManager {
   constructor(
     private spriteManager: SpriteManager,
   ) {
-    this.tileSize = this.spriteManager.getSpriteProperties(SpriteName.METAL_1,SpriteSheetName.TERRAIN).sprite.originalRenderSpriteHeight;
+    this.tileSize = this.spriteManager.getSpriteProperties(SpriteName.METAL_1, SpriteSheetName.TERRAIN).sprite.originalRenderSpriteHeight;
     this._maxNumberTilesX = 10;
     this._maxNumberTilesY = 10;
     this.generateTilemap();
@@ -278,6 +279,8 @@ export class WorldTilemapManager {
       for (let x = 0; x < this._maxNumberTilesX; x++) {
         if (noiseValue[y][x] >= this.noiseValueThreshold) {
           this.generatedWalls.push({ x, y });
+        } else {
+          this.validSpawnTile.push({ x, y });
         }
       }
     }
