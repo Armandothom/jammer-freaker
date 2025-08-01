@@ -3,7 +3,6 @@ import { ISystem } from "./system.interface.js";
 export class ExplosiveSystem implements ISystem{
 
     constructor(
-        
     ){        
     }
 
