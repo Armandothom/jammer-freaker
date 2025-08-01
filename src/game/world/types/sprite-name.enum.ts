@@ -32,4 +32,5 @@ export enum SpriteName {
   BULLET_WALL_HIT_14 = "bullet_wall_hit_14",
   BULLET_WALL_HIT_15 = "bullet_wall_hit_15",
   BULLET_WALL_HIT_16 = "bullet_wall_hit_16",
+  GRENADE_1 = "grenade_1",
 }

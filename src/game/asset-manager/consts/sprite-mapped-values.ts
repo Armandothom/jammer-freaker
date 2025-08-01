@@ -168,21 +168,28 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
     }
   ],
   [
-    SpriteSheetName.BULLET,
+    SpriteSheetName.PROJECTILE,
     {
       rows: 1,
-      columns: 1,
-      eachSpriteCellSizeHeight: 6,
-      eachSpriteCellSizeWidth: 6,
-      srcImagePath: 'src/assets/images/bullet.png',
+      columns: 2,
+      eachSpriteCellSizeHeight: 16,
+      eachSpriteCellSizeWidth: 32,
+      srcImagePath: 'src/assets/images/projectiles.png',
       sprites: new Map([
         [SpriteName.BULLET_1, {
           row: 1,
           column: 1,
           originalRenderSpriteHeight: 6,
           originalRenderSpriteWidth: 6,
-          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 6, height: 6 }
-        }]
+          spriteCellOffset: { offsetX: 0, offsetY: 6, width: 4, height: 4 }
+        }],
+        [SpriteName.GRENADE_1, {
+          row: 1,
+          column: 2,
+          originalRenderSpriteHeight: 16,
+          originalRenderSpriteWidth: 14,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 14, height: 16 }
+        }],        
       ])
     }
   ],

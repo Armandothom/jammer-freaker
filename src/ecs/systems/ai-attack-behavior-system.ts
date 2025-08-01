@@ -58,7 +58,9 @@ export class AiAttackBehaviorSystem implements ISystem {
                         const dy = playerPos.y - weaponPosition.y;
                         const angle = Math.atan2(dy, dx);
                         //offsetShooting to return
-                        this.intentShotComponent.add(aiEntityId, new IntentShotComponent(playerPos.x + playerSprite.width / 2, playerPos.y));
+
+                        //By default the isGranade is false, but should change to the bomber guy
+                        this.intentShotComponent.add(aiEntityId, new IntentShotComponent(playerPos.x + playerSprite.width / 2, playerPos.y, false, false));
                         this.aimShootingComponentStore.add(weaponAttachment[0], new AimShootingComponent(angle, weaponSprite.height * 5 / 20));
                         break;
                     default:

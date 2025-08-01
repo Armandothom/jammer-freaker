@@ -128,7 +128,19 @@ export const ANIMATION_MAPPED: Map<AnimationName, Map<SpriteName, AnimationKeyMa
     new Map<SpriteName, AnimationKeyMap>([
       [SpriteName.BULLET_1, {
         spriteName: SpriteName.BULLET_1,
-        spriteSheetName: SpriteSheetName.BULLET,
+        spriteSheetName: SpriteSheetName.PROJECTILE,
+        order: 1,
+        durationKeyFrame: 1
+      }]
+    ])
+  ],
+
+  [
+    AnimationName.GRENADE_FIRED,
+    new Map<SpriteName, AnimationKeyMap>([
+      [SpriteName.GRENADE_1, {
+        spriteName: SpriteName.GRENADE_1,
+        spriteSheetName: SpriteSheetName.PROJECTILE,
         order: 1,
         durationKeyFrame: 1
       }]

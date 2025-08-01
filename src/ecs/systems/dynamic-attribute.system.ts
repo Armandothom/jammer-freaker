@@ -15,6 +15,8 @@ import { IntentShotComponent } from "../components/intent-shot.component.js";
 import { WeaponMagazineComponent } from "../components/weapon-magazine.component.js";
 import { ReloadIntentComponent } from "../components/reload-intent.component.js";
 import { BulletFiredComponent } from "../components/bullet-fired.component.js";
+import { GrenadeBeltComponent } from "../components/grenade-belt.component.js";
+import { GrenadeFiredComponent } from "../components/grenade-fired.component.js";
 
 export class DynamicAttributeSystem implements ISystem {
     private lastLevelApplied = -1;
@@ -32,6 +34,8 @@ export class DynamicAttributeSystem implements ISystem {
         private weaponMagazineComponentStore: ComponentStore<WeaponMagazineComponent>,
         private reloadIntentComponentStore: ComponentStore<ReloadIntentComponent>,
         private bulletFiredComponentStore: ComponentStore<BulletFiredComponent>,
+        private grenadeBeltComponentStore: ComponentStore<GrenadeBeltComponent>,
+        private grenadeFiredComponentStore: ComponentStore<GrenadeFiredComponent>,
     ) {
 
     }
@@ -69,13 +73,12 @@ export class DynamicAttributeSystem implements ISystem {
             }
         }
 
-        for (const shootingEntity of this.bulletFiredComponentStore.getAllEntities()){
-            if(this.playerComponentStore.has(shootingEntity)){
-                console.log(this.weaponMagazineComponentStore.get(shootingEntity).currentAmmo);
+        for (const shootingEntity of this.bulletFiredComponentStore.getAllEntities()) {
+            if (this.playerComponentStore.has(shootingEntity)) {
                 this.weaponMagazineComponentStore.get(shootingEntity).consumeAmmo();
                 this.bulletFiredComponentStore.remove(shootingEntity);
 
-                if(this.weaponMagazineComponentStore.get(shootingEntity).currentAmmo === 0){
+                if (this.weaponMagazineComponentStore.get(shootingEntity).currentAmmo === 0) {
                     this.weaponMagazineComponentStore.get(shootingEntity).consumeMagazine();
                     this.weaponMagazineComponentStore.get(shootingEntity).isReloading = true;
                     this.reloadIntentComponentStore.add(shootingEntity, new ReloadIntentComponent(
@@ -84,6 +87,12 @@ export class DynamicAttributeSystem implements ISystem {
                 }
             }
         }
-    }
 
+        for (const shootingEntity of this.grenadeFiredComponentStore.getAllEntities()) {
+            if (this.playerComponentStore.has(shootingEntity)) {
+                this.grenadeBeltComponentStore.get(shootingEntity).consumeGrenade();
+                this.grenadeFiredComponentStore.remove(shootingEntity);
+            }
+        }
+    }
 }

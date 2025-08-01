@@ -15,6 +15,10 @@ import { ISystem } from "./system.interface.js";
 import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { BulletFiredComponent } from "../components/bullet-fired.component.js";
+import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
+import { GrenadeCooldownComponent } from "../components/grenade-cooldown.component.js";
+import { GrenadeFiredComponent } from "../components/grenade-fired.component.js";
+import { IntentGrenadeComponent } from "../components/intent-grenade.component.js";
 
 export class ProjectileSpawnSystem implements ISystem {
     private readonly tileSize: number;
@@ -32,14 +36,21 @@ export class ProjectileSpawnSystem implements ISystem {
         private shootingCooldownComponentStore: ComponentStore<ShootingCooldownComponent>,
         private shooterComponentStore: ComponentStore<ShooterComponent>,
         private playerComponentStore: ComponentStore<PlayerComponent>,
-        private bulletFiredComponent: ComponentStore<BulletFiredComponent>,
+        private bulletFiredComponentStore: ComponentStore<BulletFiredComponent>,
+        private grenadeCooldownComponentStore: ComponentStore<GrenadeCooldownComponent>,
+        private grenadeFiredComponentStore: ComponentStore<GrenadeFiredComponent>,
+        private intentGrenadeComponentStore: ComponentStore<IntentGrenadeComponent>,
     ) {
-        const terrainSpriteSheet = this.spriteManager.getSpriteProperties(SpriteName.METAL_1,SpriteSheetName.TERRAIN);
+        const terrainSpriteSheet = this.spriteManager.getSpriteProperties(SpriteName.METAL_1, SpriteSheetName.TERRAIN);
         this.tileSize = terrainSpriteSheet.sprite.originalRenderSpriteWidth;
     }
 
     update(deltaTime: number): void {
+        this.intentShotConversion();
+        this.intentGrenadeConversion();
+    }
 
+    private intentShotConversion() {
         const shooters = this.shooterComponentStore.getAllEntities();
         const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
         const canvasWidthHeightInTiles = canvas.width / this.tileSize;
@@ -48,7 +59,7 @@ export class ProjectileSpawnSystem implements ISystem {
 
         for (const entity of shooters) {
             const shooterPos = this.positionComponentStore.get(entity);
-            const spriteBullet = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.BULLET);
+            const spriteBullet = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.PROJECTILE);
             const attachedWeaponEntry = attachedWeapons.find((value) => value[1].parentEntityId == entity);
             if (!attachedWeaponEntry) {
                 throw new Error("No weapon entry found");
@@ -71,27 +82,92 @@ export class ProjectileSpawnSystem implements ISystem {
             //let dir = { x: dx / magnitude, y: dy / magnitude };
             let dir = { x: Math.cos(angle), y: Math.sin(angle) }; // Vetor de direção normalizado
 
-            const cooldownConfig = this.shooterComponentStore.get(entity).shootingCooldown;
-            const cooldown = this.shootingCooldownComponentStore.has(entity);
-            if (!cooldown) {
-                this.spawnProjectile(dir, attachedWeapon);
-                const cooldownAdd = this.shootingCooldownComponentStore.add(entity, new ShootingCooldownComponent(cooldownConfig));
-                if(this.playerComponentStore.has(entity)){
-                    this.bulletFiredComponent.add(entity, new BulletFiredComponent());
+            const cooldownConfig = this.shooterComponentStore.get(entity);
+            const shootingCooldown = this.shootingCooldownComponentStore.has(entity);
+            if (!shootingCooldown) {
+                this.spawnProjectile(dir, attachedWeapon, false);
+                console.log("cooldown Added");
+                const cooldownAdd = this.shootingCooldownComponentStore.add(entity, new ShootingCooldownComponent(cooldownConfig.shootingCooldown));
+                if (this.playerComponentStore.has(entity)) {
+                    this.bulletFiredComponentStore.add(entity, new BulletFiredComponent());
                 }
             }
         }
     }
 
-    private spawnProjectile(dir: { x: number; y: number }, shootingWeapon: WeaponSpriteAttachmentComponent): void {
-        this.soundManager.playSound("SMG_FIRE");
-        const entity = this.entityFactory.createProjectile(
-            shootingWeapon.barrelX,
-            shootingWeapon.barrelY,
-            shootingWeapon.parentEntityId,
-            dir.x,
-            dir.y,
-            240 // Standard velocity ----> Must be changed by the shooting entity
-        );
+    private intentGrenadeConversion() {
+        const shooters = this.shooterComponentStore.getAllEntities();
+        const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
+        const canvasWidthHeightInTiles = canvas.width / this.tileSize;
+        const attachedWeapons = this.attachedSpriteComponent.getValuesAndEntityId();
+        const playerId = this.playerComponentStore.getAllEntities()[0];
+
+        for (const entity of shooters) {
+            const shooterPos = this.positionComponentStore.get(entity);
+            const spriteBullet = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.PROJECTILE);
+            const attachedWeaponEntry = attachedWeapons.find((value) => value[1].parentEntityId == entity);
+            if (!attachedWeaponEntry) {
+                throw new Error("No weapon entry found");
+            }
+            const attachedWeapon = attachedWeaponEntry[1];
+            const grenadeIntent = this.intentGrenadeComponentStore.getOrNull(entity);
+            if (!shooterPos || !grenadeIntent) continue;
+
+            let shooterPosXConverted = attachedWeapon.barrelX / canvas.width * canvasWidthHeightInTiles;
+            let shooterPosYConverted = attachedWeapon.barrelY / canvas.height * canvasWidthHeightInTiles;
+
+            let intentXConverted = (grenadeIntent.x - (spriteBullet.width / 2)) / canvas.width * canvasWidthHeightInTiles;
+            let intentYConverted = (grenadeIntent.y - (spriteBullet.width / 2)) / canvas.height * canvasWidthHeightInTiles;
+
+            const dx = intentXConverted - (shooterPosXConverted);
+            const dy = intentYConverted - (shooterPosYConverted);
+            //const magnitude = Math.hypot(dx, dy); // Distancia do player e do click
+            const angle = Math.atan2(dy, dx);
+            //if (magnitude === 0) continue; // Podemos alterar para que não spawne projetil se ele clicar tão perto do sprite do player
+            //let dir = { x: dx / magnitude, y: dy / magnitude };
+            let dir = { x: Math.cos(angle), y: Math.sin(angle) }; // Vetor de direção normalizado
+
+            const cooldownConfig = this.shooterComponentStore.get(entity);
+            const grenadeCooldown = this.grenadeCooldownComponentStore.has(entity);
+            if (!grenadeCooldown) {
+                this.spawnProjectile(dir, attachedWeapon, true);
+                const cooldownAdd = this.grenadeCooldownComponentStore.add(entity, new GrenadeCooldownComponent(cooldownConfig.grenadeCooldown));
+                if (this.playerComponentStore.has(entity)) {
+                    this.grenadeFiredComponentStore.add(entity, new GrenadeFiredComponent());
+                }
+            }
+        }
+    }
+
+    private spawnProjectile(dir: { x: number; y: number }, shootingWeapon: WeaponSpriteAttachmentComponent, isGrenade: boolean): void {
+        if (isGrenade) {
+            //SFX
+            const entity = this.entityFactory.createProjectile(
+                shootingWeapon.barrelX, // maybe change this to 0?
+                shootingWeapon.barrelY,
+                shootingWeapon.parentEntityId,
+                dir.x,
+                dir.y,
+                240, // Standard velocity ----> Must be changed by the shooting entity
+                SpriteName.GRENADE_1,
+                SpriteSheetName.PROJECTILE,
+                AnimationName.GRENADE_FIRED,
+                isGrenade,
+            );
+        } else {
+            this.soundManager.playSound("SMG_FIRE");
+            const entity = this.entityFactory.createProjectile(
+                shootingWeapon.barrelX,
+                shootingWeapon.barrelY,
+                shootingWeapon.parentEntityId,
+                dir.x,
+                dir.y,
+                240, // Standard velocity ----> Must be changed by the shooting entity
+                SpriteName.BULLET_1,
+                SpriteSheetName.PROJECTILE,
+                AnimationName.BULLET_FIRED,
+                isGrenade,
+            );
+        }
     }
 }

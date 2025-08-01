@@ -293,15 +293,9 @@ export class EnemyLifecicleSystem implements ISystem {
                     playerPos.x - rolledPosition.x * spriteProperties.sprite.originalRenderSpriteWidth * (canvas.width / (this.tilemapManager.tileSize * this.tilemapManager._maxNumberTilesX)),
                     playerPos.y - rolledPosition.y * spriteProperties.sprite.originalRenderSpriteHeight * (canvas.height / (this.tilemapManager.tileSize * this.tilemapManager._maxNumberTilesY)));
                 if (playerDistance >= 180) {
-                    console.log("playerDistance", playerDistance);
                     checkPlayerEnemyLogic = true;
                 }
             }
-
-            //Player spawn check
-
-            //Refactor to valid positions
-
 
             if (checkPlayerEnemyLogic) {
                 foundValidPosition = true;

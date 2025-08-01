@@ -18,6 +18,7 @@ import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-nam
 import { LevelManager } from "../core/level-manager.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { OffsetAppliedComponent } from "../components/offset-applied.component.js";
+import { GrenadeComponent } from "../components/grenade-component.js";
 
 
 export class AnimationSetterSystem implements ISystem {
@@ -34,6 +35,7 @@ export class AnimationSetterSystem implements ISystem {
         private projectileComponentStore: ComponentStore<ProjectileComponent>,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
         private offsetAppliedComponentStore: ComponentStore<OffsetAppliedComponent>,
+        private grenadeComponentStore: ComponentStore<GrenadeComponent>,
     ) { }
 
     update(deltaTime: number): void {
@@ -44,6 +46,7 @@ export class AnimationSetterSystem implements ISystem {
             const isPlayer = this.playerComponentStore.has(entityWithAnim);
             const isNpc = this.aiComponentStore.has(entityWithAnim);
             const isProjectile = this.projectileComponentStore.has(entityWithAnim);
+            const isGrenade = this.grenadeComponentStore.has(entityWithAnim);
             const isAttachedWeapon = this.weaponSpriteAttachmentComponent.has(entityWithAnim);
             let isMoving = false;
             const entityMovementIntent = this.movementIntentComponentStore.getOrNull(entityWithAnim);
@@ -97,7 +100,12 @@ export class AnimationSetterSystem implements ISystem {
                         this.offsetAppliedComponentStore.add(entityWithAnim, new OffsetAppliedComponent());
                     }
                 } else {
-                    animToUse = AnimationName.BULLET_FIRED
+                    if (isGrenade) {    
+                        animToUse = AnimationName.GRENADE_FIRED;
+                    } else {
+                        animToUse = AnimationName.BULLET_FIRED;
+                    }
+
                 }
             }
 

@@ -40,58 +40,58 @@ export class SpriteManager {
    * @param spriteName the name of the sprite for this BaseSprite.
    */
   public getUvCoordinates(spriteName: SpriteName, spriteSheetName: SpriteSheetName, mirroredX = false, mirroredY = false) {
-  const spriteProperties = this.getSpriteProperties(spriteName, spriteSheetName);
-  const spriteCellOffset = spriteProperties.sprite.spriteCellOffset;
-  const spriteSheetWidth = spriteProperties.spriteSheet.width;
-  const spriteSheetHeight = spriteProperties.spriteSheet.height;
-  const tileColumn = spriteProperties.sprite.column;
-  const tileRow = spriteProperties.sprite.row;
-  const spriteCellSizeHeight = spriteProperties.spriteSheet.eachSpriteCellSizeHeight;
-  const spriteCellSizeWidth = spriteProperties.spriteSheet.eachSpriteCellSizeWidth;
-  
-  // We define where is the cell of the sprite on the spritesheet
-  let cellX = (tileColumn - 1) * spriteCellSizeWidth;
-  let cellY = (tileRow - 1) * spriteCellSizeHeight;
-  
-  // We define the offset of the sprite, on left,right,top,bottom inside the cell
-  let xLeft = cellX + spriteCellOffset.offsetX;
-  let xRight = xLeft + spriteCellOffset.width;
-  let yTop = cellY + spriteCellOffset.offsetY;
-  let yBottom = yTop + spriteCellOffset.height;
-  
-  //We normalize to between 0 and 1
-  const xLeftNormalized = xLeft / spriteSheetWidth;
-  const xRightNormalized = xRight / spriteSheetWidth;
-  const yTopNormalized = 1 - (yTop / spriteSheetHeight);
-  const yBottomNormalized = 1 - (yBottom / spriteSheetHeight);
-  
-  const mappedUv = [
-    xLeftNormalized, yTopNormalized,       //topleft
-    xLeftNormalized, yBottomNormalized,    //bottomleft
-    xRightNormalized, yTopNormalized,      //rightleft
+    const spriteProperties = this.getSpriteProperties(spriteName, spriteSheetName);
+    const spriteCellOffset = spriteProperties.sprite.spriteCellOffset;
+    const spriteSheetWidth = spriteProperties.spriteSheet.width;
+    const spriteSheetHeight = spriteProperties.spriteSheet.height;
+    const tileColumn = spriteProperties.sprite.column;
+    const tileRow = spriteProperties.sprite.row;
+    const spriteCellSizeHeight = spriteProperties.spriteSheet.eachSpriteCellSizeHeight;
+    const spriteCellSizeWidth = spriteProperties.spriteSheet.eachSpriteCellSizeWidth;
 
-    xRightNormalized, yBottomNormalized,   //bottomright
-    xRightNormalized, yTopNormalized,      //topright
-    xLeftNormalized, yBottomNormalized     //bottomleft
-  ];
-  if(mirroredX) {
-    mappedUv[0] = xRightNormalized;
-    mappedUv[2] = xRightNormalized;
-    mappedUv[4] = xLeftNormalized;
-    mappedUv[6] = xLeftNormalized;
-    mappedUv[8] = xLeftNormalized;
-    mappedUv[10] = xRightNormalized;
+    // We define where is the cell of the sprite on the spritesheet
+    let cellX = (tileColumn - 1) * spriteCellSizeWidth;
+    let cellY = (tileRow - 1) * spriteCellSizeHeight;
+
+    // We define the offset of the sprite, on left,right,top,bottom inside the cell
+    let xLeft = cellX + spriteCellOffset.offsetX;
+    let xRight = xLeft + spriteCellOffset.width;
+    let yTop = cellY + spriteCellOffset.offsetY;
+    let yBottom = yTop + spriteCellOffset.height;
+
+    //We normalize to between 0 and 1
+    const xLeftNormalized = xLeft / spriteSheetWidth;
+    const xRightNormalized = xRight / spriteSheetWidth;
+    const yTopNormalized = 1 - (yTop / spriteSheetHeight);
+    const yBottomNormalized = 1 - (yBottom / spriteSheetHeight);
+
+    const mappedUv = [
+      xLeftNormalized, yTopNormalized,       //topleft
+      xLeftNormalized, yBottomNormalized,    //bottomleft
+      xRightNormalized, yTopNormalized,      //rightleft
+
+      xRightNormalized, yBottomNormalized,   //bottomright
+      xRightNormalized, yTopNormalized,      //topright
+      xLeftNormalized, yBottomNormalized     //bottomleft
+    ];
+    if (mirroredX) {
+      mappedUv[0] = xRightNormalized;
+      mappedUv[2] = xRightNormalized;
+      mappedUv[4] = xLeftNormalized;
+      mappedUv[6] = xLeftNormalized;
+      mappedUv[8] = xLeftNormalized;
+      mappedUv[10] = xRightNormalized;
+    }
+    if (mirroredY) {
+      mappedUv[1] = yBottomNormalized;
+      mappedUv[3] = yTopNormalized;
+      mappedUv[5] = yBottomNormalized;
+      mappedUv[7] = yTopNormalized;
+      mappedUv[9] = yBottomNormalized;
+      mappedUv[11] = yTopNormalized;
+    }
+    return mappedUv;
   }
-  if(mirroredY) {
-    mappedUv[1] = yBottomNormalized;
-    mappedUv[3] = yTopNormalized;
-    mappedUv[5] = yBottomNormalized;
-    mappedUv[7] = yTopNormalized;
-    mappedUv[9] = yBottomNormalized;
-    mappedUv[11] = yTopNormalized;
-  }
-  return mappedUv;
-}
 
   public getSpriteProperties(spriteName: SpriteName, spriteSheetName: SpriteSheetName) {
     const spriteSheet = this.getSpriteSheetProperties(spriteSheetName);
@@ -104,7 +104,7 @@ export class SpriteManager {
       spriteSheet,
     }
   }
-   
+
   public getSpriteSheetProperties(spriteSheetName: SpriteSheetName) {
     const spriteSheet = this._mappedSpriteSheetAssets.get(spriteSheetName);
     if (!spriteSheet) {
@@ -132,7 +132,7 @@ export class SpriteManager {
     this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_T, this._gl.CLAMP_TO_EDGE);
     this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MIN_FILTER, this._gl.NEAREST);
     this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MAG_FILTER, this._gl.NEAREST);
-    
+
     return tex;
   }
 

@@ -153,7 +153,7 @@ export class RendererEngine {
       this._gl.bindBuffer(this._gl.ARRAY_BUFFER, uvBuffer);
       this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(uvTextures), this._gl.STATIC_DRAW);
       this._gl.enableVertexAttribArray(uvAttributeLocation);
-      this._gl.vertexAttribPointer(uvAttributeLocation, 2, this._gl.FLOAT, false, 0, 0);
+      this._gl.vertexAttribPointer(uvAttributeLocation, 2, this._gl.FLOAT, false, 0, 0);  
 
       // Local UV to debug border
       const uvLocalAttributeLocation = this._gl.getAttribLocation(this.program, "a_local_uv");

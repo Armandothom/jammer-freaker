@@ -1,5 +1,7 @@
 import { AimShootingComponent } from "../components/aim-shooting.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
+import { GrenadeBeltComponent } from "../components/grenade-belt.component.js";
+import { IntentGrenadeComponent } from "../components/intent-grenade.component.js";
 import { IntentShotComponent } from "../components/intent-shot.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
@@ -9,6 +11,8 @@ import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment
 import { WeaponMagazineComponent } from "../components/weapon-magazine.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { ISystem } from "./system.interface.js";
+
+const keys: Record<string, boolean> = {};
 
 export class ShootingSystem implements ISystem {
 
@@ -26,14 +30,21 @@ export class ShootingSystem implements ISystem {
         private weaponAttachmentComponentStore: ComponentStore<WeaponSpriteAttachmentComponent>,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
         private weaponMagazineComponentStore: ComponentStore<WeaponMagazineComponent>,
+        private grenadeBeltComponentStore: ComponentStore<GrenadeBeltComponent>,
+        private intentGrenadeComponentStore: ComponentStore<IntentGrenadeComponent>,
     ) {
         this.canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
         this.initListeners();
     };
 
     update(deltaTime: number): void {
+        let isGrenade: boolean = false;
+        if (keys["g"]) isGrenade = true;
         if (this.isMouseDown) {
             this.pushShotIntent(true); // isHold = true
+        }
+        if (isGrenade) {
+            this.pushGrenadeIntent();
         }
     }
 
@@ -71,6 +82,7 @@ export class ShootingSystem implements ISystem {
         const dy = mousePosY - weaponPosition.y;
         const angle = Math.atan2(dy, dx);
         this.aimShootingComponentStore.add(weaponAttachment[0], new AimShootingComponent(angle, weaponSprite.height * 5 / 20));
+        // THE 5 / 20 ABOVE SHOULD BE CHANGED TO THE WEAPON -- OFFSET AIM ANGLE
         this.currentMousePos = {
             x: mousePosX,
             y: mousePosY,
@@ -82,13 +94,55 @@ export class ShootingSystem implements ISystem {
         let playerPos: { x: number, y: number } | undefined;
         for (const playerId of playerIds) {
             playerPos = this.positionComponentStore.get(playerId);
-            if (!this.weaponMagazineComponentStore.get(playerId).isReloading) {
+
+            const magazineConditions =
+                !this.weaponMagazineComponentStore.get(playerId).isReloading &&
+                this.weaponMagazineComponentStore.get(playerId).magazineInventory > 0;
+
+            if (magazineConditions) {
                 this.intentShotComponentStore.add(playerId, new IntentShotComponent(
                     this.currentMousePos.x,
                     this.currentMousePos.y,
-                    isHold
+                    isHold,
                 ))
+            }
+
+            if (this.weaponMagazineComponentStore.get(playerId).magazineInventory === 0) {
+                // SFX Click sound
+            }
+
+        }
+    }
+
+    private pushGrenadeIntent() {
+        const playerIds = this.playerComponentStore.getAllEntities();
+        let playerPos: { x: number, y: number } | undefined;
+        for (const playerId of playerIds) {
+            playerPos = this.positionComponentStore.get(playerId);
+
+            const grenadeConditions =
+                this.grenadeBeltComponentStore.get(playerId).grenadeInventory > 0;
+
+            if (grenadeConditions) {
+                this.intentGrenadeComponentStore.add(playerId, new IntentGrenadeComponent(
+                    this.currentMousePos.x,
+                    this.currentMousePos.y,
+                ));
+            }
+
+            if (this.grenadeBeltComponentStore.get(playerId).grenadeInventory === 0) {
+                //VFX "No granade"
             }
         }
     }
 }
+
+window.addEventListener("keydown", (e) => {
+    keys[e.key] = true;
+});
+
+window.addEventListener("keyup", (e) => {
+    keys[e.key] = false;
+});
+
+

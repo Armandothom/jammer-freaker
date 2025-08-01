@@ -9,6 +9,7 @@ const keys: Record<string, boolean> = {};
 
 export class ReloadSystem implements ISystem {
     private reloadElapsedTime = 0;
+    private soundFlag = false
 
     constructor(
         private soundManager: SoundManager,
@@ -20,23 +21,25 @@ export class ReloadSystem implements ISystem {
 
     update(deltaTime: number): void {
         const playerId = this.playerComponentStore.getAllEntities()[0];
-        
-        if(!this.reloadIntentComponentStore.has(playerId)){
+
+        if (!this.reloadIntentComponentStore.has(playerId)) {
             this.getInputForReload();
         }
 
         if (this.reloadIntentComponentStore.has(playerId) && this.weaponMagazineComponentStore.get(playerId).magazineInventory >= 0) {
-            //SFX
+            if (!this.soundFlag) {
+                this.soundFlag = true;
+                this.soundManager.playSound("RIFLE_RELOAD");
+            }
             const endReloadTime = this.reloadIntentComponentStore.get(playerId).endReloadTime;
             this.reloadElapsedTime += deltaTime;
-            console.log("reload Called, time: ", this.reloadElapsedTime);
             const previousTime = this.reloadElapsedTime - deltaTime
             if (previousTime < endReloadTime && this.reloadElapsedTime >= endReloadTime) {
-                console.log("reload Completed, time: ", this.reloadElapsedTime);
                 this.reloadIntentComponentStore.remove(playerId);
                 this.weaponMagazineComponentStore.get(playerId).isReloading = false;
                 this.weaponMagazineComponentStore.get(playerId).currentAmmo = this.weaponMagazineComponentStore.get(playerId).maxAmmo;
                 this.reloadElapsedTime = 0;
+                this.soundFlag = false;
             }
         }
     }
@@ -47,7 +50,6 @@ export class ReloadSystem implements ISystem {
             this.reloadIntentComponentStore.add(playerId, new ReloadIntentComponent(this.weaponMagazineComponentStore.get(playerId).reloadTime));
             this.weaponMagazineComponentStore.get(playerId).magazineInventory--;
         }
-
     }
 }
 
