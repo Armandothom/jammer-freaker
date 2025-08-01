@@ -62,7 +62,7 @@ export const WeaponConfig: Record<WeaponType, PropertiesTable> = {
         damage: 100,
         maxBullets: 3,
         reloadTime: 0,
-        explosionRadius: 0,
-        fuseTimer: 3,
+        explosionRadius: 128,
+        fuseTimer: 2,
     },
 }

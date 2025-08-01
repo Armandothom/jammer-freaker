@@ -19,10 +19,13 @@ import { LevelManager } from "../core/level-manager.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { OffsetAppliedComponent } from "../components/offset-applied.component.js";
 import { GrenadeComponent } from "../components/grenade-component.js";
+import { GrenadeExplosionComponent } from "../components/grenade-explosion.component.js";
+import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 
 
 export class AnimationSetterSystem implements ISystem {
     constructor(
+        private spriteManager: SpriteManager,
         private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
         private positionComponentStore: ComponentStore<PositionComponent>,
         private directionAnimComponentStore: ComponentStore<DirectionAnimComponent>,
@@ -36,6 +39,7 @@ export class AnimationSetterSystem implements ISystem {
         private spriteComponentStore: ComponentStore<SpriteComponent>,
         private offsetAppliedComponentStore: ComponentStore<OffsetAppliedComponent>,
         private grenadeComponentStore: ComponentStore<GrenadeComponent>,
+        private grenadeExplosionComponentStore: ComponentStore<GrenadeExplosionComponent>,
     ) { }
 
     update(deltaTime: number): void {
@@ -47,6 +51,7 @@ export class AnimationSetterSystem implements ISystem {
             const isNpc = this.aiComponentStore.has(entityWithAnim);
             const isProjectile = this.projectileComponentStore.has(entityWithAnim);
             const isGrenade = this.grenadeComponentStore.has(entityWithAnim);
+            const isExplodedGrenade = this.grenadeExplosionComponentStore.has(entityWithAnim);
             const isAttachedWeapon = this.weaponSpriteAttachmentComponent.has(entityWithAnim);
             let isMoving = false;
             const entityMovementIntent = this.movementIntentComponentStore.getOrNull(entityWithAnim);
@@ -100,14 +105,32 @@ export class AnimationSetterSystem implements ISystem {
                         this.offsetAppliedComponentStore.add(entityWithAnim, new OffsetAppliedComponent());
                     }
                 } else {
-                    if (isGrenade) {    
+                    if (isGrenade) {
                         animToUse = AnimationName.GRENADE_FIRED;
                     } else {
                         animToUse = AnimationName.BULLET_FIRED;
                     }
+                }
+                if (isExplodedGrenade) {
+                    animToUse = AnimationName.GRENADE_EXPLOSION;
+                    if (!this.offsetAppliedComponentStore.has(entityWithAnim)) {
+                        console.log("offsetApplied");
+                        let initialPosition = this.positionComponentStore.get(entityWithAnim);
+                        //Grenade offset
+                        const offsetX = this.spriteComponentStore.get(entityWithAnim).width / 2;
+                        const offsetY = this.spriteComponentStore.get(entityWithAnim).height / 2;
 
+                        const explosionProperties = this.spriteManager.getSpriteProperties(SpriteName.GRENADE_EXPLOSION_1, SpriteSheetName.GRENADE_EXPLOSION);
+
+                        console.log(offsetX - explosionProperties.sprite.originalRenderSpriteWidth, offsetY - explosionProperties.sprite.originalRenderSpriteHeight);
+                        initialPosition.x += offsetX - explosionProperties.sprite.originalRenderSpriteWidth;
+                        initialPosition.y += offsetY - explosionProperties.sprite.originalRenderSpriteHeight;
+                        this.offsetAppliedComponentStore.add(entityWithAnim, new OffsetAppliedComponent());
+                    }
                 }
             }
+
+
 
             if (animToUse && currentAnim != animToUse) {
                 this.animationComponentStore.add(entityWithAnim, new AnimationComponent(animToUse));

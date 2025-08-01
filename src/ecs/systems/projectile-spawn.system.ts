@@ -86,7 +86,6 @@ export class ProjectileSpawnSystem implements ISystem {
             const shootingCooldown = this.shootingCooldownComponentStore.has(entity);
             if (!shootingCooldown) {
                 this.spawnProjectile(dir, attachedWeapon, false, {x: 640, y: 640});
-                console.log("cooldown Added");
                 const cooldownAdd = this.shootingCooldownComponentStore.add(entity, new ShootingCooldownComponent(cooldownConfig.shootingCooldown));
                 if (this.playerComponentStore.has(entity)) {
                     this.bulletFiredComponentStore.add(entity, new BulletFiredComponent());
@@ -126,7 +125,6 @@ export class ProjectileSpawnSystem implements ISystem {
                 x: (grenadeIntent.x - (spriteBullet.width / 2)) - attachedWeapon.barrelX,
                 y: (grenadeIntent.y - (spriteBullet.height / 2)) - attachedWeapon.barrelY,
             }
-            console.log(travelDistance);
             const angle = Math.atan2(dy, dx);
             //if (magnitude === 0) continue; // Podemos alterar para que não spawne projetil se ele clicar tão perto do sprite do player
             //let dir = { x: dx / magnitude, y: dy / magnitude };

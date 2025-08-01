@@ -1,3 +1,4 @@
+import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { AimShootingComponent } from "../components/aim-shooting.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
 import { GrenadeBeltComponent } from "../components/grenade-belt.component.js";
@@ -9,6 +10,7 @@ import { ShooterComponent } from "../components/shooter-component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
 import { WeaponMagazineComponent } from "../components/weapon-magazine.component.js";
+import { WeaponComponent } from "../components/weapon.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { ISystem } from "./system.interface.js";
 
@@ -32,6 +34,7 @@ export class ShootingSystem implements ISystem {
         private weaponMagazineComponentStore: ComponentStore<WeaponMagazineComponent>,
         private grenadeBeltComponentStore: ComponentStore<GrenadeBeltComponent>,
         private intentGrenadeComponentStore: ComponentStore<IntentGrenadeComponent>,
+        private weaponComponentStore: ComponentStore<WeaponComponent>,
     ) {
         this.canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
         this.initListeners();
@@ -40,6 +43,7 @@ export class ShootingSystem implements ISystem {
     update(deltaTime: number): void {
         let isGrenade: boolean = false;
         if (keys["g"]) isGrenade = true;
+
         if (this.isMouseDown) {
             this.pushShotIntent(true); // isHold = true
         }
@@ -65,6 +69,7 @@ export class ShootingSystem implements ISystem {
         this.canvas.addEventListener("click", (e: MouseEvent) => {
             this.updateMousePosition(e);
             this.pushShotIntent(false); // isHold = false
+
         });
     }
 
@@ -82,7 +87,7 @@ export class ShootingSystem implements ISystem {
         const dy = mousePosY - weaponPosition.y;
         const angle = Math.atan2(dy, dx);
         this.aimShootingComponentStore.add(weaponAttachment[0], new AimShootingComponent(angle, weaponSprite.height * 5 / 20));
-        // THE 5 / 20 ABOVE SHOULD BE CHANGED TO THE WEAPON -- OFFSET AIM ANGLE
+        // THE 5 / 20 ABOVE SHOULD BE CHANGED BY THE WEAPON -- OFFSET AIM ANGLE
         this.currentMousePos = {
             x: mousePosX,
             y: mousePosY,
@@ -90,49 +95,61 @@ export class ShootingSystem implements ISystem {
     }
 
     private pushShotIntent(isHold: boolean) {
-        const playerIds = this.playerComponentStore.getAllEntities();
+        const playerId = this.playerComponentStore.getAllEntities()[0];
+        const weaponWielded = this.weaponComponentStore.get(playerId).spriteName;
+
+        if (weaponWielded === SpriteName.KNIFE) {
+            this.pushMeeleIntent(isHold);
+            return;
+        };
+
         let playerPos: { x: number, y: number } | undefined;
-        for (const playerId of playerIds) {
-            playerPos = this.positionComponentStore.get(playerId);
 
-            const magazineConditions =
-                !this.weaponMagazineComponentStore.get(playerId).isReloading &&
-                this.weaponMagazineComponentStore.get(playerId).magazineInventory > 0;
+        playerPos = this.positionComponentStore.get(playerId);
 
-            if (magazineConditions) {
-                this.intentShotComponentStore.add(playerId, new IntentShotComponent(
-                    this.currentMousePos.x,
-                    this.currentMousePos.y,
-                    isHold,
-                ))
-            }
 
-            if (this.weaponMagazineComponentStore.get(playerId).magazineInventory === 0) {
-                // SFX Click sound
-            }
+        const magazineConditions =
+            !this.weaponMagazineComponentStore.get(playerId).isReloading &&
+            this.weaponMagazineComponentStore.get(playerId).magazineInventory > 0;
+
+        if (magazineConditions) {
+            this.intentShotComponentStore.add(playerId, new IntentShotComponent(
+                this.currentMousePos.x,
+                this.currentMousePos.y,
+                isHold,
+            ))
         }
+
+        if (this.weaponMagazineComponentStore.get(playerId).magazineInventory === 0) {
+            // SFX Click sound
+        }
+
+
     }
 
     private pushGrenadeIntent() {
-        const playerIds = this.playerComponentStore.getAllEntities();
+        const playerId = this.playerComponentStore.getAllEntities()[0];
         let playerPos: { x: number, y: number } | undefined;
-        for (const playerId of playerIds) {
-            playerPos = this.positionComponentStore.get(playerId);
 
-            const grenadeConditions =
-                this.grenadeBeltComponentStore.get(playerId).grenadeInventory > 0;
+        playerPos = this.positionComponentStore.get(playerId);
 
-            if (grenadeConditions) {
-                this.intentGrenadeComponentStore.add(playerId, new IntentGrenadeComponent(
-                    this.currentMousePos.x,
-                    this.currentMousePos.y,
-                ));
-            }
+        const grenadeConditions =
+            this.grenadeBeltComponentStore.get(playerId).grenadeInventory > 0;
 
-            if (this.grenadeBeltComponentStore.get(playerId).grenadeInventory === 0) {
-                //VFX "No granade"
-            }
+        if (grenadeConditions) {
+            this.intentGrenadeComponentStore.add(playerId, new IntentGrenadeComponent(
+                this.currentMousePos.x,
+                this.currentMousePos.y,
+            ));
         }
+
+        if (this.grenadeBeltComponentStore.get(playerId).grenadeInventory === 0) {
+            //VFX "No granade"
+        }
+    }
+
+    private pushMeeleIntent(isHold: boolean) {
+
     }
 }
 

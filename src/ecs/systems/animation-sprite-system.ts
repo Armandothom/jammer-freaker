@@ -1,7 +1,6 @@
 
 import { ANIMATION_MAPPED } from "../../game/asset-manager/consts/animation-mapped.values.js";
 import { AnimationComponent } from "../components/animation.component.js";
-import { HitComponent } from "../components/wall-hit.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { CoreManager } from "../core/core-manager.js";

@@ -37,6 +37,7 @@ import { GrenadeComponent } from "../components/grenade-component.js";
 import { GrenadeBeltComponent } from "../components/grenade-belt.component.js";
 import { TravelTimeComponent } from "../components/travel-time.component.js";
 import { FuseTimerComponent } from "../components/fuse-timer.component.js";
+import { EnemyType } from "../components/types/enemy-type.js";
 
 export class EntityFactory {
   constructor(
@@ -81,17 +82,17 @@ export class EntityFactory {
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity))
     this.playerComponentStore.add(entityId, new PlayerComponent());
-    this.shooterComponentStore.add(entityId, new ShooterComponent(WeaponConfig[WeaponType.RIFLE].shootingCooldown, WeaponConfig[WeaponType.GRENADE].shootingCooldown));
+    this.shooterComponentStore.add(entityId, new ShooterComponent(WeaponConfig[WeaponType.KNIFE].shootingCooldown, WeaponConfig[WeaponType.GRENADE].shootingCooldown));
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY))
-    this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.RIFLE, SpriteSheetName.WEAPON, AnimationName.WEAPON_RIFLE));
+    this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.KNIFE, SpriteSheetName.WEAPON, AnimationName.WEAPON_KNIFE));
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
-    this.damageComponentStore.add(entityId, new DamageComponent(WeaponConfig[WeaponType.RIFLE].damage));
+    this.damageComponentStore.add(entityId, new DamageComponent(WeaponConfig[WeaponType.KNIFE].damage));
     this.weaponMagazineComponentStore.add(entityId, new WeaponMagazineComponent(
       3,
-      WeaponConfig[WeaponType.RIFLE].maxBullets,
-      WeaponConfig[WeaponType.RIFLE].maxBullets,
-      WeaponConfig[WeaponType.RIFLE].reloadTime,
+      WeaponConfig[WeaponType.KNIFE].maxBullets,
+      WeaponConfig[WeaponType.KNIFE].maxBullets,
+      WeaponConfig[WeaponType.KNIFE].reloadTime,
       false
     ));
     this.grenadeBeltComponentStore.add(entityId, new GrenadeBeltComponent(
@@ -133,14 +134,14 @@ export class EntityFactory {
     return entityId;
   }
 
-  createSoldier(startX: number, startY: number, hp: number, damage: number, attackCooldownInSeconds: number, attackRange: number, movementRadius: number, velocity: number) {
+  createSoldier(enemyType: EnemyType, startX: number, startY: number, hp: number, damage: number, attackCooldownInSeconds: number, attackRange: number, movementRadius: number, velocity: number) {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.ENEMY_STILL, SpriteSheetName.ENEMY));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.ENEMY_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
-    this.enemyComponentStore.add(entityId, new EnemyComponent());
+    this.enemyComponentStore.add(entityId, new EnemyComponent(enemyType));
     this.shooterComponentStore.add(entityId, new ShooterComponent(attackCooldownInSeconds, 0));
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY));
     this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.SMG, SpriteSheetName.WEAPON, AnimationName.WEAPON_SMG));
@@ -156,14 +157,14 @@ export class EntityFactory {
     return entityId;
   }
 
-  createJuggernaut(startX: number, startY: number, hp: number, damage: number, attackCooldownInSeconds: number, attackRange: number, movementRadius: number, velocity: number) {
+  createJuggernaut(enemyType: EnemyType, startX: number, startY: number, hp: number, damage: number, attackCooldownInSeconds: number, attackRange: number, movementRadius: number, velocity: number) {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.ENEMY_STILL, SpriteSheetName.ENEMY));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.ENEMY_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
-    this.enemyComponentStore.add(entityId, new EnemyComponent());
+    this.enemyComponentStore.add(entityId, new EnemyComponent(enemyType));
     this.shooterComponentStore.add(entityId, new ShooterComponent(attackCooldownInSeconds, 0));
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY));
     this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.SMG, SpriteSheetName.WEAPON, AnimationName.WEAPON_SMG, 36, 20));
@@ -178,14 +179,14 @@ export class EntityFactory {
     return entityId;
   }
 
-  createSniper(startX: number, startY: number, hp: number, damage: number, attackCooldownInSeconds: number, attackRange: number, movementRadius: number, velocity: number) {
+  createSniper(enemyType: EnemyType, startX: number, startY: number, hp: number, damage: number, attackCooldownInSeconds: number, attackRange: number, movementRadius: number, velocity: number) {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.ENEMY_STILL, SpriteSheetName.ENEMY));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.ENEMY_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
-    this.enemyComponentStore.add(entityId, new EnemyComponent());
+    this.enemyComponentStore.add(entityId, new EnemyComponent(enemyType));
     this.shooterComponentStore.add(entityId, new ShooterComponent(attackCooldownInSeconds, 0));
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY));
     this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.SMG, SpriteSheetName.WEAPON, AnimationName.WEAPON_SMG, 36, 20));
@@ -200,14 +201,14 @@ export class EntityFactory {
     return entityId;
   }
 
-  createKamikaze(startX: number, startY: number, hp: number, damage: number, attackCooldownInSeconds: number, attackRange: number, movementRadius: number, velocity: number) {
+  createKamikaze(enemyType: EnemyType, startX: number, startY: number, hp: number, damage: number, attackCooldownInSeconds: number, attackRange: number, movementRadius: number, velocity: number) {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.ENEMY_STILL, SpriteSheetName.ENEMY));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.ENEMY_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
-    this.enemyComponentStore.add(entityId, new EnemyComponent());
+    this.enemyComponentStore.add(entityId, new EnemyComponent(enemyType));
     this.shooterComponentStore.add(entityId, new ShooterComponent(attackCooldownInSeconds, 0));
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY));
     this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.SMG, SpriteSheetName.WEAPON, AnimationName.WEAPON_SMG, 36, 20));
@@ -222,14 +223,14 @@ export class EntityFactory {
     return entityId;
   }
 
-  createBomber(startX: number, startY: number, hp: number, damage: number, attackCooldownInSeconds: number, attackRange: number, movementRadius: number, velocity: number) {
+  createBomber(enemyType: EnemyType, startX: number, startY: number, hp: number, damage: number, attackCooldownInSeconds: number, attackRange: number, movementRadius: number, velocity: number) {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.ENEMY_STILL, SpriteSheetName.ENEMY));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.ENEMY_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
-    this.enemyComponentStore.add(entityId, new EnemyComponent());
+    this.enemyComponentStore.add(entityId, new EnemyComponent(enemyType));
     this.shooterComponentStore.add(entityId, new ShooterComponent(attackCooldownInSeconds, 0));
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY));
     this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.SMG, SpriteSheetName.WEAPON, AnimationName.WEAPON_SMG, 36, 20));
@@ -246,10 +247,13 @@ export class EntityFactory {
 
   destroyProjectile(entityId: number): void {
     this.positionComponentStore.remove(entityId);
-    this.spriteComponentStore.remove(entityId);
+    //this.spriteComponentStore.remove(entityId);
     this.projectileComponentStore.remove(entityId);
     this.velocityComponentStore.remove(entityId);
     this.collisionComponentStore.remove(entityId);
+    if(this.grenadeComponentStore.has(entityId)){
+      this.grenadeComponentStore.remove(entityId);
+    }
   }
 
   destroyEnemy(entityId: number): void {

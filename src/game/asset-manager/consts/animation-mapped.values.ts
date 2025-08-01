@@ -124,6 +124,18 @@ export const ANIMATION_MAPPED: Map<AnimationName, Map<SpriteName, AnimationKeyMa
   ],
 
   [
+    AnimationName.WEAPON_KNIFE,
+    new Map<SpriteName, AnimationKeyMap>([
+      [SpriteName.KNIFE, {
+        spriteName: SpriteName.KNIFE,
+        spriteSheetName: SpriteSheetName.WEAPON,
+        order: 1,
+        durationKeyFrame: 1
+      }]
+    ])
+  ],
+
+  [
     AnimationName.BULLET_FIRED,
     new Map<SpriteName, AnimationKeyMap>([
       [SpriteName.BULLET_1, {
@@ -248,6 +260,87 @@ export const ANIMATION_MAPPED: Map<AnimationName, Map<SpriteName, AnimationKeyMa
         durationKeyFrame: 0.05
       }],
     ])
-  ]
+  ],
+
+  [
+    AnimationName.GRENADE_EXPLOSION,
+    new Map<SpriteName, AnimationKeyMap>([
+
+      [SpriteName.GRENADE_EXPLOSION_1, {
+        spriteName: SpriteName.GRENADE_EXPLOSION_1,
+        spriteSheetName: SpriteSheetName.GRENADE_EXPLOSION,
+        order: 1,
+        durationKeyFrame: 0.05
+      }],
+      [SpriteName.GRENADE_EXPLOSION_2, {
+        spriteName: SpriteName.GRENADE_EXPLOSION_2,
+        spriteSheetName: SpriteSheetName.GRENADE_EXPLOSION,
+        order: 2,
+        durationKeyFrame: 0.05
+      }],
+      [SpriteName.GRENADE_EXPLOSION_3, {
+        spriteName: SpriteName.GRENADE_EXPLOSION_3,
+        spriteSheetName: SpriteSheetName.GRENADE_EXPLOSION,
+        order: 3,
+        durationKeyFrame: 0.05
+      }],
+      [SpriteName.GRENADE_EXPLOSION_4, {
+        spriteName: SpriteName.GRENADE_EXPLOSION_4,
+        spriteSheetName: SpriteSheetName.GRENADE_EXPLOSION,
+        order: 4,
+        durationKeyFrame: 0.05
+      }],
+      [SpriteName.GRENADE_EXPLOSION_5, {
+        spriteName: SpriteName.GRENADE_EXPLOSION_5,
+        spriteSheetName: SpriteSheetName.GRENADE_EXPLOSION,
+        order: 5,
+        durationKeyFrame: 0.05
+      }],
+      [SpriteName.GRENADE_EXPLOSION_6, {
+        spriteName: SpriteName.GRENADE_EXPLOSION_6,
+        spriteSheetName: SpriteSheetName.GRENADE_EXPLOSION,
+        order: 6,
+        durationKeyFrame: 0.05
+      }],
+      [SpriteName.GRENADE_EXPLOSION_7, {
+        spriteName: SpriteName.GRENADE_EXPLOSION_7,
+        spriteSheetName: SpriteSheetName.GRENADE_EXPLOSION,
+        order: 7,
+        durationKeyFrame: 0.05
+      }],
+      [SpriteName.GRENADE_EXPLOSION_8, {
+        spriteName: SpriteName.GRENADE_EXPLOSION_8,
+        spriteSheetName: SpriteSheetName.GRENADE_EXPLOSION,
+        order: 8,
+        durationKeyFrame: 0.05
+      }],
+      [SpriteName.GRENADE_EXPLOSION_9, {
+        spriteName: SpriteName.GRENADE_EXPLOSION_9,
+        spriteSheetName: SpriteSheetName.GRENADE_EXPLOSION,
+        order: 9,
+        durationKeyFrame: 0.05
+      }],
+      [SpriteName.GRENADE_EXPLOSION_10, {
+        spriteName: SpriteName.GRENADE_EXPLOSION_10,
+        spriteSheetName: SpriteSheetName.GRENADE_EXPLOSION,
+        order: 10,
+        durationKeyFrame: 0.05
+      }],
+      [SpriteName.GRENADE_EXPLOSION_11, {
+        spriteName: SpriteName.GRENADE_EXPLOSION_11,
+        spriteSheetName: SpriteSheetName.GRENADE_EXPLOSION,
+        order: 11,
+        durationKeyFrame: 0.05
+      }],
+      [SpriteName.GRENADE_EXPLOSION_12, {
+        spriteName: SpriteName.GRENADE_EXPLOSION_12,
+        spriteSheetName: SpriteSheetName.GRENADE_EXPLOSION,
+        order: 12,
+        durationKeyFrame: 0.05
+      }],
+    ])
+  ],
+
+
   // next map
 ]);

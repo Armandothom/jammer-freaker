@@ -35,7 +35,7 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
     SpriteSheetName.WEAPON,
     {
       rows: 1,
-      columns: 2,
+      columns: 3,
       eachSpriteCellSizeHeight: 16,
       eachSpriteCellSizeWidth: 32,
       srcImagePath: 'src/assets/images/weapons.png',
@@ -51,8 +51,15 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
           row: 1,
           column: 2,
           originalRenderSpriteHeight: 20,
-          originalRenderSpriteWidth: 46,
-          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 16 }
+          originalRenderSpriteWidth: 42,
+          spriteCellOffset: { offsetX: 0, offsetY: 3, width: 32, height: 12 }
+        }],
+        [SpriteName.KNIFE, {
+          row: 1,
+          column: 3,
+          originalRenderSpriteHeight: 14,
+          originalRenderSpriteWidth: 24,
+          spriteCellOffset: { offsetX: 0, offsetY: 1, width: 31, height: 14 }
         }],
       ])
     },
@@ -201,8 +208,6 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
       columns: 16,
       eachSpriteCellSizeHeight: 64,
       eachSpriteCellSizeWidth: 64,
-      originalRenderSpriteHeight: 16,
-      originalRenderSpriteWidth: 16,
       srcImagePath: 'src/assets/images/bullet_wall_hit.png',
       sprites: new Map([
 
@@ -319,6 +324,104 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
           spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
         }],
 
+      ])
+    }
+  ],
+
+  [
+    SpriteSheetName.GRENADE_EXPLOSION,
+    {
+      rows: 1,
+      columns: 12,
+      eachSpriteCellSizeHeight: 64,
+      eachSpriteCellSizeWidth: 64,
+      srcImagePath: 'src/assets/images/grenade_explosion.png',
+      sprites: new Map([
+
+        [SpriteName.GRENADE_EXPLOSION_1, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 128,
+          originalRenderSpriteWidth: 128,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+        [SpriteName.GRENADE_EXPLOSION_2, {
+          row: 1,
+          column: 2,
+          originalRenderSpriteHeight: 128,
+          originalRenderSpriteWidth: 128,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+        [SpriteName.GRENADE_EXPLOSION_3, {
+          row: 1,
+          column: 3,
+          originalRenderSpriteHeight: 128,
+          originalRenderSpriteWidth: 128,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+        [SpriteName.GRENADE_EXPLOSION_4, {
+          row: 1,
+          column: 4,
+          originalRenderSpriteHeight: 128,
+          originalRenderSpriteWidth: 128,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+        [SpriteName.GRENADE_EXPLOSION_5, {
+          row: 1,
+          column: 5,
+          originalRenderSpriteHeight: 128,
+          originalRenderSpriteWidth: 128,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+        [SpriteName.GRENADE_EXPLOSION_6, {
+          row: 1,
+          column: 6,
+          originalRenderSpriteHeight: 128,
+          originalRenderSpriteWidth: 128,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+        [SpriteName.GRENADE_EXPLOSION_7, {
+          row: 1,
+          column: 7,
+          originalRenderSpriteHeight: 128,
+          originalRenderSpriteWidth: 128,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+        [SpriteName.GRENADE_EXPLOSION_8, {
+          row: 1,
+          column: 8,
+          originalRenderSpriteHeight: 128,
+          originalRenderSpriteWidth: 128,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+        [SpriteName.GRENADE_EXPLOSION_9, {
+          row: 1,
+          column: 9,
+          originalRenderSpriteHeight: 128,
+          originalRenderSpriteWidth: 128,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+        [SpriteName.GRENADE_EXPLOSION_10, {
+          row: 1,
+          column: 10,
+          originalRenderSpriteHeight: 128,
+          originalRenderSpriteWidth: 128,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+        [SpriteName.GRENADE_EXPLOSION_11, {
+          row: 1,
+          column: 11,
+          originalRenderSpriteHeight: 128,
+          originalRenderSpriteWidth: 128,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
+        [SpriteName.GRENADE_EXPLOSION_12, {
+          row: 1,
+          column: 12,
+          originalRenderSpriteHeight: 128,
+          originalRenderSpriteWidth: 128,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 64 }
+        }],
       ])
     }
   ],

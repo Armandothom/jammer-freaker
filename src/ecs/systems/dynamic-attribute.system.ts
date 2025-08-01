@@ -17,6 +17,7 @@ import { ReloadIntentComponent } from "../components/reload-intent.component.js"
 import { BulletFiredComponent } from "../components/bullet-fired.component.js";
 import { GrenadeBeltComponent } from "../components/grenade-belt.component.js";
 import { GrenadeFiredComponent } from "../components/grenade-fired.component.js";
+import { WeaponConfig, WeaponType } from "../components/types/weapon-type.js";
 
 export class DynamicAttributeSystem implements ISystem {
     private lastLevelApplied = -1;
@@ -42,12 +43,13 @@ export class DynamicAttributeSystem implements ISystem {
     update(deltaTime: number): void {
         const currentLevel = this.levelManager.levelNumber;
 
+        // Scales velocity of entities once per level
         for (const entity of this.velocityComponentStore.getAllEntities()) {
             const velocity = this.velocityComponentStore.get(entity);
 
             if (velocity.scaledAtLevel != currentLevel && !this.projectileComponentStore.has(entity)) {
                 // the factor below is defined empirically
-                // the velocity this way is ratio by the tileSize of de terrain, it isn't fixed by pixel walking
+                // the velocity this way is ratio by the tileSize of the terrain, it isn't fixed by pixel walking
 
                 const velocityScaled = (-0.133) * (currentLevel - 8) + 1.6;
                 velocity.currentVelocityX = velocityScaled;
@@ -56,9 +58,15 @@ export class DynamicAttributeSystem implements ISystem {
             }
         }
 
+        //Processses damageTaken by the entity
         for (const entity of this.damageTakenComponentStore.getAllEntities()) {
-            const damageSource = this.damageTakenComponentStore.get(entity).damageSource;
-            const damage = this.damageComponentStore.get(damageSource).damage;
+            const damageSourceId = this.damageTakenComponentStore.get(entity).damageSource;
+            const grenadeDamage = this.damageTakenComponentStore.get(entity).grenadeDamage;
+            let damage = this.damageComponentStore.get(damageSourceId).damage;
+
+            if (grenadeDamage != 0) {
+                damage = grenadeDamage
+            }
 
             this.healthComponentStore.get(entity).takeDamage(damage);
 
@@ -73,6 +81,7 @@ export class DynamicAttributeSystem implements ISystem {
             }
         }
 
+        //Consumes ammo of the shooting entity
         for (const shootingEntity of this.bulletFiredComponentStore.getAllEntities()) {
             if (this.playerComponentStore.has(shootingEntity)) {
                 this.weaponMagazineComponentStore.get(shootingEntity).consumeAmmo();
@@ -88,6 +97,7 @@ export class DynamicAttributeSystem implements ISystem {
             }
         }
 
+        //Consume grenades from the player
         for (const shootingEntity of this.grenadeFiredComponentStore.getAllEntities()) {
             if (this.playerComponentStore.has(shootingEntity)) {
                 this.grenadeBeltComponentStore.get(shootingEntity).consumeGrenade();

@@ -1,5 +1,8 @@
+import { EnemyType } from "./types/enemy-type.js";
 
 export class EnemyComponent {
-  constructor() {
+  public enemyType: EnemyType;
+  constructor(enemyType: EnemyType) {
+    this.enemyType = enemyType;
   }
 }

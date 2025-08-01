@@ -91,7 +91,7 @@ export class CollisionSystem implements ISystem {
                         (projectileFromEnemy && targetPlayer);
 
                     if (validTarget) {
-                        this.damageTakenComponentStore.add(target, new DamageTakenComponent(shooterId));                        
+                        this.damageTakenComponentStore.add(target, new DamageTakenComponent(shooterId, 0));                        
                     }
 
 

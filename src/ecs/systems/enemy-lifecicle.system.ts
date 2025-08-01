@@ -85,6 +85,7 @@ export class EnemyLifecicleSystem implements ISystem {
         if (spawnRoll <= spawnChancesAccumulated[0]) {
             const posRoll = this.trySpawn();
             this.entityFactory.createSoldier(
+                EnemyType.SOLDIER,
                 posRoll.x, posRoll.y,
                 EnemyConfig[EnemyType.SOLDIER].hp,
                 EnemyConfig[EnemyType.SOLDIER].damage,
@@ -96,6 +97,7 @@ export class EnemyLifecicleSystem implements ISystem {
         if (spawnRoll > spawnChancesAccumulated[0] && spawnRoll < spawnChancesAccumulated[1]) {
             const posRoll = this.trySpawn();
             this.entityFactory.createSniper(
+                EnemyType.SNIPER,
                 posRoll.x, posRoll.y,
                 EnemyConfig[EnemyType.SNIPER].hp,
                 EnemyConfig[EnemyType.SNIPER].damage,
@@ -108,6 +110,7 @@ export class EnemyLifecicleSystem implements ISystem {
             //kmkz
             const posRoll = this.trySpawn();
             this.entityFactory.createKamikaze(
+                EnemyType.KAMIKAZE,
                 posRoll.x, posRoll.y,
                 EnemyConfig[EnemyType.KAMIKAZE].hp,
                 EnemyConfig[EnemyType.KAMIKAZE].damage,
@@ -120,6 +123,7 @@ export class EnemyLifecicleSystem implements ISystem {
             //JUGG
             const posRoll = this.trySpawn();
             this.entityFactory.createJuggernaut(
+                EnemyType.JUGG,
                 posRoll.x, posRoll.y,
                 EnemyConfig[EnemyType.JUGG].hp,
                 EnemyConfig[EnemyType.JUGG].damage,
@@ -131,6 +135,7 @@ export class EnemyLifecicleSystem implements ISystem {
         if (spawnRoll > spawnChancesAccumulated[3] && spawnRoll < spawnChancesAccumulated[4]) {
             const posRoll = this.trySpawn();
             this.entityFactory.createBomber(
+                EnemyType.BOMBER,
                 posRoll.x, posRoll.y,
                 EnemyConfig[EnemyType.BOMBER].hp,
                 EnemyConfig[EnemyType.BOMBER].damage,
@@ -179,6 +184,7 @@ export class EnemyLifecicleSystem implements ISystem {
                 if (spawn.name == EnemyType.SOLDIER) {
                     const posRoll = this.trySpawn();
                     this.entityFactory.createSoldier(
+                        EnemyType.SOLDIER,
                         posRoll.x, posRoll.y,
                         EnemyConfig[EnemyType.SOLDIER].hp,
                         EnemyConfig[EnemyType.SOLDIER].damage,
@@ -190,6 +196,7 @@ export class EnemyLifecicleSystem implements ISystem {
                 if (spawn.name == EnemyType.SNIPER) {
                     const posRoll = this.trySpawn();
                     this.entityFactory.createSniper(
+                        EnemyType.SNIPER,
                         posRoll.x, posRoll.y,
                         EnemyConfig[EnemyType.SNIPER].hp,
                         EnemyConfig[EnemyType.SNIPER].damage,
@@ -201,6 +208,7 @@ export class EnemyLifecicleSystem implements ISystem {
                 if (spawn.name == EnemyType.JUGG) {
                     const posRoll = this.trySpawn();
                     this.entityFactory.createJuggernaut(
+                        EnemyType.JUGG,
                         posRoll.x, posRoll.y,
                         EnemyConfig[EnemyType.JUGG].hp,
                         EnemyConfig[EnemyType.JUGG].damage,
@@ -212,6 +220,7 @@ export class EnemyLifecicleSystem implements ISystem {
                 if (spawn.name == EnemyType.KAMIKAZE) {
                     const posRoll = this.trySpawn();
                     this.entityFactory.createKamikaze(
+                        EnemyType.KAMIKAZE,
                         posRoll.x, posRoll.y,
                         EnemyConfig[EnemyType.KAMIKAZE].hp,
                         EnemyConfig[EnemyType.KAMIKAZE].damage,
@@ -223,6 +232,7 @@ export class EnemyLifecicleSystem implements ISystem {
                 if (spawn.name == EnemyType.BOMBER) {
                     const posRoll = this.trySpawn();
                     this.entityFactory.createBomber(
+                        EnemyType.BOMBER,
                         posRoll.x, posRoll.y,
                         EnemyConfig[EnemyType.BOMBER].hp,
                         EnemyConfig[EnemyType.BOMBER].damage,
