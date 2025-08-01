@@ -35,6 +35,8 @@ import { WeaponConfig, WeaponType } from "../components/types/weapon-type.js";
 import { WeaponMagazineComponent } from "../components/weapon-magazine.component.js";
 import { GrenadeComponent } from "../components/grenade-component.js";
 import { GrenadeBeltComponent } from "../components/grenade-belt.component.js";
+import { TravelTimeComponent } from "../components/travel-time.component.js";
+import { FuseTimerComponent } from "../components/fuse-timer.component.js";
 
 export class EntityFactory {
   constructor(
@@ -66,8 +68,9 @@ export class EntityFactory {
     private weaponMagazineComponentStore: ComponentStore<WeaponMagazineComponent>,
     private grenadeComponentStore: ComponentStore<GrenadeComponent>,
     private grenadeBeltComponentStore: ComponentStore<GrenadeBeltComponent>,
+    private travelTimeComponentStore: ComponentStore<TravelTimeComponent>,
+    private fuseTimerComponentStore: ComponentStore<FuseTimerComponent>,
   ) {
-
   }
 
   createPlayer(startX: number, startY: number, hp: number, damage: number, velocity: number) {
@@ -110,6 +113,7 @@ export class EntityFactory {
     projectileSpriteSheet: SpriteSheetName,
     projectileAnimation: AnimationName,
     isGrenade: boolean,
+    travelDistance: { x: number, y: number },
   ) {
     const entityId = this.entityManager.registerEntity();
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
@@ -121,7 +125,9 @@ export class EntityFactory {
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.shotOriginComponentStore.add(entityId, new ShotOriginComponent(entityShooterId))
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
-    if(isGrenade){
+    if (isGrenade) {
+      this.travelTimeComponentStore.add(entityId, new TravelTimeComponent(Math.hypot(travelDistance.x, travelDistance.y) / velocity));
+      this.fuseTimerComponentStore.add(entityId, new FuseTimerComponent(WeaponConfig[WeaponType.GRENADE].fuseTimer));
       this.grenadeComponentStore.add(entityId, new GrenadeComponent());
     }
     return entityId;

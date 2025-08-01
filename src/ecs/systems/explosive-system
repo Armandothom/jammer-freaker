@@ -1,0 +1,13 @@
+import { ISystem } from "./system.interface.js";
+
+export class ExplosiveSystem implements ISystem{
+
+    constructor(
+        
+    ){        
+    }
+
+    update(deltaTime: number): void {
+        throw new Error("Method not implemented.");
+    }
+}

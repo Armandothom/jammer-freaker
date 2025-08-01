@@ -1,7 +1,9 @@
 import { DirectionComponent } from "../components/direction-component.js";
+import { GrenadeComponent } from "../components/grenade-component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ProjectileComponent } from "../components/projectile-component.js";
+import { TravelTimeComponent } from "../components/travel-time.component.js";
 import { VelocityComponent } from "../components/velocity-component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { ISystem } from "./system.interface.js";
@@ -17,7 +19,10 @@ export class ProjectileUpdateSystem implements ISystem {
         private velocityComponentStore: ComponentStore<VelocityComponent>,
         private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
         private directionComponentStore: ComponentStore<DirectionComponent>,
-    ) { }
+        private grenadeComponentStore: ComponentStore<GrenadeComponent>,
+        private travelTimeComponentStore: ComponentStore<TravelTimeComponent>,
+    ) {
+    }
 
     canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
 
@@ -45,10 +50,23 @@ export class ProjectileUpdateSystem implements ISystem {
             this.movementIntentComponentStore.add(entity, intent);
             if (intent.x > this.canvas.width || intent.y > this.canvas.height || intent.x < 0 || intent.y < 0) {
                 this.projectileComponentStore.remove(entity);
-
             }
-            this.positionComponentStore.add(entity, intent); // atualiza posição
+
+            if (this.grenadeComponentStore.has(entity)) {
+                this.travelTimeComponentStore.get(entity).travelTime += deltaTime
+
+                const travelCheck =
+                    this.travelTimeComponentStore.get(entity).travelTime > this.travelTimeComponentStore.get(entity).totalTravelTime;
+
+                if (travelCheck) {
+                    this.movementIntentComponentStore.remove(entity);
+                } else {
+                    this.positionComponentStore.add(entity, intent);
+                }
+            } else {
+                this.positionComponentStore.add(entity, intent);
+            }
+
         }
     }
-
 }

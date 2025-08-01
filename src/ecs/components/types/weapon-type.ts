@@ -13,6 +13,7 @@ export interface PropertiesTable {
     maxBullets: number,
     reloadTime: number,
     explosionRadius: number,
+    fuseTimer: number,
 }
 
 export const WeaponConfig: Record<WeaponType, PropertiesTable> = {
@@ -22,6 +23,7 @@ export const WeaponConfig: Record<WeaponType, PropertiesTable> = {
         maxBullets: 10,
         reloadTime: 0.5,
         explosionRadius: 0,
+        fuseTimer: 0,
     },
     [WeaponType.SMG]: {
         shootingCooldown: 0.2, // in seconds
@@ -29,6 +31,7 @@ export const WeaponConfig: Record<WeaponType, PropertiesTable> = {
         maxBullets: 30,
         reloadTime: 1,
         explosionRadius: 0,
+        fuseTimer: 0,
     },
     [WeaponType.RIFLE]: {
         shootingCooldown: 0.5, // in seconds
@@ -36,6 +39,7 @@ export const WeaponConfig: Record<WeaponType, PropertiesTable> = {
         maxBullets: 10,
         reloadTime: 2,
         explosionRadius: 0,
+        fuseTimer: 0,
     },
     [WeaponType.AWP]: {
         shootingCooldown: 1, // in seconds
@@ -43,6 +47,7 @@ export const WeaponConfig: Record<WeaponType, PropertiesTable> = {
         maxBullets: 5,
         reloadTime: 3,
         explosionRadius: 0,
+        fuseTimer: 0,
     },
     [WeaponType.KNIFE]: {
         shootingCooldown: 0.1, // in seconds
@@ -50,6 +55,7 @@ export const WeaponConfig: Record<WeaponType, PropertiesTable> = {
         maxBullets: 5, // use this as the knife "breaking"
         reloadTime: 0,
         explosionRadius: 0,
+        fuseTimer: 0,
     },
     [WeaponType.GRENADE]: {
         shootingCooldown: 2, // in seconds
@@ -57,5 +63,6 @@ export const WeaponConfig: Record<WeaponType, PropertiesTable> = {
         maxBullets: 3,
         reloadTime: 0,
         explosionRadius: 0,
+        fuseTimer: 3,
     },
 }

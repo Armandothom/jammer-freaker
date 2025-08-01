@@ -76,7 +76,7 @@ export class ProjectileSpawnSystem implements ISystem {
 
             const dx = intentXConverted - (shooterPosXConverted);
             const dy = intentYConverted - (shooterPosYConverted);
-            //const magnitude = Math.hypot(dx, dy); // Distancia do player e do click
+            const magnitude = Math.hypot(dx, dy);  // Player and click distance --> In Tiles
             const angle = Math.atan2(dy, dx);
             //if (magnitude === 0) continue; // Podemos alterar para que não spawne projetil se ele clicar tão perto do sprite do player
             //let dir = { x: dx / magnitude, y: dy / magnitude };
@@ -85,7 +85,7 @@ export class ProjectileSpawnSystem implements ISystem {
             const cooldownConfig = this.shooterComponentStore.get(entity);
             const shootingCooldown = this.shootingCooldownComponentStore.has(entity);
             if (!shootingCooldown) {
-                this.spawnProjectile(dir, attachedWeapon, false);
+                this.spawnProjectile(dir, attachedWeapon, false, {x: 640, y: 640});
                 console.log("cooldown Added");
                 const cooldownAdd = this.shootingCooldownComponentStore.add(entity, new ShootingCooldownComponent(cooldownConfig.shootingCooldown));
                 if (this.playerComponentStore.has(entity)) {
@@ -117,11 +117,16 @@ export class ProjectileSpawnSystem implements ISystem {
             let shooterPosYConverted = attachedWeapon.barrelY / canvas.height * canvasWidthHeightInTiles;
 
             let intentXConverted = (grenadeIntent.x - (spriteBullet.width / 2)) / canvas.width * canvasWidthHeightInTiles;
-            let intentYConverted = (grenadeIntent.y - (spriteBullet.width / 2)) / canvas.height * canvasWidthHeightInTiles;
+            let intentYConverted = (grenadeIntent.y - (spriteBullet.height / 2)) / canvas.height * canvasWidthHeightInTiles;
 
             const dx = intentXConverted - (shooterPosXConverted);
             const dy = intentYConverted - (shooterPosYConverted);
-            //const magnitude = Math.hypot(dx, dy); // Distancia do player e do click
+            const magnitudeInTiles = Math.hypot(dx, dy);  // Player and click distance --> In Tiles
+            const travelDistance = {
+                x: (grenadeIntent.x - (spriteBullet.width / 2)) - attachedWeapon.barrelX,
+                y: (grenadeIntent.y - (spriteBullet.height / 2)) - attachedWeapon.barrelY,
+            }
+            console.log(travelDistance);
             const angle = Math.atan2(dy, dx);
             //if (magnitude === 0) continue; // Podemos alterar para que não spawne projetil se ele clicar tão perto do sprite do player
             //let dir = { x: dx / magnitude, y: dy / magnitude };
@@ -130,7 +135,7 @@ export class ProjectileSpawnSystem implements ISystem {
             const cooldownConfig = this.shooterComponentStore.get(entity);
             const grenadeCooldown = this.grenadeCooldownComponentStore.has(entity);
             if (!grenadeCooldown) {
-                this.spawnProjectile(dir, attachedWeapon, true);
+                this.spawnProjectile(dir, attachedWeapon, true, travelDistance);
                 const cooldownAdd = this.grenadeCooldownComponentStore.add(entity, new GrenadeCooldownComponent(cooldownConfig.grenadeCooldown));
                 if (this.playerComponentStore.has(entity)) {
                     this.grenadeFiredComponentStore.add(entity, new GrenadeFiredComponent());
@@ -139,7 +144,7 @@ export class ProjectileSpawnSystem implements ISystem {
         }
     }
 
-    private spawnProjectile(dir: { x: number; y: number }, shootingWeapon: WeaponSpriteAttachmentComponent, isGrenade: boolean): void {
+    private spawnProjectile(dir: { x: number; y: number }, shootingWeapon: WeaponSpriteAttachmentComponent, isGrenade: boolean, travelDistance: {x: number, y: number}): void {
         if (isGrenade) {
             //SFX
             const entity = this.entityFactory.createProjectile(
@@ -153,6 +158,7 @@ export class ProjectileSpawnSystem implements ISystem {
                 SpriteSheetName.PROJECTILE,
                 AnimationName.GRENADE_FIRED,
                 isGrenade,
+                travelDistance,
             );
         } else {
             this.soundManager.playSound("SMG_FIRE");
@@ -167,6 +173,7 @@ export class ProjectileSpawnSystem implements ISystem {
                 SpriteSheetName.PROJECTILE,
                 AnimationName.BULLET_FIRED,
                 isGrenade,
+                travelDistance,
             );
         }
     }

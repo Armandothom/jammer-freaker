@@ -110,7 +110,6 @@ export class ShootingSystem implements ISystem {
             if (this.weaponMagazineComponentStore.get(playerId).magazineInventory === 0) {
                 // SFX Click sound
             }
-
         }
     }
 
