@@ -3,11 +3,16 @@ import { randomNumberWithSeedInfluence } from "../../utils/get-random-with-seed.
 import { AIAttackOrderComponent } from "../components/ai-attack-order.component.js";
 import { AIComponent } from "../components/ai.component.js";
 import { AimShootingComponent } from "../components/aim-shooting.component.js";
+import { DisableAimComponent } from "../components/disable-aim.component.js";
+import { EnemyComponent } from "../components/enemy.component.js";
+import { IntentGrenadeComponent } from "../components/intent-grenade.component.js";
+import { IntentMeleeComponent } from "../components/intent-melee.component.js";
 import { IntentShotComponent } from "../components/intent-shot.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { AiAttackOrder } from "../components/types/ai-attack-order.js";
+import { EnemyType } from "../components/types/enemy-type.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { CoreManager } from "../core/core-manager.js";
@@ -18,13 +23,17 @@ import { ISystem } from "./system.interface.js";
 export class AiAttackBehaviorSystem implements ISystem {
     constructor(
         private positionComponentStore: ComponentStore<PositionComponent>,
-        private intentShotComponent: ComponentStore<IntentShotComponent>,
+        private intentShotComponentStore: ComponentStore<IntentShotComponent>,
         private aiComponentStore: ComponentStore<AIComponent>,
         private aiAttackOrderComponentStore: ComponentStore<AIAttackOrderComponent>,
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private aimShootingComponentStore: ComponentStore<AimShootingComponent>,
         private weaponAttachmentComponentStore: ComponentStore<WeaponSpriteAttachmentComponent>,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
+        private enemyComponentStore: ComponentStore<EnemyComponent>,
+        private intentGrenadeComponentStore: ComponentStore<IntentGrenadeComponent>,
+        private intentMeleeComponentStore: ComponentStore<IntentMeleeComponent>,
+        private disableAimComponentStore: ComponentStore<DisableAimComponent>,
     ) { }
 
     update(deltaTime: number): void {
@@ -46,6 +55,7 @@ export class AiAttackBehaviorSystem implements ISystem {
                     case AiAttackOrder.SHOOT:
                         const playerPos = this.positionComponentStore.get(playerEntityId);
                         const aiPos = this.positionComponentStore.get(aiEntityId);
+                        const enemyType = this.enemyComponentStore.get(aiEntityId).enemyType
                         const offsetXShooting = randomNumberWithSeedInfluence(aiEntityId.toString(), 0, 10)
                         const offsetYShooting = randomNumberWithSeedInfluence(aiEntityId.toString(), 0, 10);
                         const weaponAttachments = this.weaponAttachmentComponentStore.getValuesAndEntityId();
@@ -60,8 +70,18 @@ export class AiAttackBehaviorSystem implements ISystem {
                         //offsetShooting to return
 
                         //By default the isGranade is false, but should change to the bomber guy
-                        this.intentShotComponent.add(aiEntityId, new IntentShotComponent(playerPos.x + playerSprite.width / 2, playerPos.y, false, false));
-                        this.aimShootingComponentStore.add(weaponAttachment[0], new AimShootingComponent(angle, weaponSprite.height * 5 / 20));
+                        if (enemyType === EnemyType.SOLDIER || enemyType === EnemyType.SNIPER) {
+                            this.intentShotComponentStore.add(aiEntityId, new IntentShotComponent(playerPos.x + playerSprite.width / 2, playerPos.y, false));
+                        }
+                        if (enemyType === EnemyType.BOMBER) {
+                            this.intentGrenadeComponentStore.add(aiEntityId, new IntentShotComponent(playerPos.x + playerSprite.width / 2, playerPos.y, false));
+                        }
+                        if (enemyType === EnemyType.KAMIKAZE) {
+                            this.intentMeleeComponentStore.add(aiEntityId, new IntentShotComponent(playerPos.x + playerSprite.width / 2, playerPos.y, false));
+                        }
+                        if (!this.disableAimComponentStore.has(aiEntityId)) {
+                            this.aimShootingComponentStore.add(weaponAttachment[0], new AimShootingComponent(angle, weaponSprite.height * 5 / 20));
+                        }
                         break;
                     default:
                         break;

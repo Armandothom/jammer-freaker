@@ -28,18 +28,18 @@ export class AnimationSpriteSystem implements ISystem {
                 .sort((a, b) => a.order - b.order);
             const timePassed = CoreManager.timeGlobalSinceStart - animComponent.startAnimationTime;
             const totalDuration = sortedFrames.reduce((sum, frame) => sum + frame.durationKeyFrame, 0);
-            const loopedTime = timePassed % totalDuration;
+            const effectiveTime = animComponent.loop ? timePassed % totalDuration : Math.min(timePassed, totalDuration);
             let accumulator = 0;
             let currentFrame = sortedFrames[0];
             for (const frame of sortedFrames) {
                 accumulator += frame.durationKeyFrame;
-                if (loopedTime <= accumulator) {
+                if (effectiveTime <= accumulator) {
                     currentFrame = frame;
                     break;
                 }
             }
 
-            //console.log(currentFrame.spriteName, currentFrame.spriteSheetName);            
+            console.log("currentSprite", currentFrame.spriteName, currentFrame.spriteSheetName);            
             this.spriteComponentStore.add(entityId, new SpriteComponent(
                 currentFrame.spriteName,
                 currentFrame.spriteSheetName

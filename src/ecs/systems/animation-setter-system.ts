@@ -54,6 +54,7 @@ export class AnimationSetterSystem implements ISystem {
             const isExplodedGrenade = this.grenadeExplosionComponentStore.has(entityWithAnim);
             const isAttachedWeapon = this.weaponSpriteAttachmentComponent.has(entityWithAnim);
             let isMoving = false;
+            let loop = true;
             const entityMovementIntent = this.movementIntentComponentStore.getOrNull(entityWithAnim);
 
             //Check anim direction + movement
@@ -93,48 +94,53 @@ export class AnimationSetterSystem implements ISystem {
             }
 
             if (isProjectile) {
-                //segregate here is the hit is of wall, player
                 if (this.wallHitComponentStore.has(entityWithAnim)) {
                     animToUse = AnimationName.BULLET_WALL_HIT;
-                    if (!this.offsetAppliedComponentStore.has(entityWithAnim)) {
-                        let initialPosition = this.positionComponentStore.get(entityWithAnim);
-                        const offsetX = this.spriteComponentStore.get(entityWithAnim).width / 4;
-                        const offsetY = this.spriteComponentStore.get(entityWithAnim).height / 4;
-                        initialPosition.x -= offsetX;
-                        initialPosition.y -= offsetY;
-                        this.offsetAppliedComponentStore.add(entityWithAnim, new OffsetAppliedComponent());
-                    }
-                } else {
-                    if (isGrenade) {
-                        animToUse = AnimationName.GRENADE_FIRED;
-                    } else {
-                        animToUse = AnimationName.BULLET_FIRED;
-                    }
-                }
-                if (isExplodedGrenade) {
+                    loop = false;
+                    this.applyWallHitOffset(entityWithAnim);
+                } else if (isExplodedGrenade) {
+                    console.log("isExplodedGrenade", entityWithAnim);
                     animToUse = AnimationName.GRENADE_EXPLOSION;
-                    if (!this.offsetAppliedComponentStore.has(entityWithAnim)) {
-                        console.log("offsetApplied");
-                        let initialPosition = this.positionComponentStore.get(entityWithAnim);
-                        //Grenade offset
-                        const offsetX = this.spriteComponentStore.get(entityWithAnim).width / 2;
-                        const offsetY = this.spriteComponentStore.get(entityWithAnim).height / 2;
-
-                        const explosionProperties = this.spriteManager.getSpriteProperties(SpriteName.GRENADE_EXPLOSION_1, SpriteSheetName.GRENADE_EXPLOSION);
-
-                        console.log(offsetX - explosionProperties.sprite.originalRenderSpriteWidth, offsetY - explosionProperties.sprite.originalRenderSpriteHeight);
-                        initialPosition.x += offsetX - explosionProperties.sprite.originalRenderSpriteWidth;
-                        initialPosition.y += offsetY - explosionProperties.sprite.originalRenderSpriteHeight;
-                        this.offsetAppliedComponentStore.add(entityWithAnim, new OffsetAppliedComponent());
-                    }
+                    loop = false;
+                    this.applyGrenadeExplosionOffset(entityWithAnim);
+                }
+                else {
+                    animToUse = isGrenade ? AnimationName.GRENADE_FIRED : AnimationName.BULLET_FIRED
                 }
             }
-
-
 
             if (animToUse && currentAnim != animToUse) {
-                this.animationComponentStore.add(entityWithAnim, new AnimationComponent(animToUse));
+                console.log("animToUse", animToUse);
+                this.animationComponentStore.add(entityWithAnim, new AnimationComponent(animToUse, loop));
             }
         }
+    }
+
+    private applyWallHitOffset(entityWithAnim: number) {
+        if (this.offsetAppliedComponentStore.has(entityWithAnim)) return;
+
+        let initialPosition = this.positionComponentStore.get(entityWithAnim);
+        const offsetX = this.spriteComponentStore.get(entityWithAnim).width / 2;
+        const offsetY = this.spriteComponentStore.get(entityWithAnim).height / 2;
+
+        const bulletWallHitProperties = this.spriteManager.getSpriteProperties(SpriteName.BULLET_WALL_HIT_1, SpriteSheetName.BULLET_WALL_HIT);
+
+        initialPosition.x += offsetX - bulletWallHitProperties.sprite.originalRenderSpriteWidth;
+        initialPosition.y += offsetY - bulletWallHitProperties.sprite.originalRenderSpriteHeight;
+        this.offsetAppliedComponentStore.add(entityWithAnim, new OffsetAppliedComponent());
+    }
+
+    private applyGrenadeExplosionOffset(entityWithAnim: number) {
+        if (this.offsetAppliedComponentStore.has(entityWithAnim)) return;
+        let initialPosition = this.positionComponentStore.get(entityWithAnim);
+        //Grenade offset
+        const offsetX = this.spriteComponentStore.get(entityWithAnim).width / 2;
+        const offsetY = this.spriteComponentStore.get(entityWithAnim).height / 2;
+
+        const explosionProperties = this.spriteManager.getSpriteProperties(SpriteName.GRENADE_EXPLOSION_1, SpriteSheetName.GRENADE_EXPLOSION);
+
+        initialPosition.x += offsetX - explosionProperties.sprite.originalRenderSpriteWidth;
+        initialPosition.y += offsetY - explosionProperties.sprite.originalRenderSpriteHeight;
+        this.offsetAppliedComponentStore.add(entityWithAnim, new OffsetAppliedComponent());
     }
 }

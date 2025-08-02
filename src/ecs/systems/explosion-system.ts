@@ -1,3 +1,4 @@
+import { AnimationComponent } from "../components/animation.component.js";
 import { DamageTakenComponent } from "../components/damage-taken.component.js";
 import { DelayedDestructionComponent } from "../components/delayed-destruction.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
@@ -28,11 +29,12 @@ export class ExplosionSystem implements ISystem {
         private damageTakenComponentStore: ComponentStore<DamageTakenComponent>,
         private grenadeExplosionComponentStore: ComponentStore<GrenadeExplosionComponent>,
         private delayedDestructionComponentStore: ComponentStore<DelayedDestructionComponent>,
+        private animationComponentStore: ComponentStore<AnimationComponent>,
     ) {
     }
 
     update(deltaTime: number): void {
- 
+
         for (const shooter of this.shooterComponentStore.getAllEntities()) {
             if (this.enemyComponentStore.has(shooter)) {
                 if (this.enemyComponentStore.get(shooter).enemyType === EnemyType.BOMBER) {
@@ -76,9 +78,12 @@ export class ExplosionSystem implements ISystem {
             this.fuseTimerComponentStore.get(grenadeEntity).fuseTime += deltaTime;
             const grenadePos = this.positionComponentStore.get(grenadeEntity);
             const explosionCheck =
-                this.fuseTimerComponentStore.get(grenadeEntity).fuseTime > this.fuseTimerComponentStore.get(grenadeEntity).totalFuseTimer;
+                this.fuseTimerComponentStore.get(grenadeEntity).fuseTime >= this.fuseTimerComponentStore.get(grenadeEntity).totalFuseTimer;
 
-            if (explosionCheck) {
+            if (explosionCheck && !this.grenadeExplosionComponentStore.has(grenadeEntity)) {
+                console.log(this.grenadeExplosionComponentStore.has(grenadeEntity));
+                this.grenadeExplosionComponentStore.add(grenadeEntity, new GrenadeExplosionComponent());
+
                 for (const enemy of this.enemyComponentStore.getAllEntities()) {
                     const enemyPos = this.positionComponentStore.get(enemy);
 
@@ -89,20 +94,30 @@ export class ExplosionSystem implements ISystem {
                         this.damageTakenComponentStore.add(enemy, new DamageTakenComponent(damageSourceId, damage))
                     }
                 }
-                this.grenadeExplosionComponentStore.add(grenadeEntity, new GrenadeExplosionComponent());
-                if (!this.delayedDestructionComponentStore.has(grenadeEntity)) {
-                    this.delayedDestructionComponentStore.add(grenadeEntity, new DelayedDestructionComponent(0.6));
-                }
-                this.delayedDestructionComponentStore.get(grenadeEntity).destructionTime += deltaTime;
-
-                const destroyCondition =
-                    this.delayedDestructionComponentStore.get(grenadeEntity).destructionTime >= this.delayedDestructionComponentStore.get(grenadeEntity).totalDestructionTimer
-
-                if (destroyCondition) {
-                    this.entityFactory.destroyProjectile(grenadeEntity);
-                }
-
+                this.delayedDestructionComponentStore.add(grenadeEntity, new DelayedDestructionComponent(0.6));
             }
+
+
+            if (this.grenadeExplosionComponentStore.has(grenadeEntity)) {
+                if (this.delayedDestructionComponentStore.has(grenadeEntity)) {
+                    this.delayedDestructionComponentStore.get(grenadeEntity).destructionTime += deltaTime;
+                    let previousTime = this.delayedDestructionComponentStore.get(grenadeEntity).destructionTime - deltaTime;
+
+                    const destroyCondition =
+                        previousTime < this.delayedDestructionComponentStore.get(grenadeEntity).totalDestructionTimer &&
+                        this.delayedDestructionComponentStore.get(grenadeEntity).destructionTime >= this.delayedDestructionComponentStore.get(grenadeEntity).totalDestructionTimer
+
+                    if (destroyCondition) {
+                        console.log("grenadeDestroyed", grenadeEntity);
+                        this.animationComponentStore.remove(grenadeEntity);
+                        this.grenadeExplosionComponentStore.remove(grenadeEntity);
+                        this.delayedDestructionComponentStore.remove(grenadeEntity);
+                        this.entityFactory.destroyProjectile(grenadeEntity);
+                    }
+                }
+            }
+
         }
     }
 }
+

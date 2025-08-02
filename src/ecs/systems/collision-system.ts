@@ -108,26 +108,38 @@ export class CollisionSystem implements ISystem {
             const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
             const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;
 
-            if (wallCollisionCheck && this.wallHitComponentStore.has(entity) == false) {
+            if (wallCollisionCheck) {
                 this.movementIntentComponentStore.remove(entity);
+                let animEnded: boolean = false;
                 if (this.projectileComponentStore.has(entity)) {
-                    this.animTimerComponentStore.add(entity, new AnimTimerComponent(AnimationName.BULLET_WALL_HIT, 0.8))
-                    this.wallHitComponentStore.add(entity, new WallHitComponent());
-                    this.velocityComponentStore.add(entity, new VelocityComponent(0, 0, 0, 0));
-                    this.collisionComponentStore.add(entity, new CollisionComponent(false));
-                }
-            }
+                    if (!this.wallHitComponentStore.has(entity)) {
+                        this.animTimerComponentStore.add(entity, new AnimTimerComponent(AnimationName.BULLET_WALL_HIT, 0.8))
+                        this.wallHitComponentStore.add(entity, new WallHitComponent());
+                        const velocity = this.velocityComponentStore.get(entity);
+                        velocity.baseVelocityX = 0;
+                        velocity.baseVelocityY = 0;
+                        velocity.currentVelocityX = 0;
+                        velocity.currentVelocityY = 0;
 
-            if (wallCollisionCheck && this.wallHitComponentStore.has(entity) == true) {
-                this.movementIntentComponentStore.remove(entity);
-                if (this.projectileComponentStore.has(entity)) {
-                    this.animTimerComponentStore.get(entity).animTime += deltaTime;
-                    if (this.animTimerComponentStore.get(entity).animTime >= this.animTimerComponentStore.get(entity).animDuration) {
-                        this.entityFactory.destroyProjectile(entity);
-                        this.wallHitComponentStore.remove(entity);
-                        this.animationComponentStore.remove(entity);
+                        const collision = this.collisionComponentStore.get(entity);
+                        collision.collides = false;
+                    } else {
+                        this.animTimerComponentStore.get(entity).animTime += deltaTime;
+                        let previousTime = this.animTimerComponentStore.get(entity).animTime - deltaTime;
+                        animEnded =
+                            previousTime < this.animTimerComponentStore.get(entity).animDuration &&
+                            this.animTimerComponentStore.get(entity).animTime >= this.animTimerComponentStore.get(entity).animDuration;
+
+                        if (animEnded) {
+                            this.animationComponentStore.remove(entity);
+                            this.animTimerComponentStore.remove(entity);
+                            this.wallHitComponentStore.remove(entity);
+                            this.entityFactory.destroyProjectile(entity);
+                        }
                     }
                 }
+
+
             }
 
             if (shapeCollisionCheck.wouldCollide) {
@@ -142,7 +154,7 @@ export class CollisionSystem implements ISystem {
                     console.log("enemy shape collision");
                     this.damageTakenComponentStore.add(entity, new DamageTakenComponent(shapeCollisionCheck.shapeSource!, 0));
                 };
-                if(this.playerComponentStore.has(entity) && shapeCollisionCheck.shapeSource != entity){
+                if (this.playerComponentStore.has(entity) && shapeCollisionCheck.shapeSource != entity) {
                     // Damage dealing to the player
                     console.log("player shape collision");
                     this.damageTakenComponentStore.add(entity, new DamageTakenComponent(shapeCollisionCheck.shapeSource!, 0));

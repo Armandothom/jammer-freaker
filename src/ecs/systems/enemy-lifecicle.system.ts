@@ -80,7 +80,8 @@ export class EnemyLifecicleSystem implements ISystem {
 
         // to be implemented: time elapsed || bypass logic for spawn logic
         // bypass being used to spawn a bunch of enemies on level start
-
+        
+        spawnRoll = 0.3;
 
         if (spawnRoll <= spawnChancesAccumulated[0]) {
             const posRoll = this.trySpawn();
