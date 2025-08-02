@@ -9,6 +9,7 @@ import { IntentMeleeComponent } from "../components/intent-melee.component.js";
 import { MeleeIntentProcessedComponent } from "../components/melee-intent-processed.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
+import { ShapeComponent } from "../components/shape-component.js";
 import { ShooterComponent } from "../components/shooter-component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { EnemyType } from "../components/types/enemy-type.js";
@@ -17,6 +18,7 @@ import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment
 import { WeaponComponent } from "../components/weapon.component.js";
 import { ZLayerComponent } from "../components/z-layer.component.js";
 import { ComponentStore } from "../core/component-store.js";
+import { EntityFactory } from "../entities/entity-factory.js";
 import { ISystem } from "./system.interface.js";
 
 export class MeleeAttackSystem implements ISystem {
@@ -35,6 +37,8 @@ export class MeleeAttackSystem implements ISystem {
         private disableAimComponentStore: ComponentStore<DisableAimComponent>,
         private meleeIntentProcessedComponentStore: ComponentStore<MeleeIntentProcessedComponent>,
         private initialAimAngleComponentStore: ComponentStore<InitialAimAngleComponent>,
+        private entityFactory: EntityFactory,
+        private shapeComponentStore: ComponentStore<ShapeComponent>,
     ) {
     }
 
@@ -55,37 +59,44 @@ export class MeleeAttackSystem implements ISystem {
             const weaponAttachments = this.weaponSpriteAttachmentComponentStore.getValuesAndEntityId();
             const weaponAttachment = weaponAttachments.find((weaponAttachmentEntry) => weaponAttachmentEntry[1].parentEntityId == shooter)!;
             const weaponEntityId = weaponAttachment[0];
+            const weaponSprite = this.spriteComponentStore.get(weaponEntityId);
+            const shooterSprite = this.spriteComponentStore.get(shooter);
             const aimShooting = this.aimShootingComponentStore.get(weaponEntityId);
+            let shapeId: number;
+            let attackEnded: boolean = false;
 
 
             if (!this.attackSpeedComponentStore.has(shooter)) {
-                console.log("disable, entity", shooter);
                 this.attackSpeedComponentStore.add(shooter, new AttackSpeedComponent(WeaponConfig[WeaponType.KNIFE].shootingCooldown));
                 this.initialAimAngleComponentStore.add(weaponEntityId, new InitialAimAngleComponent(aimShooting.aimAngle));
                 this.disableAimComponentStore.add(shooter, new DisableAimComponent());
+                shapeId = this.entityFactory.createCollisionShape(shooter, shooterPos.x + shooterSprite.width, shooterPos.y, weaponSprite.width, shooterSprite.height);
+
                 // disable angle change component
             } else {
-                //console.log("attack should occur, entity", shooter);
                 const totalAttackFrames = Math.round(this.attackSpeedComponentStore.get(shooter).attackSpeed / deltaTime);
                 const initialAngle = this.initialAimAngleComponentStore.get(weaponEntityId).initialAimAngle;
-                console.log("totalattackframes", totalAttackFrames);
 
-                const swingAngle = Math.PI * (5/6);
+                const swingAngle = Math.PI * (5 / 6);
                 const angleStep = swingAngle / totalAttackFrames;
                 const angle = initialAngle + angleStep * this.attackSpeedComponentStore.get(shooter).attackFrame - swingAngle / 2;
                 this.aimShootingComponentStore.get(weaponEntityId).aimAngle = angle;
                 this.attackSpeedComponentStore.get(shooter).attackFrame++;
 
-                const attackEnded = this.attackSpeedComponentStore.get(shooter).attackFrame >= totalAttackFrames;
+                attackEnded = this.attackSpeedComponentStore.get(shooter).attackFrame >= totalAttackFrames;
+            }
 
-                if (attackEnded) {
-                    console.log(attackEnded);
-                    //console.log(this.attackSpeedComponentStore.get(shooter).attackFrame);
-                    this.aimShootingComponentStore.get(weaponEntityId).aimAngle = initialAngle;
-                    this.meleeIntentProcessedComponentStore.add(shooter, new MeleeIntentProcessedComponent());
-                    this.attackSpeedComponentStore.remove(shooter);
-                    this.initialAimAngleComponentStore.remove(weaponEntityId);
-                    this.disableAimComponentStore.remove(shooter);
+            if (attackEnded) {
+                this.aimShootingComponentStore.get(weaponEntityId).aimAngle = this.initialAimAngleComponentStore.get(weaponEntityId).initialAimAngle;
+                this.meleeIntentProcessedComponentStore.add(shooter, new MeleeIntentProcessedComponent());
+                this.attackSpeedComponentStore.remove(shooter);
+                this.initialAimAngleComponentStore.remove(weaponEntityId);
+                this.disableAimComponentStore.remove(shooter);
+                const shapes = this.shapeComponentStore.getAllEntities();
+                for (const shape of shapes) {
+                    if (this.shapeComponentStore.get(shape).shapeSource === shooter) {
+                        this.entityFactory.destroyCollisionShape(shape);
+                    }
                 }
             }
         }

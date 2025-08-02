@@ -38,6 +38,10 @@ import { GrenadeBeltComponent } from "../components/grenade-belt.component.js";
 import { TravelTimeComponent } from "../components/travel-time.component.js";
 import { FuseTimerComponent } from "../components/fuse-timer.component.js";
 import { EnemyType } from "../components/types/enemy-type.js";
+import { ShapeDimensionComponent } from "../components/shape-dimension.component.js";
+import { ShapePositionComponent } from "../components/shape-position.component.js";
+import { ShapeComponent } from "../components/shape-component.js";
+import { Shape } from "three/src/Three.js";
 
 export class EntityFactory {
   constructor(
@@ -71,6 +75,9 @@ export class EntityFactory {
     private grenadeBeltComponentStore: ComponentStore<GrenadeBeltComponent>,
     private travelTimeComponentStore: ComponentStore<TravelTimeComponent>,
     private fuseTimerComponentStore: ComponentStore<FuseTimerComponent>,
+    private shapeDimensionComponentStore: ComponentStore<ShapeDimensionComponent>,
+    private shapePositionComponentStore: ComponentStore<ShapePositionComponent>,
+    private shapeComponentStore: ComponentStore<ShapeComponent>,
   ) {
   }
 
@@ -245,13 +252,23 @@ export class EntityFactory {
     return entityId;
   }
 
+  createCollisionShape(parentEntityId: number, startX: number, startY: number, shapeWidth: number, shapeHeight: number) {
+    const entityId = this.entityManager.registerEntity();
+    console.log("Shape created", entityId);
+    this.shapeComponentStore.add(entityId, new ShapeComponent(parentEntityId));
+    this.shapePositionComponentStore.add(entityId, new ShapePositionComponent(startX, startY));
+    this.shapeDimensionComponentStore.add(entityId, new ShapeDimensionComponent(shapeWidth, shapeHeight));
+    this.collisionComponentStore.add(entityId, new CollisionComponent());
+    return entityId;
+  }
+
   destroyProjectile(entityId: number): void {
     this.positionComponentStore.remove(entityId);
     //this.spriteComponentStore.remove(entityId);
     this.projectileComponentStore.remove(entityId);
     this.velocityComponentStore.remove(entityId);
     this.collisionComponentStore.remove(entityId);
-    if(this.grenadeComponentStore.has(entityId)){
+    if (this.grenadeComponentStore.has(entityId)) {
       this.grenadeComponentStore.remove(entityId);
     }
   }
@@ -296,6 +313,15 @@ export class EntityFactory {
     this.animationComponentStore.remove(weaponEntityId);
     this.spriteComponentStore.remove(weaponEntityId);
     this.zLayerComponentStore.remove(weaponEntityId);
+  }
+
+  destroyCollisionShape(entityId: number) {
+    console.log("Shape destroyed", entityId);
+    this.shapeComponentStore.remove(entityId);
+    this.shapePositionComponentStore.remove(entityId);
+    this.shapeDimensionComponentStore.remove(entityId);
+    this.collisionComponentStore.remove(entityId);  
+    return entityId;
   }
 
 }
