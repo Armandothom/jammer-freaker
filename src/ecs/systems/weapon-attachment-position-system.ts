@@ -1,4 +1,5 @@
 import { AimShootingComponent } from "../components/aim-shooting.component.js";
+import { DisableAttachmentComponent } from "../components/disable-attachment.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";

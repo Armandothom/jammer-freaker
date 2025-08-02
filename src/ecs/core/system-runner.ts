@@ -76,6 +76,13 @@ import { FuseTimerComponent } from "../components/fuse-timer.component.js";
 import { ExplosionSystem } from "../systems/explosion-system.js";
 import { GrenadeExplosionComponent } from "../components/grenade-explosion.component.js";
 import { DelayedDestructionComponent } from "../components/delayed-destruction.component.js";
+import { IntentMeleeComponent } from "../components/intent-melee.component.js";
+import { DisableAttachmentComponent } from "../components/disable-attachment.component.js";
+import { AttackSpeedComponent } from "../components/attack-speed.component.js";
+import { DisableAimComponent } from "../components/disable-aim.component.js";
+import { MeleeAttackSystem } from "../systems/melee-attack.system.js";
+import { MeleeIntentProcessedComponent } from "../components/melee-intent-processed.component.js";
+import { InitialAimAngleComponent } from "../components/initial-aim-angle.component.js";
 
 export class SystemRunner {
   private renderSystem: RenderSystem;
@@ -127,6 +134,12 @@ export class SystemRunner {
   private fuseTimerComponentStore: ComponentStore<FuseTimerComponent> = new ComponentStore("FuseTimerComponent");
   private grenadeExplosionComponentStore: ComponentStore<GrenadeExplosionComponent> = new ComponentStore("GrenadeExplosionComponent");
   private delayedDestructionComponentStore: ComponentStore<DelayedDestructionComponent> = new ComponentStore("DelayedDestructionComponent");
+  private intentMeleeComponentStore: ComponentStore<IntentMeleeComponent> = new ComponentStore("IntentMeleeComponent");
+  private disableAttachmentComponentStore: ComponentStore<DisableAttachmentComponent> = new ComponentStore("DisableAttachmentComponent");
+  private attackSpeedComponentStore: ComponentStore<AttackSpeedComponent> = new ComponentStore("AttackSpeedComponent");
+  private disableAimComponentStore: ComponentStore<DisableAimComponent> = new ComponentStore("DisableAimComponent");
+  private meleeIntentProcessedComponentStore: ComponentStore<MeleeIntentProcessedComponent> = new ComponentStore("MeleeIntentProcessedComponent")
+  private initialAimAngleComponentStore: ComponentStore<InitialAimAngleComponent> = new ComponentStore("InitialAimAngleComponent");
   private animationSpriteSystem: AnimationSpriteSystem;
   private inputMovementSystem: InputMovementSystem;
   private shootingSystem: ShootingSystem;
@@ -148,6 +161,7 @@ export class SystemRunner {
   private dynamicAttributeSystem: DynamicAttributeSystem;
   private reloadSystem: ReloadSystem;
   private explosionSystem: ExplosionSystem;
+  private meleeAttackSystem: MeleeAttackSystem;
 
   constructor(
     private worldTilemapManager: WorldTilemapManager,
@@ -168,13 +182,13 @@ export class SystemRunner {
     this.levelUpdateSystem = new LevelUpdateSystem(this.levelManager);
     this.renderSystem = new RenderSystem(this.positionComponentStore, this.spriteComponentStore, this.cameraManager, this.worldTilemapManager, this.rendererEngine, this.spriteManager, this.directionAnimComponentStore, this.aimShootingComponent, this.zLayerComponentStore, this.levelManager);
     this.inputMovementSystem = new InputMovementSystem(this.positionComponentStore, this.movimentIntentComponentStore, this.playerComponentStore, this.velocityComponentStore)
-    this.shootingSystem = new ShootingSystem(this.playerComponentStore, this.enemyComponentStore, this.intentShotComponentStore, this.positionComponentStore, this.shooterComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.spriteComponentStore, this.weaponMagazineComponentStore, this.grenadeBeltComponentStore, this.intentGrenadeComponentStore, this.weaponComponentStore);
+    this.shootingSystem = new ShootingSystem(this.playerComponentStore, this.enemyComponentStore, this.intentShotComponentStore, this.positionComponentStore, this.shooterComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.spriteComponentStore, this.weaponMagazineComponentStore, this.grenadeBeltComponentStore, this.intentGrenadeComponentStore, this.weaponComponentStore, this.intentMeleeComponentStore, this.disableAimComponentStore);
     this.projectileSpawnSystem = new ProjectileSpawnSystem(this.spriteManager, this.soundManager, this.positionComponentStore, this.weaponSpriteAttachmentComponentStore, this.projectileComponentStore, this.entityFactory, this.spriteComponentStore, this.directionAnimComponentStore, this.intentShotComponentStore, this.shootingCooldownComponentStore, this.shooterComponentStore, this.playerComponentStore, this.bulletFiredComponentStore, this.grenadeCooldownComponentStore, this.grenadeFiredComponentStore, this.intentGrenadeComponentStore)
     this.projectileUpdateSystem = new ProjectileUpdateSystem(this.positionComponentStore, this.projectileComponentStore, this.velocityComponentStore, this.movimentIntentComponentStore, this.directionComponentStore, this.grenadeComponentStore, this.travelTimeComponentStore);
     this.collisionSystem = new CollisionSystem(this.spriteComponentStore, this.positionComponentStore, this.collisionComponentStore, this.movimentIntentComponentStore, this.projectileComponentStore, this.shooterComponentStore, this.healthComponentStore, this.enemyComponentStore, this.spriteManager, this.entityFactory, this.playerComponentStore, this.shotOriginComponentStore, this.enemiesKilledComponentStore, this.wallHitComponentStore, this.worldTilemapManager, this.levelManager, this.animationComponentStore, this.velocityComponentStore, this.damageTakenComponentStore);
     this.movementSystem = new MovementSystem(this.positionComponentStore, this.movimentIntentComponentStore, this.playerComponentStore, this.shooterComponentStore);
     this.animationSetterSystem = new AnimationSetterSystem(this.spriteManager, this.movimentIntentComponentStore, this.positionComponentStore, this.directionAnimComponentStore, this.animationComponentStore, this.aiComponentStore, this.playerComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.wallHitComponentStore, this.projectileComponentStore, this.spriteComponentStore, this.offsetAppliedComponentStore, this.grenadeComponentStore, this.grenadeExplosionComponentStore);
-    this.terminatorSystem = new TerminatorSystem(this.entityFactory, this.intentClickComponentStore, this.movimentIntentComponentStore, this.shootingCooldownComponentStore, this.intentShotComponentStore, this.wallHitComponentStore, this.grenadeCooldownComponentStore, this.intentGrenadeComponentStore);
+    this.terminatorSystem = new TerminatorSystem(this.entityFactory, this.intentClickComponentStore, this.movimentIntentComponentStore, this.shootingCooldownComponentStore, this.intentShotComponentStore, this.wallHitComponentStore, this.grenadeCooldownComponentStore, this.intentGrenadeComponentStore, this.intentMeleeComponentStore, this.meleeIntentProcessedComponentStore);
     this.animationSpriteSystem = new AnimationSpriteSystem(this.animationComponentStore, this.spriteComponentStore);
     this.aiMovementBehaviorSystem = new AiMovementBehaviorSystem(this.positionComponentStore, this.velocityComponentStore, this.movimentIntentComponentStore, this.aiComponentStore, this.aiMovementOrderComponentStore, this.playerComponentStore, this.pathFindingManager);
     this.aiAttackBehaviorSystem = new AiAttackBehaviorSystem(this.positionComponentStore, this.intentShotComponentStore, this.aiComponentStore, this.aiAttackOrderComponentStore, this.playerComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.spriteComponentStore);
@@ -183,6 +197,7 @@ export class SystemRunner {
     this.levelProgressionSystem = new LevelProgressionSystem(this.enemiesKilledComponentStore, this.levelManager);
     this.reloadSystem = new ReloadSystem(this.soundManager, this.reloadIntentComponentStore, this.playerComponentStore, this.weaponMagazineComponentStore)
     this.explosionSystem = new ExplosionSystem(this.entityFactory, this.grenadeComponentStore, this.fuseTimerComponentStore, this.playerComponentStore, this.enemyComponentStore, this.positionComponentStore, this.shooterComponentStore, this.damageTakenComponentStore, this.grenadeExplosionComponentStore, this.delayedDestructionComponentStore)
+    this.meleeAttackSystem = new MeleeAttackSystem(this.intentMeleeComponentStore, this.weaponSpriteAttachmentComponentStore, this.weaponComponentStore, this.positionComponentStore, this.aimShootingComponent, this.shooterComponentStore, this.playerComponentStore, this.enemyComponentStore, this.attackSpeedComponentStore, this.spriteComponentStore, this.disableAimComponentStore, this.meleeIntentProcessedComponentStore, this.initialAimAngleComponentStore);
   }
 
   update() {
@@ -196,6 +211,7 @@ export class SystemRunner {
       this.aiMovementBehaviorSystem.update(CoreManager.timeSinceLastRender);
       this.aiAttackBehaviorSystem.update(CoreManager.timeSinceLastRender)
       this.shootingSystem.update(CoreManager.timeSinceLastRender);
+      this.meleeAttackSystem.update(CoreManager.timeSinceLastRender);
       this.projectileSpawnSystem.update(CoreManager.timeSinceLastRender);
       this.projectileUpdateSystem.update(CoreManager.timeSinceLastRender);
       this.animationSetterSystem.update(CoreManager.timeSinceLastRender);

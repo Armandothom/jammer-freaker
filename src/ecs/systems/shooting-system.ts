@@ -1,9 +1,12 @@
 import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { AimShootingComponent } from "../components/aim-shooting.component.js";
+import { DisableAimComponent } from "../components/disable-aim.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
 import { GrenadeBeltComponent } from "../components/grenade-belt.component.js";
 import { IntentGrenadeComponent } from "../components/intent-grenade.component.js";
+import { IntentMeleeComponent } from "../components/intent-melee.component.js";
 import { IntentShotComponent } from "../components/intent-shot.component.js";
+import { MeleeIntentProcessedComponent } from "../components/melee-intent-processed.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ShooterComponent } from "../components/shooter-component.js";
@@ -35,6 +38,8 @@ export class ShootingSystem implements ISystem {
         private grenadeBeltComponentStore: ComponentStore<GrenadeBeltComponent>,
         private intentGrenadeComponentStore: ComponentStore<IntentGrenadeComponent>,
         private weaponComponentStore: ComponentStore<WeaponComponent>,
+        private intentMeleeComponentStore: ComponentStore<IntentMeleeComponent>,
+        private disableAimComponentStore: ComponentStore<DisableAimComponent>,
     ) {
         this.canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
         this.initListeners();
@@ -69,13 +74,13 @@ export class ShootingSystem implements ISystem {
         this.canvas.addEventListener("click", (e: MouseEvent) => {
             this.updateMousePosition(e);
             this.pushShotIntent(false); // isHold = false
-
         });
     }
 
     private updateMousePosition = (e: MouseEvent) => {
         const playerIdRes = this.playerComponentStore.getAllEntities();
         const playerId = playerIdRes[0];
+        if(this.disableAimComponentStore.has(playerId)) return;
         const weaponAttachments = this.weaponAttachmentComponentStore.getValuesAndEntityId();
         const weaponAttachment = weaponAttachments.find((weaponAttachmentEntry) => weaponAttachmentEntry[1].parentEntityId == playerId)!;
         const weaponPosition = this.positionComponentStore.get(weaponAttachment[0]);
@@ -123,8 +128,6 @@ export class ShootingSystem implements ISystem {
         if (this.weaponMagazineComponentStore.get(playerId).magazineInventory === 0) {
             // SFX Click sound
         }
-
-
     }
 
     private pushGrenadeIntent() {
@@ -149,7 +152,17 @@ export class ShootingSystem implements ISystem {
     }
 
     private pushMeeleIntent(isHold: boolean) {
+        const playerId = this.playerComponentStore.getAllEntities()[0];
+        let playerPos: { x: number, y: number } | undefined;
+        
+        if(this.disableAimComponentStore.has(playerId)) return;
+        playerPos = this.positionComponentStore.get(playerId);
 
+        this.intentMeleeComponentStore.add(playerId, new IntentMeleeComponent(
+            this.currentMousePos.x,
+            this.currentMousePos.y,
+            isHold,
+        ));
     }
 }
 

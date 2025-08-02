@@ -2,7 +2,9 @@
 import { GrenadeCooldownComponent } from "../components/grenade-cooldown.component.js";
 import { IntentClickComponent } from "../components/intent-click.component.js";
 import { IntentGrenadeComponent } from "../components/intent-grenade.component.js";
+import { IntentMeleeComponent } from "../components/intent-melee.component.js";
 import { IntentShotComponent } from "../components/intent-shot.component.js";
+import { MeleeIntentProcessedComponent } from "../components/melee-intent-processed.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
 import { WallHitComponent } from "../components/wall-hit.component.js";
@@ -23,6 +25,8 @@ export class TerminatorSystem implements ISystem {
         private wallHitComponentStore: ComponentStore<WallHitComponent>,
         private grenadeCooldownComponentStore: ComponentStore<GrenadeCooldownComponent>,
         private intentGrenadeComponentStore: ComponentStore<IntentGrenadeComponent>,
+        private intentMeleeComponentStore: ComponentStore<IntentMeleeComponent>,
+        private meleeIntentProcessedComponentStore: ComponentStore<MeleeIntentProcessedComponent>,
     ) { }
 
     update(deltaTime: number): void {
@@ -44,6 +48,14 @@ export class TerminatorSystem implements ISystem {
         const grenadeIntentComponentEntities = this.intentGrenadeComponentStore.getAllEntities();
         for (const grenadeIntentComponentEntity of grenadeIntentComponentEntities) {
             this.intentGrenadeComponentStore.remove(grenadeIntentComponentEntity);
+        }
+
+        const meleeIntentComponentEntities = this.intentMeleeComponentStore.getAllEntities();
+        for (const meleeIntentComponentEntity of meleeIntentComponentEntities) {
+            if (this.meleeIntentProcessedComponentStore.has(meleeIntentComponentEntity)) {
+                this.intentMeleeComponentStore.remove(meleeIntentComponentEntity);
+                this.meleeIntentProcessedComponentStore.remove(meleeIntentComponentEntity);
+            }
         }
 
         const shootingCooldownComponentEntities = this.shootingCooldownComponentStore.getAllEntities();
