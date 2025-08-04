@@ -69,10 +69,11 @@ export class ProjectileSpawnSystem implements ISystem {
             const intent = this.intentShotComponentStore.getOrNull(entity);
             if (!shooterPos || !intent) continue;
 
+            //right now we set X as a hardcoded number, but it needs to be dynamic
             let shooterPosXConverted = (attachedWeapon.barrelX - 6) / canvas.width * canvasWidthHeightInTiles;
-            let shooterPosYConverted = (attachedWeapon.barrelY - 6) / canvas.height * canvasWidthHeightInTiles;
+            let shooterPosYConverted = (attachedWeapon.barrelY - (spriteBullet.height / 2)) / canvas.height * canvasWidthHeightInTiles;
 
-            //right now we set a hardcoded number, but it needs to be dynamic
+            //right now we set X as a hardcoded number, but it needs to be dynamic
             let intentXConverted = (intent.x - 6) / canvas.width * canvasWidthHeightInTiles;
             let intentYConverted = (intent.y - (spriteBullet.height / 2)) / canvas.height * canvasWidthHeightInTiles;
             const dx = intentXConverted - (shooterPosXConverted);
