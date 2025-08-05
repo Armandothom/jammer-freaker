@@ -64,8 +64,8 @@ export class AiAttackBehaviorSystem implements ISystem {
 
                         const weaponSprite = this.spriteComponentStore.get(weaponAttachment[0]);
                         const playerSprite = this.spriteComponentStore.get(playerEntityId);
-                        const dx = playerPos.x - weaponPosition.x;
-                        const dy = playerPos.y - weaponPosition.y;
+                        const dx = playerPos.x - weaponPosition.x + playerSprite.width / 2;
+                        const dy = playerPos.y - weaponPosition.y + playerSprite.height / 2;
                         const angle = Math.atan2(dy, dx);
                         //offsetShooting to return
 

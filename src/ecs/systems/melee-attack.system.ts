@@ -1,6 +1,7 @@
 import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { AimShootingComponent } from "../components/aim-shooting.component.js";
 import { AttackSpeedComponent } from "../components/attack-speed.component.js";
+import { DirectionAnimComponent } from "../components/direction-anim.component.js";
 import { DisableAimComponent } from "../components/disable-aim.component.js";
 import { DisableAttachmentComponent } from "../components/disable-attachment.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
@@ -64,20 +65,24 @@ export class MeleeAttackSystem implements ISystem {
             const aimShooting = this.aimShootingComponentStore.get(weaponEntityId);
             let shapeId: number;
             let attackEnded: boolean = false;
-
+            const isAimingLeft = Math.cos(aimShooting.aimAngle) < 0 ? true : false;
+            const isAimingUp = Math.sin(aimShooting.aimAngle) < 0.45 ? true : false;
 
             if (!this.attackSpeedComponentStore.has(shooter)) {
                 this.attackSpeedComponentStore.add(shooter, new AttackSpeedComponent(WeaponConfig[WeaponType.KNIFE].shootingCooldown));
                 this.initialAimAngleComponentStore.add(weaponEntityId, new InitialAimAngleComponent(aimShooting.aimAngle));
                 this.disableAimComponentStore.add(shooter, new DisableAimComponent());
-                shapeId = this.entityFactory.createCollisionShape(shooter, shooterPos.x + shooterSprite.width, shooterPos.y, weaponSprite.width, shooterSprite.height);
+                const shapeProperties = this.getShapeProperties(isAimingLeft, isAimingUp, shooterPos, shooterSprite, weaponSprite, aimShooting.aimAngle);
+
+                shapeId = this.entityFactory.createCollisionShape(shooter, shapeProperties.shapePosition.x, shapeProperties.shapePosition.y, shapeProperties.shapeDimension.width, shapeProperties.shapeDimension.height);
 
                 // disable angle change component
             } else {
                 const totalAttackFrames = Math.round(this.attackSpeedComponentStore.get(shooter).attackSpeed / deltaTime);
                 const initialAngle = this.initialAimAngleComponentStore.get(weaponEntityId).initialAimAngle;
 
-                const swingAngle = Math.PI * (5 / 6);
+                let swingAngle = Math.PI * (5 / 6);
+
                 const angleStep = swingAngle / totalAttackFrames;
                 const angle = initialAngle + angleStep * this.attackSpeedComponentStore.get(shooter).attackFrame - swingAngle / 2;
                 this.aimShootingComponentStore.get(weaponEntityId).aimAngle = angle;
@@ -100,5 +105,51 @@ export class MeleeAttackSystem implements ISystem {
                 }
             }
         }
+    }
+
+    private getShapeProperties(
+        isAimingLeft: boolean,
+        isAimingUp: boolean,
+        shooterPos: { x: number, y: number },
+        shooterSprite: { width: number, height: number },
+        weaponSprite: { width: number, height: number },
+        aimAngle: number
+    ): { shapePosition: { x: number, y: number }, shapeDimension: { width: number, height: number } } {
+        let shapePosition: { x: number, y: number } = { x: 0, y: 0 };
+        let shapeDimension: { width: number, height: number } = { width: weaponSprite.width/2, height: shooterSprite.height } // This is right for rn and can be tweaked
+        let shapeProperties = { shapePosition, shapeDimension };
+
+        if (aimAngle >= -Math.PI / 4 && aimAngle < Math.PI / 4) {
+            //right
+
+            shapePosition.x = shooterPos.x + shooterSprite.width;
+            shapePosition.y = shooterPos.y + shooterSprite.height / 2 - shapeDimension.height * (1 - Math.sin(aimAngle)) / 2;
+        }
+        else if (aimAngle >= Math.PI / 4 && aimAngle < 3 * Math.PI / 4) {
+            //down
+            let temp = shapeDimension.height;
+            shapeDimension.height = shapeDimension.width;
+            shapeDimension.width = temp;
+            temp = 
+            shapePosition.x = shooterPos.x + shooterSprite.width / 2 - shapeDimension.width * (1 - Math.cos(aimAngle)) / 2
+            shapePosition.y = shooterPos.y + shooterSprite.height;
+        }
+        else if (aimAngle <= -Math.PI / 4 && aimAngle > -3 * Math.PI / 4) {
+            //up
+
+            const temp = shapeDimension.height;
+            shapeDimension.height = shapeDimension.width;
+            shapeDimension.width = temp;
+
+            shapePosition.x = shooterPos.x + shooterSprite.width / 2 - shapeDimension.width * (1 - Math.cos(aimAngle)) / 2
+            shapePosition.y = shooterPos.y - shapeDimension.height;
+        }
+        else {
+            //left
+            shapePosition.x = shooterPos.x - shapeDimension.width;
+            shapePosition.y = shooterPos.y + shooterSprite.height / 2 - shapeDimension.height * (1 - Math.sin(aimAngle)) / 2;
+        }
+
+        return shapeProperties;
     }
 }

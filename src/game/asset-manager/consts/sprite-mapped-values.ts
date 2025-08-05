@@ -35,7 +35,7 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
     SpriteSheetName.WEAPON,
     {
       rows: 1,
-      columns: 3,
+      columns: 4,
       eachSpriteCellSizeHeight: 16,
       eachSpriteCellSizeWidth: 32,
       srcImagePath: 'src/assets/images/weapons.png',
@@ -60,6 +60,13 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
           originalRenderSpriteHeight: 14,
           originalRenderSpriteWidth: 24,
           spriteCellOffset: { offsetX: 0, offsetY: 1, width: 31, height: 14 }
+        }],
+        [SpriteName.SHIELD, {
+          row: 1,
+          column: 4,
+          originalRenderSpriteHeight: 28,
+          originalRenderSpriteWidth: 16,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 12, height: 16 }
         }],
       ])
     },
@@ -196,7 +203,7 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
           originalRenderSpriteHeight: 16,
           originalRenderSpriteWidth: 14,
           spriteCellOffset: { offsetX: 0, offsetY: 0, width: 14, height: 16 }
-        }],        
+        }],
       ])
     }
   ],
@@ -426,5 +433,24 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
     }
   ],
 
+  [
+    SpriteSheetName.BLANK,
+    {
+      rows: 1,
+      columns: 1,
+      eachSpriteCellSizeHeight: 16,
+      eachSpriteCellSizeWidth: 16,
+      srcImagePath: 'src/assets/images/blank.png',
+      sprites: new Map([
+        [SpriteName.BLANK, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 12,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 16, height: 16 }
+        }],
+      ])
+    }
+  ],
 
 ]);

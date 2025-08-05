@@ -46,4 +46,6 @@ export enum SpriteName {
   GRENADE_EXPLOSION_10 = "grenade_explosion_10",
   GRENADE_EXPLOSION_11 = "grenade_explosion_11",
   GRENADE_EXPLOSION_12 = "grenade_explosion_12",
+  BLANK = "blank",
+  SHIELD = "shield",
 }

@@ -23,7 +23,7 @@ import { DamageComponent } from "../components/damage.component.js";
 import { AiAttackRangeComponent } from "../components/ai-attack-range.component.js";
 import { AiMovementRadiusComponent } from "../components/ai-movement-radius.component.js";
 import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
-import { EnemyDead } from "../components/enemy-dead.component.js";
+import { EnemyDeadComponent } from "../components/enemy-dead.component.js";
 import { AimShootingComponent } from "../components/aim-shooting.component.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
 import { SPRITESHEET_MAPPED_VALUES } from "../../game/asset-manager/consts/sprite-mapped-values.js";
@@ -42,10 +42,15 @@ import { ShapeDimensionComponent } from "../components/shape-dimension.component
 import { ShapePositionComponent } from "../components/shape-position.component.js";
 import { ShapeComponent } from "../components/shape-component.js";
 import { Shape } from "three/src/Three.js";
+import { ShapeDirectionComponent } from "../components/shape-direction.component.js";
+import { ShapeAngleComponent } from "../components/shape-angle.component.js";
+import { RenderableComponent } from "../components/renderable-component.js";
+import { ShapeHitMemoryComponent } from "../components/shape-hitmemory-component.js";
 
 export class EntityFactory {
   constructor(
     private entityManager: EntityManager,
+    private renderableComponentStore: ComponentStore<RenderableComponent>,
     private playerComponentStore: ComponentStore<PlayerComponent>,
     private enemyComponentStore: ComponentStore<EnemyComponent>,
     private positionComponentStore: ComponentStore<PositionComponent>,
@@ -64,7 +69,7 @@ export class EntityFactory {
     private shootingCooldownComponentStore: ComponentStore<ShootingCooldownComponent>,
     private aiAttackRangeComponentStore: ComponentStore<AiAttackRangeComponent>,
     private aiMovementRadiusComponentStore: ComponentStore<AiMovementRadiusComponent>,
-    private enemyDeadComponentStore: ComponentStore<EnemyDead>,
+    private enemyDeadComponentStore: ComponentStore<EnemyDeadComponent>,
     private aimShootingComponentStore: ComponentStore<AimShootingComponent>,
     private weaponSpriteAttachmentComponentStore: ComponentStore<WeaponSpriteAttachmentComponent>,
     private zLayerComponentStore: ComponentStore<ZLayerComponent>,
@@ -78,28 +83,32 @@ export class EntityFactory {
     private shapeDimensionComponentStore: ComponentStore<ShapeDimensionComponent>,
     private shapePositionComponentStore: ComponentStore<ShapePositionComponent>,
     private shapeComponentStore: ComponentStore<ShapeComponent>,
+    private shapeDirectionComponentStore: ComponentStore<ShapeDirectionComponent>,
+    private shapeAngleComponentStore: ComponentStore<ShapeAngleComponent>,
+    private shapeHitMemoryComponentStore: ComponentStore<ShapeHitMemoryComponent>,
   ) {
   }
 
   createPlayer(startX: number, startY: number, hp: number, damage: number, velocity: number) {
     const entityId = this.entityManager.registerEntity();
+    this.renderableComponentStore.add(entityId, new RenderableComponent());
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.PLAYER_STILL, SpriteSheetName.PLAYER));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.PLAYER_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity))
     this.playerComponentStore.add(entityId, new PlayerComponent());
-    this.shooterComponentStore.add(entityId, new ShooterComponent(WeaponConfig[WeaponType.SMG].shootingCooldown, WeaponConfig[WeaponType.GRENADE].shootingCooldown));
+    this.shooterComponentStore.add(entityId, new ShooterComponent(WeaponConfig[WeaponType.KNIFE].shootingCooldown, WeaponConfig[WeaponType.GRENADE].shootingCooldown));
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY))
-    this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.SMG, SpriteSheetName.WEAPON, AnimationName.WEAPON_SMG));
+    this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.KNIFE, SpriteSheetName.WEAPON, AnimationName.WEAPON_KNIFE));
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
-    this.damageComponentStore.add(entityId, new DamageComponent(WeaponConfig[WeaponType.SMG].damage));
+    this.damageComponentStore.add(entityId, new DamageComponent(WeaponConfig[WeaponType.KNIFE].damage));
     this.weaponMagazineComponentStore.add(entityId, new WeaponMagazineComponent(
       3,
-      WeaponConfig[WeaponType.SMG].maxBullets,
-      WeaponConfig[WeaponType.SMG].maxBullets,
-      WeaponConfig[WeaponType.SMG].reloadTime,
+      WeaponConfig[WeaponType.KNIFE].maxBullets,
+      WeaponConfig[WeaponType.KNIFE].maxBullets,
+      WeaponConfig[WeaponType.KNIFE].reloadTime,
       false
     ));
     this.grenadeBeltComponentStore.add(entityId, new GrenadeBeltComponent(
@@ -124,6 +133,7 @@ export class EntityFactory {
     travelDistance: { x: number, y: number },
   ) {
     const entityId = this.entityManager.registerEntity();
+    this.renderableComponentStore.add(entityId, new RenderableComponent());
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.spriteComponentStore.add(entityId, new SpriteComponent(projectileSprite, projectileSpriteSheet));
     this.animationComponentStore.add(entityId, new AnimationComponent(projectileAnimation));
@@ -143,6 +153,7 @@ export class EntityFactory {
 
   createSoldier(enemyType: EnemyType, startX: number, startY: number, hp: number, damage: number, attackCooldownInSeconds: number, attackRange: number, movementRadius: number, velocity: number) {
     const entityId = this.entityManager.registerEntity();
+    this.renderableComponentStore.add(entityId, new RenderableComponent());
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.ENEMY_STILL, SpriteSheetName.ENEMY));
@@ -166,6 +177,7 @@ export class EntityFactory {
 
   createJuggernaut(enemyType: EnemyType, startX: number, startY: number, hp: number, damage: number, attackCooldownInSeconds: number, attackRange: number, movementRadius: number, velocity: number) {
     const entityId = this.entityManager.registerEntity();
+    this.renderableComponentStore.add(entityId, new RenderableComponent());
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.ENEMY_STILL, SpriteSheetName.ENEMY));
@@ -174,7 +186,7 @@ export class EntityFactory {
     this.enemyComponentStore.add(entityId, new EnemyComponent(enemyType));
     this.shooterComponentStore.add(entityId, new ShooterComponent(attackCooldownInSeconds, 0));
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY));
-    this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.SMG, SpriteSheetName.WEAPON, AnimationName.WEAPON_SMG));
+    this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.SHIELD, SpriteSheetName.WEAPON, AnimationName.WEAPON_SHIELD));
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.aiComponentStore.add(entityId, new AIComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
@@ -188,6 +200,7 @@ export class EntityFactory {
 
   createSniper(enemyType: EnemyType, startX: number, startY: number, hp: number, damage: number, attackCooldownInSeconds: number, attackRange: number, movementRadius: number, velocity: number) {
     const entityId = this.entityManager.registerEntity();
+    this.renderableComponentStore.add(entityId, new RenderableComponent());
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.ENEMY_STILL, SpriteSheetName.ENEMY));
@@ -210,6 +223,7 @@ export class EntityFactory {
 
   createKamikaze(enemyType: EnemyType, startX: number, startY: number, hp: number, damage: number, attackCooldownInSeconds: number, attackRange: number, movementRadius: number, velocity: number) {
     const entityId = this.entityManager.registerEntity();
+    this.renderableComponentStore.add(entityId, new RenderableComponent());
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.ENEMY_STILL, SpriteSheetName.ENEMY));
@@ -232,6 +246,7 @@ export class EntityFactory {
 
   createBomber(enemyType: EnemyType, startX: number, startY: number, hp: number, damage: number, attackCooldownInSeconds: number, attackRange: number, movementRadius: number, velocity: number) {
     const entityId = this.entityManager.registerEntity();
+    this.renderableComponentStore.add(entityId, new RenderableComponent());
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.ENEMY_STILL, SpriteSheetName.ENEMY));
@@ -254,15 +269,20 @@ export class EntityFactory {
 
   createCollisionShape(parentEntityId: number, startX: number, startY: number, shapeWidth: number, shapeHeight: number) {
     const entityId = this.entityManager.registerEntity();
-    console.log("Shape created", entityId);
     this.shapeComponentStore.add(entityId, new ShapeComponent(parentEntityId));
+    //this.renderableComponentStore.add(entityId, new RenderableComponent());
+    //this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
+    //this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.BLANK, SpriteSheetName.BLANK, shapeWidth, shapeHeight));
     this.shapePositionComponentStore.add(entityId, new ShapePositionComponent(startX, startY));
     this.shapeDimensionComponentStore.add(entityId, new ShapeDimensionComponent(shapeWidth, shapeHeight));
     this.collisionComponentStore.add(entityId, new CollisionComponent());
+    this.shapeHitMemoryComponentStore.add(entityId, new ShapeHitMemoryComponent());
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
     return entityId;
   }
 
   destroyProjectile(entityId: number): void {
+    this.renderableComponentStore.remove(entityId);
     this.positionComponentStore.remove(entityId);
     //this.spriteComponentStore.remove(entityId);
     this.projectileComponentStore.remove(entityId);
@@ -275,9 +295,10 @@ export class EntityFactory {
 
   destroyEnemy(entityId: number): void {
     console.log("death call, entity: ", entityId);
+    this.renderableComponentStore.remove(entityId);
     this.positionComponentStore.remove(entityId);
     this.spriteComponentStore.remove(entityId); //for some reason if we delete the spriteComponentStore render system crashes
-    this.enemyDeadComponentStore.add(entityId, new EnemyDead());
+    this.enemyDeadComponentStore.add(entityId, new EnemyDeadComponent());
     this.collisionComponentStore.remove(entityId);
     this.shooterComponentStore.remove(entityId);
     this.velocityComponentStore.remove(entityId);
@@ -289,9 +310,14 @@ export class EntityFactory {
   createWeapon(parentEntityId: number) {
     const entityId = this.entityManager.registerEntity();
     const wieldingEntityWeapon = this.weaponComponentStore.get(parentEntityId);
+    this.renderableComponentStore.add(entityId, new RenderableComponent());
     this.positionComponentStore.add(entityId, new PositionComponent(0, 0));
     this.aimShootingComponentStore.add(entityId, new AimShootingComponent(0, 5));
-    this.weaponSpriteAttachmentComponentStore.add(entityId, new WeaponSpriteAttachmentComponent(parentEntityId, 16, 16, 18, 18));
+    if (wieldingEntityWeapon.spriteName != SpriteName.SHIELD) {
+      this.weaponSpriteAttachmentComponentStore.add(entityId, new WeaponSpriteAttachmentComponent(parentEntityId, 16, 16, 18, 18));
+    } else{
+      this.weaponSpriteAttachmentComponentStore.add(entityId, new WeaponSpriteAttachmentComponent(parentEntityId, 16, 16, 9, 9));
+    }
     this.animationComponentStore.add(entityId, new AnimationComponent(wieldingEntityWeapon.animationName));
     this.spriteComponentStore.add(entityId, new SpriteComponent(
       wieldingEntityWeapon.spriteName,
@@ -306,7 +332,7 @@ export class EntityFactory {
     const weaponAttachments = this.weaponSpriteAttachmentComponentStore.getValuesAndEntityId();
     const weaponAttachment = weaponAttachments.find((weaponAttachmentEntry) => weaponAttachmentEntry[1].parentEntityId == parentEntityId)!;
     const weaponEntityId = weaponAttachment[0];
-    console.log("weaponEntityId", weaponEntityId);
+    this.renderableComponentStore.remove(weaponEntityId);
     this.positionComponentStore.remove(weaponEntityId);
     this.aimShootingComponentStore.remove(weaponEntityId);
     this.weaponSpriteAttachmentComponentStore.remove(weaponEntityId);
@@ -316,11 +342,12 @@ export class EntityFactory {
   }
 
   destroyCollisionShape(entityId: number) {
-    console.log("Shape destroyed", entityId);
+    //this.renderableComponentStore.remove(entityId);
     this.shapeComponentStore.remove(entityId);
     this.shapePositionComponentStore.remove(entityId);
     this.shapeDimensionComponentStore.remove(entityId);
-    this.collisionComponentStore.remove(entityId);  
+    this.shapeHitMemoryComponentStore.remove(entityId);
+    this.collisionComponentStore.remove(entityId);
     return entityId;
   }
 

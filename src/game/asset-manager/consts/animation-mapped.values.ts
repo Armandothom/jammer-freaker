@@ -136,6 +136,18 @@ export const ANIMATION_MAPPED: Map<AnimationName, Map<SpriteName, AnimationKeyMa
   ],
 
   [
+    AnimationName.WEAPON_SHIELD,
+    new Map<SpriteName, AnimationKeyMap>([
+      [SpriteName.SHIELD, {
+        spriteName: SpriteName.SHIELD,
+        spriteSheetName: SpriteSheetName.WEAPON,
+        order: 1,
+        durationKeyFrame: 1
+      }]
+    ])
+  ],
+
+  [
     AnimationName.BULLET_FIRED,
     new Map<SpriteName, AnimationKeyMap>([
       [SpriteName.BULLET_1, {

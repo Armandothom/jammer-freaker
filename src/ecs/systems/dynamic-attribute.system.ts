@@ -18,6 +18,7 @@ import { BulletFiredComponent } from "../components/bullet-fired.component.js";
 import { GrenadeBeltComponent } from "../components/grenade-belt.component.js";
 import { GrenadeFiredComponent } from "../components/grenade-fired.component.js";
 import { WeaponConfig, WeaponType } from "../components/types/weapon-type.js";
+import { EnemyDeadComponent } from "../components/enemy-dead.component.js";
 
 export class DynamicAttributeSystem implements ISystem {
     private lastLevelApplied = -1;
@@ -37,6 +38,7 @@ export class DynamicAttributeSystem implements ISystem {
         private bulletFiredComponentStore: ComponentStore<BulletFiredComponent>,
         private grenadeBeltComponentStore: ComponentStore<GrenadeBeltComponent>,
         private grenadeFiredComponentStore: ComponentStore<GrenadeFiredComponent>,
+        private enemyDeadComponentStore: ComponentStore<EnemyDeadComponent>,
     ) {
 
     }
@@ -63,18 +65,24 @@ export class DynamicAttributeSystem implements ISystem {
             const damageSourceId = this.damageTakenComponentStore.get(entity).damageSource;
             const grenadeDamage = this.damageTakenComponentStore.get(entity).grenadeDamage;
             let damage = this.damageComponentStore.get(damageSourceId).damage;
+            const isEnemy = this.enemyComponentStore.has(entity);
+            const isPlayer = this.playerComponentStore.has(entity);
 
             if (grenadeDamage != 0) {
                 damage = grenadeDamage
             }
 
+
             this.healthComponentStore.get(entity).takeDamage(damage);
+
+            console.log(`Damage ${damage} causado a ${isEnemy ? 'Enemy' : isPlayer ? 'Player' : 'Unknown'} (entity ${entity})`);
+            this.damageTakenComponentStore.remove(entity);
 
             if (this.healthComponentStore.get(entity).hp <= 0) {
                 if (this.playerComponentStore.has(entity)) {
                     // player dead, game over
                 }
-                if (this.enemyComponentStore.has(entity)) {
+                if (isEnemy && !this.enemyDeadComponentStore.has(entity)) {
                     this.enemiesKilledComponentStore.add(entity, new EnemiesKilledComponent());
                     this.entityFactory.destroyEnemy(entity);
                 }

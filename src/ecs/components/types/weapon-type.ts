@@ -50,7 +50,7 @@ export const WeaponConfig: Record<WeaponType, PropertiesTable> = {
         fuseTimer: 0,
     },
     [WeaponType.KNIFE]: {
-        shootingCooldown: 0.2, // in seconds
+        shootingCooldown: 0.3, // in seconds
         damage: 50,
         maxBullets: 5, // use this as the knife "breaking"
         reloadTime: 0,
@@ -59,10 +59,10 @@ export const WeaponConfig: Record<WeaponType, PropertiesTable> = {
     },
     [WeaponType.GRENADE]: {
         shootingCooldown: 2, // in seconds
-        damage: 100,
+        damage: 150,
         maxBullets: 3,
         reloadTime: 0,
-        explosionRadius: 128,
+        explosionRadius: 192,
         fuseTimer: 2,
     },
 }

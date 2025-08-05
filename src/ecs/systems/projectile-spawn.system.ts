@@ -59,7 +59,7 @@ export class ProjectileSpawnSystem implements ISystem {
 
         for (const entity of shooters) {
             const shooterPos = this.positionComponentStore.get(entity);
-            const spriteBullet = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.PROJECTILE);
+            const spriteBullet = this.spriteManager.getSpriteProperties(SpriteName.BULLET_1, SpriteSheetName.PROJECTILE);
             const attachedWeaponEntry = attachedWeapons.find((value) => value[1].parentEntityId == entity);
             if (!attachedWeaponEntry) {
                 throw new Error("No weapon entry found");
@@ -71,8 +71,8 @@ export class ProjectileSpawnSystem implements ISystem {
             let shooterPosXConverted = attachedWeapon.barrelX / canvas.width * canvasWidthHeightInTiles;
             let shooterPosYConverted = attachedWeapon.barrelY / canvas.height * canvasWidthHeightInTiles;
 
-            let intentXConverted = (intent.x - (spriteBullet.width / 2)) / canvas.width * canvasWidthHeightInTiles;
-            let intentYConverted = (intent.y - (spriteBullet.width / 2)) / canvas.height * canvasWidthHeightInTiles;
+            let intentXConverted = (intent.x - (spriteBullet.sprite.originalRenderSpriteWidth / 2)) / canvas.width * canvasWidthHeightInTiles;
+            let intentYConverted = (intent.y - (spriteBullet.sprite.originalRenderSpriteHeight / 2)) / canvas.height * canvasWidthHeightInTiles;
 
             const dx = intentXConverted - (shooterPosXConverted);
             const dy = intentYConverted - (shooterPosYConverted);
@@ -85,7 +85,7 @@ export class ProjectileSpawnSystem implements ISystem {
             const cooldownConfig = this.shooterComponentStore.get(entity);
             const shootingCooldown = this.shootingCooldownComponentStore.has(entity);
             if (!shootingCooldown) {
-                this.spawnProjectile(dir, attachedWeapon, false, {x: 640, y: 640});
+                this.spawnProjectile(dir, attachedWeapon, false, { x: 640, y: 640 });
                 const cooldownAdd = this.shootingCooldownComponentStore.add(entity, new ShootingCooldownComponent(cooldownConfig.shootingCooldown));
                 if (this.playerComponentStore.has(entity)) {
                     this.bulletFiredComponentStore.add(entity, new BulletFiredComponent());
@@ -142,7 +142,7 @@ export class ProjectileSpawnSystem implements ISystem {
         }
     }
 
-    private spawnProjectile(dir: { x: number; y: number }, shootingWeapon: WeaponSpriteAttachmentComponent, isGrenade: boolean, travelDistance: {x: number, y: number}): void {
+    private spawnProjectile(dir: { x: number; y: number }, shootingWeapon: WeaponSpriteAttachmentComponent, isGrenade: boolean, travelDistance: { x: number, y: number }): void {
         if (isGrenade) {
             //SFX
             const entity = this.entityFactory.createProjectile(

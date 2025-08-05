@@ -1,4 +1,5 @@
 
+import { EnemyDeadComponent } from "../components/enemy-dead.component.js";
 import { GrenadeCooldownComponent } from "../components/grenade-cooldown.component.js";
 import { IntentClickComponent } from "../components/intent-click.component.js";
 import { IntentGrenadeComponent } from "../components/intent-grenade.component.js";
@@ -6,6 +7,7 @@ import { IntentMeleeComponent } from "../components/intent-melee.component.js";
 import { IntentShotComponent } from "../components/intent-shot.component.js";
 import { MeleeIntentProcessedComponent } from "../components/melee-intent-processed.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
+import { ShapeComponent } from "../components/shape-component.js";
 import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
 import { WallHitComponent } from "../components/wall-hit.component.js";
 import { ComponentStore } from "../core/component-store.js";
@@ -27,6 +29,8 @@ export class TerminatorSystem implements ISystem {
         private intentGrenadeComponentStore: ComponentStore<IntentGrenadeComponent>,
         private intentMeleeComponentStore: ComponentStore<IntentMeleeComponent>,
         private meleeIntentProcessedComponentStore: ComponentStore<MeleeIntentProcessedComponent>,
+        private enemyDeadComponentStore: ComponentStore<EnemyDeadComponent>,
+        private shapeComponentStore: ComponentStore<ShapeComponent>,
     ) { }
 
     update(deltaTime: number): void {
@@ -74,12 +78,20 @@ export class TerminatorSystem implements ISystem {
             }
         }
 
-        const projectileCompletedAnimEntities = this.wallHitComponentStore.getAllEntities();
-        for (const projectileCompletedAnimEntity of projectileCompletedAnimEntities) {
-            this.wallHitComponentStore.get(projectileCompletedAnimEntity).animEndTime -= deltaTime;
-            if (this.wallHitComponentStore.get(projectileCompletedAnimEntity).animEndTime <= 0) {
-                this.entityFactory.destroyProjectile(projectileCompletedAnimEntity);
+        // const projectileCompletedAnimEntities = this.wallHitComponentStore.getAllEntities();
+        // for (const projectileCompletedAnimEntity of projectileCompletedAnimEntities) {
+        //     this.wallHitComponentStore.get(projectileCompletedAnimEntity).animEndTime -= deltaTime;
+        //     if (this.wallHitComponentStore.get(projectileCompletedAnimEntity).animEndTime <= 0) {
+        //         this.entityFactory.destroyProjectile(projectileCompletedAnimEntity);
 
+        //     }
+        // }
+
+        const shapes = this.shapeComponentStore.getAllEntities();
+        for (const shape of shapes) {
+            const parentEntityId = this.shapeComponentStore.get(shape).shapeSource;
+            if (this.enemyDeadComponentStore.has(parentEntityId)) {
+                this.entityFactory.destroyCollisionShape(shape);
             }
         }
     }

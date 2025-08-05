@@ -7,6 +7,7 @@ import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { AimShootingComponent } from "../components/aim-shooting.component.js";
 import { DirectionAnimComponent } from "../components/direction-anim.component.js";
 import { PositionComponent } from "../components/position.component.js";
+import { RenderableComponent } from "../components/renderable-component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { AnimDirection } from "../components/types/anim-direction.js";
 import { ZLayerComponent } from "../components/z-layer.component.js";
@@ -23,6 +24,7 @@ export class RenderSystem implements ISystem {
     "4": 4
   };
   constructor(
+    private renderableComponentStore: ComponentStore<RenderableComponent>,
     private positionComponentStore: ComponentStore<PositionComponent>,
     private spriteComponentStore: ComponentStore<SpriteComponent>,
     private cameraManager: CameraManager,
@@ -70,7 +72,7 @@ export class RenderSystem implements ISystem {
 
   private getOverTerrainRenderObjects(viewport: CameraViewport): Array<RenderObject> {
     let renderObject: Array<RenderObject> = [];
-    const entities = this.positionComponentStore.getAllEntities();
+    const entities = this.renderableComponentStore.getAllEntities();
     for (const entity of entities) {
       const sprite = this.spriteComponentStore.get(entity);
       const position = this.positionComponentStore.get(entity);

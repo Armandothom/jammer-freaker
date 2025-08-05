@@ -27,6 +27,8 @@ import { AnimTimerComponent } from "../components/anim-timer.component.js";
 import { ShapePositionComponent } from "../components/shape-position.component.js";
 import { ShapeDimensionComponent } from "../components/shape-dimension.component.js";
 import { ShapeComponent } from "../components/shape-component.js";
+import { GrenadeComponent } from "../components/grenade-component.js";
+import { ShapeHitMemoryComponent } from "../components/shape-hitmemory-component.js";
 
 export class CollisionSystem implements ISystem {
     constructor(
@@ -53,12 +55,65 @@ export class CollisionSystem implements ISystem {
         private shapeComponentStore: ComponentStore<ShapeComponent>,
         private shapePositionComponent: ComponentStore<ShapePositionComponent>,
         private shapeDimensionComponent: ComponentStore<ShapeDimensionComponent>,
+        private grenadeComponentStore: ComponentStore<GrenadeComponent>,
+        private shapeHitMemoryComponentStore: ComponentStore<ShapeHitMemoryComponent>,
     ) {
 
     }
 
     update(deltaTime: number): void {
         const playerId = this.playerComponentStore.getAllEntities()[0];
+        const shapes = this.shapeComponentStore.getAllEntities();
+
+        if (shapes.length > 0) {
+            // Probably this should be optimized
+            for (const entity of this.positionComponentStore.getAllEntities()) {
+                const position = this.positionComponentStore.get(entity)
+                const spriteComponent = this.spriteComponentStore.get(entity);
+                const spriteOriginProperties = this.spriteManager.getSpriteProperties(spriteComponent.spriteName, spriteComponent.spriteSheetName);
+
+                const isPlayer = this.playerComponentStore.has(entity);
+                const isEnemy = this.enemyComponentStore.has(entity);
+                const isProjectile = this.projectileComponentStore.has(entity)
+                const validEntityCheck = isPlayer || isEnemy || isProjectile;
+                if (!validEntityCheck) continue;
+
+
+                const shapeCollisionCheck = this.shapeCollision(position, entity, spriteOriginProperties.sprite.originalRenderSpriteHeight); // Entity - shape check
+
+                if (!shapeCollisionCheck.wouldCollide || shapeCollisionCheck.shapeSource === entity) continue;
+
+                const hitMemory = this.shapeHitMemoryComponentStore.get(shapeCollisionCheck.shape!)
+
+                if(hitMemory.alreadyHit.has(entity)) continue;
+
+                hitMemory.alreadyHit.add(entity);
+
+                if (isProjectile) {
+                    this.movementIntentComponentStore.remove(entity);
+                    // Collision between the knife and a projectile, Insert anim component for the anim setter
+                    console.log("projectile shape collision");
+                    this.entityFactory.destroyProjectile(entity);
+                };
+                if (isEnemy) {
+                    // Damage dealing to the enemy
+                    console.log("enemy shape collision");
+                    if (!this.damageTakenComponentStore.has(entity)) {
+                        this.damageTakenComponentStore.add(entity, new DamageTakenComponent(shapeCollisionCheck.shapeSource!, 0));
+                    }
+                };
+                if (isPlayer) {
+                    // Damage dealing to the player
+                    console.log("player shape collision");
+                    if (!this.damageTakenComponentStore.has(entity)) {
+                        this.damageTakenComponentStore.add(entity, new DamageTakenComponent(shapeCollisionCheck.shapeSource!, 0));
+                    }
+                };
+
+            }
+        }
+
+
         for (const entity of this.movementIntentComponentStore.getAllEntities()) {
             const intent = this.movementIntentComponentStore.getOrNull(entity);
             if (!intent) {
@@ -75,7 +130,7 @@ export class CollisionSystem implements ISystem {
             const spriteOriginProperties = this.spriteManager.getSpriteProperties(spriteComponent.spriteName, spriteComponent.spriteSheetName);
             const wouldCollideCheckEntity = this.wouldCollideAABB(intent, entity, spriteOriginProperties.sprite.originalRenderSpriteHeight); // Entity - Entity check
             const wallCollisionCheck = this.wallCollision(intent, entity, spriteOriginProperties.sprite.originalRenderSpriteHeight); // Entity - wall check
-            const shapeCollisionCheck = this.shapeCollision(intent, entity, spriteOriginProperties.sprite.originalRenderSpriteHeight); // Entity - shape check
+            // const shapeCollisionCheck = this.shapeCollision(intent, entity, spriteOriginProperties.sprite.originalRenderSpriteHeight); // Entity - shape check
 
 
             if (wouldCollideCheckEntity.wouldCollide) {
@@ -84,6 +139,10 @@ export class CollisionSystem implements ISystem {
                     const shotOrigin = this.shotOriginComponentStore.get(entity);
                     const shooterId = shotOrigin.shooterEntity;
                     const target = wouldCollideCheckEntity.collidingEntity;
+                    const isGrenade = this.grenadeComponentStore.has(entity);
+                    if (isGrenade) {
+                        this.collisionComponentStore.get(entity).collides = false;
+                    }
 
                     if (shooterId == null || target == null) return;
                     if (target === shooterId) return; // Ignores collision with self
@@ -97,11 +156,14 @@ export class CollisionSystem implements ISystem {
                     const validTarget = (projectileFromPlayer && targetEnemy) ||
                         (projectileFromEnemy && targetPlayer);
 
-                    if (validTarget) {
+
+                    if (validTarget && !isGrenade) {
                         this.damageTakenComponentStore.add(target, new DamageTakenComponent(shooterId, 0));
                     }
 
-                    this.entityFactory.destroyProjectile(entity);
+                    if (!isGrenade) {
+                        this.entityFactory.destroyProjectile(entity);
+                    }
                 }
             }
 
@@ -140,25 +202,6 @@ export class CollisionSystem implements ISystem {
                 }
 
 
-            }
-
-            if (shapeCollisionCheck.wouldCollide) {
-                if (this.projectileComponentStore.has(entity)) {
-                    this.movementIntentComponentStore.remove(entity);
-                    // Collision between the knife and a projectile, Insert anim component for the anim setter
-                    console.log("projectile shape collision");
-                    this.entityFactory.destroyProjectile(entity);
-                };
-                if (this.enemyComponentStore.has(entity) && shapeCollisionCheck.shapeSource != entity) {
-                    // Damage dealing to the enemy
-                    console.log("enemy shape collision");
-                    this.damageTakenComponentStore.add(entity, new DamageTakenComponent(shapeCollisionCheck.shapeSource!, 0));
-                };
-                if (this.playerComponentStore.has(entity) && shapeCollisionCheck.shapeSource != entity) {
-                    // Damage dealing to the player
-                    console.log("player shape collision");
-                    this.damageTakenComponentStore.add(entity, new DamageTakenComponent(shapeCollisionCheck.shapeSource!, 0));
-                };
             }
 
             // Out of bounds:
@@ -283,43 +326,54 @@ export class CollisionSystem implements ISystem {
     }
 
     private shapeCollision(
-        intent: MovementIntentComponent,
+        position: { x: number, y: number },
         self: number,
         tileSize: number
     ) {
         const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;
 
-        const intendedMovement = {
-            left: intent.x,
-            right: intent.x + tileSize * zoomProgressionFactor,
-            top: intent.y,
-            bottom: intent.y + tileSize * zoomProgressionFactor,
+        const entityRect = {
+            left: position.x,
+            right: position.x + tileSize * zoomProgressionFactor,
+            top: position.y,
+            bottom: position.y + tileSize * zoomProgressionFactor,
         };
+        //console.log(position);
+        //console.log(tileSize);
 
         for (const shape of this.shapeComponentStore.getAllEntities()) {
+            const shapeSource = this.shapeComponentStore.get(shape).shapeSource;
+            if (shapeSource === self) continue;
+
             const shapeRect = {
                 left: this.shapePositionComponent.get(shape).x,
                 right: this.shapePositionComponent.get(shape).x + this.shapeDimensionComponent.get(shape).width,
                 top: this.shapePositionComponent.get(shape).y,
-                bottom: this.shapePositionComponent.get(shape).y - this.shapeDimensionComponent.get(shape).height,
+                bottom: this.shapePositionComponent.get(shape).y + this.shapeDimensionComponent.get(shape).height,
             }
-            console.log("Shape sucessefully created", shape);
+            // console.log("Shape created");
+            // console.log("entityrect", entityRect);
+            // console.log("shape rect", shapeRect);
 
             const intersect =
-                intendedMovement.left < shapeRect.right &&
-                intendedMovement.right > shapeRect.left &&
-                intendedMovement.top < shapeRect.bottom &&
-                intendedMovement.bottom > shapeRect.top;
+                entityRect.left < shapeRect.right &&
+                entityRect.right > shapeRect.left &&
+                entityRect.top < shapeRect.bottom &&
+                entityRect.bottom > shapeRect.top;
 
-            return {
-                wouldCollide: true,
-                shapeSource: this.shapeComponentStore.get(shape).shapeSource,
-            };
+            if (intersect) {
+                return {
+                    wouldCollide: true,
+                    shapeSource: this.shapeComponentStore.get(shape).shapeSource,
+                    shape: shape,
+                };
+            }
         }
 
         return {
             wouldCollide: false,
             shapeSource: null,
+            shape: null
         };
     }
 }

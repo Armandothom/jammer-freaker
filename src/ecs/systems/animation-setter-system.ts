@@ -90,7 +90,7 @@ export class AnimationSetterSystem implements ISystem {
                     animToUse = AnimationName.ENEMY_RUN
                 } else {
                     animToUse = AnimationName.ENEMY_STILL
-                }
+                }   
             }
 
             if (isProjectile) {
@@ -99,7 +99,7 @@ export class AnimationSetterSystem implements ISystem {
                     loop = false;
                     this.applyWallHitOffset(entityWithAnim);
                 } else if (isExplodedGrenade) {
-                    console.log("isExplodedGrenade", entityWithAnim);
+                    //console.log("isExplodedGrenade", entityWithAnim);
                     animToUse = AnimationName.GRENADE_EXPLOSION;
                     loop = false;
                     this.applyGrenadeExplosionOffset(entityWithAnim);
@@ -110,7 +110,7 @@ export class AnimationSetterSystem implements ISystem {
             }
 
             if (animToUse && currentAnim != animToUse) {
-                console.log("animToUse", animToUse);
+                //console.log("animToUse", animToUse);
                 this.animationComponentStore.add(entityWithAnim, new AnimationComponent(animToUse, loop));
             }
         }

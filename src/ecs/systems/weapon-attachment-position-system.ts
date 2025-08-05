@@ -27,7 +27,7 @@ export class WeaponSpriteAttachmenPositiontSystem implements ISystem {
             const parentEntitySprite = this.spriteComponentStore.get(attachedWeapon.parentEntityId);
             const aimShooting = this.aimShootingComponentStore.get(attachedEntityId);
             const isAimingLeft = Math.cos(aimShooting.aimAngle) < 0 ? true : false;
-            const isAimingUp = Math.sin(aimShooting.aimAngle) < -0.45 ? true : false;
+            const isAimingUp = Math.sin(aimShooting.aimAngle) > 0.45 ? true : false;
             const offsetX = isAimingLeft ? attachedWeapon.offsetXAimLeft : attachedWeapon.offsetXAimRight;
             const offsetY = isAimingLeft ? attachedWeapon.offsetYAimLeft : attachedWeapon.offsetYAimRight;
             attachedWeaponPosition.x = parentEntityPosition.x + offsetX * parentEntitySprite.width / 32;

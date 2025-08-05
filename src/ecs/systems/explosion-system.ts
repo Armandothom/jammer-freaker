@@ -1,6 +1,7 @@
 import { AnimationComponent } from "../components/animation.component.js";
 import { DamageTakenComponent } from "../components/damage-taken.component.js";
 import { DelayedDestructionComponent } from "../components/delayed-destruction.component.js";
+import { EnemyDeadComponent } from "../components/enemy-dead.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
 import { FuseTimerComponent } from "../components/fuse-timer.component.js";
 import { GrenadeComponent } from "../components/grenade-component.js";
@@ -30,6 +31,7 @@ export class ExplosionSystem implements ISystem {
         private grenadeExplosionComponentStore: ComponentStore<GrenadeExplosionComponent>,
         private delayedDestructionComponentStore: ComponentStore<DelayedDestructionComponent>,
         private animationComponentStore: ComponentStore<AnimationComponent>,
+        private enemyDeadComponentStore: ComponentStore<EnemyDeadComponent>,
     ) {
     }
 
@@ -85,13 +87,16 @@ export class ExplosionSystem implements ISystem {
                 this.grenadeExplosionComponentStore.add(grenadeEntity, new GrenadeExplosionComponent());
 
                 for (const enemy of this.enemyComponentStore.getAllEntities()) {
-                    const enemyPos = this.positionComponentStore.get(enemy);
+                    if (!this.enemyDeadComponentStore.has(enemy)) {
+                        const enemyPos = this.positionComponentStore.get(enemy);
 
-                    const hypot = Math.hypot(grenadePos.x - enemyPos.x, grenadePos.y - enemyPos.y);
 
-                    if (hypot <= WeaponConfig[WeaponType.GRENADE].explosionRadius) {
-                        const damage = WeaponConfig[WeaponType.GRENADE].damage - (WeaponConfig[WeaponType.GRENADE].damage / WeaponConfig[WeaponType.GRENADE].explosionRadius) * hypot
-                        this.damageTakenComponentStore.add(enemy, new DamageTakenComponent(damageSourceId, damage))
+                        const hypot = Math.hypot(grenadePos.x - enemyPos.x, grenadePos.y - enemyPos.y);
+
+                        if (hypot <= WeaponConfig[WeaponType.GRENADE].explosionRadius) {
+                            const damage = WeaponConfig[WeaponType.GRENADE].damage - (WeaponConfig[WeaponType.GRENADE].damage / WeaponConfig[WeaponType.GRENADE].explosionRadius) * hypot
+                            this.damageTakenComponentStore.add(enemy, new DamageTakenComponent(damageSourceId, damage))
+                        }
                     }
                 }
                 this.delayedDestructionComponentStore.add(grenadeEntity, new DelayedDestructionComponent(0.6));

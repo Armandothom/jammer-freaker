@@ -39,7 +39,7 @@ export class AnimationSpriteSystem implements ISystem {
                 }
             }
 
-            console.log("currentSprite", currentFrame.spriteName, currentFrame.spriteSheetName);            
+            //console.log("currentSprite", currentFrame.spriteName, currentFrame.spriteSheetName);            
             this.spriteComponentStore.add(entityId, new SpriteComponent(
                 currentFrame.spriteName,
                 currentFrame.spriteSheetName

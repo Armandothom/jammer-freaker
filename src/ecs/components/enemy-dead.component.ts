@@ -1,4 +1,4 @@
-export class EnemyDead {
+export class EnemyDeadComponent {
   constructor() {
   }
 }

@@ -5,7 +5,7 @@ import { EnemyType, EnemyConfig } from "../components/types/enemy-type.js";
 import { EntityFactory } from "../entities/entity-factory.js";
 import { EnemyComponent } from "../components/enemy.component.js";
 import { PlayerComponent } from "../components/player.component.js";
-import { EnemyDead } from "../components/enemy-dead.component.js";
+import { EnemyDeadComponent } from "../components/enemy-dead.component.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
@@ -23,7 +23,7 @@ export class EnemyLifecicleSystem implements ISystem {
         private positionComponentStore: ComponentStore<PositionComponent>,
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private enemyComponentStore: ComponentStore<EnemyComponent>,
-        private enemyDeadComponentStore: ComponentStore<EnemyDead>,
+        private enemyDeadComponentStore: ComponentStore<EnemyDeadComponent>,
         private entityFactory: EntityFactory,
         private worldTilemapManager: WorldTilemapManager,
         private spriteManager: SpriteManager,
@@ -37,11 +37,11 @@ export class EnemyLifecicleSystem implements ISystem {
 
     update(deltaTime: number): void {
         this.timeSinceLastSpawn += deltaTime;
-        let spawnIntervalsInSeconds = 999;
+        let spawnIntervalsInSeconds = 3;
         const previousTime = this.timeSinceLastSpawn - deltaTime;
 
         if (previousTime < spawnIntervalsInSeconds && this.timeSinceLastSpawn >= spawnIntervalsInSeconds) {
-            this.timeSinceLastSpawn = -999;
+            this.timeSinceLastSpawn = -9999;
             this.spawnEnemy();
         }
     }
@@ -81,7 +81,7 @@ export class EnemyLifecicleSystem implements ISystem {
         // to be implemented: time elapsed || bypass logic for spawn logic
         // bypass being used to spawn a bunch of enemies on level start
         
-        spawnRoll = 0.3;
+        spawnRoll = 0.7;
 
         if (spawnRoll <= spawnChancesAccumulated[0]) {
             const posRoll = this.trySpawn();
