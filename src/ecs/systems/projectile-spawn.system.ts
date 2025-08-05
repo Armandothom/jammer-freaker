@@ -59,7 +59,8 @@ export class ProjectileSpawnSystem implements ISystem {
 
         for (const entity of shooters) {
             const shooterPos = this.positionComponentStore.get(entity);
-            const spriteBullet = this.spriteManager.getSpriteProperties(SpriteName.BULLET_1, SpriteSheetName.PROJECTILE);
+            //TODO make sprite bullet offset dynamic
+            const spriteBullet = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.PROJECTILE);
             const attachedWeaponEntry = attachedWeapons.find((value) => value[1].parentEntityId == entity);
             if (!attachedWeaponEntry) {
                 throw new Error("No weapon entry found");
@@ -68,12 +69,13 @@ export class ProjectileSpawnSystem implements ISystem {
             const intent = this.intentShotComponentStore.getOrNull(entity);
             if (!shooterPos || !intent) continue;
 
-            let shooterPosXConverted = attachedWeapon.barrelX / canvas.width * canvasWidthHeightInTiles;
-            let shooterPosYConverted = attachedWeapon.barrelY / canvas.height * canvasWidthHeightInTiles;
+            //right now we set X as a hardcoded number, but it needs to be dynamic
+            let shooterPosXConverted = (attachedWeapon.barrelX - 6) / canvas.width * canvasWidthHeightInTiles;
+            let shooterPosYConverted = (attachedWeapon.barrelY - (spriteBullet.height / 2)) / canvas.height * canvasWidthHeightInTiles;
 
-            let intentXConverted = (intent.x - (spriteBullet.sprite.originalRenderSpriteWidth / 2)) / canvas.width * canvasWidthHeightInTiles;
-            let intentYConverted = (intent.y - (spriteBullet.sprite.originalRenderSpriteHeight / 2)) / canvas.height * canvasWidthHeightInTiles;
-
+            //right now we set X as a hardcoded number, but it needs to be dynamic
+            let intentXConverted = (intent.x - 6) / canvas.width * canvasWidthHeightInTiles;
+            let intentYConverted = (intent.y - (spriteBullet.height / 2)) / canvas.height * canvasWidthHeightInTiles;
             const dx = intentXConverted - (shooterPosXConverted);
             const dy = intentYConverted - (shooterPosYConverted);
             const magnitude = Math.hypot(dx, dy);  // Player and click distance --> In Tiles
@@ -115,8 +117,8 @@ export class ProjectileSpawnSystem implements ISystem {
             let shooterPosXConverted = attachedWeapon.barrelX / canvas.width * canvasWidthHeightInTiles;
             let shooterPosYConverted = attachedWeapon.barrelY / canvas.height * canvasWidthHeightInTiles;
 
-            let intentXConverted = (grenadeIntent.x - (spriteBullet.width / 2)) / canvas.width * canvasWidthHeightInTiles;
-            let intentYConverted = (grenadeIntent.y - (spriteBullet.height / 2)) / canvas.height * canvasWidthHeightInTiles;
+            let intentXConverted = (grenadeIntent.x) / canvas.width * canvasWidthHeightInTiles;
+            let intentYConverted = (grenadeIntent.y) / canvas.height * canvasWidthHeightInTiles;
 
             const dx = intentXConverted - (shooterPosXConverted);
             const dy = intentYConverted - (shooterPosYConverted);
@@ -161,8 +163,8 @@ export class ProjectileSpawnSystem implements ISystem {
         } else {
             this.soundManager.playSound("SMG_FIRE");
             const entity = this.entityFactory.createProjectile(
-                shootingWeapon.barrelX,
-                shootingWeapon.barrelY,
+                shootingWeapon.barrelX - 6,
+                shootingWeapon.barrelY - 6,
                 shootingWeapon.parentEntityId,
                 dir.x,
                 dir.y,
