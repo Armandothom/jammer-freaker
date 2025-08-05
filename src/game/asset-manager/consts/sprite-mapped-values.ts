@@ -35,7 +35,7 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
     SpriteSheetName.WEAPON,
     {
       rows: 1,
-      columns: 4,
+      columns: 6,
       eachSpriteCellSizeHeight: 16,
       eachSpriteCellSizeWidth: 32,
       srcImagePath: 'src/assets/images/weapons.png',
@@ -68,6 +68,21 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
           originalRenderSpriteWidth: 16,
           spriteCellOffset: { offsetX: 0, offsetY: 0, width: 12, height: 16 }
         }],
+        [SpriteName.PISTOL, {
+          row: 1,
+          column: 5,
+          originalRenderSpriteHeight: 10,
+          originalRenderSpriteWidth: 18,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 22, height: 16 }
+        }],
+        [SpriteName.SNIPER, {
+          row: 1,
+          column: 6,
+          originalRenderSpriteHeight: 20,
+          originalRenderSpriteWidth: 42,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 16 }
+        }],
+
       ])
     },
   ],

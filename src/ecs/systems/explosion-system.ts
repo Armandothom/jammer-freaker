@@ -55,19 +55,39 @@ export class ExplosionSystem implements ISystem {
 
         for (const grenadeEntity of this.grenadeComponentStore.getAllEntities()) {
 
-            this.fuseTimerComponentStore.get(grenadeEntity).fuseTime = + deltaTime;
+            this.fuseTimerComponentStore.get(grenadeEntity).fuseTime += deltaTime;
             const grenadePos = this.positionComponentStore.get(grenadeEntity);
 
             const explosionCheck =
                 this.fuseTimerComponentStore.get(grenadeEntity).fuseTime > this.fuseTimerComponentStore.get(grenadeEntity).totalFuseTimer;
 
-            if (explosionCheck) {
+            if (explosionCheck && !this.grenadeExplosionComponentStore.has(grenadeEntity)) {
                 this.entityFactory.destroyProjectile(grenadeEntity);
                 const hypot = Math.hypot(grenadePos.x - playerPos.x, grenadePos.y - playerPos.y);
 
                 if (hypot <= EnemyConfig[EnemyType.BOMBER].attackExplosionRadius) {
                     const damage = EnemyConfig[EnemyType.BOMBER].damage - (EnemyConfig[EnemyType.BOMBER].damage / EnemyConfig[EnemyType.BOMBER].attackExplosionRadius) * hypot
                     this.damageTakenComponentStore.add(playerId, new DamageTakenComponent(damageSourceId, damage))
+                }
+                this.delayedDestructionComponentStore.add(grenadeEntity, new DelayedDestructionComponent(0.6));
+            }
+            
+            if (this.grenadeExplosionComponentStore.has(grenadeEntity)) {
+                if (this.delayedDestructionComponentStore.has(grenadeEntity)) {
+                    this.delayedDestructionComponentStore.get(grenadeEntity).destructionTime += deltaTime;
+                    let previousTime = this.delayedDestructionComponentStore.get(grenadeEntity).destructionTime - deltaTime;
+
+                    const destroyCondition =
+                        previousTime < this.delayedDestructionComponentStore.get(grenadeEntity).totalDestructionTimer &&
+                        this.delayedDestructionComponentStore.get(grenadeEntity).destructionTime >= this.delayedDestructionComponentStore.get(grenadeEntity).totalDestructionTimer
+
+                    if (destroyCondition) {
+                        console.log("grenadeDestroyed", grenadeEntity);
+                        this.animationComponentStore.remove(grenadeEntity);
+                        this.grenadeExplosionComponentStore.remove(grenadeEntity);
+                        this.delayedDestructionComponentStore.remove(grenadeEntity);
+                        this.entityFactory.destroyProjectile(grenadeEntity);
+                    }
                 }
             }
         }

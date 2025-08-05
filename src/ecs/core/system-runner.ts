@@ -91,6 +91,7 @@ import { ShapeDirectionComponent } from "../components/shape-direction.component
 import { ShapeAngleComponent } from "../components/shape-angle.component.js";
 import { RenderableComponent } from "../components/renderable-component.js";
 import { ShapeHitMemoryComponent } from "../components/shape-hitmemory-component.js";
+import { WeaponAttackOriginComponent } from "../components/weapon-attack-origin.component.js";
 
 export class SystemRunner {
   private renderSystem: RenderSystem;
@@ -156,6 +157,7 @@ export class SystemRunner {
   private shapeDirectionComponentStore: ComponentStore<ShapeDirectionComponent> = new ComponentStore("ShapeDirectionComponent");
   private shapeAngleComponentStore: ComponentStore<ShapeAngleComponent> = new ComponentStore("ShapeAngleComponent");
   private shapeHitMemoryComponentStore: ComponentStore<ShapeHitMemoryComponent> = new ComponentStore("ShapeHitMemoryComponent");
+  private weaponAttackOriginComponentStore: ComponentStore<WeaponAttackOriginComponent> = new ComponentStore("WeaponAttackOriginComponent")
   private animationSpriteSystem: AnimationSpriteSystem;
   private inputMovementSystem: InputMovementSystem;
   private shootingSystem: ShootingSystem;
@@ -209,11 +211,11 @@ export class SystemRunner {
     this.aiMovementBehaviorSystem = new AiMovementBehaviorSystem(this.positionComponentStore, this.velocityComponentStore, this.movimentIntentComponentStore, this.aiComponentStore, this.aiMovementOrderComponentStore, this.playerComponentStore, this.pathFindingManager);
     this.aiAttackBehaviorSystem = new AiAttackBehaviorSystem(this.positionComponentStore, this.intentShotComponentStore, this.aiComponentStore, this.aiAttackOrderComponentStore, this.playerComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.spriteComponentStore, this.enemyComponentStore, this.intentGrenadeComponentStore, this.intentMeleeComponentStore, this.disableAimComponentStore);
     this.spriteLevelScaler = new SpriteLevelScalerSystem(this.spriteComponentStore, this.spriteManager, this.levelManager, this.worldTilemapManager);
-    this.weaponSpriteAttachmentSystem = new WeaponSpriteAttachmenPositiontSystem(this.positionComponentStore, this.weaponSpriteAttachmentComponentStore, this.zLayerComponentStore, this.spriteComponentStore, this.aimShootingComponent);
+    this.weaponSpriteAttachmentSystem = new WeaponSpriteAttachmenPositiontSystem(this.positionComponentStore, this.weaponSpriteAttachmentComponentStore, this.zLayerComponentStore, this.spriteComponentStore, this.aimShootingComponent, this.disableAttachmentComponentStore);
     this.levelProgressionSystem = new LevelProgressionSystem(this.enemiesKilledComponentStore, this.levelManager);
     this.reloadSystem = new ReloadSystem(this.soundManager, this.reloadIntentComponentStore, this.playerComponentStore, this.weaponMagazineComponentStore)
     this.explosionSystem = new ExplosionSystem(this.entityFactory, this.grenadeComponentStore, this.fuseTimerComponentStore, this.playerComponentStore, this.enemyComponentStore, this.positionComponentStore, this.shooterComponentStore, this.damageTakenComponentStore, this.grenadeExplosionComponentStore, this.delayedDestructionComponentStore, this.animationComponentStore, this.enemyDeadComponentStore);
-    this.meleeAttackSystem = new MeleeAttackSystem(this.intentMeleeComponentStore, this.weaponSpriteAttachmentComponentStore, this.weaponComponentStore, this.positionComponentStore, this.aimShootingComponent, this.shooterComponentStore, this.playerComponentStore, this.enemyComponentStore, this.attackSpeedComponentStore, this.spriteComponentStore, this.disableAimComponentStore, this.meleeIntentProcessedComponentStore, this.initialAimAngleComponentStore, this.entityFactory, this.shapeComponentStore);
+    this.meleeAttackSystem = new MeleeAttackSystem(this.intentMeleeComponentStore, this.weaponSpriteAttachmentComponentStore, this.weaponComponentStore, this.positionComponentStore, this.aimShootingComponent, this.shooterComponentStore, this.playerComponentStore, this.enemyComponentStore, this.attackSpeedComponentStore, this.spriteComponentStore, this.disableAimComponentStore, this.meleeIntentProcessedComponentStore, this.initialAimAngleComponentStore, this.entityFactory, this.shapeComponentStore, this.disableAttachmentComponentStore, this.weaponAttackOriginComponentStore);
   }
 
   update() {

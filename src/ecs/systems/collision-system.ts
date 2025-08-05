@@ -75,6 +75,7 @@ export class CollisionSystem implements ISystem {
                 const isPlayer = this.playerComponentStore.has(entity);
                 const isEnemy = this.enemyComponentStore.has(entity);
                 const isProjectile = this.projectileComponentStore.has(entity)
+                const isGrenade = this.grenadeComponentStore.has(entity);
                 const validEntityCheck = isPlayer || isEnemy || isProjectile;
                 if (!validEntityCheck) continue;
 
@@ -85,7 +86,7 @@ export class CollisionSystem implements ISystem {
 
                 const hitMemory = this.shapeHitMemoryComponentStore.get(shapeCollisionCheck.shape!)
 
-                if(hitMemory.alreadyHit.has(entity)) continue;
+                if (hitMemory.alreadyHit.has(entity)) continue;
 
                 hitMemory.alreadyHit.add(entity);
 
@@ -132,14 +133,15 @@ export class CollisionSystem implements ISystem {
             const wallCollisionCheck = this.wallCollision(intent, entity, spriteOriginProperties.sprite.originalRenderSpriteHeight); // Entity - wall check
             // const shapeCollisionCheck = this.shapeCollision(intent, entity, spriteOriginProperties.sprite.originalRenderSpriteHeight); // Entity - shape check
 
+            const isGrenade = this.grenadeComponentStore.has(entity);
 
             if (wouldCollideCheckEntity.wouldCollide) {
-                this.movementIntentComponentStore.remove(entity); // Cancelamento do intent pra questões de movimento            
+                // Cancelamento do intent pra questões de movimento            
                 if (this.projectileComponentStore.has(entity)) {
                     const shotOrigin = this.shotOriginComponentStore.get(entity);
                     const shooterId = shotOrigin.shooterEntity;
                     const target = wouldCollideCheckEntity.collidingEntity;
-                    const isGrenade = this.grenadeComponentStore.has(entity);
+
                     if (isGrenade) {
                         this.collisionComponentStore.get(entity).collides = false;
                     }
@@ -162,8 +164,12 @@ export class CollisionSystem implements ISystem {
                     }
 
                     if (!isGrenade) {
+                        this.movementIntentComponentStore.remove(entity);
                         this.entityFactory.destroyProjectile(entity);
                     }
+
+                } else {
+                    this.movementIntentComponentStore.remove(entity);
                 }
             }
 
@@ -173,7 +179,7 @@ export class CollisionSystem implements ISystem {
             if (wallCollisionCheck) {
                 this.movementIntentComponentStore.remove(entity);
                 let animEnded: boolean = false;
-                if (this.projectileComponentStore.has(entity)) {
+                if (this.projectileComponentStore.has(entity) && !isGrenade) {
                     if (!this.wallHitComponentStore.has(entity)) {
                         this.animTimerComponentStore.add(entity, new AnimTimerComponent(AnimationName.BULLET_WALL_HIT, 0.8))
                         this.wallHitComponentStore.add(entity, new WallHitComponent());
@@ -199,6 +205,13 @@ export class CollisionSystem implements ISystem {
                             this.entityFactory.destroyProjectile(entity);
                         }
                     }
+                }
+                if (isGrenade) {
+                    const velocity = this.velocityComponentStore.get(entity);
+                    velocity.baseVelocityX = 0;
+                    velocity.baseVelocityY = 0;
+                    velocity.currentVelocityX = 0;
+                    velocity.currentVelocityY = 0;
                 }
 
 

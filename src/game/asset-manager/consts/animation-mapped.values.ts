@@ -148,6 +148,30 @@ export const ANIMATION_MAPPED: Map<AnimationName, Map<SpriteName, AnimationKeyMa
   ],
 
   [
+    AnimationName.WEAPON_PISTOL,
+    new Map<SpriteName, AnimationKeyMap>([
+      [SpriteName.PISTOL, {
+        spriteName: SpriteName.PISTOL,
+        spriteSheetName: SpriteSheetName.WEAPON,
+        order: 1,
+        durationKeyFrame: 1
+      }]
+    ])
+  ],
+
+  [
+    AnimationName.WEAPON_SNIPER,
+    new Map<SpriteName, AnimationKeyMap>([
+      [SpriteName.SNIPER, {
+        spriteName: SpriteName.SNIPER,
+        spriteSheetName: SpriteSheetName.WEAPON,
+        order: 1,
+        durationKeyFrame: 1
+      }]
+    ])
+  ],
+
+  [
     AnimationName.BULLET_FIRED,
     new Map<SpriteName, AnimationKeyMap>([
       [SpriteName.BULLET_1, {

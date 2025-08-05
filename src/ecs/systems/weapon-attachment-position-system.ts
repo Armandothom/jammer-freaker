@@ -1,3 +1,4 @@
+import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { AimShootingComponent } from "../components/aim-shooting.component.js";
 import { DisableAttachmentComponent } from "../components/disable-attachment.component.js";
 import { PlayerComponent } from "../components/player.component.js";
@@ -15,11 +16,13 @@ export class WeaponSpriteAttachmenPositiontSystem implements ISystem {
         private zLayerComponentStore: ComponentStore<ZLayerComponent>,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
         private aimShootingComponentStore: ComponentStore<AimShootingComponent>,
+        private disableAttachmentComponentStore: ComponentStore<DisableAttachmentComponent>,
     ) { }
 
     update(deltaTime: number): void {
         const attachedEntityIds = this.weaponSpriteAttachmentComponentStore.getAllEntities();
         for (const attachedEntityId of attachedEntityIds) {
+            if (this.disableAttachmentComponentStore.has(attachedEntityId)) continue;
             const weaponSprite = this.spriteComponentStore.get(attachedEntityId);
             const attachedWeapon = this.weaponSpriteAttachmentComponentStore.get(attachedEntityId);
             const attachedWeaponPosition = this.positionComponentStore.get(attachedEntityId);
@@ -35,7 +38,11 @@ export class WeaponSpriteAttachmenPositiontSystem implements ISystem {
 
             attachedWeapon.barrelX = attachedWeaponPosition.x + weaponSprite.width * (Math.cos(aimShooting.aimAngle));
             attachedWeapon.barrelY = attachedWeaponPosition.y + weaponSprite.width * (Math.sin(aimShooting.aimAngle));
-            this.zLayerComponentStore.add(attachedEntityId, new ZLayerComponent(isAimingUp ? 2 : 4));
+            if (weaponSprite.spriteName === SpriteName.SHIELD) {
+                this.zLayerComponentStore.add(attachedEntityId, new ZLayerComponent(4));
+            } else {
+                this.zLayerComponentStore.add(attachedEntityId, new ZLayerComponent(isAimingUp ? 2 : 4));
+            }
         }
     }
 

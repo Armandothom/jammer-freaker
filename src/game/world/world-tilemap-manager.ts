@@ -279,7 +279,7 @@ export class WorldTilemapManager {
       for (let x = 0; x < this._maxNumberTilesX; x++) {
         if (noiseValue[y][x] >= this.noiseValueThreshold) {
           this.generatedWalls.push({ x, y });
-        } else {
+        } else if(y !== 0 && y !== this._maxNumberTilesY && x !== 0 && x != this._maxNumberTilesX){
           this.validSpawnTile.push({ x, y });
         }
       }

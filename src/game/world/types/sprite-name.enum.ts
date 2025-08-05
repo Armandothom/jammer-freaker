@@ -4,6 +4,9 @@ export enum SpriteName {
   SMG = 'smg',
   RIFLE = 'rifle',
   KNIFE = 'knife',
+  SHIELD = 'shield',
+  PISTOL = 'pistol',
+  SNIPER = 'sniper',
   PLAYER_STILL = "player_still",
   PLAYER_RUNNING_1 = "player_running_1",
   PLAYER_RUNNING_2 = "player_running_2",
@@ -47,5 +50,5 @@ export enum SpriteName {
   GRENADE_EXPLOSION_11 = "grenade_explosion_11",
   GRENADE_EXPLOSION_12 = "grenade_explosion_12",
   BLANK = "blank",
-  SHIELD = "shield",
+
 }

@@ -5,6 +5,7 @@ export enum WeaponType {
     AWP = "awp",
     KNIFE = "knife",
     GRENADE = "grenade",
+    SHIELD = "shield"
 }
 
 export interface PropertiesTable {
@@ -58,6 +59,14 @@ export const WeaponConfig: Record<WeaponType, PropertiesTable> = {
         fuseTimer: 0,
     },
     [WeaponType.GRENADE]: {
+        shootingCooldown: 2, // in seconds
+        damage: 150,
+        maxBullets: 3,
+        reloadTime: 0,
+        explosionRadius: 192,
+        fuseTimer: 2,
+    },
+    [WeaponType.SHIELD]: {
         shootingCooldown: 2, // in seconds
         damage: 150,
         maxBullets: 3,

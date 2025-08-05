@@ -108,10 +108,6 @@ export class AnimationSetterSystem implements ISystem {
             }
 
             if (animToUse && currentAnim != animToUse) {
-<<<<<<< HEAD
-                //console.log("animToUse", animToUse);
-=======
->>>>>>> 2362e0d398fd39f8e3f35b2be233e23b36a9f3ef
                 this.animationComponentStore.add(entityWithAnim, new AnimationComponent(animToUse, loop));
             }
         }

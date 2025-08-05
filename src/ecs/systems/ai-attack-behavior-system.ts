@@ -76,7 +76,7 @@ export class AiAttackBehaviorSystem implements ISystem {
                         if (enemyType === EnemyType.BOMBER) {
                             this.intentGrenadeComponentStore.add(aiEntityId, new IntentShotComponent(playerPos.x + playerSprite.width / 2, playerPos.y, false));
                         }
-                        if (enemyType === EnemyType.KAMIKAZE) {
+                        if (enemyType === EnemyType.KAMIKAZE || enemyType === EnemyType.JUGG) {
                             this.intentMeleeComponentStore.add(aiEntityId, new IntentShotComponent(playerPos.x + playerSprite.width / 2, playerPos.y, false));
                         }
                         if (!this.disableAimComponentStore.has(aiEntityId)) {

@@ -98,17 +98,17 @@ export class EntityFactory {
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity))
     this.playerComponentStore.add(entityId, new PlayerComponent());
-    this.shooterComponentStore.add(entityId, new ShooterComponent(WeaponConfig[WeaponType.KNIFE].shootingCooldown, WeaponConfig[WeaponType.GRENADE].shootingCooldown));
+    this.shooterComponentStore.add(entityId, new ShooterComponent(WeaponConfig[WeaponType.PISTOL].shootingCooldown, WeaponConfig[WeaponType.GRENADE].shootingCooldown));
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY))
-    this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.KNIFE, SpriteSheetName.WEAPON, AnimationName.WEAPON_KNIFE));
+    this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.PISTOL, SpriteSheetName.WEAPON, AnimationName.WEAPON_PISTOL));
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
-    this.damageComponentStore.add(entityId, new DamageComponent(WeaponConfig[WeaponType.KNIFE].damage));
+    this.damageComponentStore.add(entityId, new DamageComponent(WeaponConfig[WeaponType.PISTOL].damage));
     this.weaponMagazineComponentStore.add(entityId, new WeaponMagazineComponent(
       3,
-      WeaponConfig[WeaponType.KNIFE].maxBullets,
-      WeaponConfig[WeaponType.KNIFE].maxBullets,
-      WeaponConfig[WeaponType.KNIFE].reloadTime,
+      WeaponConfig[WeaponType.PISTOL].maxBullets,
+      WeaponConfig[WeaponType.PISTOL].maxBullets,
+      WeaponConfig[WeaponType.PISTOL].reloadTime,
       false
     ));
     this.grenadeBeltComponentStore.add(entityId, new GrenadeBeltComponent(
@@ -209,7 +209,7 @@ export class EntityFactory {
     this.enemyComponentStore.add(entityId, new EnemyComponent(enemyType));
     this.shooterComponentStore.add(entityId, new ShooterComponent(attackCooldownInSeconds, 0));
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY));
-    this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.RIFLE, SpriteSheetName.WEAPON, AnimationName.WEAPON_RIFLE));
+    this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.SNIPER, SpriteSheetName.WEAPON, AnimationName.WEAPON_SNIPER));
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.aiComponentStore.add(entityId, new AIComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
@@ -253,9 +253,9 @@ export class EntityFactory {
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.ENEMY_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
     this.enemyComponentStore.add(entityId, new EnemyComponent(enemyType));
-    this.shooterComponentStore.add(entityId, new ShooterComponent(attackCooldownInSeconds, 0));
+    this.shooterComponentStore.add(entityId, new ShooterComponent(0, attackCooldownInSeconds));
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY));
-    this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.SMG, SpriteSheetName.WEAPON, AnimationName.WEAPON_SMG));
+    this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.GRENADE_1, SpriteSheetName.WEAPON, AnimationName.GRENADE_FIRED));
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.aiComponentStore.add(entityId, new AIComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
@@ -288,6 +288,7 @@ export class EntityFactory {
     this.projectileComponentStore.remove(entityId);
     this.velocityComponentStore.remove(entityId);
     this.collisionComponentStore.remove(entityId);
+
     if (this.grenadeComponentStore.has(entityId)) {
       this.grenadeComponentStore.remove(entityId);
     }
@@ -315,7 +316,7 @@ export class EntityFactory {
     this.aimShootingComponentStore.add(entityId, new AimShootingComponent(0, 5));
     if (wieldingEntityWeapon.spriteName != SpriteName.SHIELD) {
       this.weaponSpriteAttachmentComponentStore.add(entityId, new WeaponSpriteAttachmentComponent(parentEntityId, 16, 16, 18, 18));
-    } else{
+    } else {
       this.weaponSpriteAttachmentComponentStore.add(entityId, new WeaponSpriteAttachmentComponent(parentEntityId, 16, 16, 9, 9));
     }
     this.animationComponentStore.add(entityId, new AnimationComponent(wieldingEntityWeapon.animationName));
