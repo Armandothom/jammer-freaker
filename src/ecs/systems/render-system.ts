@@ -41,17 +41,22 @@ export class RenderSystem implements ISystem {
 
   update(deltaTime: number): void {
     const viewport = this.cameraManager.getViewport();
+    this.rendererEngine.clear();
     const terrainRenderObjects = this.getTerrainRenderObjects(viewport);
     const overTerrainRenderObjects = this.getOverTerrainRenderObjects(viewport);
-    const renderObjects = [...overTerrainRenderObjects, ...terrainRenderObjects]
+    const renderObjects = [...overTerrainRenderObjects, ...terrainRenderObjects];
     this.rendererEngine.render(renderObjects);
+    this.rendererEngine.uploadSpawnBatch();
+    this.rendererEngine.updateParticles(deltaTime);
+    this.rendererEngine.disarmSpawnStyleRects();
+    this.rendererEngine.renderParticles();
   }
 
   private getTerrainRenderObjects(viewport: CameraViewport): Array<RenderObject> {
     const terrainRenderObjects: Array<RenderObject> = [];
     const terrainTilesInViewport = this.tilemapManager.getTilesInArea(viewport);
     const terrainSpritesheet = this.tilemapManager.appliedSpriteSheetName;
-    const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;    
+    const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;
 
     for (const terrainTile of terrainTilesInViewport) {
       const spriteDetails = this.spriteManager.getSpriteProperties(terrainTile.spriteName, terrainSpritesheet);
@@ -76,8 +81,10 @@ export class RenderSystem implements ISystem {
     for (const entity of entities) {
       const sprite = this.spriteComponentStore.get(entity);
       const position = this.positionComponentStore.get(entity);
-      if (position.x > viewport.right || position.x < viewport.left ||
-        position.y < viewport.top || position.y > viewport.bottom
+      const spriteProperties = this.spriteManager.getSpriteProperties(sprite.spriteName, sprite.spriteSheetName);
+      const spriteHeight = spriteProperties.sprite.originalRenderSpriteHeight ?? sprite.height ?? 0;
+      if (position.x > viewport.right || position.x < (viewport.left - sprite.width) ||
+        position.y < (viewport.top - sprite.height) || position.y > viewport.bottom
       ) {
         //Entity is not within viewport
         continue;
@@ -86,7 +93,7 @@ export class RenderSystem implements ISystem {
       const mirrorSpriteX = this.directionAnimComponentStore.getOrNull(entity)?.xDirection == AnimDirection.LEFT ? true : false;
       const mirrorSpriteY = this.directionAnimComponentStore.getOrNull(entity)?.yDirection == AnimDirection.BOTTOM ? true : false;
 
-      const spriteProperties = this.spriteManager.getSpriteProperties(sprite.spriteName, sprite.spriteSheetName);
+
       const layerComponent = this.zLayerComponentStore.get(entity);
       renderObject.push({
         xWorldPosition: position.x,

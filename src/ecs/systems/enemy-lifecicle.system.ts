@@ -37,7 +37,7 @@ export class EnemyLifecicleSystem implements ISystem {
 
     update(deltaTime: number): void {
         this.timeSinceLastSpawn += deltaTime;
-        let spawnIntervalsInSeconds = 3;
+        let spawnIntervalsInSeconds = 2;
         const previousTime = this.timeSinceLastSpawn - deltaTime;
 
         if (previousTime < spawnIntervalsInSeconds && this.timeSinceLastSpawn >= spawnIntervalsInSeconds) {
@@ -81,7 +81,7 @@ export class EnemyLifecicleSystem implements ISystem {
         // to be implemented: time elapsed || bypass logic for spawn logic
         // bypass being used to spawn a bunch of enemies on level start
         
-        spawnRoll = 0.45;
+        spawnRoll = 0.9;
 
         if (spawnRoll <= spawnChancesAccumulated[0]) {
             const posRoll = this.trySpawn();
@@ -137,7 +137,7 @@ export class EnemyLifecicleSystem implements ISystem {
             const posRoll = this.trySpawn();
             this.entityFactory.createBomber(
                 EnemyType.BOMBER,
-                posRoll.x, posRoll.y,
+                320, 320,
                 EnemyConfig[EnemyType.BOMBER].hp,
                 EnemyConfig[EnemyType.BOMBER].damage,
                 EnemyConfig[EnemyType.BOMBER].attackCooldownInSeconds,
@@ -148,7 +148,7 @@ export class EnemyLifecicleSystem implements ISystem {
     }
 
     async killAllEnemies() {
-        console.log("killallenemies call");
+        //console.log("killallenemies call");
         //this.freezeManager.freezeGame();
         const enemyEntities = this.enemyComponentStore.getAllEntities();
         const deadEnemiesEntities = this.enemyDeadComponentStore.getAllEntities();

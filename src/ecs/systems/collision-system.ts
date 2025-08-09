@@ -29,6 +29,10 @@ import { ShapeDimensionComponent } from "../components/shape-dimension.component
 import { ShapeComponent } from "../components/shape-component.js";
 import { GrenadeComponent } from "../components/grenade-component.js";
 import { ShapeHitMemoryComponent } from "../components/shape-hitmemory-component.js";
+import { DustParticlesComponent } from "../components/dust-particles.component.js";
+import { BloodParticlesComponent } from "../components/blood-particles.component.js";
+import { SparkParticlesComponent } from "../components/spark-particles.component.js";
+import { DirectionComponent } from "../components/direction-component.js";
 
 export class CollisionSystem implements ISystem {
     constructor(
@@ -57,6 +61,10 @@ export class CollisionSystem implements ISystem {
         private shapeDimensionComponent: ComponentStore<ShapeDimensionComponent>,
         private grenadeComponentStore: ComponentStore<GrenadeComponent>,
         private shapeHitMemoryComponentStore: ComponentStore<ShapeHitMemoryComponent>,
+        private dustParticlesComponentStore: ComponentStore<DustParticlesComponent>,
+        private bloodParticlesComponentStore: ComponentStore<BloodParticlesComponent>,
+        private sparkParticlesComponentStore: ComponentStore<SparkParticlesComponent>,
+        private directionComponentStore: ComponentStore<DirectionComponent>,
     ) {
 
     }
@@ -93,19 +101,19 @@ export class CollisionSystem implements ISystem {
                 if (isProjectile) {
                     this.movementIntentComponentStore.remove(entity);
                     // Collision between the knife and a projectile, Insert anim component for the anim setter
-                    console.log("projectile shape collision");
+                    //console.log("projectile shape collision");
                     this.entityFactory.destroyProjectile(entity);
                 };
                 if (isEnemy) {
                     // Damage dealing to the enemy
-                    console.log("enemy shape collision");
+                    //console.log("enemy shape collision");
                     if (!this.damageTakenComponentStore.has(entity)) {
                         this.damageTakenComponentStore.add(entity, new DamageTakenComponent(shapeCollisionCheck.shapeSource!, 0));
                     }
                 };
                 if (isPlayer) {
                     // Damage dealing to the player
-                    console.log("player shape collision");
+                    //console.log("player shape collision");
                     if (!this.damageTakenComponentStore.has(entity)) {
                         this.damageTakenComponentStore.add(entity, new DamageTakenComponent(shapeCollisionCheck.shapeSource!, 0));
                     }
@@ -141,6 +149,10 @@ export class CollisionSystem implements ISystem {
                     const shotOrigin = this.shotOriginComponentStore.get(entity);
                     const shooterId = shotOrigin.shooterEntity;
                     const target = wouldCollideCheckEntity.collidingEntity;
+                    const projectilePos = this.positionComponentStore.get(entity);
+                    const projectileDir = this.directionComponentStore.get(entity);
+                    const dir = { x: projectileDir.dirX, y: projectileDir.dirY };
+
 
                     if (isGrenade) {
                         this.collisionComponentStore.get(entity).collides = false;
@@ -160,11 +172,15 @@ export class CollisionSystem implements ISystem {
 
 
                     if (validTarget && !isGrenade) {
+                        this.bloodParticlesComponentStore.add(target, new BloodParticlesComponent(projectilePos.x, projectilePos.y, dir))
                         this.damageTakenComponentStore.add(target, new DamageTakenComponent(shooterId, 0));
                     }
 
                     if (!isGrenade) {
                         this.movementIntentComponentStore.remove(entity);
+                        if (this.projectileComponentStore.has(wouldCollideCheckEntity.collidingEntity)) {
+                            this.sparkParticlesComponentStore.add(entity, new SparkParticlesComponent(projectilePos.x, projectilePos.y, dir));
+                        }
                         this.entityFactory.destroyProjectile(entity);
                     }
 
@@ -180,7 +196,11 @@ export class CollisionSystem implements ISystem {
                 this.movementIntentComponentStore.remove(entity);
                 let animEnded: boolean = false;
                 if (this.projectileComponentStore.has(entity) && !isGrenade) {
+                    const projectilePos = this.positionComponentStore.get(entity);
+                    const projectileDir = this.directionComponentStore.get(entity);
+                    const dir = { x: projectileDir.dirX, y: projectileDir.dirY };
                     if (!this.wallHitComponentStore.has(entity)) {
+                        this.dustParticlesComponentStore.add(entity, new DustParticlesComponent(projectilePos.x, projectilePos.y, dir));
                         this.animTimerComponentStore.add(entity, new AnimTimerComponent(AnimationName.BULLET_WALL_HIT, 0.8))
                         this.wallHitComponentStore.add(entity, new WallHitComponent());
                         const velocity = this.velocityComponentStore.get(entity);

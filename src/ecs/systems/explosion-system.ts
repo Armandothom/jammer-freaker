@@ -82,7 +82,7 @@ export class ExplosionSystem implements ISystem {
                         this.delayedDestructionComponentStore.get(grenadeEntity).destructionTime >= this.delayedDestructionComponentStore.get(grenadeEntity).totalDestructionTimer
 
                     if (destroyCondition) {
-                        console.log("grenadeDestroyed", grenadeEntity);
+                        //console.log("grenadeDestroyed", grenadeEntity);
                         this.animationComponentStore.remove(grenadeEntity);
                         this.grenadeExplosionComponentStore.remove(grenadeEntity);
                         this.delayedDestructionComponentStore.remove(grenadeEntity);
@@ -103,7 +103,7 @@ export class ExplosionSystem implements ISystem {
                 this.fuseTimerComponentStore.get(grenadeEntity).fuseTime >= this.fuseTimerComponentStore.get(grenadeEntity).totalFuseTimer;
 
             if (explosionCheck && !this.grenadeExplosionComponentStore.has(grenadeEntity)) {
-                console.log(this.grenadeExplosionComponentStore.has(grenadeEntity));
+                //console.log(this.grenadeExplosionComponentStore.has(grenadeEntity));
                 this.grenadeExplosionComponentStore.add(grenadeEntity, new GrenadeExplosionComponent());
 
                 for (const enemy of this.enemyComponentStore.getAllEntities()) {
@@ -133,7 +133,7 @@ export class ExplosionSystem implements ISystem {
                         this.delayedDestructionComponentStore.get(grenadeEntity).destructionTime >= this.delayedDestructionComponentStore.get(grenadeEntity).totalDestructionTimer
 
                     if (destroyCondition) {
-                        console.log("grenadeDestroyed", grenadeEntity);
+                        //console.log("grenadeDestroyed", grenadeEntity);
                         this.animationComponentStore.remove(grenadeEntity);
                         this.grenadeExplosionComponentStore.remove(grenadeEntity);
                         this.delayedDestructionComponentStore.remove(grenadeEntity);

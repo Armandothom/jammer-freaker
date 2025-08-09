@@ -136,7 +136,7 @@ export class ProjectileSpawnSystem implements ISystem {
             const grenadeCooldown = this.grenadeCooldownComponentStore.has(entity);
             if (!grenadeCooldown) {
                 this.spawnProjectile(dir, attachedWeapon, true, travelDistance);
-                console.log(entity, cooldownConfig.grenadeCooldown);
+                //console.log(entity, cooldownConfig.grenadeCooldown);
                 const cooldownAdd = this.grenadeCooldownComponentStore.add(entity, new GrenadeCooldownComponent(cooldownConfig.grenadeCooldown));
                 if (this.playerComponentStore.has(entity)) {
                     this.grenadeFiredComponentStore.add(entity, new GrenadeFiredComponent());

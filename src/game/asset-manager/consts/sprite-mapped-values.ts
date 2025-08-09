@@ -82,7 +82,6 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
           originalRenderSpriteWidth: 42,
           spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 16 }
         }],
-
       ])
     },
   ],

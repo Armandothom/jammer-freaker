@@ -75,7 +75,7 @@ export class DynamicAttributeSystem implements ISystem {
 
             this.healthComponentStore.get(entity).takeDamage(damage);
 
-            console.log(`Damage ${damage} causado a ${isEnemy ? 'Enemy' : isPlayer ? 'Player' : 'Unknown'} (entity ${entity})`);
+            //console.log(`Damage ${damage} causado a ${isEnemy ? 'Enemy' : isPlayer ? 'Player' : 'Unknown'} (entity ${entity})`);
             this.damageTakenComponentStore.remove(entity);
 
             if (this.healthComponentStore.get(entity).hp <= 0) {

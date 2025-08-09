@@ -30,14 +30,14 @@ export class LevelProgressionSystem implements ISystem {
 
         if (shouldUpdateLevelByTime) {
             this.timeInLevel = 0;
-            console.log("Level update");
+            //console.log("Level update");
             this.totalKillsToProgress += enemyKillIncrease;
             this.levelManager.levelUpdatePending = true;
         }
 
         if (totalEnemiesKilled == this.totalKillsToProgress) {
             this.timeInLevel = 0;
-            console.log("Level update");
+            //console.log("Level update");
             this.totalKillsToProgress += enemyKillIncrease;
             this.levelManager.levelUpdatePending = true;
         }

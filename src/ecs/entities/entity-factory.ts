@@ -295,7 +295,7 @@ export class EntityFactory {
   }
 
   destroyEnemy(entityId: number): void {
-    console.log("death call, entity: ", entityId);
+    ("death call, entity: ", entityId);
     this.renderableComponentStore.remove(entityId);
     this.positionComponentStore.remove(entityId);
     this.spriteComponentStore.remove(entityId); //for some reason if we delete the spriteComponentStore render system crashes

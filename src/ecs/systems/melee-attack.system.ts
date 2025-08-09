@@ -108,8 +108,8 @@ export class MeleeAttackSystem implements ISystem {
                     let swingAngle = Math.PI * (5 / 6);
 
                     const attackFrame = this.attackSpeedComponentStore.get(shooter).attackFrame;
-                    const progress = attackFrame/totalAttackFrames;
-                    const angleOffset = (progress - 0.5)*swingAngle;
+                    const progress = attackFrame / totalAttackFrames;
+                    const angleOffset = (progress - 0.5) * swingAngle;
                     const finalAngle = initialAngle + (isAimingLeft ? -angleOffset : angleOffset);
                     this.aimShootingComponentStore.get(weaponEntityId).aimAngle = finalAngle;
                     this.attackSpeedComponentStore.get(shooter).attackFrame++;
