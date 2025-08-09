@@ -48,8 +48,9 @@ export class RendererEngine {
   private static readonly TEX_UNIT_SPAWN_STYLE = 3;
 
   // TEXTURE0 = TERRAIN AND OBJECTS
-  // TEXTURE1 = PARTICLE SIMULATION
-  // TEXTURE2 = PARTICLE RENDERING
+  // TEXTURE1 = PARTICLE STATE READ
+  // TEXTURE2 = PARTICLE KINECTICS
+  // TEXTURE3 = PARTICLE SPAWN STYLE
 
   private _spawnHead: number = 0;
   private _pendingSpawns: SpawnEvent[] = [];
@@ -148,7 +149,6 @@ export class RendererEngine {
     };
     const encVel01 = (v: number) => (v / VMAX) * 0.5 + 0.5; // [-VMAX,VMAX] -> [0..1]
 
-    // 1) compacte eventos válidos em arrays contíguos
     const kinPacked: number[] = []; // RGBA: s0.x, s0.y, v0.x(enc), v0.y(enc)
     const styPacked: number[] = []; // RGBA: lifeNorm, sizeNorm, type(0/1), livre
 
@@ -247,7 +247,7 @@ export class RendererEngine {
 
   private initParticles() {
     this.compileSimulationProgram();
-    this.initParticleSimulation(512); // capacidade pequena pra debug
+    this.initParticleSimulation(512); // capacidade arbitrária
     //this.runSimulation(0);
     //this.debugReadStateWrite();
     //this.swapParticleStates();
@@ -471,7 +471,7 @@ export class RendererEngine {
       varying float v_alive;
       void main(){
         if (v_alive < 0.5) discard;
-        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); // depois plugamos cor do spawn
+        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); // depois plugar cor do spawn
       }
     `;
 
@@ -569,7 +569,7 @@ export class RendererEngine {
     gl.disable(gl.DEPTH_TEST);
     gl.depthMask(false);
 
-    // bind stateRead na mesma unidade já usada (NÃO é TEXTURE0)
+    // bind stateRead na textura correta
     gl.activeTexture(gl.TEXTURE0 + RendererEngine.TEX_UNIT_STATE_READ);
     gl.bindTexture(gl.TEXTURE_2D, this._stateRead);
     gl.uniform1i(gl.getUniformLocation(this._particleRenderProgram!, "u_stateRead"), RendererEngine.TEX_UNIT_STATE_READ);
@@ -748,10 +748,10 @@ export class RendererEngine {
       console.error(infoLog);
       throw new Error("Program link error (particles).");
     }
-    // opcional: liberar shaders após link
+    // libera shaders após link
     this._gl.deleteShader(vertexShader);
     this._gl.deleteShader(fragmentShader);
-    return prog; // <- não mexe em this._program, nem dá useProgram
+    return prog;
   }
 
   private createStateTexture(width: number, height: number) {
