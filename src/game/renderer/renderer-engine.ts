@@ -27,6 +27,7 @@ export class RendererEngine {
   private _stateTextureB!: WebGLTexture;
   private _stateRead!: WebGLTexture;
   private _stateWrite!: WebGLTexture;
+  private _spawnColor!: WebGLTexture;
 
   private _simulationFBO!: WebGLFramebuffer;
   private _fboStateRead!: WebGLFramebuffer;
@@ -46,11 +47,13 @@ export class RendererEngine {
   private static readonly TEX_UNIT_STATE_READ = 1;
   private static readonly TEX_UNIT_SPAWN_KIN = 2;
   private static readonly TEX_UNIT_SPAWN_STYLE = 3;
+  private static readonly TEX_UNIT_SPAWN_COLOR = 4;
 
   // TEXTURE0 = TERRAIN AND OBJECTS
   // TEXTURE1 = PARTICLE STATE READ
   // TEXTURE2 = PARTICLE KINECTICS
   // TEXTURE3 = PARTICLE SPAWN STYLE
+  // TEXTURE4 = SPAWN COLOR
 
   private _spawnHead: number = 0;
   private _pendingSpawns: SpawnEvent[] = [];
@@ -151,6 +154,7 @@ export class RendererEngine {
 
     const kinPacked: number[] = []; // RGBA: s0.x, s0.y, v0.x(enc), v0.y(enc)
     const styPacked: number[] = []; // RGBA: lifeNorm, sizeNorm, type(0/1), livre
+    const colPacked: number[] = []; // R, G, B, 255
 
     for (const ev of this._pendingSpawns) {
       let [x01, y01] = this.worldToState01(ev.position.x, ev.position.y);
@@ -183,6 +187,13 @@ export class RendererEngine {
         typeByte,
         0 // livre - virar color index depois
       );
+
+      colPacked.push(
+        ev.color[0],
+        ev.color[1],
+        ev.color[2],
+        255
+      );
     }
 
     const count = kinPacked.length / 4;
@@ -190,6 +201,7 @@ export class RendererEngine {
 
     const kin = new Uint8Array(kinPacked);
     const sty = new Uint8Array(styPacked);
+    const col = new Uint8Array(colPacked);
 
     const width = this._particleTextureWidth;
     const startId = this._spawnHead;
@@ -236,6 +248,20 @@ export class RendererEngine {
       const first = this._particleMaxCapacity - startId;
       writeRange(sty, this._spawnStyle, startId, first, 0);
       writeRange(sty, this._spawnStyle, 0, count - first, first * 4);
+    }
+
+    // 4) subir spawnColor
+    gl.activeTexture(gl.TEXTURE0 + RendererEngine.TEX_UNIT_SPAWN_COLOR);
+    gl.bindTexture(gl.TEXTURE_2D, this._spawnColor);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+
+    if (startId + count <= this._particleMaxCapacity) {
+      writeRange(col, this._spawnColor, startId, count, 0);
+    } else {
+      const first = this._particleMaxCapacity - startId;
+      writeRange(col, this._spawnColor, startId, first, 0);
+      writeRange(col, this._spawnColor, 0, count - first, first * 4);
     }
 
     // 4) avança o ring
@@ -319,11 +345,11 @@ export class RendererEngine {
     this._stateRead = this._stateTextureA;
     this._stateWrite = this._stateTextureB;
 
-    // creates SpawnTexture
+    // creates Textures
     this._spawnTexture = this.createStateTexture(this._particleTextureWidth, this._particleTextureHeight);
-
     this._spawnKinematic = this.createStateTexture(this._particleTextureWidth, this._particleTextureHeight);
     this._spawnStyle = this.createStateTexture(this._particleTextureWidth, this._particleTextureHeight);
+    this._spawnColor = this.createStateTexture(this._particleTextureWidth, this._particleTextureHeight);
 
     // FBO
     this._simulationFBO = gl.createFramebuffer()!;
@@ -345,6 +371,8 @@ export class RendererEngine {
     gl.bindTexture(gl.TEXTURE_2D, this._spawnKinematic);
     gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, this._particleTextureWidth, this._particleTextureHeight, gl.RGBA, gl.UNSIGNED_BYTE, zero);
     gl.bindTexture(gl.TEXTURE_2D, this._spawnStyle);
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, this._particleTextureWidth, this._particleTextureHeight, gl.RGBA, gl.UNSIGNED_BYTE, zero);
+    gl.bindTexture(gl.TEXTURE_2D, this._spawnColor);
     gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, this._particleTextureWidth, this._particleTextureHeight, gl.RGBA, gl.UNSIGNED_BYTE, zero);
   }
 
@@ -408,7 +436,6 @@ export class RendererEngine {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   }
 
-
   private compileParticleRenderProgram() {
     const vertexShader = `
       attribute float a_particleID;
@@ -423,6 +450,8 @@ export class RendererEngine {
       uniform float u_maxSizePx; // pixels
 
       varying float v_alive;
+      varying float v_alpha;
+      varying vec2  v_uv; // UV para o FS pegar a cor
 
       vec2 idToUV(float id){
         float x = mod(id, u_texSize.x);
@@ -436,6 +465,7 @@ export class RendererEngine {
 
       void main(){
         vec2 uv = idToUV(a_particleID);
+        v_uv = uv;
 
         vec4 st = texture2D(u_stateRead, uv);      // lifeRem, lifeInitL, type, sizeNorm
         vec4 sk = texture2D(u_spawnKinematic, uv); // s0.xy, v0.xy(enc)
@@ -462,19 +492,32 @@ export class RendererEngine {
         vec2 posClip = s * 2.0 - 1.0;
         posClip = mix(vec2(2.0, 2.0), posClip, v_alive); // empurra mortos p/ fora
 
+        float eps = 1e-5;
+        v_alpha = v_alive * clamp(lifeRem / max(eps, lifeInitL), 0.0, 1.0);
+
         gl_Position = vec4(posClip, 0.0, 1.0);
         gl_PointSize = sizeNorm * u_maxSizePx * v_alive;
       }
     `;
     const fragmentShader = `
       precision mediump float;
+
+      uniform sampler2D u_spawnColor; // RGBA: R,G,B,_ (0..1)
+
       varying float v_alive;
+      varying float v_alpha;
+      varying vec2  v_uv;
+
       void main(){
         if (v_alive < 0.5) discard;
-        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); // depois plugar cor do spawn
+
+        vec3 rgb = texture2D(u_spawnColor, v_uv).rgb;
+        float a  = v_alpha;
+
+        gl_FragColor = vec4(rgb * a, a); // premultiplied
       }
     `;
-
+    
     const vs = this.createShader(this._gl.VERTEX_SHADER, vertexShader);
     const fs = this.createShader(this._gl.FRAGMENT_SHADER, fragmentShader);
     this._particleRenderProgram = this.createProgramRet(vs, fs);
@@ -582,6 +625,10 @@ export class RendererEngine {
     gl.activeTexture(gl.TEXTURE0 + RendererEngine.TEX_UNIT_SPAWN_STYLE);
     gl.bindTexture(gl.TEXTURE_2D, this._spawnStyle);
     gl.uniform1i(gl.getUniformLocation(this._particleRenderProgram!, "u_spawnStyle"), RendererEngine.TEX_UNIT_SPAWN_STYLE);
+
+    gl.activeTexture(gl.TEXTURE0 + RendererEngine.TEX_UNIT_SPAWN_COLOR);
+    gl.bindTexture(gl.TEXTURE_2D, this._spawnColor);
+    gl.uniform1i(gl.getUniformLocation(this._particleRenderProgram!, "u_spawnColor"), RendererEngine.TEX_UNIT_SPAWN_COLOR);
 
     gl.uniform1f(gl.getUniformLocation(this._particleRenderProgram!, "u_maxLife"), this._maxLife);
     gl.uniform1f(gl.getUniformLocation(this._particleRenderProgram!, "u_vmax"), this._vmax);
