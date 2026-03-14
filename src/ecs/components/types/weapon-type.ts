@@ -29,7 +29,7 @@ export const WeaponConfig: Record<WeaponType, PropertiesTable> = {
     [WeaponType.SMG]: {
         shootingCooldown: 0.2, // in seconds
         damage: 20,
-        maxBullets: 30,
+        maxBullets: 3000000,
         reloadTime: 1,
         explosionRadius: 0,
         fuseTimer: 0,

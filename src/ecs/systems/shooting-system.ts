@@ -80,7 +80,9 @@ export class ShootingSystem implements ISystem {
     private updateMousePosition = (e: MouseEvent) => {
         const playerIdRes = this.playerComponentStore.getAllEntities();
         const playerId = playerIdRes[0];
-        if(this.disableAimComponentStore.has(playerId)) return;
+        if(this.disableAimComponentStore.has(playerId)) {
+            return;
+        }
         const weaponAttachments = this.weaponAttachmentComponentStore.getValuesAndEntityId();
         const weaponAttachment = weaponAttachments.find((weaponAttachmentEntry) => weaponAttachmentEntry[1].parentEntityId == playerId)!;
         const weaponPosition = this.positionComponentStore.get(weaponAttachment[0]);
@@ -117,6 +119,7 @@ export class ShootingSystem implements ISystem {
             !this.weaponMagazineComponentStore.get(playerId).isReloading &&
             this.weaponMagazineComponentStore.get(playerId).magazineInventory > 0;
 
+        //here
         if (magazineConditions) {
             this.intentShotComponentStore.add(playerId, new IntentShotComponent(
                 this.currentMousePos.x,

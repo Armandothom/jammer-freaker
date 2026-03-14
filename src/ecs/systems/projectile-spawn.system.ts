@@ -66,22 +66,16 @@ export class ProjectileSpawnSystem implements ISystem {
                 throw new Error("No weapon entry found");
             }
             const attachedWeapon = attachedWeaponEntry[1];
+            const weaponPosition = this.positionComponentStore.get(attachedWeaponEntry[0]);
             const intent = this.intentShotComponentStore.getOrNull(entity);
             if (!shooterPos || !intent) continue;
 
             //right now we set X as a hardcoded number, but it needs to be dynamic
-            let shooterPosXConverted = (attachedWeapon.barrelX - 6) / canvas.width * canvasWidthHeightInTiles;
-            let shooterPosYConverted = (attachedWeapon.barrelY - (spriteBullet.height / 2)) / canvas.height * canvasWidthHeightInTiles;
-
-            //right now we set X as a hardcoded number, but it needs to be dynamic
-            let intentXConverted = (intent.x - 6) / canvas.width * canvasWidthHeightInTiles;
-            let intentYConverted = (intent.y - (spriteBullet.height / 2)) / canvas.height * canvasWidthHeightInTiles;
-            const dx = intentXConverted - (shooterPosXConverted);
-            const dy = intentYConverted - (shooterPosYConverted);
-            const magnitude = Math.hypot(dx, dy);  // Player and click distance --> In Tiles
+            let intentXConverted = intent.x;
+            let intentYConverted = intent.y;
+            const dx = intentXConverted - weaponPosition.x;
+            const dy = intentYConverted - weaponPosition.y;
             const angle = Math.atan2(dy, dx);
-            //if (magnitude === 0) continue; // Podemos alterar para que não spawne projetil se ele clicar tão perto do sprite do player
-            //let dir = { x: dx / magnitude, y: dy / magnitude };
             let dir = { x: Math.cos(angle), y: Math.sin(angle) }; // Vetor de direção normalizado
 
             const cooldownConfig = this.shooterComponentStore.get(entity);
@@ -164,8 +158,8 @@ export class ProjectileSpawnSystem implements ISystem {
         } else {
             this.soundManager.playSound("SMG_FIRE");
             const entity = this.entityFactory.createProjectile(
-                shootingWeapon.barrelX - 6,
-                shootingWeapon.barrelY - 6,
+                shootingWeapon.barrelX - 3,
+                shootingWeapon.barrelY - 3,
                 shootingWeapon.parentEntityId,
                 dir.x,
                 dir.y,
