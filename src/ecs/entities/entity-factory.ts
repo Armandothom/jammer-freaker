@@ -98,17 +98,17 @@ export class EntityFactory {
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity))
     this.playerComponentStore.add(entityId, new PlayerComponent());
-    this.shooterComponentStore.add(entityId, new ShooterComponent(WeaponConfig[WeaponType.PISTOL].shootingCooldown, WeaponConfig[WeaponType.GRENADE].shootingCooldown));
+    this.shooterComponentStore.add(entityId, new ShooterComponent(WeaponConfig[WeaponType.SMG].shootingCooldown, WeaponConfig[WeaponType.GRENADE].shootingCooldown));
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY))
-    this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.PISTOL, SpriteSheetName.WEAPON, AnimationName.WEAPON_PISTOL));
+    this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.SMG, SpriteSheetName.WEAPON, AnimationName.WEAPON_SMG));
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
-    this.damageComponentStore.add(entityId, new DamageComponent(WeaponConfig[WeaponType.PISTOL].damage));
+    this.damageComponentStore.add(entityId, new DamageComponent(WeaponConfig[WeaponType.SMG].damage));
     this.weaponMagazineComponentStore.add(entityId, new WeaponMagazineComponent(
       3,
-      WeaponConfig[WeaponType.PISTOL].maxBullets,
-      WeaponConfig[WeaponType.PISTOL].maxBullets,
-      WeaponConfig[WeaponType.PISTOL].reloadTime,
+      WeaponConfig[WeaponType.SMG].maxBullets,
+      WeaponConfig[WeaponType.SMG].maxBullets,
+      WeaponConfig[WeaponType.SMG].reloadTime,
       false
     ));
     this.grenadeBeltComponentStore.add(entityId, new GrenadeBeltComponent(
@@ -295,7 +295,6 @@ export class EntityFactory {
   }
 
   destroyEnemy(entityId: number): void {
-    ("death call, entity: ", entityId);
     this.renderableComponentStore.remove(entityId);
     this.positionComponentStore.remove(entityId);
     this.spriteComponentStore.remove(entityId); //for some reason if we delete the spriteComponentStore render system crashes
