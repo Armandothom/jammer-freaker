@@ -1,61 +1,39 @@
-import { SpriteManager } from "../asset-manager/sprite-manager.js";
-import { SpriteSheetName } from "../asset-manager/types/sprite-sheet-name.enum.js";
 import { CameraViewport } from "./types/camera-viewport.js";
-import { SpriteName } from "./types/sprite-name.enum.js";
 import { WorldTilemapManager } from "./world-tilemap-manager.js";
 
 export class CameraManager {
-  public viewportXAxisTiles: number;
-  public viewportYAxisTiles: number;
-  public tileSize: number;
-  coordinateX: number = 0;
-  coordinateY: number = 0;
+  private cameraX = 0;
+  private cameraY = 0;
 
-  constructor(private tilemapManager: WorldTilemapManager, private spriteManager: SpriteManager) {
+  readonly viewportWidth = 800;
+  readonly viewportHeight = 600;
 
-    this.tilemapManager = tilemapManager;
-    this.tileSize = this.spriteManager.getSpriteProperties(SpriteName.METAL_1,SpriteSheetName.TERRAIN).sprite.originalRenderSpriteHeight;
+  constructor(private worldTilemapManager: WorldTilemapManager) { }
 
-    this.viewportXAxisTiles = 10;
-    this.viewportYAxisTiles = 10;
-    this.setInitialPosition();
+  follow(worldX: number, worldY: number) {
+    const halfW = this.viewportWidth / 2;
+    const halfH = this.viewportHeight / 2;
+
+    this.cameraX = Math.max(
+      halfW,
+      Math.min(worldX, this.worldTilemapManager.worldWidth - halfW)
+    );
+
+    this.cameraY = Math.max(
+      halfH,
+      Math.min(worldY, this.worldTilemapManager.worldHeight - halfH)
+    );
   }
 
-  public getViewport(): CameraViewport {
-    this.coordinateX = this.viewportYAxisTiles / 2;
-    this.coordinateY = this.viewportYAxisTiles / 2;
-    return this.calcViewport(this.coordinateX, this.coordinateY);
-  }
+  getViewport(): CameraViewport {
+    const halfW = this.viewportWidth / 2;
+    const halfH = this.viewportHeight / 2;
 
-  public moveCamera(x: number, y: number) {
-    const bounds = this.tilemapManager.worldMaxBoundsTiles;
-    const newViewport = this.calcViewport(x, y);
-    //If it is out of bounds, we don't move the camera.
-    if (newViewport.bottom > bounds.bottom || newViewport.right > bounds.right ||
-      newViewport.top < bounds.top || newViewport.left < bounds.left) {
-      return;
-    }
-    this.coordinateX = x;
-    this.coordinateY = y;
-  }
-
-  private calcViewport(x: number, y: number): CameraViewport {
-    const halfH = this.viewportYAxisTiles / 2;
-    const halfW = this.viewportXAxisTiles / 2;
-    const left = (x - halfW) * this.tileSize;
-    const right = (x + halfW) * this.tileSize * 2;
-    const top = (y - halfH) * this.tileSize;
-    const bottom = (y + halfH) * this.tileSize * 2;
     return {
-      left,
-      right,
-      top,
-      bottom
-    }
-  }
-
-  private setInitialPosition() {
-    this.coordinateX = this.viewportXAxisTiles / 2;
-    this.coordinateY = this.viewportYAxisTiles / 2;
+      left: this.cameraX - halfW,
+      right: this.cameraX + halfW,
+      top: this.cameraY - halfH,
+      bottom: this.cameraY + halfH,
+    };
   }
 }

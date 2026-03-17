@@ -82,7 +82,7 @@ export class CollisionSystem implements ISystem {
 
                 const isPlayer = this.playerComponentStore.has(entity);
                 const isEnemy = this.enemyComponentStore.has(entity);
-                const isProjectile = this.projectileComponentStore.has(entity)
+                const isProjectile = this.projectileComponentStore.has(entity);
                 const isGrenade = this.grenadeComponentStore.has(entity);
                 const validEntityCheck = isPlayer || isEnemy || isProjectile;
                 if (!validEntityCheck) continue;
@@ -103,6 +103,7 @@ export class CollisionSystem implements ISystem {
                     // Collision between the knife and a projectile, Insert anim component for the anim setter
                     //console.log("projectile shape collision");
                     this.entityFactory.destroyProjectile(entity);
+                    continue;
                 };
                 if (isEnemy) {
                     // Damage dealing to the enemy
@@ -118,12 +119,12 @@ export class CollisionSystem implements ISystem {
                         this.damageTakenComponentStore.add(entity, new DamageTakenComponent(shapeCollisionCheck.shapeSource!, 0));
                     }
                 };
-
             }
         }
 
 
         for (const entity of this.movementIntentComponentStore.getAllEntities()) {
+
             const intent = this.movementIntentComponentStore.getOrNull(entity);
             if (!intent) {
                 continue;
@@ -136,10 +137,11 @@ export class CollisionSystem implements ISystem {
                 continue;
             }
 
+            const isProjectile = this.projectileComponentStore.has(entity);
+
             const spriteOriginProperties = this.spriteManager.getSpriteProperties(spriteComponent.spriteName, spriteComponent.spriteSheetName);
             const wouldCollideCheckEntity = this.wouldCollideAABB(intent, entity, spriteOriginProperties.sprite.originalRenderSpriteHeight); // Entity - Entity check
             const wallCollisionCheck = this.wallCollision(intent, entity, spriteOriginProperties.sprite.originalRenderSpriteHeight); // Entity - wall check
-            // const shapeCollisionCheck = this.shapeCollision(intent, entity, spriteOriginProperties.sprite.originalRenderSpriteHeight); // Entity - shape check
 
             const isGrenade = this.grenadeComponentStore.has(entity);
 
@@ -182,6 +184,7 @@ export class CollisionSystem implements ISystem {
                             this.sparkParticlesComponentStore.add(entity, new SparkParticlesComponent(projectilePos.x, projectilePos.y, dir));
                         }
                         this.entityFactory.destroyProjectile(entity);
+                        continue;
                     }
 
                 } else {
@@ -223,6 +226,7 @@ export class CollisionSystem implements ISystem {
                             this.animTimerComponentStore.remove(entity);
                             this.wallHitComponentStore.remove(entity);
                             this.entityFactory.destroyProjectile(entity);
+                            continue;
                         }
                     }
                 }
@@ -233,18 +237,20 @@ export class CollisionSystem implements ISystem {
                     velocity.currentVelocityX = 0;
                     velocity.currentVelocityY = 0;
                 }
-
-
             }
 
-            // Out of bounds:
+            //out of bounds
+
             if (
                 intent.x > canvas.width - spriteOriginProperties.sprite.originalRenderSpriteWidth * zoomProgressionFactor ||
                 intent.y > canvas.height - spriteOriginProperties.sprite.originalRenderSpriteHeight * zoomProgressionFactor ||
                 intent.x <= 0 || intent.y <= 0
             ) {
                 this.movementIntentComponentStore.remove(entity);
-            };
+                if (this.projectileComponentStore.has(entity)) {
+                    this.entityFactory.destroyProjectile(entity);
+                }
+            }
 
         }
 

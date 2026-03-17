@@ -48,9 +48,6 @@ export class ProjectileUpdateSystem implements ISystem {
             };
 
             this.movementIntentComponentStore.add(entity, intent);
-            if (intent.x > this.canvas.width || intent.y > this.canvas.height || intent.x < 0 || intent.y < 0) {
-                this.projectileComponentStore.remove(entity);
-            }
 
             if (this.grenadeComponentStore.has(entity)) {
                 this.travelTimeComponentStore.get(entity).travelTime += deltaTime

@@ -7,6 +7,7 @@ import { IntentMeleeComponent } from "../components/intent-melee.component.js";
 import { IntentShotComponent } from "../components/intent-shot.component.js";
 import { MeleeIntentProcessedComponent } from "../components/melee-intent-processed.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
+import { ProjectileComponent } from "../components/projectile-component.js";
 import { ShapeComponent } from "../components/shape-component.js";
 import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
 import { WallHitComponent } from "../components/wall-hit.component.js";
@@ -31,6 +32,7 @@ export class TerminatorSystem implements ISystem {
         private meleeIntentProcessedComponentStore: ComponentStore<MeleeIntentProcessedComponent>,
         private enemyDeadComponentStore: ComponentStore<EnemyDeadComponent>,
         private shapeComponentStore: ComponentStore<ShapeComponent>,
+        private projectileComponentStore: ComponentStore<ProjectileComponent>,
     ) { }
 
     update(deltaTime: number): void {

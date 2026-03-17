@@ -517,7 +517,7 @@ export class RendererEngine {
         gl_FragColor = vec4(rgb * a, a); // premultiplied
       }
     `;
-    
+
     const vs = this.createShader(this._gl.VERTEX_SHADER, vertexShader);
     const fs = this.createShader(this._gl.FRAGMENT_SHADER, fragmentShader);
     this._particleRenderProgram = this.createProgramRet(vs, fs);
@@ -534,10 +534,10 @@ export class RendererEngine {
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-    console.log("First 5 texels from stateWrite:");
+    //console.log("First 5 texels from stateWrite:");
     for (let i = 0; i < 5; i++) {
       const idx = i * 4;
-      console.log(`[${i}]`, readData[idx], readData[idx + 1], readData[idx + 2], readData[idx + 3]);
+      //console.log(`[${i}]`, readData[idx], readData[idx + 1], readData[idx + 2], readData[idx + 3]);
     }
   }
 
@@ -552,10 +552,10 @@ export class RendererEngine {
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-    console.log("First 5 texels from stateRead:");
+    //console.log("First 5 texels from stateRead:");
     for (let i = 0; i < 5; i++) {
       const idx = i * 4;
-      console.log(`[${i}]`, readData[idx], readData[idx + 1], readData[idx + 2], readData[idx + 3]);
+      //console.log(`[${i}]`, readData[idx], readData[idx + 1], readData[idx + 2], readData[idx + 3]);
     }
   }
 

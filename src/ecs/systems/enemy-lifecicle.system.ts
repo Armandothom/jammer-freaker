@@ -18,6 +18,8 @@ import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 export class EnemyLifecicleSystem implements ISystem {
     private timeSinceLastSpawn = 0;
     private expectedLevel: number = 0;
+    public spawnDisabled: boolean = false;
+    private debugMode: boolean = false;
 
     constructor(
         private positionComponentStore: ComponentStore<PositionComponent>,
@@ -32,30 +34,32 @@ export class EnemyLifecicleSystem implements ISystem {
         private spriteComponentStore: ComponentStore<SpriteComponent>,
         private tilemapManager: WorldTilemapManager,
     ) {
-
     }
 
     update(deltaTime: number): void {
         this.timeSinceLastSpawn += deltaTime;
-        let spawnIntervalsInSeconds = 2;
+        let spawnIntervalsInSeconds = 5;
         const previousTime = this.timeSinceLastSpawn - deltaTime;
-
         if (previousTime < spawnIntervalsInSeconds && this.timeSinceLastSpawn >= spawnIntervalsInSeconds) {
-            this.timeSinceLastSpawn = -9999;
-            this.spawnEnemy();
+            this.timeSinceLastSpawn = 0;
+            if (!this.spawnDisabled) {
+                this.spawnEnemy();
+            }
         }
     }
 
     async levelUpdate(enemySpawnTable: { name: string; quantity: number }[], currentLevel: number): Promise<void> {
-        if (currentLevel >= this.expectedLevel || this.expectedLevel === 1) {
-            if (currentLevel == 1) {
-                this.initialEnemiesSpawn(enemySpawnTable);
-            } else {
-                await this.killAllEnemies();
-                this.initialEnemiesSpawn(enemySpawnTable);
+            if (currentLevel >= this.expectedLevel || this.expectedLevel === 1) {
+                if (currentLevel == 1) {
+                    this.initialEnemiesSpawn(enemySpawnTable);
+                } else {
+                    this.spawnDisabled = true;
+                    await this.killAllEnemies();
+                    this.spawnDisabled = false;
+                    this.initialEnemiesSpawn(enemySpawnTable);
+                }
+                this.expectedLevel = currentLevel + 1;
             }
-            this.expectedLevel = currentLevel + 1;
-        }
     }
 
     spawnEnemy() {
@@ -73,15 +77,13 @@ export class EnemyLifecicleSystem implements ISystem {
         }
 
         let spawnRoll = Math.random();
-        const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
+        //const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
 
         // xRoll and yRoll as placeholder for now, must be improved to check collision,
         // another enemy its in the vicinity, must not spawn in the vicinity of the player
 
         // to be implemented: time elapsed || bypass logic for spawn logic
         // bypass being used to spawn a bunch of enemies on level start
-        
-        spawnRoll = 0.9;
 
         if (spawnRoll <= spawnChancesAccumulated[0]) {
             const posRoll = this.trySpawn();
@@ -137,7 +139,7 @@ export class EnemyLifecicleSystem implements ISystem {
             const posRoll = this.trySpawn();
             this.entityFactory.createBomber(
                 EnemyType.BOMBER,
-                320, 320,
+                posRoll.x, posRoll.y,
                 EnemyConfig[EnemyType.BOMBER].hp,
                 EnemyConfig[EnemyType.BOMBER].damage,
                 EnemyConfig[EnemyType.BOMBER].attackCooldownInSeconds,

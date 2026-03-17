@@ -1,51 +1,48 @@
 import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
 import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
-import { MovementIntentComponent } from "../components/movement-intent.component.js";
+import { AiAttackRangeComponent } from "../components/ai-attack-range.component.js";
+import { AiMovementRadiusComponent } from "../components/ai-movement-radius.component.js";
+import { AIComponent } from "../components/ai.component.js";
+import { AimShootingComponent } from "../components/aim-shooting.component.js";
 import { AnimationComponent } from "../components/animation.component.js";
+import { CameraComponent } from "../components/camera-component.js";
+import { CollisionComponent } from "../components/collision-component.js";
+import { DamageComponent } from "../components/damage.component.js";
+import { DirectionAnimComponent } from "../components/direction-anim.component.js";
+import { DirectionComponent } from "../components/direction-component.js";
+import { EnemyDeadComponent } from "../components/enemy-dead.component.js";
+import { EnemyComponent } from "../components/enemy.component.js";
+import { FuseTimerComponent } from "../components/fuse-timer.component.js";
+import { GrenadeBeltComponent } from "../components/grenade-belt.component.js";
+import { GrenadeComponent } from "../components/grenade-component.js";
+import { HealthComponent } from "../components/health.component.js";
+import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ProjectileComponent } from "../components/projectile-component.js";
+import { RenderableComponent } from "../components/renderable-component.js";
+import { ShapeAngleComponent } from "../components/shape-angle.component.js";
+import { ShapeComponent } from "../components/shape-component.js";
+import { ShapeDimensionComponent } from "../components/shape-dimension.component.js";
+import { ShapeDirectionComponent } from "../components/shape-direction.component.js";
+import { ShapeHitMemoryComponent } from "../components/shape-hitmemory-component.js";
+import { ShapePositionComponent } from "../components/shape-position.component.js";
 import { ShooterComponent } from "../components/shooter-component.js";
-import { SoldierComponent } from "../components/soldier.component.js";
+import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
+import { ShotOriginComponent } from "../components/shot-origin.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
+import { TravelTimeComponent } from "../components/travel-time.component.js";
+import { AnimDirection } from "../components/types/anim-direction.js";
+import { EnemyType } from "../components/types/enemy-type.js";
+import { WeaponConfig, WeaponType } from "../components/types/weapon-type.js";
 import { VelocityComponent } from "../components/velocity-component.js";
+import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
+import { WeaponMagazineComponent } from "../components/weapon-magazine.component.js";
+import { WeaponComponent } from "../components/weapon.component.js";
+import { ZLayerComponent } from "../components/z-layer.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityManager } from "../core/entity-manager.js";
-import { DirectionAnimComponent } from "../components/direction-anim.component.js";
-import { AnimDirection } from "../components/types/anim-direction.js";
-import { EnemyComponent } from "../components/enemy.component.js";
-import { CollisionComponent } from "../components/collision-component.js";
-import { AIComponent } from "../components/ai.component.js";
-import { HealthComponent } from "../components/health.component.js";
-import { ShotOriginComponent } from "../components/shot-origin.component.js";
-import { DamageComponent } from "../components/damage.component.js";
-import { AiAttackRangeComponent } from "../components/ai-attack-range.component.js";
-import { AiMovementRadiusComponent } from "../components/ai-movement-radius.component.js";
-import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
-import { EnemyDeadComponent } from "../components/enemy-dead.component.js";
-import { AimShootingComponent } from "../components/aim-shooting.component.js";
-import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
-import { SPRITESHEET_MAPPED_VALUES } from "../../game/asset-manager/consts/sprite-mapped-values.js";
-import { ZLayerComponent } from "../components/z-layer.component.js";
-import { WallHitComponent } from "../components/wall-hit.component.js";
-import { DirectionComponent } from "../components/direction-component.js";
-import { WeaponComponent } from "../components/weapon.component.js";
-import { WeaponConfig, WeaponType } from "../components/types/weapon-type.js";
-import { WeaponMagazineComponent } from "../components/weapon-magazine.component.js";
-import { GrenadeComponent } from "../components/grenade-component.js";
-import { GrenadeBeltComponent } from "../components/grenade-belt.component.js";
-import { TravelTimeComponent } from "../components/travel-time.component.js";
-import { FuseTimerComponent } from "../components/fuse-timer.component.js";
-import { EnemyType } from "../components/types/enemy-type.js";
-import { ShapeDimensionComponent } from "../components/shape-dimension.component.js";
-import { ShapePositionComponent } from "../components/shape-position.component.js";
-import { ShapeComponent } from "../components/shape-component.js";
-import { Shape } from "three/src/Three.js";
-import { ShapeDirectionComponent } from "../components/shape-direction.component.js";
-import { ShapeAngleComponent } from "../components/shape-angle.component.js";
-import { RenderableComponent } from "../components/renderable-component.js";
-import { ShapeHitMemoryComponent } from "../components/shape-hitmemory-component.js";
 
 export class EntityFactory {
   constructor(
@@ -86,6 +83,7 @@ export class EntityFactory {
     private shapeDirectionComponentStore: ComponentStore<ShapeDirectionComponent>,
     private shapeAngleComponentStore: ComponentStore<ShapeAngleComponent>,
     private shapeHitMemoryComponentStore: ComponentStore<ShapeHitMemoryComponent>,
+    private cameraComponentStore: ComponentStore<CameraComponent>,
   ) {
   }
 
@@ -94,21 +92,24 @@ export class EntityFactory {
     this.renderableComponentStore.add(entityId, new RenderableComponent());
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.PLAYER_STILL, SpriteSheetName.PLAYER));
+
+    this.cameraComponentStore.add(entityId, new CameraComponent(800, 600));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.PLAYER_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity))
     this.playerComponentStore.add(entityId, new PlayerComponent());
-    this.shooterComponentStore.add(entityId, new ShooterComponent(WeaponConfig[WeaponType.PISTOL].shootingCooldown, WeaponConfig[WeaponType.GRENADE].shootingCooldown));
+    this.shooterComponentStore.add(entityId, new ShooterComponent(WeaponConfig[WeaponType.SMG].shootingCooldown, WeaponConfig[WeaponType.GRENADE].shootingCooldown));
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY))
-    this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.PISTOL, SpriteSheetName.WEAPON, AnimationName.WEAPON_PISTOL));
+    this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.SMG, SpriteSheetName.WEAPON, AnimationName.WEAPON_SMG));
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
-    this.damageComponentStore.add(entityId, new DamageComponent(WeaponConfig[WeaponType.PISTOL].damage));
+    this.damageComponentStore.add(entityId, new DamageComponent(WeaponConfig[WeaponType.SMG].damage));
+
     this.weaponMagazineComponentStore.add(entityId, new WeaponMagazineComponent(
-      3,
-      WeaponConfig[WeaponType.PISTOL].maxBullets,
-      WeaponConfig[WeaponType.PISTOL].maxBullets,
-      WeaponConfig[WeaponType.PISTOL].reloadTime,
+      99, // Max mags
+      WeaponConfig[WeaponType.SMG].maxBullets,
+      WeaponConfig[WeaponType.SMG].maxBullets,
+      WeaponConfig[WeaponType.SMG].reloadTime,
       false
     ));
     this.grenadeBeltComponentStore.add(entityId, new GrenadeBeltComponent(
@@ -171,7 +172,6 @@ export class EntityFactory {
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
     this.createWeapon(entityId);
-    console.log("Soldier ID", entityId);
     return entityId;
   }
 
@@ -255,7 +255,7 @@ export class EntityFactory {
     this.enemyComponentStore.add(entityId, new EnemyComponent(enemyType));
     this.shooterComponentStore.add(entityId, new ShooterComponent(0, attackCooldownInSeconds));
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY));
-    this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.GRENADE_1, SpriteSheetName.WEAPON, AnimationName.GRENADE_FIRED));
+    this.weaponComponentStore.add(entityId, new WeaponComponent(SpriteName.GRENADE_1, SpriteSheetName.PROJECTILE, AnimationName.GRENADE_FIRED));
     this.collisionComponentStore.add(entityId, new CollisionComponent());
     this.aiComponentStore.add(entityId, new AIComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
@@ -288,23 +288,27 @@ export class EntityFactory {
     this.projectileComponentStore.remove(entityId);
     this.velocityComponentStore.remove(entityId);
     this.collisionComponentStore.remove(entityId);
-
+    if (this.movementIntentComponentStore.has(entityId)) {
+      this.movementIntentComponentStore.remove(entityId);
+    }
     if (this.grenadeComponentStore.has(entityId)) {
       this.grenadeComponentStore.remove(entityId);
     }
   }
 
   destroyEnemy(entityId: number): void {
-    ("death call, entity: ", entityId);
     this.renderableComponentStore.remove(entityId);
     this.positionComponentStore.remove(entityId);
-    this.spriteComponentStore.remove(entityId); //for some reason if we delete the spriteComponentStore render system crashes
+    //this.spriteComponentStore.remove(entityId);
     this.enemyDeadComponentStore.add(entityId, new EnemyDeadComponent());
     this.collisionComponentStore.remove(entityId);
     this.shooterComponentStore.remove(entityId);
     this.velocityComponentStore.remove(entityId);
     this.aiComponentStore.remove(entityId);
     this.weaponComponentStore.remove(entityId);
+    if (this.movementIntentComponentStore.has(entityId)) {
+      this.movementIntentComponentStore.remove(entityId);
+    }
     this.destroyWeapon(entityId);
   }
 
@@ -338,7 +342,7 @@ export class EntityFactory {
     this.aimShootingComponentStore.remove(weaponEntityId);
     this.weaponSpriteAttachmentComponentStore.remove(weaponEntityId);
     this.animationComponentStore.remove(weaponEntityId);
-    this.spriteComponentStore.remove(weaponEntityId);
+    //this.spriteComponentStore.remove(weaponEntityId);
     this.zLayerComponentStore.remove(weaponEntityId);
   }
 

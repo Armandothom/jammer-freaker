@@ -5,7 +5,7 @@ import { ComponentStore } from "../core/component-store.js";
 
 export class LevelProgressionSystem implements ISystem {
     private timeInLevel = 0;
-    private totalKillsToProgress = 1;
+    private totalKillsToProgress = 5;
 
     constructor(
         private enemiesKilledComponentStore: ComponentStore<EnemiesKilledComponent>,
@@ -16,29 +16,28 @@ export class LevelProgressionSystem implements ISystem {
     update(deltaTime: number): void {
         const enemiesKilledReference = this.enemiesKilledComponentStore.getAllEntities();
         const totalEnemiesKilled = enemiesKilledReference.length;
-        //console.log(totalEnemiesKilled, this.timeInLevel);
-        const levelTimeInSeconds = 5;
-        const enemyKillIncrease = 10;
+        const levelTimeInSeconds = 60;
+        const enemyKillIncrease = 5;
 
         this.timeInLevel += deltaTime;
         const previousTime = this.timeInLevel - deltaTime;
 
         const shouldUpdateLevelByTime =
-            previousTime < levelTimeInSeconds && 
-            this.timeInLevel >= levelTimeInSeconds && 
-            totalEnemiesKilled >= this.totalKillsToProgress;
+            previousTime < levelTimeInSeconds &&
+            this.timeInLevel >= levelTimeInSeconds &&
+            totalEnemiesKilled >= this.totalKillsToProgress / 2;
 
         if (shouldUpdateLevelByTime) {
             this.timeInLevel = 0;
             //console.log("Level update");
-            this.totalKillsToProgress += enemyKillIncrease;
+            this.totalKillsToProgress += enemyKillIncrease + totalEnemiesKilled;
             this.levelManager.levelUpdatePending = true;
         }
 
         if (totalEnemiesKilled == this.totalKillsToProgress) {
             this.timeInLevel = 0;
             //console.log("Level update");
-            this.totalKillsToProgress += enemyKillIncrease;
+            this.totalKillsToProgress += enemyKillIncrease + totalEnemiesKilled;
             this.levelManager.levelUpdatePending = true;
         }
     }
