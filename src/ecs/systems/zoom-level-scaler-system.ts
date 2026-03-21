@@ -17,7 +17,7 @@ export class SpriteLevelScalerSystem implements ISystem {
 
     update(deltaTime: number): void {
         const sprites = this.spriteComponentStore.getValuesAndEntityId();
-        const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;
+        const zoomProgressionFactor = 1;
         for (const sprite of sprites) {
             if (!this.renderableComponentStore.has(sprite[0])) continue;
             //console.log("sprite", sprite[1].spriteName, sprite[1].spriteSheetName);

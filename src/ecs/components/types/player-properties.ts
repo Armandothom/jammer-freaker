@@ -6,7 +6,7 @@ export class PlayerInitialProperties {
     constructor() {
         this.hp = 100;
         this.damage = 20;
-        this.velocity = 4 * 32 / 60; // 40 tiles in 10 s, initial tileSize = 32 px;
+        this.velocity = 8 * 32 / 60; // 40 tiles in 10 s, initial tileSize = 32 px;
     }
 
 }

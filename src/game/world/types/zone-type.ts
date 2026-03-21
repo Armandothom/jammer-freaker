@@ -19,11 +19,11 @@ export interface WorldZone {
     zoneGridX: number;
     zoneGridY: number;
 
-    worldX: number;
-    worldY: number;
+    tileX: number;
+    tileY: number;
 
-    width: number;
-    height: number;
+    widthTiles: number;
+    heightTiles: number;
 
     type: ZoneType;
 }

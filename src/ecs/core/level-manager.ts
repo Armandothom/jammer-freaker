@@ -1,56 +1,53 @@
 import { CameraManager } from "../../game/world/camera-manager.js";
+import { WorldLevelResult } from "../../game/world/types/world-level-result.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
-import { EnemyType } from "../components/types/enemy-type.js";
 import { EnemyLifecicleSystem } from "../systems/enemy-lifecicle.system.js";
-
-export type EnemyInitialSpawn = { name: string; quantity: number }[];
+import { ZoneFactory } from "../zones/zone-factory.js";
 
 export class LevelManager {
     public previousLevel = 0;
     public levelNumber: number;
     public levelUpdatePending = false;
-    public zoomProgressionFactor: number;
-    public tileProgressionFactor: number;
 
     constructor(
         private enemyLifecicleSystem: EnemyLifecicleSystem,
         private tilemapManager: WorldTilemapManager,
         private cameraManager: CameraManager,
+        private zoneFactory: ZoneFactory,
     ) {
         this.levelNumber = this.previousLevel;
-        this.zoomProgressionFactor = 1;
-        this.tileProgressionFactor = 4;
     }
-    async update() {
+
+    async update(): Promise<void> {
         this.previousLevel = this.levelNumber;
-        const newLevel = this.previousLevel + 1;
-        this.levelNumber = newLevel;
+        this.levelNumber = this.previousLevel + 1;
 
-        //console.log("Level Number", this.levelNumber);
-
-        // if (this.levelNumber >= 0 && this.levelNumber <= 8) {
-        //     await this.enemyLifecicleSystem.levelUpdate(this.levelInitialEnemies(), this.levelNumber);
-        //     if (this.levelNumber > 1) {
-        //         this.cameraManager.viewportXAxisTiles = 10 + (this.tileProgressionFactor) * this.levelNumber;
-        //         this.cameraManager.viewportYAxisTiles = 10 + (this.tileProgressionFactor) * this.levelNumber;
-        //         this.tilemapManager._maxNumberTilesX = 10 + (this.tileProgressionFactor) * this.levelNumber;
-        //         this.tilemapManager._maxNumberTilesY = 10 + (this.tileProgressionFactor) * this.levelNumber;
-
-        //         this.cameraManager.getViewport();
-        //         this.tilemapManager.generateTilemap();
-
-        //         this.zoomProgressionFactor = 2 - (1.5 / 8) * this.levelNumber;
-        //     }
-        // }
+        this.rebuildLevel();
     }
 
-    public levelInitialEnemies(): { name: string; quantity: number }[] {
-        return [
-            { name: EnemyType.SOLDIER, quantity: 2 * this.levelNumber },
-            { name: EnemyType.SNIPER, quantity: 2 * this.levelNumber - 1 },
-            { name: EnemyType.JUGG, quantity: this.levelNumber >= 3 ? (this.levelNumber - 2) : 0 },
-            { name: EnemyType.KAMIKAZE, quantity: this.levelNumber >= 3 ? (this.levelNumber - 2) : 0 },
-            { name: EnemyType.BOMBER, quantity: this.levelNumber >= 3 ? (this.levelNumber - 2) : 0 },
-        ]
+    private rebuildLevel(): void {
+        this.endCurrentLevel();
+
+        const levelResult = this.zoneFactory.generateLevel({
+            levelNumber: this.levelNumber,
+            zones: this.tilemapManager.zones,
+        });
+
+        this.applyLevelResult(levelResult);
+
+        this.finalizeLevelBuild();
+    }
+
+    private applyLevelResult(levelResult: WorldLevelResult): void {
+        this.tilemapManager.applyWorldLevelResult(levelResult);
+
+    }
+
+    private endCurrentLevel(): void {
+        this.tilemapManager.clearLevelGeometry();
+
+    }
+
+    private finalizeLevelBuild(): void {
     }
 }

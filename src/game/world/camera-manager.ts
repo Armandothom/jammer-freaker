@@ -5,24 +5,19 @@ export class CameraManager {
   private cameraX = 0;
   private cameraY = 0;
 
-  readonly viewportWidth = 800;
-  readonly viewportHeight = 600;
+  private viewportWidth: number;
+  private viewportHeight: number;
 
-  constructor(private worldTilemapManager: WorldTilemapManager) { }
+  constructor(private worldTilemapManager: WorldTilemapManager) {
+    const canvas = document.getElementById("gl-canvas") as HTMLCanvasElement;
+
+    this.viewportWidth = canvas.width;
+    this.viewportHeight = canvas.height;
+  }
 
   follow(worldX: number, worldY: number) {
-    const halfW = this.viewportWidth / 2;
-    const halfH = this.viewportHeight / 2;
-
-    this.cameraX = Math.max(
-      halfW,
-      Math.min(worldX, this.worldTilemapManager.worldWidth - halfW)
-    );
-
-    this.cameraY = Math.max(
-      halfH,
-      Math.min(worldY, this.worldTilemapManager.worldHeight - halfH)
-    );
+    this.cameraX = worldX;
+    this.cameraY = worldY;
   }
 
   getViewport(): CameraViewport {

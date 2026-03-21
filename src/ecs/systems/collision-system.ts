@@ -1,38 +1,37 @@
-import { PositionComponent } from "../components/position.component.js";
-import { CollisionComponent } from "../components/collision-component.js";
-import { ComponentStore } from "../core/component-store.js";
-import { Rect } from "./types/rect.type.js";
-import { ISystem } from "./system.interface.js";
-import { MovementIntentComponent } from "../components/movement-intent.component.js";
-import { SpriteComponent } from "../components/sprite.component.js";
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
-import { ProjectileComponent } from "../components/projectile-component.js";
-import { EntityFactory } from "../entities/entity-factory.js";
-import { ShooterComponent } from "../components/shooter-component.js";
-import { HealthComponent } from "../components/health.component.js";
-import { EnemyComponent } from "../components/enemy.component.js";
-import { PlayerComponent } from "../components/player.component.js";
-import { ShotOriginComponent } from "../components/shot-origin.component.js";
-import { EnemiesKilledComponent } from "../components/enemies-killed.component.js";
-import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
-import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
-import { LevelManager } from "../core/level-manager.js";
-import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
-import { WallHitComponent } from "../components/wall-hit.component.js";
-import { AnimationComponent } from "../components/animation.component.js";
-import { VelocityComponent } from "../components/velocity-component.js";
-import { DamageTakenComponent } from "../components/damage-taken.component.js";
+import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
+import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { AnimTimerComponent } from "../components/anim-timer.component.js";
-import { ShapePositionComponent } from "../components/shape-position.component.js";
-import { ShapeDimensionComponent } from "../components/shape-dimension.component.js";
-import { ShapeComponent } from "../components/shape-component.js";
-import { GrenadeComponent } from "../components/grenade-component.js";
-import { ShapeHitMemoryComponent } from "../components/shape-hitmemory-component.js";
-import { DustParticlesComponent } from "../components/dust-particles.component.js";
+import { AnimationComponent } from "../components/animation.component.js";
 import { BloodParticlesComponent } from "../components/blood-particles.component.js";
-import { SparkParticlesComponent } from "../components/spark-particles.component.js";
+import { CollisionComponent } from "../components/collision-component.js";
+import { DamageTakenComponent } from "../components/damage-taken.component.js";
 import { DirectionComponent } from "../components/direction-component.js";
+import { DustParticlesComponent } from "../components/dust-particles.component.js";
+import { EnemiesKilledComponent } from "../components/enemies-killed.component.js";
+import { EnemyComponent } from "../components/enemy.component.js";
+import { GrenadeComponent } from "../components/grenade-component.js";
+import { HealthComponent } from "../components/health.component.js";
+import { MovementIntentComponent } from "../components/movement-intent.component.js";
+import { PlayerComponent } from "../components/player.component.js";
+import { PositionComponent } from "../components/position.component.js";
+import { ProjectileComponent } from "../components/projectile-component.js";
+import { ShapeComponent } from "../components/shape-component.js";
+import { ShapeDimensionComponent } from "../components/shape-dimension.component.js";
+import { ShapeHitMemoryComponent } from "../components/shape-hitmemory-component.js";
+import { ShapePositionComponent } from "../components/shape-position.component.js";
+import { ShooterComponent } from "../components/shooter-component.js";
+import { ShotOriginComponent } from "../components/shot-origin.component.js";
+import { SparkParticlesComponent } from "../components/spark-particles.component.js";
+import { SpriteComponent } from "../components/sprite.component.js";
+import { VelocityComponent } from "../components/velocity-component.js";
+import { WallHitComponent } from "../components/wall-hit.component.js";
+import { ComponentStore } from "../core/component-store.js";
+import { LevelManager } from "../core/level-manager.js";
+import { EntityFactory } from "../entities/entity-factory.js";
+import { ISystem } from "./system.interface.js";
 
 export class CollisionSystem implements ISystem {
     constructor(
@@ -193,7 +192,7 @@ export class CollisionSystem implements ISystem {
             }
 
             const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
-            const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;
+            const zoomProgressionFactor = 1;
 
             if (wallCollisionCheck) {
                 this.movementIntentComponentStore.remove(entity);
@@ -261,7 +260,7 @@ export class CollisionSystem implements ISystem {
         self: number,
         tileSize: number
     ) {
-        const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;
+        const zoomProgressionFactor = 1;
 
         const intendedMovement = {
             left: intent.x,
@@ -331,7 +330,7 @@ export class CollisionSystem implements ISystem {
         self: number,
         tileSize: number,
     ) {
-        const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;
+        const zoomProgressionFactor = 1;
         const intendedMovement = {
             left: Math.floor(intent.x),
             right: Math.floor(intent.x + tileSize * zoomProgressionFactor),
