@@ -34,7 +34,6 @@ export class ParticleEmitterSystem implements ISystem {
 
         const spawns: SpawnEvent[] = [];
 
-
         //velX, velY -> px/s;
         //life -> s
 

@@ -1,6 +1,6 @@
-export abstract class CameraViewport {
-  right! : number
-  left!: number
-  top!: number
-  bottom!: number
+export interface CameraViewport {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
 }

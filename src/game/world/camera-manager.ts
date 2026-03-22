@@ -1,61 +1,50 @@
-import { SpriteManager } from "../asset-manager/sprite-manager.js";
-import { SpriteSheetName } from "../asset-manager/types/sprite-sheet-name.enum.js";
 import { CameraViewport } from "./types/camera-viewport.js";
-import { SpriteName } from "./types/sprite-name.enum.js";
 import { WorldTilemapManager } from "./world-tilemap-manager.js";
 
 export class CameraManager {
-  public viewportXAxisTiles: number;
-  public viewportYAxisTiles: number;
-  public tileSize: number;
-  coordinateX: number = 0;
-  coordinateY: number = 0;
+  private cameraX = 0;
+  private cameraY = 0;
 
-  constructor(private tilemapManager: WorldTilemapManager, private spriteManager: SpriteManager) {
+  private viewportWidth: number;
+  private viewportHeight: number;
 
-    this.tilemapManager = tilemapManager;
-    this.tileSize = this.spriteManager.getSpriteProperties(SpriteName.METAL_1,SpriteSheetName.TERRAIN).sprite.originalRenderSpriteHeight;
+  constructor(private worldTilemapManager: WorldTilemapManager) {
+    const canvas = document.getElementById("gl-canvas") as HTMLCanvasElement;
 
-    this.viewportXAxisTiles = 10;
-    this.viewportYAxisTiles = 10;
-    this.setInitialPosition();
+    this.viewportWidth = canvas.width;
+    this.viewportHeight = canvas.height;
   }
 
-  public getViewport(): CameraViewport {
-    this.coordinateX = this.viewportYAxisTiles / 2;
-    this.coordinateY = this.viewportYAxisTiles / 2;
-    return this.calcViewport(this.coordinateX, this.coordinateY);
+  follow(worldX: number, worldY: number) {
+    this.cameraX = worldX;
+    this.cameraY = worldY;
   }
 
-  public moveCamera(x: number, y: number) {
-    const bounds = this.tilemapManager.worldMaxBoundsTiles;
-    const newViewport = this.calcViewport(x, y);
-    //If it is out of bounds, we don't move the camera.
-    if (newViewport.bottom > bounds.bottom || newViewport.right > bounds.right ||
-      newViewport.top < bounds.top || newViewport.left < bounds.left) {
-      return;
-    }
-    this.coordinateX = x;
-    this.coordinateY = y;
-  }
+  getViewport(): CameraViewport {
+    const halfW = this.viewportWidth / 2;
+    const halfH = this.viewportHeight / 2;
 
-  private calcViewport(x: number, y: number): CameraViewport {
-    const halfH = this.viewportYAxisTiles / 2;
-    const halfW = this.viewportXAxisTiles / 2;
-    const left = (x - halfW) * this.tileSize;
-    const right = (x + halfW) * this.tileSize * 2;
-    const top = (y - halfH) * this.tileSize;
-    const bottom = (y + halfH) * this.tileSize * 2;
     return {
-      left,
-      right,
-      top,
-      bottom
-    }
+      left: this.cameraX - halfW,
+      right: this.cameraX + halfW,
+      top: this.cameraY - halfH,
+      bottom: this.cameraY + halfH,
+    };
   }
 
-  private setInitialPosition() {
-    this.coordinateX = this.viewportXAxisTiles / 2;
-    this.coordinateY = this.viewportYAxisTiles / 2;
+  screenToWorld(
+    screenX: number,
+    screenY: number,
+    displayWidth: number = this.viewportWidth,
+    displayHeight: number = this.viewportHeight,
+  ): { x: number; y: number } {
+    const viewport = this.getViewport();
+    const normalizedX = displayWidth > 0 ? screenX / displayWidth : 0;
+    const normalizedY = displayHeight > 0 ? screenY / displayHeight : 0;
+
+    return {
+      x: viewport.left + normalizedX * this.viewportWidth,
+      y: viewport.top + normalizedY * this.viewportHeight,
+    };
   }
 }

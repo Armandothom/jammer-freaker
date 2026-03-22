@@ -1,412 +1,286 @@
-import { PositionComponent } from "../components/position.component.js";
-import { CollisionComponent } from "../components/collision-component.js";
-import { ComponentStore } from "../core/component-store.js";
-import { Rect } from "./types/rect.type.js";
-import { ISystem } from "./system.interface.js";
-import { MovementIntentComponent } from "../components/movement-intent.component.js";
-import { SpriteComponent } from "../components/sprite.component.js";
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
-import { ProjectileComponent } from "../components/projectile-component.js";
-import { EntityFactory } from "../entities/entity-factory.js";
-import { ShooterComponent } from "../components/shooter-component.js";
-import { HealthComponent } from "../components/health.component.js";
-import { EnemyComponent } from "../components/enemy.component.js";
-import { PlayerComponent } from "../components/player.component.js";
-import { ShotOriginComponent } from "../components/shot-origin.component.js";
-import { EnemiesKilledComponent } from "../components/enemies-killed.component.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
-import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
-import { LevelManager } from "../core/level-manager.js";
-import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
-import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
-import { WallHitComponent } from "../components/wall-hit.component.js";
-import { AnimationComponent } from "../components/animation.component.js";
-import { VelocityComponent } from "../components/velocity-component.js";
+import { CollisionBoxComponent } from "../components/collision-box-component.js";
 import { DamageTakenComponent } from "../components/damage-taken.component.js";
-import { AnimTimerComponent } from "../components/anim-timer.component.js";
-import { ShapePositionComponent } from "../components/shape-position.component.js";
-import { ShapeDimensionComponent } from "../components/shape-dimension.component.js";
-import { ShapeComponent } from "../components/shape-component.js";
+import { EnemyComponent } from "../components/enemy.component.js";
 import { GrenadeComponent } from "../components/grenade-component.js";
-import { ShapeHitMemoryComponent } from "../components/shape-hitmemory-component.js";
-import { DustParticlesComponent } from "../components/dust-particles.component.js";
-import { BloodParticlesComponent } from "../components/blood-particles.component.js";
-import { SparkParticlesComponent } from "../components/spark-particles.component.js";
-import { DirectionComponent } from "../components/direction-component.js";
+import { MovementIntentComponent } from "../components/movement-intent.component.js";
+import { PlayerComponent } from "../components/player.component.js";
+import { PositionComponent } from "../components/position.component.js";
+import { ProjectileComponent } from "../components/projectile-component.js";
+import { ShotOriginComponent } from "../components/shot-origin.component.js";
+import { SpriteComponent } from "../components/sprite.component.js";
+import { VelocityComponent } from "../components/velocity-component.js";
+import { ComponentStore } from "../core/component-store.js";
+import { EntityFactory } from "../entities/entity-factory.js";
+import { ISystem } from "./system.interface.js";
+
+type Rect = {
+    left: number;
+    right: number;
+    top: number;
+    bottom: number;
+};
 
 export class CollisionSystem implements ISystem {
     constructor(
         private spriteComponentStore: ComponentStore<SpriteComponent>,
         private positionComponentStore: ComponentStore<PositionComponent>,
-        private collisionComponentStore: ComponentStore<CollisionComponent>,
+        private collisionBoxComponentStore: ComponentStore<CollisionBoxComponent>,
         private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
         private projectileComponentStore: ComponentStore<ProjectileComponent>,
-        private shooterComponentStore: ComponentStore<ShooterComponent>,
-        private healthComponentStore: ComponentStore<HealthComponent>,
-        private enemyComponentStore: ComponentStore<EnemyComponent>,
-        private spriteManager: SpriteManager,
-        private entityFactory: EntityFactory,
-        private playerComponentStore: ComponentStore<PlayerComponent>,
-        private shotOriginComponentStore: ComponentStore<ShotOriginComponent>,
-        private enemiesKilledComponentStore: ComponentStore<EnemiesKilledComponent>,
-        private wallHitComponentStore: ComponentStore<WallHitComponent>,
-        private worldTilemapManager: WorldTilemapManager,
-        private levelManager: LevelManager,
-        private animationComponentStore: ComponentStore<AnimationComponent>,
-        private velocityComponentStore: ComponentStore<VelocityComponent>,
-        private damageTakenComponentStore: ComponentStore<DamageTakenComponent>,
-        private animTimerComponentStore: ComponentStore<AnimTimerComponent>,
-        private shapeComponentStore: ComponentStore<ShapeComponent>,
-        private shapePositionComponent: ComponentStore<ShapePositionComponent>,
-        private shapeDimensionComponent: ComponentStore<ShapeDimensionComponent>,
         private grenadeComponentStore: ComponentStore<GrenadeComponent>,
-        private shapeHitMemoryComponentStore: ComponentStore<ShapeHitMemoryComponent>,
-        private dustParticlesComponentStore: ComponentStore<DustParticlesComponent>,
-        private bloodParticlesComponentStore: ComponentStore<BloodParticlesComponent>,
-        private sparkParticlesComponentStore: ComponentStore<SparkParticlesComponent>,
-        private directionComponentStore: ComponentStore<DirectionComponent>,
-    ) {
+        private velocityComponentStore: ComponentStore<VelocityComponent>,
+        private shotOriginComponentStore: ComponentStore<ShotOriginComponent>,
+        private playerComponentStore: ComponentStore<PlayerComponent>,
+        private enemyComponentStore: ComponentStore<EnemyComponent>,
+        private damageTakenComponentStore: ComponentStore<DamageTakenComponent>,
+        private spriteManager: SpriteManager,
+        private worldTilemapManager: WorldTilemapManager,
+        private entityFactory: EntityFactory,
+    ) { }
 
-    }
-
-    update(deltaTime: number): void {
-        const playerId = this.playerComponentStore.getAllEntities()[0];
-        const shapes = this.shapeComponentStore.getAllEntities();
-
-        if (shapes.length > 0) {
-            // Probably this should be optimized
-            for (const entity of this.positionComponentStore.getAllEntities()) {
-                const position = this.positionComponentStore.get(entity)
-                const spriteComponent = this.spriteComponentStore.get(entity);
-                const spriteOriginProperties = this.spriteManager.getSpriteProperties(spriteComponent.spriteName, spriteComponent.spriteSheetName);
-
-                const isPlayer = this.playerComponentStore.has(entity);
-                const isEnemy = this.enemyComponentStore.has(entity);
-                const isProjectile = this.projectileComponentStore.has(entity)
-                const isGrenade = this.grenadeComponentStore.has(entity);
-                const validEntityCheck = isPlayer || isEnemy || isProjectile;
-                if (!validEntityCheck) continue;
-
-
-                const shapeCollisionCheck = this.shapeCollision(position, entity, spriteOriginProperties.sprite.originalRenderSpriteHeight); // Entity - shape check
-
-                if (!shapeCollisionCheck.wouldCollide || shapeCollisionCheck.shapeSource === entity) continue;
-
-                const hitMemory = this.shapeHitMemoryComponentStore.get(shapeCollisionCheck.shape!)
-
-                if (hitMemory.alreadyHit.has(entity)) continue;
-
-                hitMemory.alreadyHit.add(entity);
-
-                if (isProjectile) {
-                    this.movementIntentComponentStore.remove(entity);
-                    // Collision between the knife and a projectile, Insert anim component for the anim setter
-                    //console.log("projectile shape collision");
-                    this.entityFactory.destroyProjectile(entity);
-                };
-                if (isEnemy) {
-                    // Damage dealing to the enemy
-                    //console.log("enemy shape collision");
-                    if (!this.damageTakenComponentStore.has(entity)) {
-                        this.damageTakenComponentStore.add(entity, new DamageTakenComponent(shapeCollisionCheck.shapeSource!, 0));
-                    }
-                };
-                if (isPlayer) {
-                    // Damage dealing to the player
-                    //console.log("player shape collision");
-                    if (!this.damageTakenComponentStore.has(entity)) {
-                        this.damageTakenComponentStore.add(entity, new DamageTakenComponent(shapeCollisionCheck.shapeSource!, 0));
-                    }
-                };
-
-            }
-        }
-
-
+    update(_: number): void {
         for (const entity of this.movementIntentComponentStore.getAllEntities()) {
             const intent = this.movementIntentComponentStore.getOrNull(entity);
-            if (!intent) {
-                continue;
-            };
+            if (!intent) continue;
 
-            const spriteComponent = this.spriteComponentStore.get(entity);
-
-            if (!spriteComponent) {
-                console.error(`No sprite found for entity ${entity}`);
+            if (!this.positionComponentStore.has(entity)) {
+                this.movementIntentComponentStore.remove(entity);
                 continue;
             }
 
-            const spriteOriginProperties = this.spriteManager.getSpriteProperties(spriteComponent.spriteName, spriteComponent.spriteSheetName);
-            const wouldCollideCheckEntity = this.wouldCollideAABB(intent, entity, spriteOriginProperties.sprite.originalRenderSpriteHeight); // Entity - Entity check
-            const wallCollisionCheck = this.wallCollision(intent, entity, spriteOriginProperties.sprite.originalRenderSpriteHeight); // Entity - wall check
-            // const shapeCollisionCheck = this.shapeCollision(intent, entity, spriteOriginProperties.sprite.originalRenderSpriteHeight); // Entity - shape check
-
-            const isGrenade = this.grenadeComponentStore.has(entity);
-
-            if (wouldCollideCheckEntity.wouldCollide) {
-                // Cancelamento do intent pra questões de movimento            
-                if (this.projectileComponentStore.has(entity)) {
-                    const shotOrigin = this.shotOriginComponentStore.get(entity);
-                    const shooterId = shotOrigin.shooterEntity;
-                    const target = wouldCollideCheckEntity.collidingEntity;
-                    const projectilePos = this.positionComponentStore.get(entity);
-                    const projectileDir = this.directionComponentStore.get(entity);
-                    const dir = { x: projectileDir.dirX, y: projectileDir.dirY };
-
-
-                    if (isGrenade) {
-                        this.collisionComponentStore.get(entity).collides = false;
-                    }
-
-                    if (shooterId == null || target == null) return;
-                    if (target === shooterId) return; // Ignores collision with self
-
-                    const targetPlayer = this.playerComponentStore.has(target);
-                    const targetEnemy = this.enemyComponentStore.has(target);
-
-                    const projectileFromPlayer = this.playerComponentStore.has(shooterId);
-                    const projectileFromEnemy = this.enemyComponentStore.has(shooterId);
-
-                    const validTarget = (projectileFromPlayer && targetEnemy) ||
-                        (projectileFromEnemy && targetPlayer);
-
-
-                    if (validTarget && !isGrenade) {
-                        this.bloodParticlesComponentStore.add(target, new BloodParticlesComponent(projectilePos.x, projectilePos.y, dir))
-                        this.damageTakenComponentStore.add(target, new DamageTakenComponent(shooterId, 0));
-                    }
-
-                    if (!isGrenade) {
-                        this.movementIntentComponentStore.remove(entity);
-                        if (this.projectileComponentStore.has(wouldCollideCheckEntity.collidingEntity)) {
-                            this.sparkParticlesComponentStore.add(entity, new SparkParticlesComponent(projectilePos.x, projectilePos.y, dir));
-                        }
-                        this.entityFactory.destroyProjectile(entity);
-                    }
-
-                } else {
-                    this.movementIntentComponentStore.remove(entity);
-                }
+            if (!this.spriteComponentStore.has(entity)) {
+                this.movementIntentComponentStore.remove(entity);
+                continue;
             }
 
-            const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
-            const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;
-
-            if (wallCollisionCheck) {
-                this.movementIntentComponentStore.remove(entity);
-                let animEnded: boolean = false;
-                if (this.projectileComponentStore.has(entity) && !isGrenade) {
-                    const projectilePos = this.positionComponentStore.get(entity);
-                    const projectileDir = this.directionComponentStore.get(entity);
-                    const dir = { x: projectileDir.dirX, y: projectileDir.dirY };
-                    if (!this.wallHitComponentStore.has(entity)) {
-                        this.dustParticlesComponentStore.add(entity, new DustParticlesComponent(projectilePos.x, projectilePos.y, dir));
-                        this.animTimerComponentStore.add(entity, new AnimTimerComponent(AnimationName.BULLET_WALL_HIT, 0.8))
-                        this.wallHitComponentStore.add(entity, new WallHitComponent());
-                        const velocity = this.velocityComponentStore.get(entity);
-                        velocity.baseVelocityX = 0;
-                        velocity.baseVelocityY = 0;
-                        velocity.currentVelocityX = 0;
-                        velocity.currentVelocityY = 0;
-
-                        const collision = this.collisionComponentStore.get(entity);
-                        collision.collides = false;
-                    } else {
-                        this.animTimerComponentStore.get(entity).animTime += deltaTime;
-                        let previousTime = this.animTimerComponentStore.get(entity).animTime - deltaTime;
-                        animEnded =
-                            previousTime < this.animTimerComponentStore.get(entity).animDuration &&
-                            this.animTimerComponentStore.get(entity).animTime >= this.animTimerComponentStore.get(entity).animDuration;
-
-                        if (animEnded) {
-                            this.animationComponentStore.remove(entity);
-                            this.animTimerComponentStore.remove(entity);
-                            this.wallHitComponentStore.remove(entity);
-                            this.entityFactory.destroyProjectile(entity);
-                        }
-                    }
-                }
-                if (isGrenade) {
-                    const velocity = this.velocityComponentStore.get(entity);
-                    velocity.baseVelocityX = 0;
-                    velocity.baseVelocityY = 0;
-                    velocity.currentVelocityX = 0;
-                    velocity.currentVelocityY = 0;
-                }
-
-
+            if (!this.collisionBoxComponentStore.has(entity)) {
+                continue;
             }
 
-            // Out of bounds:
-            if (
-                intent.x > canvas.width - spriteOriginProperties.sprite.originalRenderSpriteWidth * zoomProgressionFactor ||
-                intent.y > canvas.height - spriteOriginProperties.sprite.originalRenderSpriteHeight * zoomProgressionFactor ||
-                intent.x <= 0 || intent.y <= 0
-            ) {
+            const intendedRect = this.buildEntityRectFromIntent(entity, intent);
+            const collidedEntity = this.getCollidingEntity(entity, intendedRect);
+            if (collidedEntity !== null) {
+                if (this.handleProjectileEntityCollision(entity, collidedEntity)) {
+                    continue;
+                }
                 this.movementIntentComponentStore.remove(entity);
-            };
+                continue;
+            }
 
+            if (this.wouldCollideWithWall(intendedRect)) {
+                this.handleWallCollision(entity);
+            }
         }
-
     }
 
-    private wouldCollideAABB(
+    private buildEntityRectFromIntent(
+        entity: number,
         intent: MovementIntentComponent,
-        self: number,
-        tileSize: number
-    ) {
-        const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;
+    ): Rect {
+        const spriteComponent = this.spriteComponentStore.get(entity);
+        const collisionBox = this.collisionBoxComponentStore.get(entity);
 
-        const intendedMovement = {
-            left: intent.x,
-            right: intent.x + tileSize * zoomProgressionFactor,
-            top: intent.y,
-            bottom: intent.y + tileSize * zoomProgressionFactor,
+        const spriteProps = this.spriteManager.getSpriteProperties(
+            spriteComponent.spriteName,
+            spriteComponent.spriteSheetName,
+        );
+
+        const spriteWidth = spriteProps.sprite.originalRenderSpriteWidth;
+        const spriteHeight = spriteProps.sprite.originalRenderSpriteHeight;
+
+        const width = spriteWidth * collisionBox.widthFactor;
+        const height = spriteHeight * collisionBox.heightFactor;
+
+        const offsetX = spriteWidth * collisionBox.offsetX;
+        const offsetY = spriteHeight * collisionBox.offsetY;
+
+        return {
+            left: intent.x + offsetX,
+            right: intent.x + offsetX + width,
+            top: intent.y + offsetY,
+            bottom: intent.y + offsetY + height,
         };
+    }
 
-        const shotOrigin = this.shotOriginComponentStore.getOrNull(self);
-        const shooterId = shotOrigin?.shooterEntity;
+    private buildEntityRectFromPosition(entity: number): Rect {
+        const position = this.positionComponentStore.get(entity);
+        const spriteComponent = this.spriteComponentStore.get(entity);
+        const collisionBox = this.collisionBoxComponentStore.get(entity);
 
+        const spriteProps = this.spriteManager.getSpriteProperties(
+            spriteComponent.spriteName,
+            spriteComponent.spriteSheetName,
+        );
 
-        for (const other of this.collisionComponentStore.getAllEntities()) {
+        const spriteWidth = spriteProps.sprite.originalRenderSpriteWidth;
+        const spriteHeight = spriteProps.sprite.originalRenderSpriteHeight;
+
+        const width = spriteWidth * collisionBox.widthFactor;
+        const height = spriteHeight * collisionBox.heightFactor;
+
+        const offsetX = spriteWidth * collisionBox.offsetX;
+        const offsetY = spriteHeight * collisionBox.offsetY;
+
+        return {
+            left: position.x + offsetX,
+            right: position.x + offsetX + width,
+            top: position.y + offsetY,
+            bottom: position.y + offsetY + height,
+        };
+    }
+
+    private getCollidingEntity(self: number, intendedRect: Rect): number | null {
+        const isProjectile = this.projectileComponentStore.has(self);
+        const isGrenade = this.grenadeComponentStore.has(self);
+        const shooterId = isProjectile
+            ? this.shotOriginComponentStore.getOrNull(self)?.shooterEntity ?? null
+            : null;
+
+        if (isGrenade) {
+            return null;
+        }
+
+        for (const other of this.collisionBoxComponentStore.getAllEntities()) {
             if (other === self) continue;
-            if (other === shooterId) continue; // Ignores who made the shot
-            if (this.shapeComponentStore.has(other)) continue; // Ignores shapes, treated by its own method
+            if (!this.positionComponentStore.has(other)) continue;
+            if (!this.spriteComponentStore.has(other)) continue;
 
-            const otherShotOrigin = this.shotOriginComponentStore.getOrNull(other);
-
-            if (
-                (shooterId && otherShotOrigin?.shooterEntity === shooterId) ||
-                (otherShotOrigin?.shooterEntity === self)
-            ) {
+            if (isProjectile) {
+                if (other === shooterId) continue;
+                if (this.projectileComponentStore.has(other)) continue;
+            } else if (this.projectileComponentStore.has(other)) {
                 continue;
-            } // Ignores self with shot
+            }
 
-            const collision = this.collisionComponentStore.get(other);
-            const pos = this.positionComponentStore.get(other);
+            const otherCollision = this.collisionBoxComponentStore.get(other);
+            if (!otherCollision.collides) continue;
 
-            if (!collision || !collision.collides) continue;
-            if (!pos) continue;
+            const otherRect = this.buildEntityRectFromPosition(other);
 
-            const otherSprite = this.spriteComponentStore.getOrNull(other);
-            const otherTileSize = otherSprite
-                ? this.spriteManager.getSpriteProperties(otherSprite.spriteName, otherSprite.spriteSheetName)?.sprite.originalRenderSpriteHeight ?? tileSize
-                : tileSize;
+            if (this.intersects(intendedRect, otherRect)) {
+                return other;
+            }
+        }
 
-            const current = {
-                left: pos.x,
-                right: pos.x + otherTileSize * zoomProgressionFactor,
-                top: pos.y,
-                bottom: pos.y + otherTileSize * zoomProgressionFactor,
-            };
+        return null;
+    }
 
-            const intersect =
-                intendedMovement.left < current.right &&
-                intendedMovement.right > current.left &&
-                intendedMovement.top < current.bottom &&
-                intendedMovement.bottom > current.top;
+    private wouldCollideWithWall(intendedRect: Rect): boolean {
+        const tileSize = this.worldTilemapManager.tileSize;
 
-            if (intersect) {
-                return {
-                    wouldCollide: true,
-                    collidingEntity: other
+        const startTileX = Math.floor(intendedRect.left / tileSize);
+        const endTileX = Math.floor((intendedRect.right - 1) / tileSize);
+        const startTileY = Math.floor(intendedRect.top / tileSize);
+        const endTileY = Math.floor((intendedRect.bottom - 1) / tileSize);
+
+
+        for (let tileY = startTileY; tileY <= endTileY; tileY++) {
+            for (let tileX = startTileX; tileX <= endTileX; tileX++) {
+                if (this.isOutOfTileBounds(tileX, tileY)) {
+                    return true;
                 }
-            };
+
+                if (!this.worldTilemapManager.isWallSolid(tileX, tileY)) {
+                    continue;
+                }
+
+                const wallRect = this.buildWallRect(tileX, tileY, tileSize);
+
+                if (this.intersects(intendedRect, wallRect)) {
+                    return true;
+                }
+            }
         }
 
+        return false;
+    }
+
+    private buildWallRect(tileX: number, tileY: number, tileSize: number): Rect {
+        const { worldX, worldY } = this.worldTilemapManager.tileToWorld(tileX, tileY);
+
         return {
-            wouldCollide: false,
-            collidingEntity: null
+            left: worldX,
+            right: worldX + tileSize,
+            top: worldY,
+            bottom: worldY + tileSize,
         };
     }
 
-    private wallCollision(
-        intent: MovementIntentComponent,
-        self: number,
-        tileSize: number,
-    ) {
-        const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;
-        const intendedMovement = {
-            left: Math.floor(intent.x),
-            right: Math.floor(intent.x + tileSize * zoomProgressionFactor),
-            top: Math.floor(intent.y),
-            bottom: Math.floor(intent.y + tileSize * zoomProgressionFactor),
-        };
+    private isOutOfTileBounds(tileX: number, tileY: number): boolean {
+        const bounds = this.worldTilemapManager.worldMaxBoundsTiles;
 
-        const wallPosition = this.worldTilemapManager.generatedWalls;
-        const tilemapProperties = this.spriteManager.getSpriteProperties(SpriteName.WALL_1, SpriteSheetName.TERRAIN);
-
-        for (const { x, y } of wallPosition) {
-            const tileWidth = tilemapProperties.sprite.originalRenderSpriteWidth * zoomProgressionFactor;
-            const tileHeight = tilemapProperties.sprite.originalRenderSpriteHeight * zoomProgressionFactor;
-            const wallRect = {
-                left: (x * tileWidth),
-                right: ((x + 1) * tileWidth),
-                top: (y * tileHeight),
-                bottom: ((y + 1) * tileHeight)
-            }
-
-            const intersect =
-                intendedMovement.left < wallRect.right &&
-                intendedMovement.right > wallRect.left &&
-                intendedMovement.top < wallRect.bottom &&
-                intendedMovement.bottom > wallRect.top;
-
-            if (intersect) {
-                return true;
-            }
-        }
+        return (
+            tileX < bounds.left ||
+            tileY < bounds.top ||
+            tileX >= bounds.right ||
+            tileY >= bounds.bottom
+        );
     }
 
-    private shapeCollision(
-        position: { x: number, y: number },
-        self: number,
-        tileSize: number
-    ) {
-        const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;
+    private intersects(a: Rect, b: Rect): boolean {
+        return (
+            a.left < b.right &&
+            a.right > b.left &&
+            a.top < b.bottom &&
+            a.bottom > b.top
+        );
+    }
 
-        const entityRect = {
-            left: position.x,
-            right: position.x + tileSize * zoomProgressionFactor,
-            top: position.y,
-            bottom: position.y + tileSize * zoomProgressionFactor,
-        };
-        //console.log(position);
-        //console.log(tileSize);
+    private handleProjectileEntityCollision(entity: number, collidedEntity: number): boolean {
+        if (!this.projectileComponentStore.has(entity)) {
+            return false;
+        }
 
-        for (const shape of this.shapeComponentStore.getAllEntities()) {
-            const shapeSource = this.shapeComponentStore.get(shape).shapeSource;
-            if (shapeSource === self) continue;
+        if (this.grenadeComponentStore.has(entity)) {
+            return true;
+        }
 
-            const shapeRect = {
-                left: this.shapePositionComponent.get(shape).x,
-                right: this.shapePositionComponent.get(shape).x + this.shapeDimensionComponent.get(shape).width,
-                top: this.shapePositionComponent.get(shape).y,
-                bottom: this.shapePositionComponent.get(shape).y + this.shapeDimensionComponent.get(shape).height,
-            }
-            // console.log("Shape created");
-            // console.log("entityrect", entityRect);
-            // console.log("shape rect", shapeRect);
+        const shooterId = this.shotOriginComponentStore.getOrNull(entity)?.shooterEntity;
+        if (shooterId !== undefined) {
+            const projectileFromPlayer = this.playerComponentStore.has(shooterId);
+            const projectileFromEnemy = this.enemyComponentStore.has(shooterId);
+            const targetIsPlayer = this.playerComponentStore.has(collidedEntity);
+            const targetIsEnemy = this.enemyComponentStore.has(collidedEntity);
+            const validTarget =
+                (projectileFromPlayer && targetIsEnemy) ||
+                (projectileFromEnemy && targetIsPlayer);
 
-            const intersect =
-                entityRect.left < shapeRect.right &&
-                entityRect.right > shapeRect.left &&
-                entityRect.top < shapeRect.bottom &&
-                entityRect.bottom > shapeRect.top;
-
-            if (intersect) {
-                return {
-                    wouldCollide: true,
-                    shapeSource: this.shapeComponentStore.get(shape).shapeSource,
-                    shape: shape,
-                };
+            if (validTarget && !this.damageTakenComponentStore.has(collidedEntity)) {
+                this.damageTakenComponentStore.add(collidedEntity, new DamageTakenComponent(shooterId, 0));
             }
         }
 
-        return {
-            wouldCollide: false,
-            shapeSource: null,
-            shape: null
-        };
+        this.entityFactory.destroyProjectile(entity);
+        // destroy projectile anim after
+        return true;
+    }
+
+    private handleWallCollision(entity: number): void {
+        if (!this.projectileComponentStore.has(entity)) {
+            this.movementIntentComponentStore.remove(entity);
+            return;
+        }
+
+        if (this.grenadeComponentStore.has(entity)) {
+            this.movementIntentComponentStore.remove(entity);
+
+            if (this.velocityComponentStore.has(entity)) {
+                const velocity = this.velocityComponentStore.get(entity);
+                velocity.baseVelocityX = 0;
+                velocity.baseVelocityY = 0;
+                velocity.currentVelocityX = 0;
+                velocity.currentVelocityY = 0;
+            }
+
+            if (this.collisionBoxComponentStore.has(entity)) {
+                this.collisionBoxComponentStore.get(entity).collides = false;
+            }
+
+            return;
+        }
+
+        this.entityFactory.destroyProjectile(entity);
     }
 }
