@@ -42,28 +42,24 @@ export class ProjectileUpdateSystem implements ISystem {
                 dirY = dirY / magnitude;
             }
 
-            const intent = {
-                x: position.x + dirX * velocity.currentVelocityX * deltaTime,
-                y: position.y + dirY * velocity.currentVelocityY * deltaTime
-            };
-
-            this.movementIntentComponentStore.add(entity, intent);
+            const intent = new MovementIntentComponent(
+                position.x + dirX * velocity.currentVelocityX * deltaTime,
+                position.y + dirY * velocity.currentVelocityY * deltaTime,
+            );
 
             if (this.grenadeComponentStore.has(entity)) {
                 this.travelTimeComponentStore.get(entity).travelTime += deltaTime
 
                 const travelCheck =
-                    this.travelTimeComponentStore.get(entity).travelTime > this.travelTimeComponentStore.get(entity).totalTravelTime;
+                    this.travelTimeComponentStore.get(entity).travelTime >= this.travelTimeComponentStore.get(entity).totalTravelTime;
 
                 if (travelCheck) {
                     this.movementIntentComponentStore.remove(entity);
-                } else {
-                    this.positionComponentStore.add(entity, intent);
+                    continue;
                 }
-            } else {
-                this.positionComponentStore.add(entity, intent);
             }
 
+            this.movementIntentComponentStore.add(entity, intent);
         }
     }
 }

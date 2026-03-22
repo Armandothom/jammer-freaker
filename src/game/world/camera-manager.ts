@@ -31,4 +31,20 @@ export class CameraManager {
       bottom: this.cameraY + halfH,
     };
   }
+
+  screenToWorld(
+    screenX: number,
+    screenY: number,
+    displayWidth: number = this.viewportWidth,
+    displayHeight: number = this.viewportHeight,
+  ): { x: number; y: number } {
+    const viewport = this.getViewport();
+    const normalizedX = displayWidth > 0 ? screenX / displayWidth : 0;
+    const normalizedY = displayHeight > 0 ? screenY / displayHeight : 0;
+
+    return {
+      x: viewport.left + normalizedX * this.viewportWidth,
+      y: viewport.top + normalizedY * this.viewportHeight,
+    };
+  }
 }

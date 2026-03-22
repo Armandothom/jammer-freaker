@@ -1,11 +1,13 @@
 import { EnemyType } from "../../../ecs/components/types/enemy-type.js";
 import {
+  StructureCategory,
   StructureDefinition,
   StructureEnemySpawnTileDefinition,
   StructureLootSpawnTileDefinition,
   StructureTileDefinition,
   StructureVariantDefinition,
   StructureVariantKey,
+  isStructureWallTileType,
 } from "../types/structure-definition.js";
 import { StructureName } from "../types/structure-name.js";
 import { StructureOrientation } from "../types/structure-orientation.js";
@@ -28,6 +30,7 @@ type RawStructureVariant = {
 
 type RawStructureDefinition = {
   id: unknown;
+  category: unknown;
   variants: unknown;
 };
 
@@ -41,6 +44,13 @@ const RAW_STRUCTURE_MODULES = import.meta.glob<ImportedJsonModule>(
 );
 
 const VARIANT_KEYS: StructureVariantKey[] = ["north", "south", "east", "west"];
+const STRUCTURE_CATEGORIES: StructureCategory[] = [
+  "outer_structure",
+  "great_outer_structure",
+  "inner_structure",
+  "main_building_structure",
+  "walls_doors",
+];
 
 export const STRUCTURE_REGISTRY: Record<StructureName, StructureDefinition> =
   buildStructureRegistry(RAW_STRUCTURE_MODULES);
@@ -53,6 +63,14 @@ export function listStructureDefinitions(): StructureDefinition[] {
 
 export function listStructureIds(): StructureName[] {
   return Object.keys(STRUCTURE_REGISTRY);
+}
+
+export function listStructureIdsByCategory(
+  category: StructureCategory,
+): StructureName[] {
+  return listStructureDefinitions()
+    .filter(definition => definition.category === category)
+    .map(definition => definition.id);
 }
 
 export function getStructureDefinition(
@@ -136,6 +154,10 @@ function parseStructureDefinition(
 
   const definition = raw as RawStructureDefinition;
   const structureId = parseNonEmptyString(definition.id, `${sourcePath}.id`);
+  const category = parseStructureCategory(
+    definition.category,
+    `${sourcePath}.category`,
+  );
 
   if (!isRecord(definition.variants)) {
     throw new Error(`Structure "${structureId}" must define variants.`);
@@ -158,6 +180,7 @@ function parseStructureDefinition(
 
   return {
     id: structureId,
+    category,
     variants,
   };
 }
@@ -213,8 +236,11 @@ function parseStructureTile(
     );
   }
 
+  if (typeof type === "string" && isStructureWallTileType(type)) {
+    return { x, y, type };
+  }
+
   switch (type) {
-    case "wall":
     case "player_spawn":
       return { x, y, type };
 
@@ -289,6 +315,20 @@ function parseProbability(value: unknown, path: string): number {
   }
 
   return value;
+}
+
+function parseStructureCategory(
+  value: unknown,
+  path: string,
+): StructureCategory {
+  if (
+    typeof value !== "string" ||
+    STRUCTURE_CATEGORIES.indexOf(value as StructureCategory) === -1
+  ) {
+    throw new Error(`"${path}" must be a valid structure category.`);
+  }
+
+  return value as StructureCategory;
 }
 
 function parseNonEmptyString(value: unknown, path: string): string {

@@ -652,8 +652,6 @@ export class RendererEngine {
   public render(renderObjects: Array<RenderObject>) {
     this.restoreGLForObjects();
     this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
-    this._gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    this._gl.clear(this._gl.COLOR_BUFFER_BIT);
 
     const uvBorderPattern = [
       0.0, 0.0,  // top left
@@ -879,8 +877,10 @@ export class RendererEngine {
   }
 
   public clear() {
-    this._gl.clearColor(0, 0, 0, 1); // se quiser limpar o fundo
-    this._gl.clear(this._gl.COLOR_BUFFER_BIT);
+    this.restoreGLForObjects();
+    this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
+    this._gl.clearColor(0, 0, 0, 1);
+    this._gl.clear(this._gl.COLOR_BUFFER_BIT | this._gl.DEPTH_BUFFER_BIT);
   }
 
   private worldToState01(xWorld: number, yWorld: number): [number, number] {

@@ -2,9 +2,23 @@ import { EnemyType } from "../../../ecs/components/types/enemy-type.js";
 import { StructureName } from "./structure-name.js";
 
 export type StructureVariantKey = "north" | "south" | "east" | "west";
+export type StructureCategory =
+  | "outer_structure"
+  | "great_outer_structure"
+  | "inner_structure"
+  | "main_building_structure"
+  | "walls_doors";
+
+export type StructureDoorTileType =
+  | `outer_door_${number}`
+  | `inner_door_${number}`;
+
+export type StructureWallTileType =
+  | "wall"
+  | StructureDoorTileType;
 
 export type StructureTileType =
-  | "wall"
+  | StructureWallTileType
   | "player_spawn"
   | "enemy_spawn"
   | "loot_spawn";
@@ -12,7 +26,7 @@ export type StructureTileType =
 export interface StructureWallTileDefinition {
   x: number;
   y: number;
-  type: "wall";
+  type: StructureWallTileType;
 }
 
 export interface StructurePlayerSpawnTileDefinition {
@@ -51,6 +65,18 @@ export interface StructureVariantDefinition {
 
 export interface StructureDefinition {
   id: StructureName;
+  category: StructureCategory;
   variants: Partial<Record<StructureVariantKey, StructureVariantDefinition>>;
 }
 
+export function isStructureDoorTileType(
+  value: string,
+): value is StructureDoorTileType {
+  return /^((outer)|(inner))_door_\d+$/.test(value);
+}
+
+export function isStructureWallTileType(
+  value: string,
+): value is StructureWallTileType {
+  return value === "wall" || isStructureDoorTileType(value);
+}

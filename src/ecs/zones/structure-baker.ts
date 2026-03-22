@@ -2,7 +2,10 @@ import { StructureName } from '../../game/world/types/structure-name.js';
 import { StructureOrientation } from '../../game/world/types/structure-orientation.js';
 import { getStructureDefinition, getStructureVariant } from '../../game/world/structures/structure-registry.js';
 import { BakedStructureResult } from '../../game/world/types/world-level-result.js';
-import { StructureTileDefinition } from '../../game/world/types/structure-definition.js';
+import {
+    StructureTileDefinition,
+    isStructureWallTileType,
+} from '../../game/world/types/structure-definition.js';
 
 export interface BakeParams {
     structureId: StructureName;
@@ -56,15 +59,16 @@ export class StructureBaker {
         worldY: number,
         tile: StructureTileDefinition,
     ): void {
-        switch (tile.type) {
-            case 'wall':
-                result.walls.push({
-                    x: worldX,
-                    y: worldY,
-                    type: 'wall',
-                });
-                return;
+        if (isStructureWallTileType(tile.type)) {
+            result.walls.push({
+                x: worldX,
+                y: worldY,
+                type: tile.type,
+            });
+            return;
+        }
 
+        switch (tile.type) {
             case 'player_spawn':
                 result.playerSpawns.push({
                     x: worldX,

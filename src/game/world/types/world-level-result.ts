@@ -1,11 +1,12 @@
 import { EnemyType } from "../../../ecs/components/types/enemy-type.js";
+import { StructureWallTileType } from "./structure-definition.js";
 import { StructureName } from "./structure-name.js";
 import { StructureOrientation } from "./structure-orientation.js";
 
 export interface BakedWall {
     x: number;
     y: number;
-    type: 'wall';
+    type: StructureWallTileType;
 }
 
 export interface BakedPlayerSpawn {

@@ -1,5 +1,6 @@
 {
     "id": "structure_02",
+    "category": "outer_structure",
     "variants": {
         "north": {
             "width": 19,

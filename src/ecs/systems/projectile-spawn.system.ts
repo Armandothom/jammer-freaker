@@ -21,8 +21,6 @@ import { GrenadeFiredComponent } from "../components/grenade-fired.component.js"
 import { IntentGrenadeComponent } from "../components/intent-grenade.component.js";
 
 export class ProjectileSpawnSystem implements ISystem {
-    private readonly tileSize: number;
-
     constructor(
         private spriteManager: SpriteManager,
         private soundManager: SoundManager,
@@ -40,10 +38,7 @@ export class ProjectileSpawnSystem implements ISystem {
         private grenadeCooldownComponentStore: ComponentStore<GrenadeCooldownComponent>,
         private grenadeFiredComponentStore: ComponentStore<GrenadeFiredComponent>,
         private intentGrenadeComponentStore: ComponentStore<IntentGrenadeComponent>,
-    ) {
-        const terrainSpriteSheet = this.spriteManager.getSpriteProperties(SpriteName.METAL_1, SpriteSheetName.TERRAIN);
-        this.tileSize = terrainSpriteSheet.sprite.originalRenderSpriteWidth;
-    }
+    ) { }
 
     update(deltaTime: number): void {
         this.intentShotConversion();
@@ -52,43 +47,29 @@ export class ProjectileSpawnSystem implements ISystem {
 
     private intentShotConversion() {
         const shooters = this.shooterComponentStore.getAllEntities();
-        const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
-        const canvasWidthHeightInTiles = canvas.width / this.tileSize;
         const attachedWeapons = this.attachedSpriteComponent.getValuesAndEntityId();
-        const playerId = this.playerComponentStore.getAllEntities()[0];
 
         for (const entity of shooters) {
             const shooterPos = this.positionComponentStore.get(entity);
-            //TODO make sprite bullet offset dynamic
-            const spriteBullet = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.PROJECTILE);
             const attachedWeaponEntry = attachedWeapons.find((value) => value[1].parentEntityId == entity);
             if (!attachedWeaponEntry) {
                 throw new Error("No weapon entry found");
             }
+
             const attachedWeapon = attachedWeaponEntry[1];
             const intent = this.intentShotComponentStore.getOrNull(entity);
             if (!shooterPos || !intent) continue;
 
-            //right now we set X as a hardcoded number, but it needs to be dynamic
-            let shooterPosXConverted = (attachedWeapon.barrelX - 6) / canvas.width * canvasWidthHeightInTiles;
-            let shooterPosYConverted = (attachedWeapon.barrelY - (spriteBullet.height / 2)) / canvas.height * canvasWidthHeightInTiles;
-
-            //right now we set X as a hardcoded number, but it needs to be dynamic
-            let intentXConverted = (intent.x - 6) / canvas.width * canvasWidthHeightInTiles;
-            let intentYConverted = (intent.y - (spriteBullet.height / 2)) / canvas.height * canvasWidthHeightInTiles;
-            const dx = intentXConverted - (shooterPosXConverted);
-            const dy = intentYConverted - (shooterPosYConverted);
-            const magnitude = Math.hypot(dx, dy);  // Player and click distance --> In Tiles
+            const dx = intent.x - attachedWeapon.barrelX;
+            const dy = intent.y - attachedWeapon.barrelY;
             const angle = Math.atan2(dy, dx);
-            //if (magnitude === 0) continue; // Podemos alterar para que não spawne projetil se ele clicar tão perto do sprite do player
-            //let dir = { x: dx / magnitude, y: dy / magnitude };
-            let dir = { x: Math.cos(angle), y: Math.sin(angle) }; // Vetor de direção normalizado
+            const dir = { x: Math.cos(angle), y: Math.sin(angle) };
 
             const cooldownConfig = this.shooterComponentStore.get(entity);
             const shootingCooldown = this.shootingCooldownComponentStore.has(entity);
             if (!shootingCooldown) {
                 this.spawnProjectile(dir, attachedWeapon, false, { x: 640, y: 640 });
-                const cooldownAdd = this.shootingCooldownComponentStore.add(entity, new ShootingCooldownComponent(cooldownConfig.shootingCooldown));
+                this.shootingCooldownComponentStore.add(entity, new ShootingCooldownComponent(cooldownConfig.shootingCooldown));
                 if (this.playerComponentStore.has(entity)) {
                     this.bulletFiredComponentStore.add(entity, new BulletFiredComponent());
                 }
@@ -98,46 +79,33 @@ export class ProjectileSpawnSystem implements ISystem {
 
     private intentGrenadeConversion() {
         const shooters = this.shooterComponentStore.getAllEntities();
-        const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
-        const canvasWidthHeightInTiles = canvas.width / this.tileSize;
         const attachedWeapons = this.attachedSpriteComponent.getValuesAndEntityId();
-        const playerId = this.playerComponentStore.getAllEntities()[0];
 
         for (const entity of shooters) {
             const shooterPos = this.positionComponentStore.get(entity);
-            const spriteBullet = this.spriteManager.getSpriteSheetProperties(SpriteSheetName.PROJECTILE);
             const attachedWeaponEntry = attachedWeapons.find((value) => value[1].parentEntityId == entity);
             if (!attachedWeaponEntry) {
                 throw new Error("No weapon entry found");
             }
+
             const attachedWeapon = attachedWeaponEntry[1];
             const grenadeIntent = this.intentGrenadeComponentStore.getOrNull(entity);
             if (!shooterPos || !grenadeIntent) continue;
 
-            let shooterPosXConverted = attachedWeapon.barrelX / canvas.width * canvasWidthHeightInTiles;
-            let shooterPosYConverted = attachedWeapon.barrelY / canvas.height * canvasWidthHeightInTiles;
-
-            let intentXConverted = (grenadeIntent.x) / canvas.width * canvasWidthHeightInTiles;
-            let intentYConverted = (grenadeIntent.y) / canvas.height * canvasWidthHeightInTiles;
-
-            const dx = intentXConverted - (shooterPosXConverted);
-            const dy = intentYConverted - (shooterPosYConverted);
-            const magnitudeInTiles = Math.hypot(dx, dy);  // Player and click distance --> In Tiles
+            const dx = grenadeIntent.x - attachedWeapon.barrelX;
+            const dy = grenadeIntent.y - attachedWeapon.barrelY;
             const travelDistance = {
-                x: (grenadeIntent.x - (spriteBullet.width / 2)) - attachedWeapon.barrelX,
-                y: (grenadeIntent.y - (spriteBullet.height / 2)) - attachedWeapon.barrelY,
-            }
+                x: grenadeIntent.x - attachedWeapon.barrelX,
+                y: grenadeIntent.y - attachedWeapon.barrelY,
+            };
             const angle = Math.atan2(dy, dx);
-            //if (magnitude === 0) continue; // Podemos alterar para que não spawne projetil se ele clicar tão perto do sprite do player
-            //let dir = { x: dx / magnitude, y: dy / magnitude };
-            let dir = { x: Math.cos(angle), y: Math.sin(angle) }; // Vetor de direção normalizado
+            const dir = { x: Math.cos(angle), y: Math.sin(angle) };
 
             const cooldownConfig = this.shooterComponentStore.get(entity);
             const grenadeCooldown = this.grenadeCooldownComponentStore.has(entity);
             if (!grenadeCooldown) {
                 this.spawnProjectile(dir, attachedWeapon, true, travelDistance);
-                //console.log(entity, cooldownConfig.grenadeCooldown);
-                const cooldownAdd = this.grenadeCooldownComponentStore.add(entity, new GrenadeCooldownComponent(cooldownConfig.grenadeCooldown));
+                this.grenadeCooldownComponentStore.add(entity, new GrenadeCooldownComponent(cooldownConfig.grenadeCooldown));
                 if (this.playerComponentStore.has(entity)) {
                     this.grenadeFiredComponentStore.add(entity, new GrenadeFiredComponent());
                 }
@@ -147,14 +115,13 @@ export class ProjectileSpawnSystem implements ISystem {
 
     private spawnProjectile(dir: { x: number; y: number }, shootingWeapon: WeaponSpriteAttachmentComponent, isGrenade: boolean, travelDistance: { x: number, y: number }): void {
         if (isGrenade) {
-            //SFX
-            const entity = this.entityFactory.createProjectile(
-                shootingWeapon.barrelX, // maybe change this to 0?
+            this.entityFactory.createProjectile(
+                shootingWeapon.barrelX,
                 shootingWeapon.barrelY,
                 shootingWeapon.parentEntityId,
                 dir.x,
                 dir.y,
-                240, // Standard velocity ----> Must be changed by the shooting entity
+                240,
                 SpriteName.GRENADE_1,
                 SpriteSheetName.PROJECTILE,
                 AnimationName.GRENADE_FIRED,
@@ -163,13 +130,13 @@ export class ProjectileSpawnSystem implements ISystem {
             );
         } else {
             this.soundManager.playSound("SMG_FIRE");
-            const entity = this.entityFactory.createProjectile(
+            this.entityFactory.createProjectile(
                 shootingWeapon.barrelX - 6,
                 shootingWeapon.barrelY - 6,
                 shootingWeapon.parentEntityId,
                 dir.x,
                 dir.y,
-                240, // Standard velocity ----> Must be changed by the shooting entity
+                240,
                 SpriteName.BULLET_1,
                 SpriteSheetName.PROJECTILE,
                 AnimationName.BULLET_FIRED,

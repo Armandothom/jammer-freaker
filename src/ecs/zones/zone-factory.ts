@@ -1,8 +1,9 @@
+import { getStructureFootprint, listStructureIdsByCategory } from '../../game/world/structures/structure-registry.js';
+import { StructureCategory, StructureWallTileType } from '../../game/world/types/structure-definition.js';
 import { StructureName } from '../../game/world/types/structure-name.js';
 import { StructureOrientation } from '../../game/world/types/structure-orientation.js';
 import { BakedStructureResult, WorldLevelResult } from '../../game/world/types/world-level-result.js';
 import { WorldZone, ZoneType } from '../../game/world/types/zone-type.js';
-import { getStructureFootprint, listStructureIds } from '../../game/world/structures/structure-registry.js';
 import { StructureBaker } from './structure-baker.js';
 
 export interface ZoneStructurePlacement {
@@ -10,7 +11,6 @@ export interface ZoneStructurePlacement {
     orientation: StructureOrientation;
     tileX: number;
     tileY: number;
-    zone: WorldZone;
 }
 
 export interface GenerateLevelParams {
@@ -28,11 +28,54 @@ export class MathRandom implements RandomLike {
     }
 }
 
+interface PlacementArea {
+    tileX: number;
+    tileY: number;
+    widthTiles: number;
+    heightTiles: number;
+}
+
+interface StructureCandidate {
+    structureId: StructureName;
+    orientation: StructureOrientation;
+    footprint: {
+        widthTiles: number;
+        heightTiles: number;
+    };
+}
+
+interface GreatOuterPlacement {
+    area: PlacementArea;
+    reservedZones: WorldZone[];
+}
+
+interface TilePosition {
+    x: number;
+    y: number;
+}
+
+interface MainBuildingPlacement {
+    bakedStructure: BakedStructureResult;
+    orientation: StructureOrientation;
+}
+
+interface WallsDoorsPlacement {
+    bakedStructure: BakedStructureResult;
+    reservedOpenTiles: TilePosition[];
+}
+
 type ZoneChanceTable = Record<ZoneType, number>;
+const ALL_ORIENTATIONS: StructureOrientation[] = [
+    StructureOrientation.North,
+    StructureOrientation.South,
+    StructureOrientation.East,
+    StructureOrientation.West,
+];
 
 export class ZoneFactory {
     private readonly structureBaker: StructureBaker;
     private readonly rng: RandomLike;
+    private readonly greatOuterSpawnChance = 0.65;
 
     private readonly spawnChanceByZoneType: ZoneChanceTable = {
         [ZoneType.NorthExterior]: 0.65,
@@ -81,16 +124,21 @@ export class ZoneFactory {
 
     private generateForZones(zones: WorldZone[]): WorldLevelResult {
         const result = this.createEmptyWorldLevelResult();
+        const reservedExteriorZoneKeys = new Set<string>();
+        const reservedOpenTileKeys = new Set<string>();
 
-        for (const zone of zones) {
-            const bakedStructure = this.tryGenerateForZone(zone);
+        const greatOuterPlacement = this.tryGenerateGreatOuterStructure(zones);
+        if (greatOuterPlacement) {
+            this.mergeStructureIntoWorldResult(result, greatOuterPlacement.bakedStructure);
 
-            if (!bakedStructure) {
-                continue;
+            for (const zone of greatOuterPlacement.reservedZones) {
+                reservedExteriorZoneKeys.add(this.zoneKey(zone));
             }
-
-            this.mergeStructureIntoWorldResult(result, bakedStructure);
         }
+
+        this.generateOuterStructures(zones, reservedExteriorZoneKeys, result);
+        this.generateInnerStructures(zones, result, reservedOpenTileKeys);
+        this.removeWallsAtReservedTiles(result, reservedOpenTileKeys);
 
         return result;
     }
@@ -114,42 +162,286 @@ export class ZoneFactory {
         target.lootSpawns.push(...source.lootSpawns);
     }
 
-    private tryGenerateForZone(zone: WorldZone): BakedStructureResult | null {
+    private generateInnerPerimeterWalls(
+        zones: WorldZone[],
+        result: WorldLevelResult,
+    ): void {
+        const innerZones = zones.filter(zone => this.isInnerZone(zone.type));
+        if (innerZones.length === 0) {
+            return;
+        }
+
+        const innerArea = this.combineZones(innerZones);
+        const maxX = innerArea.tileX + innerArea.widthTiles - 1;
+        const maxY = innerArea.tileY + innerArea.heightTiles - 1;
+
+        for (let x = innerArea.tileX; x <= maxX; x++) {
+            result.walls.push({ x, y: innerArea.tileY, type: 'wall' });
+            result.walls.push({ x, y: maxY, type: 'wall' });
+        }
+
+        for (let y = innerArea.tileY + 1; y < maxY; y++) {
+            result.walls.push({ x: innerArea.tileX, y, type: 'wall' });
+            result.walls.push({ x: maxX, y, type: 'wall' });
+        }
+    }
+
+    private generateOuterStructures(
+        zones: WorldZone[],
+        reservedExteriorZoneKeys: Set<string>,
+        result: WorldLevelResult,
+    ): void {
+        for (const zone of zones) {
+            if (!this.isExteriorZone(zone.type) || reservedExteriorZoneKeys.has(this.zoneKey(zone))) {
+                continue;
+            }
+
+            const bakedStructure = this.tryGenerateForZoneCategory(zone, 'outer_structure');
+            if (!bakedStructure) {
+                continue;
+            }
+
+            this.mergeStructureIntoWorldResult(result, bakedStructure);
+        }
+    }
+
+    private generateInnerStructures(
+        zones: WorldZone[],
+        result: WorldLevelResult,
+        reservedOpenTileKeys: Set<string>,
+    ): void {
+        const innerZones = this.shuffle(
+            zones.filter(zone => this.isInnerZone(zone.type)),
+        );
+
+        if (innerZones.length === 0) {
+            return;
+        }
+
+        let mainBuildingZoneKey: string | null = null;
+        let mainBuildingPlacement: MainBuildingPlacement | null = null;
+
+        for (const zone of innerZones) {
+            const mainBuilding = this.tryGenerateMainBuildingForZone(zone);
+
+            if (!mainBuilding) {
+                continue;
+            }
+
+            mainBuildingZoneKey = this.zoneKey(zone);
+            mainBuildingPlacement = mainBuilding;
+            break;
+        }
+
+        if (mainBuildingPlacement) {
+            const wallsDoors = this.tryGenerateInnerWallsDoors(
+                zones,
+                mainBuildingPlacement.orientation,
+            );
+
+            if (wallsDoors) {
+                this.mergeStructureIntoWorldResult(result, wallsDoors.bakedStructure);
+                this.reserveOpenTiles(reservedOpenTileKeys, wallsDoors.reservedOpenTiles);
+            } else {
+                this.generateInnerPerimeterWalls(zones, result);
+            }
+
+            this.mergeStructureIntoWorldResult(result, mainBuildingPlacement.bakedStructure);
+        } else {
+            this.generateInnerPerimeterWalls(zones, result);
+        }
+
+        if (!mainBuildingZoneKey) {
+            console.warn('Unable to place a main_building_structure in any inner zone.');
+        }
+
+        for (const zone of innerZones) {
+            if (this.zoneKey(zone) === mainBuildingZoneKey) {
+                continue;
+            }
+
+            const bakedStructure = this.tryGenerateForZoneCategory(zone, 'inner_structure');
+            if (!bakedStructure) {
+                continue;
+            }
+
+            this.mergeStructureIntoWorldResult(result, bakedStructure);
+        }
+    }
+
+    private tryGenerateGreatOuterStructure(
+        zones: WorldZone[],
+    ): { bakedStructure: BakedStructureResult; reservedZones: WorldZone[] } | null {
+        if (!this.roll(this.greatOuterSpawnChance)) {
+            return null;
+        }
+
+        const placements = this.shuffle(this.buildGreatOuterPlacements(zones));
+
+        for (const placement of placements) {
+            const bakedStructure = this.tryGenerateForArea({
+                area: placement.area,
+                category: 'great_outer_structure',
+                orientations: ALL_ORIENTATIONS,
+            });
+
+            if (!bakedStructure) {
+                continue;
+            }
+
+            return {
+                bakedStructure,
+                reservedZones: placement.reservedZones,
+            };
+        }
+
+        return null;
+    }
+
+    private tryGenerateForZoneCategory(
+        zone: WorldZone,
+        category: StructureCategory,
+    ): BakedStructureResult | null {
         const chance = this.spawnChanceByZoneType[zone.type] ?? 0;
 
         if (!this.roll(chance)) {
             return null;
         }
 
+        return this.tryGenerateFixedStructureForZone(zone, category);
+    }
+
+    private tryGenerateMainBuildingForZone(
+        zone: WorldZone,
+    ): MainBuildingPlacement | null {
+        const candidate = this.resolveStructureCandidate(
+            zone,
+            'main_building_structure',
+            this.resolveMainBuildingOrientations(zone.type),
+        );
+
+        if (!candidate) {
+            return null;
+        }
+
+        const offset = this.resolveZoneOffset(
+            zone,
+            candidate.footprint,
+            'main_building_structure',
+        );
+        const bakedStructure = this.structureBaker.bake({
+            structureId: candidate.structureId,
+            worldX: zone.tileX + offset.x,
+            worldY: zone.tileY + offset.y,
+            orientation: candidate.orientation,
+        });
+
+        if (!bakedStructure) {
+            return null;
+        }
+
+        return {
+            bakedStructure,
+            orientation: candidate.orientation,
+        };
+    }
+
+    private tryGenerateFixedStructureForZone(
+        zone: WorldZone,
+        category: StructureCategory,
+    ): BakedStructureResult | null {
         const orientation = this.resolveOrientation(zone.type);
         if (!orientation) {
             return null;
         }
 
-        const structureId = this.resolveStructureId(zone, orientation);
-        if (!structureId) {
+        const candidate = this.resolveStructureCandidate(
+            zone,
+            category,
+            [orientation],
+        );
+
+        if (!candidate) {
             return null;
         }
 
-        const footprint = getStructureFootprint(structureId, orientation);
-        if (!footprint) {
-            console.warn(`Missing footprint for structure "${structureId}" in orientation "${orientation}".`);
+        const offset = this.resolveZoneOffset(zone, candidate.footprint, category);
+
+        return this.structureBaker.bake({
+            structureId: candidate.structureId,
+            worldX: zone.tileX + offset.x,
+            worldY: zone.tileY + offset.y,
+            orientation: candidate.orientation,
+        });
+    }
+
+    private tryGenerateInnerWallsDoors(
+        zones: WorldZone[],
+        orientation: StructureOrientation,
+    ): WallsDoorsPlacement | null {
+        const innerZones = zones.filter(zone => this.isInnerZone(zone.type));
+        if (innerZones.length === 0) {
             return null;
         }
 
-        if (footprint.widthTiles > zone.widthTiles || footprint.heightTiles > zone.heightTiles) {
-            console.warn(`Structure "${structureId}" does not fit inside zone "${zone.type}".`);
+        const innerArea = this.combineZones(innerZones);
+        const wallsDoors = this.tryGenerateForArea({
+            area: innerArea,
+            category: 'walls_doors',
+            orientations: [orientation],
+        });
+
+        if (!wallsDoors) {
             return null;
         }
 
-        const offset = this.resolveOffset(zone, footprint);
+        const outerDoorType = this.pickDoorType(wallsDoors.walls, 'outer_door_');
+        const innerDoorType = this.pickDoorType(wallsDoors.walls, 'inner_door_');
+        const reservedOpenTiles: TilePosition[] = [];
+
+        if (!outerDoorType || !innerDoorType) {
+            return {
+                bakedStructure: wallsDoors,
+                reservedOpenTiles,
+            };
+        }
+
+        reservedOpenTiles.push(
+            ...this.buildDoorwayOpenTiles(wallsDoors.walls, outerDoorType),
+            ...this.buildDoorwayOpenTiles(wallsDoors.walls, innerDoorType),
+        );
+        wallsDoors.walls = wallsDoors.walls.filter(wall =>
+            wall.type !== outerDoorType && wall.type !== innerDoorType,
+        );
+
+        return {
+            bakedStructure: wallsDoors,
+            reservedOpenTiles,
+        };
+    }
+
+    private tryGenerateForArea(params: {
+        area: PlacementArea;
+        category: StructureCategory;
+        orientations: StructureOrientation[];
+    }): BakedStructureResult | null {
+        const candidate = this.resolveStructureCandidate(
+            params.area,
+            params.category,
+            params.orientations,
+        );
+
+        if (!candidate) {
+            return null;
+        }
+
+        const offset = this.resolveAreaOffset(params.area, candidate.footprint);
 
         const placement: ZoneStructurePlacement = {
-            structureId,
-            orientation,
-            tileX: zone.tileX + offset.x,
-            tileY: zone.tileY + offset.y,
-            zone,
+            structureId: candidate.structureId,
+            orientation: candidate.orientation,
+            tileX: params.area.tileX + offset.x,
+            tileY: params.area.tileY + offset.y,
         };
 
         return this.structureBaker.bake({
@@ -166,32 +458,92 @@ export class ZoneFactory {
         return this.rng.next() < chance;
     }
 
-    private resolveStructureId(
-        zone: WorldZone,
-        orientation: StructureOrientation,
-    ): StructureName | null {
-        const availableStructures = listStructureIds().filter(structureId => {
-            const footprint = getStructureFootprint(structureId, orientation);
+    private resolveStructureCandidate(
+        area: PlacementArea,
+        category: StructureCategory,
+        orientations: StructureOrientation[],
+    ): StructureCandidate | null {
+        const candidates: StructureCandidate[] = [];
 
-            return footprint !== null &&
-                footprint.widthTiles <= zone.widthTiles &&
-                footprint.heightTiles <= zone.heightTiles;
-        });
+        for (const structureId of listStructureIdsByCategory(category)) {
+            for (const orientation of orientations) {
+                const footprint = getStructureFootprint(structureId, orientation);
+                if (!footprint) {
+                    continue;
+                }
 
-        if (availableStructures.length === 0) {
+                if (footprint.widthTiles > area.widthTiles || footprint.heightTiles > area.heightTiles) {
+                    continue;
+                }
+
+                candidates.push({
+                    structureId,
+                    orientation,
+                    footprint,
+                });
+            }
+        }
+
+        if (candidates.length === 0) {
             return null;
         }
 
-        return availableStructures[this.randomInt(0, availableStructures.length - 1)];
+        return candidates[this.randomInt(0, candidates.length - 1)];
     }
 
     private resolveOrientation(zoneType: ZoneType): StructureOrientation | null {
         return this.orientationByZoneType[zoneType] ?? null;
     }
 
-    private resolveOffset(
+    private resolveMainBuildingOrientations(
+        zoneType: ZoneType,
+    ): StructureOrientation[] {
+        switch (zoneType) {
+            case ZoneType.InnerNorthWest:
+                return [StructureOrientation.East];
+
+            case ZoneType.InnerNorthEast:
+                return [StructureOrientation.South];
+
+            case ZoneType.InnerSouthWest:
+                return [StructureOrientation.North];
+
+            case ZoneType.InnerSouthEast:
+                return [StructureOrientation.West];
+
+            default:
+                return ALL_ORIENTATIONS;
+        }
+    }
+
+    private resolveAreaOffset(
+        area: PlacementArea,
+        footprint: { widthTiles: number; heightTiles: number },
+    ): { x: number; y: number } {
+        const possibleOffsets = this.resolvePossibleOffsets(area, footprint);
+        return {
+            x: this.pickOffset(possibleOffsets.x),
+            y: this.pickOffset(possibleOffsets.y),
+        };
+    }
+
+    private resolvePossibleOffsets(
+        area: PlacementArea,
+        footprint: { widthTiles: number; heightTiles: number },
+    ): { x: number[]; y: number[] } {
+        const maxOffsetX = Math.max(0, area.widthTiles - footprint.widthTiles);
+        const maxOffsetY = Math.max(0, area.heightTiles - footprint.heightTiles);
+
+        return {
+            x: this.buildOffsetOptions(maxOffsetX),
+            y: this.buildOffsetOptions(maxOffsetY),
+        };
+    }
+
+    private resolveZoneOffset(
         zone: WorldZone,
         footprint: { widthTiles: number; heightTiles: number },
+        category?: StructureCategory,
     ): { x: number; y: number } {
         const margin = 0;
         const maxOffsetX = Math.max(0, zone.widthTiles - footprint.widthTiles);
@@ -235,44 +587,259 @@ export class ZoneFactory {
                 return { x: maxOffsetX, y: maxOffsetY };
 
             case ZoneType.InnerNorthWest:
-                return this.innerOffset(zone, footprint, -1, -1);
+                return category === 'main_building_structure'
+                    ? this.resolveMainBuildingOffset(zone, footprint)
+                    : this.resolveInnerZoneOffset(zone, footprint);
 
             case ZoneType.InnerNorthEast:
-                return this.innerOffset(zone, footprint, 1, -1);
+                return category === 'main_building_structure'
+                    ? this.resolveMainBuildingOffset(zone, footprint)
+                    : this.resolveInnerZoneOffset(zone, footprint);
 
             case ZoneType.InnerSouthWest:
-                return this.innerOffset(zone, footprint, -1, 1);
+                return category === 'main_building_structure'
+                    ? this.resolveMainBuildingOffset(zone, footprint)
+                    : this.resolveInnerZoneOffset(zone, footprint);
 
             case ZoneType.InnerSouthEast:
-                return this.innerOffset(zone, footprint, 1, 1);
+                return category === 'main_building_structure'
+                    ? this.resolveMainBuildingOffset(zone, footprint)
+                    : this.resolveInnerZoneOffset(zone, footprint);
 
             default:
                 return { x: 0, y: 0 };
         }
     }
 
-    private innerOffset(
+    private resolveMainBuildingOffset(
         zone: WorldZone,
         footprint: { widthTiles: number; heightTiles: number },
-        dirX: -1 | 1,
-        dirY: -1 | 1,
+    ): { x: number; y: number } {
+        return this.resolveInnerZoneOffset(zone, footprint);
+    }
+
+    private resolveInnerZoneOffset(
+        zone: WorldZone,
+        footprint: { widthTiles: number; heightTiles: number },
     ): { x: number; y: number } {
         const maxOffsetX = Math.max(0, zone.widthTiles - footprint.widthTiles);
         const maxOffsetY = Math.max(0, zone.heightTiles - footprint.heightTiles);
 
-        const centerX = Math.floor(maxOffsetX / 2);
-        const centerY = Math.floor(maxOffsetY / 2);
+        switch (zone.type) {
+            case ZoneType.InnerNorthWest:
+                return { x: maxOffsetX, y: maxOffsetY };
 
-        const variationX = Math.floor(maxOffsetX * 0.2);
-        const variationY = Math.floor(maxOffsetY * 0.2);
+            case ZoneType.InnerNorthEast:
+                return { x: 0, y: maxOffsetY };
 
-        const x = centerX + dirX * this.randomInt(0, Math.max(0, variationX));
-        const y = centerY + dirY * this.randomInt(0, Math.max(0, variationY));
+            case ZoneType.InnerSouthWest:
+                return { x: maxOffsetX, y: 0 };
+
+            case ZoneType.InnerSouthEast:
+                return { x: 0, y: 0 };
+
+            default:
+                return {
+                    x: this.clamp(maxOffsetX, 0, maxOffsetX),
+                    y: this.clamp(maxOffsetY, 0, maxOffsetY),
+                };
+        }
+    }
+
+    private buildOffsetOptions(maxOffset: number): number[] {
+        if (maxOffset <= 0) {
+            return [0];
+        }
+
+        return [0, maxOffset];
+    }
+
+    private pickOffset(options: number[]): number {
+        if (options.length === 1) {
+            return options[0];
+        }
+
+        return options[this.randomInt(0, options.length - 1)];
+    }
+
+    private buildGreatOuterPlacements(zones: WorldZone[]): GreatOuterPlacement[] {
+        const placements: GreatOuterPlacement[] = [];
+
+        const northZones = this.sortZonesByGrid(
+            zones.filter(zone => zone.type === ZoneType.NorthExterior),
+            'x',
+        );
+        const southZones = this.sortZonesByGrid(
+            zones.filter(zone => zone.type === ZoneType.SouthExterior),
+            'x',
+        );
+        const westZones = this.sortZonesByGrid(
+            zones.filter(zone => zone.type === ZoneType.WestExterior),
+            'y',
+        );
+        const eastZones = this.sortZonesByGrid(
+            zones.filter(zone => zone.type === ZoneType.EastExterior),
+            'y',
+        );
+
+        for (const reservedZones of [northZones, southZones, westZones, eastZones]) {
+            if (reservedZones.length !== 2) {
+                continue;
+            }
+
+            placements.push({
+                area: this.combineZones(reservedZones),
+                reservedZones,
+            });
+        }
+
+        return placements;
+    }
+
+    private combineZones(zones: WorldZone[]): PlacementArea {
+        const left = Math.min(...zones.map(zone => zone.tileX));
+        const top = Math.min(...zones.map(zone => zone.tileY));
+        const right = Math.max(...zones.map(zone => zone.tileX + zone.widthTiles));
+        const bottom = Math.max(...zones.map(zone => zone.tileY + zone.heightTiles));
 
         return {
-            x: this.clamp(x, 0, maxOffsetX),
-            y: this.clamp(y, 0, maxOffsetY),
+            tileX: left,
+            tileY: top,
+            widthTiles: right - left,
+            heightTiles: bottom - top,
         };
+    }
+
+    private sortZonesByGrid(
+        zones: WorldZone[],
+        axis: 'x' | 'y',
+    ): WorldZone[] {
+        return [...zones].sort((a, b) => axis === 'x'
+            ? a.zoneGridX - b.zoneGridX
+            : a.zoneGridY - b.zoneGridY);
+    }
+
+    private shuffle<T>(items: T[]): T[] {
+        const shuffled = [...items];
+
+        for (let index = shuffled.length - 1; index > 0; index--) {
+            const swapIndex = this.randomInt(0, index);
+            [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+        }
+
+        return shuffled;
+    }
+
+    private isExteriorZone(zoneType: ZoneType): boolean {
+        switch (zoneType) {
+            case ZoneType.NorthExterior:
+            case ZoneType.SouthExterior:
+            case ZoneType.EastExterior:
+            case ZoneType.WestExterior:
+            case ZoneType.NorthWestCorner:
+            case ZoneType.NorthEastCorner:
+            case ZoneType.SouthWestCorner:
+            case ZoneType.SouthEastCorner:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private isInnerZone(zoneType: ZoneType): boolean {
+        switch (zoneType) {
+            case ZoneType.InnerNorthWest:
+            case ZoneType.InnerNorthEast:
+            case ZoneType.InnerSouthWest:
+            case ZoneType.InnerSouthEast:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private zoneKey(zone: WorldZone): string {
+        return `${zone.zoneGridX}:${zone.zoneGridY}`;
+    }
+
+    private pickDoorType(
+        walls: BakedStructureResult['walls'],
+        prefix: 'outer_door_' | 'inner_door_',
+    ): StructureWallTileType | null {
+        const doorTypes = Array.from(
+            new Set(
+                walls
+                    .map(wall => wall.type)
+                    .filter((type): type is StructureWallTileType => type.startsWith(prefix)),
+            ),
+        );
+
+        if (doorTypes.length === 0) {
+            return null;
+        }
+
+        return doorTypes[this.randomInt(0, doorTypes.length - 1)];
+    }
+
+    private buildDoorwayOpenTiles(
+        walls: BakedStructureResult['walls'],
+        doorType: StructureWallTileType,
+    ): TilePosition[] {
+        const doorwayTiles = walls.filter(wall => wall.type === doorType);
+        if (doorwayTiles.length === 0) {
+            return [];
+        }
+
+        const reservedTiles = new Map<string, TilePosition>();
+        const minX = Math.min(...doorwayTiles.map(tile => tile.x));
+        const maxX = Math.max(...doorwayTiles.map(tile => tile.x));
+        const minY = Math.min(...doorwayTiles.map(tile => tile.y));
+        const maxY = Math.max(...doorwayTiles.map(tile => tile.y));
+        const isHorizontal = minY === maxY;
+
+        for (const tile of doorwayTiles) {
+            this.addReservedTile(reservedTiles, tile.x, tile.y);
+
+            if (isHorizontal) {
+                this.addReservedTile(reservedTiles, tile.x, tile.y - 1);
+                this.addReservedTile(reservedTiles, tile.x, tile.y + 1);
+            } else {
+                this.addReservedTile(reservedTiles, tile.x - 1, tile.y);
+                this.addReservedTile(reservedTiles, tile.x + 1, tile.y);
+            }
+        }
+
+        return Array.from(reservedTiles.values());
+    }
+
+    private addReservedTile(
+        reservedTiles: Map<string, TilePosition>,
+        x: number,
+        y: number,
+    ): void {
+        reservedTiles.set(`${x}:${y}`, { x, y });
+    }
+
+    private reserveOpenTiles(
+        target: Set<string>,
+        tiles: TilePosition[],
+    ): void {
+        for (const tile of tiles) {
+            target.add(`${tile.x}:${tile.y}`);
+        }
+    }
+
+    private removeWallsAtReservedTiles(
+        result: WorldLevelResult,
+        reservedOpenTileKeys: Set<string>,
+    ): void {
+        if (reservedOpenTileKeys.size === 0) {
+            return;
+        }
+
+        result.walls = result.walls.filter(wall =>
+            !reservedOpenTileKeys.has(`${wall.x}:${wall.y}`),
+        );
     }
 
     private randomInt(min: number, max: number): number {

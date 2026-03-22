@@ -1,4 +1,5 @@
 import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+import { CameraManager } from "../../game/world/camera-manager.js";
 import { AimShootingComponent } from "../components/aim-shooting.component.js";
 import { DisableAimComponent } from "../components/disable-aim.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
@@ -40,6 +41,7 @@ export class ShootingSystem implements ISystem {
         private weaponComponentStore: ComponentStore<WeaponComponent>,
         private intentMeleeComponentStore: ComponentStore<IntentMeleeComponent>,
         private disableAimComponentStore: ComponentStore<DisableAimComponent>,
+        private cameraManager: CameraManager,
     ) {
         this.canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
         this.initListeners();
@@ -88,14 +90,20 @@ export class ShootingSystem implements ISystem {
         const rect = this.canvas.getBoundingClientRect();
         const mousePosX = e.clientX - rect.left;
         const mousePosY = e.clientY - rect.top;
-        const dx = mousePosX - weaponPosition.x;
-        const dy = mousePosY - weaponPosition.y;
+        const mouseWorldPosition = this.cameraManager.screenToWorld(
+            mousePosX,
+            mousePosY,
+            rect.width,
+            rect.height,
+        );
+        const dx = mouseWorldPosition.x - weaponPosition.x;
+        const dy = mouseWorldPosition.y - weaponPosition.y;
         const angle = Math.atan2(dy, dx);
         this.aimShootingComponentStore.add(weaponAttachment[0], new AimShootingComponent(angle, weaponSprite.height * 5 / 20));
         // THE 5 / 20 ABOVE SHOULD BE CHANGED BY THE WEAPON -- OFFSET AIM ANGLE
         this.currentMousePos = {
-            x: mousePosX,
-            y: mousePosY,
+            x: mouseWorldPosition.x,
+            y: mouseWorldPosition.y,
         };
     }
 
