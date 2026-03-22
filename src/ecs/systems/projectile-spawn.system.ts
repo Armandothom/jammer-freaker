@@ -1,7 +1,6 @@
 import { SoundManager } from "../../game/asset-manager/sound-manager.js";
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
-import { DirectionAnimComponent } from "../components/direction-anim.component.js";
 import { IntentShotComponent } from "../components/intent-shot.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ProjectileComponent } from "../components/projectile-component.js";
@@ -19,6 +18,7 @@ import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
 import { GrenadeCooldownComponent } from "../components/grenade-cooldown.component.js";
 import { GrenadeFiredComponent } from "../components/grenade-fired.component.js";
 import { IntentGrenadeComponent } from "../components/intent-grenade.component.js";
+import { LevelManager } from "../core/level-manager.js";
 
 export class ProjectileSpawnSystem implements ISystem {
     private readonly tileSize: number;
@@ -31,7 +31,6 @@ export class ProjectileSpawnSystem implements ISystem {
         private projectileComponentStore: ComponentStore<ProjectileComponent>,
         private entityFactory: EntityFactory,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
-        private directionAnimComponentStore: ComponentStore<DirectionAnimComponent>,
         private intentShotComponentStore: ComponentStore<IntentShotComponent>,
         private shootingCooldownComponentStore: ComponentStore<ShootingCooldownComponent>,
         private shooterComponentStore: ComponentStore<ShooterComponent>,
@@ -40,6 +39,7 @@ export class ProjectileSpawnSystem implements ISystem {
         private grenadeCooldownComponentStore: ComponentStore<GrenadeCooldownComponent>,
         private grenadeFiredComponentStore: ComponentStore<GrenadeFiredComponent>,
         private intentGrenadeComponentStore: ComponentStore<IntentGrenadeComponent>,
+        private levelManager: LevelManager,
     ) {
         const terrainSpriteSheet = this.spriteManager.getSpriteProperties(SpriteName.METAL_1, SpriteSheetName.TERRAIN);
         this.tileSize = terrainSpriteSheet.sprite.originalRenderSpriteWidth;
@@ -66,7 +66,8 @@ export class ProjectileSpawnSystem implements ISystem {
                 throw new Error("No weapon entry found");
             }
             const attachedWeapon = attachedWeaponEntry[1];
-            const weaponPosition = this.positionComponentStore.get(attachedWeaponEntry[0]);
+            const attachedWeaponEntityId = attachedWeaponEntry[0];
+            const weaponPosition = this.positionComponentStore.get(attachedWeaponEntityId);
             const intent = this.intentShotComponentStore.getOrNull(entity);
             if (!shooterPos || !intent) continue;
 
@@ -157,9 +158,25 @@ export class ProjectileSpawnSystem implements ISystem {
             );
         } else {
             this.soundManager.playSound("SMG_FIRE");
+            const bulletSpriteProperties = this.spriteManager.getSpriteProperties(SpriteName.BULLET_1, SpriteSheetName.PROJECTILE)!;
+            const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;
+            const bulletWidth = bulletSpriteProperties.sprite.originalRenderSpriteWidth * zoomProgressionFactor;
+            const bulletHeight = bulletSpriteProperties.sprite.originalRenderSpriteHeight * zoomProgressionFactor;
+
+            //Calculate the scalar distance/offset that we want the bullet to spawn, from the barrelPoint
+            const offsetFromBarrelPointX = (bulletWidth - 15) / 2;
+            const offsetFromBarrelPointY = (bulletHeight - 15) / 2;
+            const forwardOffset = Math.abs(dir.x) * (offsetFromBarrelPointX) + Math.abs(dir.y) * (offsetFromBarrelPointY);
+            //Apply scalar distance proportionally for each direction, depending on the angle
+            const bulletCenterX = shootingWeapon.barrelX + dir.x * forwardOffset;
+            const bulletCenterY = shootingWeapon.barrelY + dir.y * forwardOffset;
+            //Align to the center of the bullet
+            const startX = bulletCenterX - (bulletWidth / 2);
+            const startY = bulletCenterY - (bulletHeight / 2);
+
             const entity = this.entityFactory.createProjectile(
-                shootingWeapon.barrelX - 3,
-                shootingWeapon.barrelY - 3,
+                startX,
+                startY,
                 shootingWeapon.parentEntityId,
                 dir.x,
                 dir.y,

@@ -14,6 +14,7 @@ import { ZLayerComponent } from "../components/z-layer.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityManager } from "../core/entity-manager.js";
 import { LevelManager } from "../core/level-manager.js";
+import { DebuggerPainter } from "../debugger/painter.debugger.js";
 import { ISystem } from "./system.interface.js";
 
 export class RenderSystem implements ISystem {
@@ -45,13 +46,31 @@ export class RenderSystem implements ISystem {
     const terrainRenderObjects = this.getTerrainRenderObjects(viewport);
     const overTerrainRenderObjects = this.getOverTerrainRenderObjects(viewport);
     const renderObjects = [...overTerrainRenderObjects, ...terrainRenderObjects];
-    this.rendererEngine.render(renderObjects);
+    this.rendererEngine.renderSprites(renderObjects);
     this.rendererEngine.uploadSpawnBatch();
     this.rendererEngine.updateParticles(deltaTime);
     this.rendererEngine.disarmSpawnStyleRects();
     this.rendererEngine.renderParticles();
+    this.renderDebugPaint();
   }
 
+  private renderDebugPaint() {
+    const zoomProgressionFactor = this.levelManager.zoomProgressionFactor;
+    for (const order of DebuggerPainter.retrievePaintOrders()) {
+      if (order.ignoreZoomFactor) {
+        this.rendererEngine.renderDebugPaint(order);
+        continue;
+      }
+      if (order.type == 'fill') {
+        order.width *= zoomProgressionFactor;
+        order.height *= zoomProgressionFactor;
+      }
+      if (order.type == 'circle') {
+        order.width *= zoomProgressionFactor;
+      }
+      this.rendererEngine.renderDebugPaint(order);
+    }
+  }
   private getTerrainRenderObjects(viewport: CameraViewport): Array<RenderObject> {
     const terrainRenderObjects: Array<RenderObject> = [];
     const terrainTilesInViewport = this.tilemapManager.getTilesInArea(viewport);
@@ -82,7 +101,6 @@ export class RenderSystem implements ISystem {
       const sprite = this.spriteComponentStore.get(entity);
       const position = this.positionComponentStore.get(entity);
       const spriteProperties = this.spriteManager.getSpriteProperties(sprite.spriteName, sprite.spriteSheetName);
-      const spriteHeight = spriteProperties.sprite.originalRenderSpriteHeight ?? sprite.height ?? 0;
       if (position.x > viewport.right || position.x < (viewport.left - sprite.width) ||
         position.y < (viewport.top - sprite.height) || position.y > viewport.bottom
       ) {
@@ -93,7 +111,6 @@ export class RenderSystem implements ISystem {
       const mirrorSpriteX = this.directionAnimComponentStore.getOrNull(entity)?.xDirection == AnimDirection.LEFT ? true : false;
       const mirrorSpriteY = this.directionAnimComponentStore.getOrNull(entity)?.yDirection == AnimDirection.BOTTOM ? true : false;
 
-
       const layerComponent = this.zLayerComponentStore.get(entity);
       renderObject.push({
         xWorldPosition: position.x,
@@ -103,7 +120,7 @@ export class RenderSystem implements ISystem {
         height: sprite.height,
         width: sprite.width,
         angleRotation: aimComponent?.aimAngle || null,
-        offsetRotation: aimComponent?.offsetAimAngle || 0,
+        offsetRotation: aimComponent?.pivotPointSprite || 0,
         zLevel: (position.y * 0.1) * this.layerMultiplicator[layerComponent.layer]
       })
     }

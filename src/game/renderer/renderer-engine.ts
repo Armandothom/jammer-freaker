@@ -1,3 +1,5 @@
+import { DebuggerPainter } from "../../ecs/debugger/painter.debugger.js";
+import { DebuggerPaintOrder } from "../../ecs/debugger/types/debugger.js";
 import { RenderObject } from "./types/render-objects.js";
 
 export type TrajectoryType = 0 | 1; // 0 = linear, 1 = parabólico
@@ -14,11 +16,13 @@ export type SpawnEvent = {
 
 export class RendererEngine {
   private _isLoaded: boolean = false;
-  private _debugMode: boolean = true;
+  private _debugMode: boolean = false;
   private _program: WebGLProgram | undefined;
   private _canvas: HTMLCanvasElement;
   private _gl: WebGL2RenderingContext;
-
+  private _debugProgram: WebGLProgram | undefined;
+  private _debugBuffer!: WebGLBuffer;
+  private _debugVAO!: WebGLVertexArrayObject;
   private _simulationProgram: WebGLProgram | undefined;
   private _spawnTexture!: WebGLTexture;
   private _spawnKinematic!: WebGLTexture;
@@ -126,6 +130,7 @@ export class RendererEngine {
     this._gl.activeTexture(this._gl.TEXTURE0);
     this._gl.uniform1i(textureLocation, 0);
     this.initParticles();
+    this.initDebugger();
   }
 
   public enqueueSpawns(events: SpawnEvent[]) {
@@ -274,12 +279,47 @@ export class RendererEngine {
   private initParticles() {
     this.compileSimulationProgram();
     this.initParticleSimulation(512); // capacidade arbitrária
-    //this.runSimulation(0);
-    //this.debugReadStateWrite();
-    //this.swapParticleStates();
-    //this.debugReadStateRead();
     this.compileParticleRenderProgram();
     this.initParticleRender();
+  }
+
+  private initDebugger() {
+    const debugVertexShaderSource = `
+      attribute vec3 a_position;
+
+      void main() {
+        gl_Position = vec4(a_position, 1.0);
+      }
+    `;
+
+    const debugFragmentShaderSource = `
+      precision mediump float;
+
+      uniform vec4 u_color;
+
+      void main() {
+        gl_FragColor = u_color;
+      }
+    `;
+
+    const vertexShader = this.createShader(this._gl.VERTEX_SHADER, debugVertexShaderSource);
+    const fragmentShader = this.createShader(this._gl.FRAGMENT_SHADER, debugFragmentShaderSource);
+
+    this._debugProgram = this.createProgramRet(vertexShader, fragmentShader);
+
+    const gl = this._gl;
+    this._debugVAO = gl.createVertexArray()!;
+    this._debugBuffer = gl.createBuffer()!;
+
+    gl.bindVertexArray(this._debugVAO);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._debugBuffer);
+
+    const positionLocation = gl.getAttribLocation(this._debugProgram, "a_position");
+    gl.enableVertexAttribArray(positionLocation);
+    gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindVertexArray(null);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
   }
 
   private compileSimulationProgram() {
@@ -649,7 +689,138 @@ export class RendererEngine {
     gl.depthMask(true);
   }
 
-  public render(renderObjects: Array<RenderObject>) {
+  private buildDebugVertices(draw: DebuggerPaintOrder): number[] {
+
+    if (draw.type == 'fill') {
+      const width = draw.width ?? 4;
+      const height = draw.height ?? 4;
+      const x1 = draw.x;
+      const y1 = draw.y;
+      const x2 = draw.x + width;
+      const y2 = draw.y + height;
+
+      const [cx1, cy1, cz1] = this.toClipSpace(x1, y1, 0, this._canvas);
+      const [cx2, cy2, cz2] = this.toClipSpace(x2, y1, 0, this._canvas);
+      const [cx3, cy3, cz3] = this.toClipSpace(x1, y2, 0, this._canvas);
+      const [cx4, cy4, cz4] = this.toClipSpace(x2, y2, 0, this._canvas);
+
+      return [
+        cx1, cy1, cz1,
+        cx3, cy3, cz3,
+        cx2, cy2, cz2,
+
+        cx4, cy4, cz4,
+        cx2, cy2, cz2,
+        cx3, cy3, cz3,
+      ];
+    } else if (draw.type == 'circle') {
+      const segments = 12;
+      const circleTriangleSegmentDiff = (Math.PI * 2) / segments;
+      const circleTriangleVertices: number[] = [];
+      const radius = draw.width / 2;
+      for (let i = 1; i <= segments; i++) {
+        const angleStart = (i - 1) * circleTriangleSegmentDiff;
+        const angleEnd = i * circleTriangleSegmentDiff;
+        const x1 = Math.cos(angleStart) * radius + draw.centroidX;
+        const x2 = Math.cos(angleEnd) * radius + draw.centroidX;
+        const y1 = Math.sin(angleStart) * radius + draw.centroidY;
+        const y2 = Math.sin(angleEnd) * radius + draw.centroidY;
+        const [cx1, cy1, cz1] = this.toClipSpace(x1, y1, 0, this._canvas);
+        const [cx2, cy2, cz2] = this.toClipSpace(x2, y2, 0, this._canvas);
+        const [cx3, cy3, cz3] = this.toClipSpace(draw.centroidX, draw.centroidY, 0, this._canvas);
+        circleTriangleVertices.push(...[
+          cx1, cy1, cz1,
+          cx3, cy3, cz3,
+          cx2, cy2, cz2,
+        ])
+      }
+      return circleTriangleVertices;
+    }
+    return [];
+  }
+
+  private parseColorToRgba(color: string): [number, number, number, number] {
+    const value = color.trim().toLowerCase();
+
+    if (value.startsWith("#")) {
+      const hex = value.slice(1);
+
+      if (hex.length === 3) {
+        const r = parseInt(hex[0] + hex[0], 16) / 255;
+        const g = parseInt(hex[1] + hex[1], 16) / 255;
+        const b = parseInt(hex[2] + hex[2], 16) / 255;
+        return [r, g, b, 1];
+      }
+
+      if (hex.length === 6) {
+        const r = parseInt(hex.slice(0, 2), 16) / 255;
+        const g = parseInt(hex.slice(2, 4), 16) / 255;
+        const b = parseInt(hex.slice(4, 6), 16) / 255;
+        return [r, g, b, 1];
+      }
+
+      if (hex.length === 8) {
+        const r = parseInt(hex.slice(0, 2), 16) / 255;
+        const g = parseInt(hex.slice(2, 4), 16) / 255;
+        const b = parseInt(hex.slice(4, 6), 16) / 255;
+        const a = parseInt(hex.slice(6, 8), 16) / 255;
+        return [r, g, b, a];
+      }
+    }
+
+    const rgbaMatch = value.match(/^rgba?\(([^)]+)\)$/);
+    if (rgbaMatch) {
+      const parts = rgbaMatch[1].split(",").map((p) => p.trim());
+
+      const r = Math.max(0, Math.min(255, Number(parts[0]))) / 255;
+      const g = Math.max(0, Math.min(255, Number(parts[1]))) / 255;
+      const b = Math.max(0, Math.min(255, Number(parts[2]))) / 255;
+      const a = parts[3] !== undefined ? Math.max(0, Math.min(1, Number(parts[3]))) : 1;
+
+      return [r, g, b, a];
+    }
+
+    return [1, 0, 1, 1];
+  }
+
+
+  public renderDebugPaint(paintOrder: DebuggerPaintOrder) {
+    const gl = this._gl;
+    if (!this._debugProgram) {
+      return;
+    }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, this._canvas.width, this._canvas.height);
+
+    gl.useProgram(this._debugProgram);
+
+    gl.disable(gl.DEPTH_TEST);
+    gl.depthMask(false);
+
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+    gl.bindVertexArray(this._debugVAO);
+
+    const colorLocation = gl.getUniformLocation(this._debugProgram, "u_color");
+
+    const vertices = this.buildDebugVertices(paintOrder);
+    const [r, g, b, a] = this.parseColorToRgba(paintOrder.color);
+
+    gl.uniform4f(colorLocation, r, g, b, a);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._debugBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STREAM_DRAW);
+
+    gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 3);
+
+    gl.bindVertexArray(null);
+
+    gl.depthMask(true);
+    gl.enable(gl.DEPTH_TEST);
+  }
+
+  public renderSprites(renderObjects: Array<RenderObject>) {
     this.restoreGLForObjects();
     this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
     this._gl.clearColor(0.0, 0.0, 0.0, 1.0);

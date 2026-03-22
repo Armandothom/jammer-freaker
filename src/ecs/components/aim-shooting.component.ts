@@ -1,9 +1,9 @@
 export class AimShootingComponent {
     public aimAngle: number;
-    public offsetAimAngle : number;
+    public pivotPointSprite : number;
 
-    constructor(aimAngle: number, offsetAimAngle :number = 0) {
+    constructor(aimAngle: number, pivotPointSprite :number = 0) {
         this.aimAngle = aimAngle;
-        this.offsetAimAngle = offsetAimAngle;
+        this.pivotPointSprite = pivotPointSprite;
     }
 }

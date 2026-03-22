@@ -15,6 +15,7 @@ import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment
 import { WeaponMagazineComponent } from "../components/weapon-magazine.component.js";
 import { WeaponComponent } from "../components/weapon.component.js";
 import { ComponentStore } from "../core/component-store.js";
+import { DebuggerPainter } from "../debugger/painter.debugger.js";
 import { ISystem } from "./system.interface.js";
 
 const keys: Record<string, boolean> = {};
@@ -86,15 +87,13 @@ export class ShootingSystem implements ISystem {
         const weaponAttachments = this.weaponAttachmentComponentStore.getValuesAndEntityId();
         const weaponAttachment = weaponAttachments.find((weaponAttachmentEntry) => weaponAttachmentEntry[1].parentEntityId == playerId)!;
         const weaponPosition = this.positionComponentStore.get(weaponAttachment[0]);
-        const weaponSprite = this.spriteComponentStore.get(weaponAttachment[0]);
         const rect = this.canvas.getBoundingClientRect();
         const mousePosX = e.clientX - rect.left;
         const mousePosY = e.clientY - rect.top;
         const dx = mousePosX - weaponPosition.x;
         const dy = mousePosY - weaponPosition.y;
         const angle = Math.atan2(dy, dx);
-        this.aimShootingComponentStore.add(weaponAttachment[0], new AimShootingComponent(angle, weaponSprite.height * 5 / 20));
-        // THE 5 / 20 ABOVE SHOULD BE CHANGED BY THE WEAPON -- OFFSET AIM ANGLE
+        this.aimShootingComponentStore.add(weaponAttachment[0], new AimShootingComponent(angle, 13));
         this.currentMousePos = {
             x: mousePosX,
             y: mousePosY,

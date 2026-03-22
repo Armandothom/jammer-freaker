@@ -41,7 +41,6 @@ import { EnemyType } from "../components/types/enemy-type.js";
 import { ShapeDimensionComponent } from "../components/shape-dimension.component.js";
 import { ShapePositionComponent } from "../components/shape-position.component.js";
 import { ShapeComponent } from "../components/shape-component.js";
-import { Shape } from "three/src/Three.js";
 import { ShapeDirectionComponent } from "../components/shape-direction.component.js";
 import { ShapeAngleComponent } from "../components/shape-angle.component.js";
 import { RenderableComponent } from "../components/renderable-component.js";
@@ -314,9 +313,9 @@ export class EntityFactory {
     this.positionComponentStore.add(entityId, new PositionComponent(0, 0));
     this.aimShootingComponentStore.add(entityId, new AimShootingComponent(0, 5));
     if (wieldingEntityWeapon.spriteName != SpriteName.SHIELD) {
-      this.weaponSpriteAttachmentComponentStore.add(entityId, new WeaponSpriteAttachmentComponent(parentEntityId, 16, 16, 18, 18));
+      this.weaponSpriteAttachmentComponentStore.add(entityId, new WeaponSpriteAttachmentComponent(parentEntityId, 16, 18));
     } else {
-      this.weaponSpriteAttachmentComponentStore.add(entityId, new WeaponSpriteAttachmentComponent(parentEntityId, 16, 16, 9, 9));
+      this.weaponSpriteAttachmentComponentStore.add(entityId, new WeaponSpriteAttachmentComponent(parentEntityId, 16, 9));
     }
     this.animationComponentStore.add(entityId, new AnimationComponent(wieldingEntityWeapon.animationName));
     this.spriteComponentStore.add(entityId, new SpriteComponent(

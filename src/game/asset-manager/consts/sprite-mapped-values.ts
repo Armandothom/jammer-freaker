@@ -201,7 +201,7 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
       rows: 1,
       columns: 2,
       eachSpriteCellSizeHeight: 16,
-      eachSpriteCellSizeWidth: 32,
+      eachSpriteCellSizeWidth: 16,
       srcImagePath: 'src/assets/images/projectiles.png',
       sprites: new Map([
         [SpriteName.BULLET_1, {
