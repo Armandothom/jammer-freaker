@@ -18,8 +18,7 @@ export class WeaponSpriteAttachmenPositiontSystem implements ISystem {
         private zLayerComponentStore: ComponentStore<ZLayerComponent>,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
         private aimShootingComponentStore: ComponentStore<AimShootingComponent>,
-        private disableAttachmentComponentStore: ComponentStore<DisableAttachmentComponent>,
-        private spriteManager: SpriteManager
+        private disableAttachmentComponentStore: ComponentStore<DisableAttachmentComponent>
     ) {
     }
 

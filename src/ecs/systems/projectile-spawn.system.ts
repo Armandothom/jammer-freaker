@@ -37,7 +37,6 @@ export class ProjectileSpawnSystem implements ISystem {
         private grenadeCooldownComponentStore: ComponentStore<GrenadeCooldownComponent>,
         private grenadeFiredComponentStore: ComponentStore<GrenadeFiredComponent>,
         private intentGrenadeComponentStore: ComponentStore<IntentGrenadeComponent>,
-        private levelManager: LevelManager,
     ) {
         const terrainSpriteSheet = this.spriteManager.getSpriteProperties(SpriteName.METAL_1, SpriteSheetName.TERRAIN);
     }
