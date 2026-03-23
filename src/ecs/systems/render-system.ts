@@ -24,6 +24,8 @@ export class RenderSystem implements ISystem {
     "3": 3,
     "4": 4,
   };
+  private readonly maxLayerMultiplier = 4;
+  private readonly maxDepthLevel = 1000;
 
   constructor(
     private renderableComponentStore: ComponentStore<RenderableComponent>,
@@ -96,7 +98,7 @@ export class RenderSystem implements ISystem {
         width: tileSize,
         angleRotation: null,
         offsetRotation: 0,
-        zLevel: terrainTile.y * 0.1,
+        zLevel: this.getDepthLevel(worldY, this.layerMultiplicator["1"]),
       });
     }
 
@@ -133,7 +135,7 @@ export class RenderSystem implements ISystem {
         width: tileSize,
         angleRotation: null,
         offsetRotation: 0,
-        zLevel: (wallTile.y * 0.1) * this.layerMultiplicator["2"],
+        zLevel: this.getDepthLevel(worldY, this.layerMultiplicator["2"]),
       });
     }
 
@@ -162,6 +164,7 @@ export class RenderSystem implements ISystem {
         sprite.width ?? spriteProperties.sprite.originalRenderSpriteWidth;
       const spriteHeight =
         sprite.height ?? spriteProperties.sprite.originalRenderSpriteHeight;
+      const layerMultiplier = this.layerMultiplicator[layerComponent.layer] ?? 1;
 
       const worldLeft = position.x;
       const worldRight = position.x + spriteWidth;
@@ -214,7 +217,7 @@ export class RenderSystem implements ISystem {
         width: spriteWidth,
         angleRotation: aimComponent?.aimAngle || null,
         offsetRotation: aimComponent?.offsetAimAngle || 0,
-        zLevel: (position.y * 0.1) * this.layerMultiplicator[layerComponent.layer],
+        zLevel: this.getDepthLevel(position.y, layerMultiplier),
       });
     }
 
@@ -255,10 +258,22 @@ export class RenderSystem implements ISystem {
         width: tileSize,
         angleRotation: null,
         offsetRotation: 0,
-        zLevel: 999,
+        zLevel: this.maxDepthLevel,
       });
     }
 
     return fogOverlayRenderObjects;
+  }
+
+  private getDepthLevel(worldY: number, layerMultiplier: number): number {
+    const clampedWorldY = Math.max(0, Math.min(worldY, this.tilemapManager.worldHeight));
+    const maxDepthSource = this.tilemapManager.worldHeight * this.maxLayerMultiplier;
+
+    if (maxDepthSource === 0) {
+      return 0;
+    }
+
+    // Keeps the existing Y/layer sorting while staying inside the clip-space depth range.
+    return (clampedWorldY * layerMultiplier / maxDepthSource) * this.maxDepthLevel;
   }
 }
