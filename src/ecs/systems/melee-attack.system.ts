@@ -1,5 +1,5 @@
 import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
-import { AimShootingComponent } from "../components/aim-shooting.component.js";
+import { AimRotationShootingComponent } from "../components/aim-rotation-shooting.component.js";
 import { AttackSpeedComponent } from "../components/attack-speed.component.js";
 import { DirectionAnimComponent } from "../components/direction-anim.component.js";
 import { DisableAimComponent } from "../components/disable-aim.component.js";
@@ -30,7 +30,7 @@ export class MeleeAttackSystem implements ISystem {
         private weaponSpriteAttachmentComponentStore: ComponentStore<WeaponSpriteAttachmentComponent>,
         private weaponComponentStore: ComponentStore<WeaponComponent>,
         private positionComponentStore: ComponentStore<PositionComponent>,
-        private aimShootingComponentStore: ComponentStore<AimShootingComponent>,
+        private aimShootingComponentStore: ComponentStore<AimRotationShootingComponent>,
         private shooterComponentStore: ComponentStore<ShooterComponent>,
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private enemyComponentStore: ComponentStore<EnemyComponent>,

@@ -7,7 +7,7 @@ import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-nam
 import { CameraViewport } from "../../game/world/types/camera-viewport.js";
 import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
-import { AimShootingComponent } from "../components/aim-shooting.component.js";
+import { AimRotationShootingComponent } from "../components/aim-rotation-shooting.component.js";
 import { DirectionAnimComponent } from "../components/direction-anim.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { RenderableComponent } from "../components/renderable-component.js";
@@ -35,9 +35,9 @@ export class RenderSystem implements ISystem {
     private rendererEngine: RendererEngine,
     private spriteManager: SpriteManager,
     private directionAnimComponentStore: ComponentStore<DirectionAnimComponent>,
-    private aimShootingComponentStore: ComponentStore<AimShootingComponent>,
+    private aimShootingComponentStore: ComponentStore<AimRotationShootingComponent>,
     private zLayerComponentStore: ComponentStore<ZLayerComponent>,
-    private visibilityManager: VisibilityManager,
+    private visibilityManager: VisibilityManager
   ) { }
 
   update(deltaTime: number): void {
@@ -205,7 +205,6 @@ export class RenderSystem implements ISystem {
       ) {
         continue;
       }
-
       renderObjects.push({
         xWorldPosition: screenX,
         yWorldPosition: screenY,

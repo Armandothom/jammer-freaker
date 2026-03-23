@@ -581,24 +581,6 @@ export class RendererEngine {
     }
   }
 
-  private debugReadStateRead() {
-    const gl = this._gl;
-    const readData = new Uint8Array(this._particleTextureWidth * this._particleTextureHeight * 4);
-
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this._fboStateRead);
-    this.attachStateReadToFBO();
-
-    gl.readPixels(0, 0, this._particleTextureWidth, this._particleTextureHeight, gl.RGBA, gl.UNSIGNED_BYTE, readData);
-
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-    //console.log("First 5 texels from stateRead:");
-    for (let i = 0; i < 5; i++) {
-      const idx = i * 4;
-      //console.log(`[${i}]`, readData[idx], readData[idx + 1], readData[idx + 2], readData[idx + 3]);
-    }
-  }
-
   public disarmSpawnStyleRects(): void {
     if (!this._lastSpawnRects.length) return;
     const gl = this._gl;

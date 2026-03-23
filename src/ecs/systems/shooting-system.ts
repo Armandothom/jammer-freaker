@@ -1,13 +1,12 @@
 import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { CameraManager } from "../../game/world/camera-manager.js";
-import { AimShootingComponent } from "../components/aim-shooting.component.js";
+import { AimRotationShootingComponent } from "../components/aim-rotation-shooting.component.js";
 import { DisableAimComponent } from "../components/disable-aim.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
 import { GrenadeBeltComponent } from "../components/grenade-belt.component.js";
 import { IntentGrenadeComponent } from "../components/intent-grenade.component.js";
 import { IntentMeleeComponent } from "../components/intent-melee.component.js";
 import { IntentShotComponent } from "../components/intent-shot.component.js";
-import { MeleeIntentProcessedComponent } from "../components/melee-intent-processed.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ShooterComponent } from "../components/shooter-component.js";
@@ -16,7 +15,6 @@ import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment
 import { WeaponMagazineComponent } from "../components/weapon-magazine.component.js";
 import { WeaponComponent } from "../components/weapon.component.js";
 import { ComponentStore } from "../core/component-store.js";
-import { DebuggerPainter } from "../debugger/painter.debugger.js";
 import { ISystem } from "./system.interface.js";
 
 const keys: Record<string, boolean> = {};
@@ -33,7 +31,7 @@ export class ShootingSystem implements ISystem {
         private intentShotComponentStore: ComponentStore<IntentShotComponent>,
         private positionComponentStore: ComponentStore<PositionComponent>,
         private shooterComponentStore: ComponentStore<ShooterComponent>,
-        private aimShootingComponentStore: ComponentStore<AimShootingComponent>,
+        private aimShootingComponentStore: ComponentStore<AimRotationShootingComponent>,
         private weaponAttachmentComponentStore: ComponentStore<WeaponSpriteAttachmentComponent>,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
         private weaponMagazineComponentStore: ComponentStore<WeaponMagazineComponent>,
@@ -91,8 +89,10 @@ export class ShootingSystem implements ISystem {
             return;
         }
         const weaponAttachments = this.weaponAttachmentComponentStore.getValuesAndEntityId();
+        const weaponComponent = this.weaponComponentStore.get(playerId);
         const weaponAttachment = weaponAttachments.find((weaponAttachmentEntry) => weaponAttachmentEntry[1].parentEntityId == playerId)!;
-        const weaponPosition = this.positionComponentStore.get(weaponAttachment[0]);
+        const weaponEntityId = weaponAttachment[0];
+        const weaponPosition = this.positionComponentStore.get(weaponEntityId);
         const rect = this.canvas.getBoundingClientRect();
         const mousePosX = e.clientX - rect.left;
         const mousePosY = e.clientY - rect.top;
@@ -105,7 +105,7 @@ export class ShootingSystem implements ISystem {
         const dx = mouseWorldPosition.x - weaponPosition.x;
         const dy = mouseWorldPosition.y - weaponPosition.y;
         const angle = Math.atan2(dy, dx);
-        this.aimShootingComponentStore.add(weaponAttachment[0], new AimShootingComponent(angle, 6));
+        this.aimShootingComponentStore.add(weaponEntityId, new AimRotationShootingComponent(angle, weaponComponent.configuredPivotRotation));
         this.currentMousePos = {
             x: mouseWorldPosition.x,
             y: mouseWorldPosition.y,

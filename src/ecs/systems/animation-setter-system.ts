@@ -1,7 +1,7 @@
 
 import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
 import { AIComponent } from "../components/ai.component.js";
-import { AimShootingComponent } from "../components/aim-shooting.component.js";
+import { AimRotationShootingComponent } from "../components/aim-rotation-shooting.component.js";
 import { AnimationComponent } from "../components/animation.component.js";
 import { DirectionAnimComponent } from "../components/direction-anim.component.js";
 import { WallHitComponent } from "../components/wall-hit.component.js";
@@ -32,7 +32,7 @@ export class AnimationSetterSystem implements ISystem {
         private animationComponentStore: ComponentStore<AnimationComponent>,
         private aiComponentStore: ComponentStore<AIComponent>,
         private playerComponentStore: ComponentStore<PlayerComponent>,
-        private aimShootingComponent: ComponentStore<AimShootingComponent>,
+        private aimShootingComponent: ComponentStore<AimRotationShootingComponent>,
         private weaponSpriteAttachmentComponent: ComponentStore<WeaponSpriteAttachmentComponent>,
         private wallHitComponentStore: ComponentStore<WallHitComponent>,
         private projectileComponentStore: ComponentStore<ProjectileComponent>,
