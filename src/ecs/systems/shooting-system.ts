@@ -26,7 +26,7 @@ export class ShootingSystem implements ISystem {
     private canvas: HTMLCanvasElement;
     private isMouseDown: boolean = false;
     private currentMousePos: { x: number, y: number } = { x: 0, y: 0 };
-
+    private lastMouseEvent? : MouseEvent;
     constructor(
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private enemyComponentStore: ComponentStore<EnemyComponent>,
@@ -52,6 +52,9 @@ export class ShootingSystem implements ISystem {
         let isGrenade: boolean = false;
         if (keys["g"]) isGrenade = true;
 
+        if (this.lastMouseEvent) {
+            this.updateMousePosition(this.lastMouseEvent);
+        }
         if (this.isMouseDown) {
             this.pushShotIntent(true); // isHold = true
         }
@@ -81,6 +84,7 @@ export class ShootingSystem implements ISystem {
     }
 
     private updateMousePosition = (e: MouseEvent) => {
+        this.lastMouseEvent = e;
         const playerIdRes = this.playerComponentStore.getAllEntities();
         const playerId = playerIdRes[0];
         if(this.disableAimComponentStore.has(playerId)) {
