@@ -37,6 +37,7 @@ export class StructureBaker {
             orientation: params.orientation,
             width: variant.width,
             height: variant.height,
+            groundTiles: [],
             walls: [],
             playerSpawns: [],
             enemySpawns: [],
@@ -70,9 +71,22 @@ export class StructureBaker {
 
         switch (tile.type) {
             case 'player_spawn':
+                result.groundTiles.push({
+                    x: worldX,
+                    y: worldY,
+                    type: tile.type,
+                });
                 result.playerSpawns.push({
                     x: worldX,
                     y: worldY,
+                });
+                return;
+
+            case 'extraction_area':
+                result.groundTiles.push({
+                    x: worldX,
+                    y: worldY,
+                    type: tile.type,
                 });
                 return;
 

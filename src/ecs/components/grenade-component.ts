@@ -1,5 +1,9 @@
 
 export class GrenadeComponent {
-  constructor() {
+  constructor(
+    public damage: number,
+    public firedByPlayer: boolean,
+    public explosionRadius: number,
+  ) {
   }
 }

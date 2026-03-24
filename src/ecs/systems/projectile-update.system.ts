@@ -1,9 +1,7 @@
 import { DirectionComponent } from "../components/direction-component.js";
-import { GrenadeComponent } from "../components/grenade-component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ProjectileComponent } from "../components/projectile-component.js";
-import { TravelTimeComponent } from "../components/travel-time.component.js";
 import { VelocityComponent } from "../components/velocity-component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { ISystem } from "./system.interface.js";
@@ -19,8 +17,6 @@ export class ProjectileUpdateSystem implements ISystem {
         private velocityComponentStore: ComponentStore<VelocityComponent>,
         private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
         private directionComponentStore: ComponentStore<DirectionComponent>,
-        private grenadeComponentStore: ComponentStore<GrenadeComponent>,
-        private travelTimeComponentStore: ComponentStore<TravelTimeComponent>,
     ) {
     }
 
@@ -46,18 +42,6 @@ export class ProjectileUpdateSystem implements ISystem {
                 position.x + dirX * velocity.currentVelocityX * deltaTime,
                 position.y + dirY * velocity.currentVelocityY * deltaTime,
             );
-
-            if (this.grenadeComponentStore.has(entity)) {
-                this.travelTimeComponentStore.get(entity).travelTime += deltaTime
-
-                const travelCheck =
-                    this.travelTimeComponentStore.get(entity).travelTime >= this.travelTimeComponentStore.get(entity).totalTravelTime;
-
-                if (travelCheck) {
-                    this.movementIntentComponentStore.remove(entity);
-                    continue;
-                }
-            }
 
             this.movementIntentComponentStore.add(entity, intent);
         }

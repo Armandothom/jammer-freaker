@@ -15,7 +15,6 @@ import { ISystem } from "./system.interface.js";
 import { ProjectileComponent } from "../components/projectile-component.js";
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
-import { LevelManager } from "../core/level-manager.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { OffsetAppliedComponent } from "../components/offset-applied.component.js";
 import { GrenadeComponent } from "../components/grenade-component.js";
@@ -97,13 +96,20 @@ export class AnimationSetterSystem implements ISystem {
                     animToUse = AnimationName.BULLET_WALL_HIT;
                     loop = false;
                     this.applyWallHitOffset(entityWithAnim);
-                } else if (isExplodedGrenade) {
+                }
+                else {
+                    animToUse = AnimationName.BULLET_FIRED
+                }
+            }
+
+            if (isGrenade) {
+                if (isExplodedGrenade) {
                     animToUse = AnimationName.GRENADE_EXPLOSION;
                     loop = false;
                     this.applyGrenadeExplosionOffset(entityWithAnim);
                 }
                 else {
-                    animToUse = isGrenade ? AnimationName.GRENADE_FIRED : AnimationName.BULLET_FIRED
+                    animToUse = AnimationName.GRENADE_FIRED
                 }
             }
 
@@ -115,29 +121,36 @@ export class AnimationSetterSystem implements ISystem {
 
     private applyWallHitOffset(entityWithAnim: number) {
         if (this.offsetAppliedComponentStore.has(entityWithAnim)) return;
-
-        let initialPosition = this.positionComponentStore.get(entityWithAnim);
-        const offsetX = this.spriteComponentStore.get(entityWithAnim).width / 2;
-        const offsetY = this.spriteComponentStore.get(entityWithAnim).height / 2;
-
-        const bulletWallHitProperties = this.spriteManager.getSpriteProperties(SpriteName.BULLET_WALL_HIT_1, SpriteSheetName.BULLET_WALL_HIT);
-
-        initialPosition.x += offsetX - bulletWallHitProperties.sprite.originalRenderSpriteWidth;
-        initialPosition.y += offsetY - bulletWallHitProperties.sprite.originalRenderSpriteHeight;
-        this.offsetAppliedComponentStore.add(entityWithAnim, new OffsetAppliedComponent());
+        this.applyCenteredSpriteOffset(
+            entityWithAnim,
+            SpriteName.BULLET_WALL_HIT_1,
+            SpriteSheetName.BULLET_WALL_HIT,
+        );
     }
 
     private applyGrenadeExplosionOffset(entityWithAnim: number) {
         if (this.offsetAppliedComponentStore.has(entityWithAnim)) return;
-        let initialPosition = this.positionComponentStore.get(entityWithAnim);
-        //Grenade offset
-        const offsetX = this.spriteComponentStore.get(entityWithAnim).width / 2;
-        const offsetY = this.spriteComponentStore.get(entityWithAnim).height / 2;
+        this.applyCenteredSpriteOffset(
+            entityWithAnim,
+            SpriteName.GRENADE_EXPLOSION_1,
+            SpriteSheetName.GRENADE_EXPLOSION,
+        );
+    }
 
-        const explosionProperties = this.spriteManager.getSpriteProperties(SpriteName.GRENADE_EXPLOSION_1, SpriteSheetName.GRENADE_EXPLOSION);
+    private applyCenteredSpriteOffset(
+        entityWithAnim: number,
+        nextSpriteName: SpriteName,
+        nextSpriteSheetName: SpriteSheetName,
+    ) {
+        const initialPosition = this.positionComponentStore.get(entityWithAnim);
+        const currentSprite = this.spriteComponentStore.get(entityWithAnim);
+        const nextSpriteProperties = this.spriteManager.getSpriteProperties(nextSpriteName, nextSpriteSheetName);
 
-        initialPosition.x += offsetX - explosionProperties.sprite.originalRenderSpriteWidth;
-        initialPosition.y += offsetY - explosionProperties.sprite.originalRenderSpriteHeight;
+        const currentCenterX = initialPosition.x + currentSprite.width / 2;
+        const currentCenterY = initialPosition.y + currentSprite.height / 2;
+
+        initialPosition.x = currentCenterX - nextSpriteProperties.sprite.originalRenderSpriteWidth / 2;
+        initialPosition.y = currentCenterY - nextSpriteProperties.sprite.originalRenderSpriteHeight / 2;
         this.offsetAppliedComponentStore.add(entityWithAnim, new OffsetAppliedComponent());
     }
 }

@@ -1,5 +1,8 @@
 
 export class ProjectileComponent {
-    constructor() {
+    constructor(
+        public damage: number,
+        public firedByPlayer: boolean,
+    ) {
     }
 }

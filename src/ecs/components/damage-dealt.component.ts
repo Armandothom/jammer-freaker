@@ -1,4 +1,4 @@
-export class DamageComponent {
+export class DamageDealtComponent {
     public damage: number;
 
     constructor(damage: number) {

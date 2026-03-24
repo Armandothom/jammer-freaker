@@ -1,7 +1,10 @@
-import { SpriteName } from "./sprite-name.enum.js"
+import { SpriteName } from "./sprite-name.enum.js";
 
-export abstract class TilemapTile {
-  x! : number
-  y! : number
-  spriteName! : SpriteName
+export type WorldGroundTileType = "ground" | "player_spawn" | "extraction_area";
+
+export interface TilemapTile {
+  x: number;
+  y: number;
+  spriteName: SpriteName;
+  type: WorldGroundTileType;
 }

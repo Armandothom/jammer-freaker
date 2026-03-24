@@ -136,6 +136,7 @@ export class ZoneFactory {
             }
         }
 
+        this.generatePlayerSpawnHostageExtraction(zones, reservedExteriorZoneKeys, result);
         this.generateOuterStructures(zones, reservedExteriorZoneKeys, result);
         this.generateInnerStructures(zones, result, reservedOpenTileKeys);
         this.removeWallsAtReservedTiles(result, reservedOpenTileKeys);
@@ -145,6 +146,7 @@ export class ZoneFactory {
 
     private createEmptyWorldLevelResult(): WorldLevelResult {
         return {
+            groundTiles: [],
             walls: [],
             playerSpawns: [],
             enemySpawns: [],
@@ -156,6 +158,7 @@ export class ZoneFactory {
         target: WorldLevelResult,
         source: BakedStructureResult,
     ): void {
+        target.groundTiles.push(...source.groundTiles);
         target.walls.push(...source.walls);
         target.playerSpawns.push(...source.playerSpawns);
         target.enemySpawns.push(...source.enemySpawns);
@@ -203,6 +206,36 @@ export class ZoneFactory {
 
             this.mergeStructureIntoWorldResult(result, bakedStructure);
         }
+    }
+
+    private generatePlayerSpawnHostageExtraction(
+        zones: WorldZone[],
+        reservedExteriorZoneKeys: Set<string>,
+        result: WorldLevelResult,
+    ): void {
+        const eligibleZones = this.shuffle(
+            zones.filter(zone =>
+                this.isExteriorZone(zone.type) &&
+                !reservedExteriorZoneKeys.has(this.zoneKey(zone)),
+            ),
+        );
+
+        for (const zone of eligibleZones) {
+            const bakedStructure = this.tryGenerateFixedStructureForZone(
+                zone,
+                'playerSpawn_hostageExtraction',
+            );
+
+            if (!bakedStructure) {
+                continue;
+            }
+
+            this.mergeStructureIntoWorldResult(result, bakedStructure);
+            reservedExteriorZoneKeys.add(this.zoneKey(zone));
+            return;
+        }
+
+        console.warn('Unable to place a playerSpawn_hostageExtraction structure in any exterior zone.');
     }
 
     private generateInnerStructures(

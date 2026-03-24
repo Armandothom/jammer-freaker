@@ -7,7 +7,8 @@ export type StructureCategory =
   | "great_outer_structure"
   | "inner_structure"
   | "main_building_structure"
-  | "walls_doors";
+  | "walls_doors"
+  | "playerSpawn_hostageExtraction";
 
 export type StructureDoorTileType =
   | `outer_door_${number}`
@@ -17,9 +18,13 @@ export type StructureWallTileType =
   | "wall"
   | StructureDoorTileType;
 
+export type StructureGroundTileType =
+  | "player_spawn"
+  | "extraction_area";
+
 export type StructureTileType =
   | StructureWallTileType
-  | "player_spawn"
+  | StructureGroundTileType
   | "enemy_spawn"
   | "loot_spawn";
 
@@ -33,6 +38,12 @@ export interface StructurePlayerSpawnTileDefinition {
   x: number;
   y: number;
   type: "player_spawn";
+}
+
+export interface StructureExtractionAreaTileDefinition {
+  x: number;
+  y: number;
+  type: "extraction_area";
 }
 
 export interface StructureEnemySpawnTileDefinition {
@@ -54,6 +65,7 @@ export interface StructureLootSpawnTileDefinition {
 export type StructureTileDefinition =
   | StructureWallTileDefinition
   | StructurePlayerSpawnTileDefinition
+  | StructureExtractionAreaTileDefinition
   | StructureEnemySpawnTileDefinition
   | StructureLootSpawnTileDefinition;
 

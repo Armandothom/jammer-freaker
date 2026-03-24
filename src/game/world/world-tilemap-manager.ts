@@ -50,6 +50,7 @@ export class WorldTilemapManager {
           x,
           y,
           spriteName: SpriteName.METAL_1,
+          type: 'ground',
         });
       }
     }
@@ -96,7 +97,14 @@ export class WorldTilemapManager {
   }
 
   public applyWorldLevelResult(levelResult: WorldLevelResult): void {
+    this.applyGroundTiles(levelResult.groundTiles);
     this.applyWalls(levelResult.walls);
+  }
+
+  public applyGroundTiles(groundTiles: WorldLevelResult['groundTiles']): void {
+    for (const groundTile of groundTiles) {
+      this.setTileType(groundTile.x, groundTile.y, groundTile.type);
+    }
   }
 
   public applyWalls(walls: WorldLevelResult['walls']): void {
@@ -111,6 +119,7 @@ export class WorldTilemapManager {
 
   public clearLevelGeometry(): void {
     this._wallTiles.clear();
+    this.resetTilemapToGround();
   }
 
   public setWall(x: number, y: number, spriteName: SpriteName): void {
@@ -221,12 +230,28 @@ export class WorldTilemapManager {
 
   public setTile(x: number, y: number, spriteName: SpriteName): void {
     this.ensureTileBounds(x, y);
+    const currentTile = this.getTile(x, y);
 
     this._tilemap.set(this.setTilemapKey(x, y), {
       x,
       y,
       spriteName,
+      type: currentTile.type,
     });
+  }
+
+  public setTileType(x: number, y: number, type: TilemapTile['type']): void {
+    this.ensureTileBounds(x, y);
+    const currentTile = this.getTile(x, y);
+
+    this._tilemap.set(this.setTilemapKey(x, y), {
+      ...currentTile,
+      type,
+    });
+  }
+
+  public getTileType(x: number, y: number): TilemapTile['type'] {
+    return this.getTile(x, y).type;
   }
 
   public get zones(): WorldZone[] {
@@ -279,8 +304,27 @@ export class WorldTilemapManager {
     return this._tilemapSpritesheetName;
   }
 
+  public get validSpawnTile(): { x: number; y: number }[] {
+    const validTiles: { x: number; y: number }[] = [];
+
+    for (const tile of this._tilemap.values()) {
+      if (!this._wallTiles.has(this.setTilemapKey(tile.x, tile.y))) {
+        validTiles.push({ x: tile.x, y: tile.y });
+      }
+    }
+
+    return validTiles;
+  }
+
   private setTilemapKey(x: number, y: number): string {
     return `${x}_${y}`;
+  }
+
+  private resetTilemapToGround(): void {
+    for (const tile of this._tilemap.values()) {
+      tile.spriteName = SpriteName.METAL_1;
+      tile.type = 'ground';
+    }
   }
 
   private ensureTileBounds(x: number, y: number): void {
