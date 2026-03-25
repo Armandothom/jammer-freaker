@@ -13,6 +13,7 @@ export enum AnimationName {
   WEAPON_PISTOL = "weapon_pistol",
   WEAPON_SNIPER = "weapon_sniper",
   BULLET_FIRED = "bullet_fired",
+  DIALOG_BALLOON_IDLE = "dialog_balloon_idle",
   BULLET_WALL_HIT = "bullet_wall_hit",
   GRENADE_FIRED = "grenade_fired",
   GRENADE_EXPLOSION = "grenade_explosion",

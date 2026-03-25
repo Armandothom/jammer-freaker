@@ -120,6 +120,9 @@ export class SpriteManager {
 
   private createWebGLTexture(img: HTMLImageElement): WebGLTexture {
     const tex = this._gl.createTexture();
+    if (!tex) {
+      throw new Error("Could not create WebGL texture");
+    }
     this._gl.bindTexture(this._gl.TEXTURE_2D, tex);
     //We flip the WebGL on Y since it renders the image from bottom-left, instead of top-left.
     this._gl.pixelStorei(this._gl.UNPACK_FLIP_Y_WEBGL, true);

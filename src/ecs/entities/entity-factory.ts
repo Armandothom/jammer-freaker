@@ -6,9 +6,14 @@ import { AiMovementRadiusComponent } from "../components/ai-movement-radius.comp
 import { AIComponent } from "../components/ai.component.js";
 import { AimRotationShootingComponent } from "../components/aim-rotation-shooting.component.js";
 import { AnimationComponent } from "../components/animation.component.js";
+import { BitmapTextComponent } from "../components/bitmap-text.component.js";
 import { CameraComponent } from "../components/camera-component.js";
 import { CollisionBoxComponent } from "../components/collision-box-component.js";
 import { DamageDealtComponent } from "../components/damage-dealt.component.js";
+import { DialogAnimComponent } from "../components/dialog-anim.component.js";
+import { DialogBubbleSpriteComponent } from "../components/dialog-bubble-sprite.component.js";
+import { DialogComponent } from "../components/dialog.component.js";
+import { DialogLifetimeComponent } from "../components/dialog-lifetime.component.js";
 import { DirectionAnimComponent } from "../components/direction-anim.component.js";
 import { DirectionComponent } from "../components/direction-component.js";
 import { EnemyDeadComponent } from "../components/enemy-dead.component.js";
@@ -47,6 +52,15 @@ import { EntityManager } from "../core/entity-manager.js";
 
 const GRENADE_SPRITE_WIDTH = 14;
 const GRENADE_SPRITE_HEIGHT = 16;
+const DEFAULT_DIALOG_FONT_ID = "04b_03";
+const DEFAULT_DIALOG_TEXT_SCALE = 2;
+const DEFAULT_DIALOG_TEXT_MAX_WIDTH = 96;
+const DEFAULT_DIALOG_PADDING_X = 8;
+const DEFAULT_DIALOG_PADDING_Y = 6;
+const DEFAULT_DIALOG_TEXT_OFFSET_X = 8;
+const DEFAULT_DIALOG_TEXT_OFFSET_Y = 6;
+const DEFAULT_DIALOG_MIN_WIDTH = 48;
+const DEFAULT_DIALOG_MIN_HEIGHT = 28;
 
 export class EntityFactory {
   constructor(
@@ -89,7 +103,12 @@ export class EntityFactory {
     private shapeAngleComponentStore: ComponentStore<ShapeAngleComponent>,
     private shapeHitMemoryComponentStore: ComponentStore<ShapeHitMemoryComponent>,
     private cameraComponentStore: ComponentStore<CameraComponent>,
-    private hitboxComponentStore: ComponentStore<HitBoxComponent>
+    private hitboxComponentStore: ComponentStore<HitBoxComponent>,
+    private dialogComponentStore: ComponentStore<DialogComponent>,
+    private dialogLifetimeComponentStore: ComponentStore<DialogLifetimeComponent>,
+    private dialogBubbleSpriteComponentStore: ComponentStore<DialogBubbleSpriteComponent>,
+    private bitmapTextComponentStore: ComponentStore<BitmapTextComponent>,
+    private dialogAnimComponentStore: ComponentStore<DialogAnimComponent>,
   ) {
   }
 
@@ -308,6 +327,62 @@ export class EntityFactory {
     return entityId;
   }
 
+  createDialog(
+    sourceEntityId: number,
+    text: string,
+    remainingTime: number,
+    dialogType: string = "speech",
+    followSource: boolean = true,
+    destroyOnExpire: boolean = true,
+  ) {
+    const entityId = this.entityManager.registerEntity();
+    const dialogAnimation = new DialogAnimComponent(AnimationName.DIALOG_BALLOON_IDLE);
+    const animationComponent = new AnimationComponent(
+      dialogAnimation.animationName,
+      dialogAnimation.loop,
+    );
+    animationComponent.startAnimationTime = dialogAnimation.startAnimationTime;
+
+    this.renderableComponentStore.add(entityId, new RenderableComponent());
+    this.positionComponentStore.add(entityId, new PositionComponent(0, 0));
+    this.dialogComponentStore.add(entityId, new DialogComponent(
+      sourceEntityId,
+      dialogType,
+      text,
+      followSource,
+      destroyOnExpire,
+    ));
+    this.dialogLifetimeComponentStore.add(entityId, new DialogLifetimeComponent(remainingTime));
+    this.dialogBubbleSpriteComponentStore.add(entityId, new DialogBubbleSpriteComponent(
+      SpriteName.DIALOG_BALLOON_1,
+      SpriteSheetName.DIALOG_BALLOON,
+      DEFAULT_DIALOG_PADDING_X,
+      DEFAULT_DIALOG_PADDING_Y,
+      DEFAULT_DIALOG_TEXT_OFFSET_X,
+      DEFAULT_DIALOG_TEXT_OFFSET_Y,
+      DEFAULT_DIALOG_MIN_WIDTH,
+      DEFAULT_DIALOG_MIN_HEIGHT,
+    ));
+    this.bitmapTextComponentStore.add(entityId, new BitmapTextComponent(
+      text,
+      DEFAULT_DIALOG_FONT_ID,
+      DEFAULT_DIALOG_TEXT_SCALE,
+      DEFAULT_DIALOG_TEXT_MAX_WIDTH,
+      true,
+      "center",
+    ));
+    this.dialogAnimComponentStore.add(entityId, dialogAnimation);
+    this.animationComponentStore.add(entityId, animationComponent);
+    this.spriteComponentStore.add(entityId, new SpriteComponent(
+      SpriteName.DIALOG_BALLOON_1,
+      SpriteSheetName.DIALOG_BALLOON,
+      DEFAULT_DIALOG_MIN_WIDTH,
+      DEFAULT_DIALOG_MIN_HEIGHT,
+    ));
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
+    return entityId;
+  }
+
   destroyProjectile(entityId: number): void {
     this.renderableComponentStore.remove(entityId);
     this.positionComponentStore.remove(entityId);
@@ -354,6 +429,19 @@ export class EntityFactory {
       this.movementIntentComponentStore.remove(entityId);
     }
     this.destroyWeapon(entityId);
+  }
+
+  destroyDialog(entityId: number): void {
+    this.renderableComponentStore.remove(entityId);
+    this.positionComponentStore.remove(entityId);
+    this.spriteComponentStore.remove(entityId);
+    this.animationComponentStore.remove(entityId);
+    this.dialogComponentStore.remove(entityId);
+    this.dialogLifetimeComponentStore.remove(entityId);
+    this.dialogBubbleSpriteComponentStore.remove(entityId);
+    this.bitmapTextComponentStore.remove(entityId);
+    this.dialogAnimComponentStore.remove(entityId);
+    this.zLayerComponentStore.remove(entityId);
   }
 
   createWeapon(parentEntityId: number, weaponConfig: WeaponConfig) {

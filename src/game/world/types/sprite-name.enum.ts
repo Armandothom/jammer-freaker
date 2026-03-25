@@ -20,6 +20,8 @@ export enum SpriteName {
   ENEMY_RUNNING_4 = "enemy_running_4",
   ENEMY_RUNNING_5 = "enemy_running_5",
   BULLET_1 = "bullet_1",
+  DIALOG_BALLOON_1 = "dialog_balloon_1",
+  DIALOG_BALLOON_2 = "dialog_balloon_2",
   BULLET_WALL_HIT_1 = "bullet_wall_hit_1",
   BULLET_WALL_HIT_2 = "bullet_wall_hit_2",
   BULLET_WALL_HIT_3 = "bullet_wall_hit_3",

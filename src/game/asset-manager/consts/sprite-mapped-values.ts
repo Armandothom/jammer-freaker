@@ -223,6 +223,33 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
   ],
 
   [
+    SpriteSheetName.DIALOG_BALLOON,
+    {
+      rows: 1,
+      columns: 2,
+      eachSpriteCellSizeHeight: 80,
+      eachSpriteCellSizeWidth: 128,
+      srcImagePath: 'src/assets/images/dialog-ballon-spritesheet.png',
+      sprites: new Map([
+        [SpriteName.DIALOG_BALLOON_1, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 80,
+          originalRenderSpriteWidth: 128,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 128, height: 80 }
+        }],
+        [SpriteName.DIALOG_BALLOON_2, {
+          row: 1,
+          column: 2,
+          originalRenderSpriteHeight: 80,
+          originalRenderSpriteWidth: 128,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 128, height: 80 }
+        }],
+      ])
+    }
+  ],
+
+  [
     SpriteSheetName.BULLET_WALL_HIT,
     {
       rows: 1,

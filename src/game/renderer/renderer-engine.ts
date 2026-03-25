@@ -924,10 +924,14 @@ export class RendererEngine {
   }
 
   private createProgram(vertexShader: WebGLShader, fragmentShader: WebGLShader) {
-    this._program = this._gl.createProgram();
-    this._gl.attachShader(this._program, vertexShader);
-    this._gl.attachShader(this._program, fragmentShader);
-    this._gl.linkProgram(this._program);
+    const program = this._gl.createProgram();
+    if (!program) {
+      throw new Error("An error occurred while trying to create shader program.");
+    }
+    this._program = program;
+    this._gl.attachShader(program, vertexShader);
+    this._gl.attachShader(program, fragmentShader);
+    this._gl.linkProgram(program);
     if (!this._gl.getProgramParameter(this._program, this._gl.LINK_STATUS)) {
       const infoLog = this._gl.getProgramInfoLog(this._program);
       console.error(infoLog);

@@ -1,7 +1,7 @@
 {
   "fontId": "04b_03",
   "source": "04B_03__.TTF",
-  "atlas": "04b03_font_atlas.png",
+  "atlas": "font_atlas.png",
   "size": 8,
   "lineHeight": 8,
   "ascent": 6,
