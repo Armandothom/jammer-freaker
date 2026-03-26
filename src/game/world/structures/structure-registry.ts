@@ -3,6 +3,7 @@ import {
   StructureCategory,
   StructureDefinition,
   StructureEnemySpawnTileDefinition,
+  StructureExtractionAreaTileDefinition,
   StructureLootSpawnTileDefinition,
   StructureTileDefinition,
   StructureVariantDefinition,
@@ -50,6 +51,7 @@ const STRUCTURE_CATEGORIES: StructureCategory[] = [
   "inner_structure",
   "main_building_structure",
   "walls_doors",
+  "playerSpawn_hostageExtraction",
 ];
 
 export const STRUCTURE_REGISTRY: Record<StructureName, StructureDefinition> =
@@ -243,6 +245,9 @@ function parseStructureTile(
   switch (type) {
     case "player_spawn":
       return { x, y, type };
+
+    case "extraction_area":
+      return { x, y, type } satisfies StructureExtractionAreaTileDefinition;
 
     case "enemy_spawn":
       return {

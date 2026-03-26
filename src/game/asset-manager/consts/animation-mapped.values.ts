@@ -196,6 +196,24 @@ export const ANIMATION_MAPPED: Map<AnimationName, Map<SpriteName, AnimationKeyMa
   ],
 
   [
+    AnimationName.DIALOG_BALLOON_IDLE,
+    new Map<SpriteName, AnimationKeyMap>([
+      [SpriteName.DIALOG_BALLOON_1, {
+        spriteName: SpriteName.DIALOG_BALLOON_1,
+        spriteSheetName: SpriteSheetName.DIALOG_BALLOON,
+        order: 1,
+        durationKeyFrame: 0.2
+      }],
+      [SpriteName.DIALOG_BALLOON_2, {
+        spriteName: SpriteName.DIALOG_BALLOON_2,
+        spriteSheetName: SpriteSheetName.DIALOG_BALLOON,
+        order: 2,
+        durationKeyFrame: 0.2
+      }],
+    ])
+  ],
+
+  [
     AnimationName.BULLET_WALL_HIT,
     new Map<SpriteName, AnimationKeyMap>([
 

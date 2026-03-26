@@ -199,7 +199,7 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
     SpriteSheetName.PROJECTILE,
     {
       rows: 1,
-      columns: 2,
+      columns: 4,
       eachSpriteCellSizeHeight: 16,
       eachSpriteCellSizeWidth: 16,
       srcImagePath: 'src/assets/images/projectiles.png',
@@ -213,10 +213,37 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
         }],
         [SpriteName.GRENADE_1, {
           row: 1,
-          column: 2,
+          column: 3,
           originalRenderSpriteHeight: 16,
           originalRenderSpriteWidth: 14,
           spriteCellOffset: { offsetX: 0, offsetY: 0, width: 14, height: 16 }
+        }],
+      ])
+    }
+  ],
+
+  [
+    SpriteSheetName.DIALOG_BALLOON,
+    {
+      rows: 1,
+      columns: 2,
+      eachSpriteCellSizeHeight: 80,
+      eachSpriteCellSizeWidth: 128,
+      srcImagePath: 'src/assets/images/dialog-ballon-spritesheet.png',
+      sprites: new Map([
+        [SpriteName.DIALOG_BALLOON_1, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 80,
+          originalRenderSpriteWidth: 128,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 128, height: 80 }
+        }],
+        [SpriteName.DIALOG_BALLOON_2, {
+          row: 1,
+          column: 2,
+          originalRenderSpriteHeight: 80,
+          originalRenderSpriteWidth: 128,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 128, height: 80 }
         }],
       ])
     }

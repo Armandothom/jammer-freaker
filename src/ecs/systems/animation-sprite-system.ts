@@ -17,6 +17,7 @@ export class AnimationSpriteSystem implements ISystem {
         const entitiesWithAnim = this.animationComponentStore.getAllEntities();
         for (const entityId of entitiesWithAnim) {
             const animComponent = this.animationComponentStore.get(entityId);
+            const currentSprite = this.spriteComponentStore.getOrNull(entityId);
             const keyframes = ANIMATION_MAPPED.get(animComponent.animationName);
 
             if (!keyframes) {
@@ -41,7 +42,9 @@ export class AnimationSpriteSystem implements ISystem {
 
             this.spriteComponentStore.add(entityId, new SpriteComponent(
                 currentFrame.spriteName,
-                currentFrame.spriteSheetName
+                currentFrame.spriteSheetName,
+                currentSprite?.width ?? 32,
+                currentSprite?.height ?? 32,
             ));
         }
     }

@@ -2,13 +2,13 @@ import { AssetManager } from "../../game/asset-manager/asset-manager.js";
 import { SoundManager } from "../../game/asset-manager/sound-manager.js";
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { RendererEngine } from "../../game/renderer/renderer-engine.js";
+import { TextManager } from "../../game/text/text-manager.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
+import { DebugManager } from "./debug-manager.js";
 import { EntityManager } from "./entity-manager.js";
+import { FreezeManager } from "./freeze-manager.js";
 import { LevelManager } from "./level-manager.js";
 import { SystemRunner } from "./system-runner.js";
-import { SoundMap } from "../../game/asset-manager/consts/sound-mapped.values.js"
-import { FreezeManager } from "./freeze-manager.js";
-import { DebugManager } from "./debug-manager.js";
 
 export class CoreManager {
     private previousTimestamp = 0;
@@ -16,6 +16,7 @@ export class CoreManager {
     static timeGlobalSinceStart = 0;
     private _assetManager: AssetManager;
     private _spriteManager!: SpriteManager;
+    private _textManager!: TextManager;
     private _systemRunner!: SystemRunner;
     private _worldTilemapManager!: WorldTilemapManager;
     private _rendererEngine: RendererEngine;
@@ -39,10 +40,11 @@ export class CoreManager {
         await this._soundManager.loadMultipleSounds();
         this._spriteManager = new SpriteManager(this._assetManager);
         this._rendererEngine.init();
+        this._textManager = new TextManager(this._assetManager);
         console.log("Game generated");
 
         this._worldTilemapManager = new WorldTilemapManager();
-        this._systemRunner = new SystemRunner(this._worldTilemapManager, this._spriteManager, this._entityManager, this._soundManager, this._rendererEngine, this._levelManager, this._freezeManager, this._debugManager);
+        this._systemRunner = new SystemRunner(this._worldTilemapManager, this._spriteManager, this._textManager, this._entityManager, this._soundManager, this._rendererEngine, this._levelManager, this._freezeManager, this._debugManager);
         this._systemRunner.initialize();
         this._soundManager.resumeOnUserGesture();
         //this._soundManager.playSound("THEME", true, 0.1);

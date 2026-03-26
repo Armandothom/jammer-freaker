@@ -1,4 +1,5 @@
 import { SPRITESHEET_MAPPED_VALUES } from "./consts/sprite-mapped-values.js";
+import { FONT_MAPPED_VALUES } from "../text/consts/font-mapped-values.js";
 
 export class AssetManager {
   private _isLoaded: boolean = false;
@@ -6,6 +7,7 @@ export class AssetManager {
 
   public async loadAssets() {
     await this.loadSpriteSheets();
+    await this.loadFontAtlases();
   }
 
   private async loadSpriteSheets() {
@@ -25,6 +27,20 @@ export class AssetManager {
       })
     }
     this._isLoaded = true;
+  }
+
+  private async loadFontAtlases() {
+    const mappedFonts = FONT_MAPPED_VALUES.entries();
+    for (const [fontId, fontBlueprint] of mappedFonts) {
+      await new Promise((resolve) => {
+        const fontAtlasImage = new Image();
+        fontAtlasImage.src = fontBlueprint.atlasImagePath;
+        this._loadedImages.set(fontId, fontAtlasImage);
+        fontAtlasImage.onload = (() => {
+          resolve(true);
+        });
+      });
+    }
   }
 
 

@@ -2,6 +2,7 @@ import { EnemyType } from "../../../ecs/components/types/enemy-type.js";
 import { StructureWallTileType } from "./structure-definition.js";
 import { StructureName } from "./structure-name.js";
 import { StructureOrientation } from "./structure-orientation.js";
+import { WorldGroundTileType } from "./tilemap-tile.js";
 
 export interface BakedWall {
     x: number;
@@ -12,6 +13,12 @@ export interface BakedWall {
 export interface BakedPlayerSpawn {
     x: number;
     y: number;
+}
+
+export interface BakedGroundTile {
+    x: number;
+    y: number;
+    type: WorldGroundTileType;
 }
 
 export interface BakedEnemySpawn {
@@ -33,6 +40,7 @@ export interface BakedStructureResult {
     orientation: StructureOrientation;
     width: number;
     height: number;
+    groundTiles: BakedGroundTile[];
     walls: BakedWall[];
     playerSpawns: BakedPlayerSpawn[];
     enemySpawns: BakedEnemySpawn[];
@@ -40,6 +48,7 @@ export interface BakedStructureResult {
 }
 
 export interface WorldLevelResult {
+    groundTiles: BakedGroundTile[];
     walls: BakedWall[];
     playerSpawns: BakedPlayerSpawn[];
     enemySpawns: BakedEnemySpawn[];

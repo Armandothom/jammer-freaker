@@ -1,5 +1,7 @@
+// Legacy system kept only as reference after grenade flow was split into
+// grenade spawn/update systems.
 import { AnimationComponent } from "../components/animation.component.js";
-import { DamageTakenComponent } from "../components/damage-taken.component.js";
+import { DamageTakenIntentComponent } from "../components/damage-taken-intent.component.js";
 import { DelayedDestructionComponent } from "../components/delayed-destruction.component.js";
 import { EnemyDeadComponent } from "../components/enemy-dead.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
@@ -9,15 +11,13 @@ import { GrenadeExplosionComponent } from "../components/grenade-explosion.compo
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ShooterComponent } from "../components/shooter-component.js";
-import { SpriteComponent } from "../components/sprite.component.js";
 import { EnemyConfig, EnemyType } from "../components/types/enemy-type.js";
 import { WeaponConfig, WeaponType } from "../components/types/weapon-type.js";
-import { WeaponComponent } from "../components/weapon.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityFactory } from "../entities/entity-factory.js";
 import { ISystem } from "./system.interface.js";
 
-export class ExplosionSystem implements ISystem {
+export class ExplosionSystemLegacy implements ISystem {
 
     constructor(
         private entityFactory: EntityFactory,
@@ -27,7 +27,7 @@ export class ExplosionSystem implements ISystem {
         private enemyComponentStore: ComponentStore<EnemyComponent>,
         private positionComponentStore: ComponentStore<PositionComponent>,
         private shooterComponentStore: ComponentStore<ShooterComponent>,
-        private damageTakenComponentStore: ComponentStore<DamageTakenComponent>,
+        private damageTakenIntentComponentStore: ComponentStore<DamageTakenIntentComponent>,
         private grenadeExplosionComponentStore: ComponentStore<GrenadeExplosionComponent>,
         private delayedDestructionComponentStore: ComponentStore<DelayedDestructionComponent>,
         private animationComponentStore: ComponentStore<AnimationComponent>,
@@ -67,11 +67,11 @@ export class ExplosionSystem implements ISystem {
 
                 if (hypot <= EnemyConfig[EnemyType.BOMBER].attackExplosionRadius) {
                     const damage = EnemyConfig[EnemyType.BOMBER].damage - (EnemyConfig[EnemyType.BOMBER].damage / EnemyConfig[EnemyType.BOMBER].attackExplosionRadius) * hypot
-                    this.damageTakenComponentStore.add(playerId, new DamageTakenComponent(damageSourceId, damage))
+                    this.damageTakenIntentComponentStore.add(playerId, new DamageTakenIntentComponent(damageSourceId, damage))
                 }
                 this.delayedDestructionComponentStore.add(grenadeEntity, new DelayedDestructionComponent(0.6));
             }
-            
+
             if (this.grenadeExplosionComponentStore.has(grenadeEntity)) {
                 if (this.delayedDestructionComponentStore.has(grenadeEntity)) {
                     this.delayedDestructionComponentStore.get(grenadeEntity).destructionTime += deltaTime;
@@ -115,7 +115,7 @@ export class ExplosionSystem implements ISystem {
 
                         if (hypot <= WeaponConfig[WeaponType.GRENADE].explosionRadius) {
                             const damage = WeaponConfig[WeaponType.GRENADE].damage - (WeaponConfig[WeaponType.GRENADE].damage / WeaponConfig[WeaponType.GRENADE].explosionRadius) * hypot
-                            this.damageTakenComponentStore.add(enemy, new DamageTakenComponent(damageSourceId, damage))
+                            this.damageTakenIntentComponentStore.add(enemy, new DamageTakenIntentComponent(damageSourceId, damage))
                         }
                     }
                 }

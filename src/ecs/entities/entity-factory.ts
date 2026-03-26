@@ -6,9 +6,14 @@ import { AiMovementRadiusComponent } from "../components/ai-movement-radius.comp
 import { AIComponent } from "../components/ai.component.js";
 import { AimRotationShootingComponent } from "../components/aim-rotation-shooting.component.js";
 import { AnimationComponent } from "../components/animation.component.js";
+import { BitmapTextComponent } from "../components/bitmap-text.component.js";
 import { CameraComponent } from "../components/camera-component.js";
 import { CollisionBoxComponent } from "../components/collision-box-component.js";
-import { DamageComponent } from "../components/damage.component.js";
+import { DamageDealtComponent } from "../components/damage-dealt.component.js";
+import { DialogAnimComponent } from "../components/dialog-anim.component.js";
+import { DialogBubbleSpriteComponent } from "../components/dialog-bubble-sprite.component.js";
+import { DialogComponent } from "../components/dialog.component.js";
+import { DialogLifetimeComponent } from "../components/dialog-lifetime.component.js";
 import { DirectionAnimComponent } from "../components/direction-anim.component.js";
 import { DirectionComponent } from "../components/direction-component.js";
 import { EnemyDeadComponent } from "../components/enemy-dead.component.js";
@@ -35,7 +40,7 @@ import { ShotOriginComponent } from "../components/shot-origin.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { TravelTimeComponent } from "../components/travel-time.component.js";
 import { AnimDirection } from "../components/types/anim-direction.js";
-import { EnemyType } from "../components/types/enemy-type.js";
+import { EnemyConfig, EnemyType } from "../components/types/enemy-type.js";
 import { WeaponConfig, WeaponType } from "../components/types/weapon-type.js";
 import { VelocityComponent } from "../components/velocity-component.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
@@ -44,6 +49,18 @@ import { WeaponComponent } from "../components/weapon.component.js";
 import { ZLayerComponent } from "../components/z-layer.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityManager } from "../core/entity-manager.js";
+
+const GRENADE_SPRITE_WIDTH = 14;
+const GRENADE_SPRITE_HEIGHT = 16;
+const DEFAULT_DIALOG_FONT_ID = "04b_03";
+const DEFAULT_DIALOG_TEXT_SCALE = 2;
+const DEFAULT_DIALOG_TEXT_MAX_WIDTH = 96;
+const DEFAULT_DIALOG_PADDING_X = 8;
+const DEFAULT_DIALOG_PADDING_Y = 6;
+const DEFAULT_DIALOG_TEXT_OFFSET_X = 8;
+const DEFAULT_DIALOG_TEXT_OFFSET_Y = 6;
+const DEFAULT_DIALOG_MIN_WIDTH = 48;
+const DEFAULT_DIALOG_MIN_HEIGHT = 28;
 
 export class EntityFactory {
   constructor(
@@ -63,7 +80,7 @@ export class EntityFactory {
     private aiComponentStore: ComponentStore<AIComponent>,
     private healthComponentStore: ComponentStore<HealthComponent>,
     private shotOriginComponentStore: ComponentStore<ShotOriginComponent>,
-    private damageComponentStore: ComponentStore<DamageComponent>,
+    private damageDealtComponentStore: ComponentStore<DamageDealtComponent>,
     private shootingCooldownComponentStore: ComponentStore<ShootingCooldownComponent>,
     private aiAttackRangeComponentStore: ComponentStore<AiAttackRangeComponent>,
     private aiMovementRadiusComponentStore: ComponentStore<AiMovementRadiusComponent>,
@@ -77,6 +94,7 @@ export class EntityFactory {
     private grenadeComponentStore: ComponentStore<GrenadeComponent>,
     private grenadeBeltComponentStore: ComponentStore<GrenadeBeltComponent>,
     private travelTimeComponentStore: ComponentStore<TravelTimeComponent>,
+
     private fuseTimerComponentStore: ComponentStore<FuseTimerComponent>,
     private shapeDimensionComponentStore: ComponentStore<ShapeDimensionComponent>,
     private shapePositionComponentStore: ComponentStore<ShapePositionComponent>,
@@ -85,11 +103,16 @@ export class EntityFactory {
     private shapeAngleComponentStore: ComponentStore<ShapeAngleComponent>,
     private shapeHitMemoryComponentStore: ComponentStore<ShapeHitMemoryComponent>,
     private cameraComponentStore: ComponentStore<CameraComponent>,
-    private hitboxComponentStore: ComponentStore<HitBoxComponent>
+    private hitboxComponentStore: ComponentStore<HitBoxComponent>,
+    private dialogComponentStore: ComponentStore<DialogComponent>,
+    private dialogLifetimeComponentStore: ComponentStore<DialogLifetimeComponent>,
+    private dialogBubbleSpriteComponentStore: ComponentStore<DialogBubbleSpriteComponent>,
+    private bitmapTextComponentStore: ComponentStore<BitmapTextComponent>,
+    private dialogAnimComponentStore: ComponentStore<DialogAnimComponent>,
   ) {
   }
 
-  createPlayer(startX: number, startY: number, hp: number, velocity: number, weaponConfig : WeaponConfig) {
+  createPlayer(startX: number, startY: number, hp: number, velocity: number, weaponConfig: WeaponConfig) {
     const entityId = this.entityManager.registerEntity();
     this.renderableComponentStore.add(entityId, new RenderableComponent());
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
@@ -112,31 +135,76 @@ export class EntityFactory {
     startX: number,
     startY: number,
     entityShooterId: number,
+    damage: number,
+    firedByPlayer: boolean,
     dirX: number, dirY: number,
     velocity: number,
     projectileSprite: SpriteName,
     projectileSpriteSheet: SpriteSheetName,
     projectileAnimation: AnimationName,
-    isGrenade: boolean,
-    travelDistance: { x: number, y: number },
   ) {
     const entityId = this.entityManager.registerEntity();
     this.renderableComponentStore.add(entityId, new RenderableComponent());
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.spriteComponentStore.add(entityId, new SpriteComponent(projectileSprite, projectileSpriteSheet));
     this.animationComponentStore.add(entityId, new AnimationComponent(projectileAnimation));
-    this.projectileComponentStore.add(entityId, new ProjectileComponent());
+    this.projectileComponentStore.add(entityId, new ProjectileComponent(damage, firedByPlayer));
     this.directionComponentStore.add(entityId, new DirectionComponent(dirX, dirY));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity));
     this.hitboxComponentStore.add(entityId, new HitBoxComponent());
     this.shotOriginComponentStore.add(entityId, new ShotOriginComponent(entityShooterId))
     this.collisionBoxComponentStore.add(entityId, new CollisionBoxComponent({ widthFactor: 1, heightFactor: 1, offsetX: 0, offsetY: 0 }));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
-    if (isGrenade) {
-      this.travelTimeComponentStore.add(entityId, new TravelTimeComponent(Math.hypot(travelDistance.x, travelDistance.y) / velocity));
-      this.fuseTimerComponentStore.add(entityId, new FuseTimerComponent(WeaponConfig[WeaponType.GRENADE].fuseTimer));
-      this.grenadeComponentStore.add(entityId, new GrenadeComponent());
-    }
+    return entityId;
+  }
+
+  createGrenade(
+    originX: number,
+    originY: number,
+    entityShooterId: number,
+    dirX: number,
+    dirY: number,
+    velocity: number,
+    travelDistance: { x: number, y: number },
+  ) {
+    const firedByPlayer = this.playerComponentStore.has(entityShooterId);
+    const enemyType = this.enemyComponentStore.getOrNull(entityShooterId)?.enemyType;
+    const grenadeDamage = firedByPlayer
+      ? WeaponConfig[WeaponType.GRENADE].damage
+      : enemyType === EnemyType.BOMBER
+        ? EnemyConfig[EnemyType.BOMBER].damage
+        : WeaponConfig[WeaponType.GRENADE].damage;
+    const grenadeExplosionRadius = firedByPlayer
+      ? WeaponConfig[WeaponType.GRENADE].explosionRadius
+      : enemyType === EnemyType.BOMBER
+        ? EnemyConfig[EnemyType.BOMBER].attackExplosionRadius
+        : WeaponConfig[WeaponType.GRENADE].explosionRadius;
+
+    const entityId = this.entityManager.registerEntity();
+    this.renderableComponentStore.add(entityId, new RenderableComponent());
+    this.positionComponentStore.add(entityId, new PositionComponent(
+      originX - GRENADE_SPRITE_WIDTH / 2,
+      originY - GRENADE_SPRITE_HEIGHT / 2,
+    ));
+    this.spriteComponentStore.add(entityId, new SpriteComponent(
+      SpriteName.GRENADE_1,
+      SpriteSheetName.PROJECTILE,
+      GRENADE_SPRITE_WIDTH,
+      GRENADE_SPRITE_HEIGHT,
+    ));
+    this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.GRENADE_FIRED));
+    this.directionComponentStore.add(entityId, new DirectionComponent(dirX, dirY));
+    this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity));
+    this.shotOriginComponentStore.add(entityId, new ShotOriginComponent(entityShooterId))
+    this.collisionBoxComponentStore.add(entityId, new CollisionBoxComponent({ widthFactor: 1, heightFactor: 1, offsetX: 0, offsetY: 0 }));
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
+    this.travelTimeComponentStore.add(entityId, new TravelTimeComponent(Math.hypot(travelDistance.x, travelDistance.y) / velocity));
+    this.fuseTimerComponentStore.add(entityId, new FuseTimerComponent(WeaponConfig[WeaponType.GRENADE].fuseTimer));
+    this.grenadeComponentStore.add(entityId, new GrenadeComponent(
+      grenadeDamage,
+      firedByPlayer,
+      grenadeExplosionRadius,
+    ));
     return entityId;
   }
 
@@ -259,18 +327,94 @@ export class EntityFactory {
     return entityId;
   }
 
+  createDialog(
+    sourceEntityId: number,
+    text: string,
+    remainingTime: number,
+    dialogType: string = "speech",
+    followSource: boolean = true,
+    destroyOnExpire: boolean = true,
+  ) {
+    const entityId = this.entityManager.registerEntity();
+    const dialogAnimation = new DialogAnimComponent(AnimationName.DIALOG_BALLOON_IDLE);
+    const animationComponent = new AnimationComponent(
+      dialogAnimation.animationName,
+      dialogAnimation.loop,
+    );
+    animationComponent.startAnimationTime = dialogAnimation.startAnimationTime;
+
+    this.renderableComponentStore.add(entityId, new RenderableComponent());
+    this.positionComponentStore.add(entityId, new PositionComponent(0, 0));
+    this.dialogComponentStore.add(entityId, new DialogComponent(
+      sourceEntityId,
+      dialogType,
+      text,
+      followSource,
+      destroyOnExpire,
+    ));
+    this.dialogLifetimeComponentStore.add(entityId, new DialogLifetimeComponent(remainingTime));
+    this.dialogBubbleSpriteComponentStore.add(entityId, new DialogBubbleSpriteComponent(
+      SpriteName.DIALOG_BALLOON_1,
+      SpriteSheetName.DIALOG_BALLOON,
+      DEFAULT_DIALOG_PADDING_X,
+      DEFAULT_DIALOG_PADDING_Y,
+      DEFAULT_DIALOG_TEXT_OFFSET_X,
+      DEFAULT_DIALOG_TEXT_OFFSET_Y,
+      DEFAULT_DIALOG_MIN_WIDTH,
+      DEFAULT_DIALOG_MIN_HEIGHT,
+    ));
+    this.bitmapTextComponentStore.add(entityId, new BitmapTextComponent(
+      text,
+      DEFAULT_DIALOG_FONT_ID,
+      DEFAULT_DIALOG_TEXT_SCALE,
+      DEFAULT_DIALOG_TEXT_MAX_WIDTH,
+      true,
+      "center",
+    ));
+    this.dialogAnimComponentStore.add(entityId, dialogAnimation);
+    this.animationComponentStore.add(entityId, animationComponent);
+    this.spriteComponentStore.add(entityId, new SpriteComponent(
+      SpriteName.DIALOG_BALLOON_1,
+      SpriteSheetName.DIALOG_BALLOON,
+      DEFAULT_DIALOG_MIN_WIDTH,
+      DEFAULT_DIALOG_MIN_HEIGHT,
+    ));
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
+    return entityId;
+  }
+
   destroyProjectile(entityId: number): void {
     this.renderableComponentStore.remove(entityId);
     this.positionComponentStore.remove(entityId);
-    //this.spriteComponentStore.remove(entityId);
+    this.spriteComponentStore.remove(entityId);
+    this.animationComponentStore.remove(entityId);
     this.projectileComponentStore.remove(entityId);
+    this.directionComponentStore.remove(entityId);
     this.velocityComponentStore.remove(entityId);
+    this.hitboxComponentStore.remove(entityId);
+    this.shotOriginComponentStore.remove(entityId);
     this.collisionBoxComponentStore.remove(entityId);
+    this.zLayerComponentStore.remove(entityId);
     if (this.movementIntentComponentStore.has(entityId)) {
       this.movementIntentComponentStore.remove(entityId);
     }
-    if (this.grenadeComponentStore.has(entityId)) {
-      this.grenadeComponentStore.remove(entityId);
+  }
+
+  destroyGrenade(entityId: number): void {
+    this.renderableComponentStore.remove(entityId);
+    this.positionComponentStore.remove(entityId);
+    this.spriteComponentStore.remove(entityId);
+    this.animationComponentStore.remove(entityId);
+    this.directionComponentStore.remove(entityId);
+    this.velocityComponentStore.remove(entityId);
+    this.shotOriginComponentStore.remove(entityId);
+    this.collisionBoxComponentStore.remove(entityId);
+    this.zLayerComponentStore.remove(entityId);
+    this.travelTimeComponentStore.remove(entityId);
+    this.fuseTimerComponentStore.remove(entityId);
+    this.grenadeComponentStore.remove(entityId);
+    if (this.movementIntentComponentStore.has(entityId)) {
+      this.movementIntentComponentStore.remove(entityId);
     }
   }
 
@@ -287,7 +431,20 @@ export class EntityFactory {
     this.destroyWeapon(entityId);
   }
 
-  createWeapon(parentEntityId: number, weaponConfig : WeaponConfig) {
+  destroyDialog(entityId: number): void {
+    this.renderableComponentStore.remove(entityId);
+    this.positionComponentStore.remove(entityId);
+    this.spriteComponentStore.remove(entityId);
+    this.animationComponentStore.remove(entityId);
+    this.dialogComponentStore.remove(entityId);
+    this.dialogLifetimeComponentStore.remove(entityId);
+    this.dialogBubbleSpriteComponentStore.remove(entityId);
+    this.bitmapTextComponentStore.remove(entityId);
+    this.dialogAnimComponentStore.remove(entityId);
+    this.zLayerComponentStore.remove(entityId);
+  }
+
+  createWeapon(parentEntityId: number, weaponConfig: WeaponConfig) {
     const entityId = this.entityManager.registerEntity();
     const weaponComponentResult = this.weaponComponentStore.add(parentEntityId, new WeaponComponent(weaponConfig.spriteName, SpriteSheetName.WEAPON, weaponConfig.animation, weaponConfig.pivotPointSprite));
     const wieldingEntityWeapon = weaponComponentResult.get(parentEntityId)!;
@@ -315,7 +472,7 @@ export class EntityFactory {
       false
     ));
     this.shooterComponentStore.add(parentEntityId, new ShooterComponent(weaponConfig.shootingCooldown, WeaponConfig[WeaponType.GRENADE].shootingCooldown));
-    this.damageComponentStore.add(parentEntityId, new DamageComponent(weaponConfig.damage));
+    this.damageDealtComponentStore.add(parentEntityId, new DamageDealtComponent(weaponConfig.damage));
     this.grenadeBeltComponentStore.add(parentEntityId, new GrenadeBeltComponent(
       WeaponConfig[WeaponType.GRENADE].maxBullets,
       WeaponConfig[WeaponType.GRENADE].maxBullets,
@@ -335,7 +492,7 @@ export class EntityFactory {
     this.weaponMagazineComponentStore.remove(parentEntityId);
     this.shooterComponentStore.remove(parentEntityId);
     this.weaponComponentStore.remove(parentEntityId);
-    this.damageComponentStore.remove(parentEntityId);
+    this.damageDealtComponentStore.remove(parentEntityId);
     this.grenadeBeltComponentStore.remove(parentEntityId)
   }
 

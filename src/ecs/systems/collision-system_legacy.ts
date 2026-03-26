@@ -7,7 +7,7 @@ import { AnimTimerComponent } from "../components/anim-timer.component.js";
 import { AnimationComponent } from "../components/animation.component.js";
 import { BloodParticlesComponent } from "../components/blood-particles.component.js";
 import { CollisionBoxComponent } from "../components/collision-box-component.js";
-import { DamageTakenComponent } from "../components/damage-taken.component.js";
+import { DamageTakenComponent } from "../components/damage-taken-intent.component.js";
 import { DirectionComponent } from "../components/direction-component.js";
 import { DustParticlesComponent } from "../components/dust-particles.component.js";
 import { EnemiesKilledComponent } from "../components/enemies-killed.component.js";

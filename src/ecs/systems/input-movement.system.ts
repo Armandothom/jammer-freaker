@@ -26,7 +26,7 @@ export class InputMovementSystem implements ISystem {
             if (!pos) continue;
 
             const intent = new MovementIntentComponent(
-                pos.x + input.dx * velocity.currentVelocityX, 
+                pos.x + input.dx * velocity.currentVelocityX,
                 pos.y + input.dy * velocity.currentVelocityY
             );
             this.movementIntentComponentStore.add(playerId, intent);
@@ -37,10 +37,10 @@ export class InputMovementSystem implements ISystem {
 function getInputForEntity(entityId: number): { dx: number, dy: number } | null {
     let dx = 0, dy = 0;
     const speed = 1;
-    if (keys["arrowup"] || keys["w"]) dy -= speed;
-    if (keys["arrowdown"] || keys["s"]) dy += speed;
-    if (keys["arrowleft"] || keys["a"]) dx -= speed;
-    if (keys["arrowright"] || keys["d"]) dx += speed;
+    if (keys["arrowup"] || keys["w"] || keys["W"]) dy -= speed;
+    if (keys["arrowdown"] || keys["s"] || keys["S"]) dy += speed;
+    if (keys["arrowleft"] || keys["a"] || keys["A"]) dx -= speed;
+    if (keys["arrowright"] || keys["d"] || keys["D"]) dx += speed;
 
     if (dx === 0 && dy === 0) return null;
 

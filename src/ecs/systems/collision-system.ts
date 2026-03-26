@@ -1,7 +1,6 @@
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { CollisionBoxComponent } from "../components/collision-box-component.js";
-import { DamageTakenComponent } from "../components/damage-taken.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
 import { GrenadeComponent } from "../components/grenade-component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
@@ -34,7 +33,6 @@ export class CollisionSystem implements ISystem {
         private shotOriginComponentStore: ComponentStore<ShotOriginComponent>,
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private enemyComponentStore: ComponentStore<EnemyComponent>,
-        private damageTakenComponentStore: ComponentStore<DamageTakenComponent>,
         private spriteManager: SpriteManager,
         private worldTilemapManager: WorldTilemapManager,
         private entityFactory: EntityFactory,
@@ -62,10 +60,11 @@ export class CollisionSystem implements ISystem {
             const intendedRect = this.buildEntityRectFromIntent(entity, intent);
             const collidedEntity = this.getCollidingEntity(entity, intendedRect);
             if (collidedEntity !== null) {
-                if (this.handleProjectileEntityCollision(entity, collidedEntity)) {
-                    continue;
+                if (this.grenadeComponentStore.has(entity)) {
+                    this.stopGrenade(entity);
+                } else {
+                    this.movementIntentComponentStore.remove(entity);
                 }
-                this.movementIntentComponentStore.remove(entity);
                 continue;
             }
 
@@ -134,13 +133,9 @@ export class CollisionSystem implements ISystem {
     private getCollidingEntity(self: number, intendedRect: Rect): number | null {
         const isProjectile = this.projectileComponentStore.has(self);
         const isGrenade = this.grenadeComponentStore.has(self);
-        const shooterId = isProjectile
+        const shooterId = (isProjectile || isGrenade)
             ? this.shotOriginComponentStore.getOrNull(self)?.shooterEntity ?? null
             : null;
-
-        if (isGrenade) {
-            return null;
-        }
 
         for (const other of this.collisionBoxComponentStore.getAllEntities()) {
             if (other === self) continue;
@@ -149,8 +144,11 @@ export class CollisionSystem implements ISystem {
 
             if (isProjectile) {
                 if (other === shooterId) continue;
-                if (this.projectileComponentStore.has(other)) continue;
-            } else if (this.projectileComponentStore.has(other)) {
+                if (this.projectileComponentStore.has(other) || this.grenadeComponentStore.has(other)) continue;
+            } else if (isGrenade) {
+                if (other === shooterId) continue;
+                if (this.projectileComponentStore.has(other) || this.grenadeComponentStore.has(other)) continue;
+            } else if (this.projectileComponentStore.has(other) || this.grenadeComponentStore.has(other)) {
                 continue;
             }
 
@@ -228,59 +226,34 @@ export class CollisionSystem implements ISystem {
         );
     }
 
-    private handleProjectileEntityCollision(entity: number, collidedEntity: number): boolean {
-        if (!this.projectileComponentStore.has(entity)) {
-            return false;
-        }
-
+    private handleWallCollision(entity: number): void {
         if (this.grenadeComponentStore.has(entity)) {
-            return true;
+            this.stopGrenade(entity);
+            return;
         }
 
-        const shooterId = this.shotOriginComponentStore.getOrNull(entity)?.shooterEntity;
-        if (shooterId !== undefined) {
-            const projectileFromPlayer = this.playerComponentStore.has(shooterId);
-            const projectileFromEnemy = this.enemyComponentStore.has(shooterId);
-            const targetIsPlayer = this.playerComponentStore.has(collidedEntity);
-            const targetIsEnemy = this.enemyComponentStore.has(collidedEntity);
-            const validTarget =
-                (projectileFromPlayer && targetIsEnemy) ||
-                (projectileFromEnemy && targetIsPlayer);
-
-            if (validTarget && !this.damageTakenComponentStore.has(collidedEntity)) {
-                this.damageTakenComponentStore.add(collidedEntity, new DamageTakenComponent(shooterId, 0));
-            }
+        if (!this.projectileComponentStore.has(entity)) {
+            this.movementIntentComponentStore.remove(entity);
+            return;
         }
 
         this.entityFactory.destroyProjectile(entity);
-        // destroy projectile anim after
-        return true;
+        // projectile destroyed at wall anim
     }
 
-    private handleWallCollision(entity: number): void {
-        if (!this.projectileComponentStore.has(entity)) {
-            this.movementIntentComponentStore.remove(entity);
-            return;
+    private stopGrenade(entity: number): void {
+        this.movementIntentComponentStore.remove(entity);
+
+        if (this.velocityComponentStore.has(entity)) {
+            const velocity = this.velocityComponentStore.get(entity);
+            velocity.baseVelocityX = 0;
+            velocity.baseVelocityY = 0;
+            velocity.currentVelocityX = 0;
+            velocity.currentVelocityY = 0;
         }
 
-        if (this.grenadeComponentStore.has(entity)) {
-            this.movementIntentComponentStore.remove(entity);
-
-            if (this.velocityComponentStore.has(entity)) {
-                const velocity = this.velocityComponentStore.get(entity);
-                velocity.baseVelocityX = 0;
-                velocity.baseVelocityY = 0;
-                velocity.currentVelocityX = 0;
-                velocity.currentVelocityY = 0;
-            }
-
-            if (this.collisionBoxComponentStore.has(entity)) {
-                this.collisionBoxComponentStore.get(entity).collides = false;
-            }
-
-            return;
+        if (this.collisionBoxComponentStore.has(entity)) {
+            this.collisionBoxComponentStore.get(entity).collides = false;
         }
-
-        this.entityFactory.destroyProjectile(entity);
     }
 }
