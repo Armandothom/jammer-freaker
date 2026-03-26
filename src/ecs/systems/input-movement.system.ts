@@ -54,9 +54,9 @@ function getInputForEntity(entityId: number): { dx: number, dy: number } | null 
 }
 
 window.addEventListener("keydown", (e) => {
-    keys[e.key] = true;
+    keys[e.key.toLowerCase()] = true;
 });
 
 window.addEventListener("keyup", (e) => {
-    keys[e.key] = false;
+    keys[e.key.toLowerCase()] = false;
 });

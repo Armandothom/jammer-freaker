@@ -16,6 +16,7 @@ import { WeaponMagazineComponent } from "../components/weapon-magazine.component
 import { WeaponComponent } from "../components/weapon.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { ISystem } from "./system.interface.js";
+import { DebugManager } from "../core/debug-manager.js";
 
 const keys: Record<string, boolean> = {};
 
@@ -41,6 +42,7 @@ export class ShootingSystem implements ISystem {
         private intentMeleeComponentStore: ComponentStore<IntentMeleeComponent>,
         private disableAimComponentStore: ComponentStore<DisableAimComponent>,
         private cameraManager: CameraManager,
+        private debugManager : DebugManager
     ) {
         this.canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
         this.initListeners();
@@ -131,7 +133,7 @@ export class ShootingSystem implements ISystem {
             this.weaponMagazineComponentStore.get(playerId).magazineInventory > 0;
 
         //here
-        if (magazineConditions) {
+        if (magazineConditions && !this.debugManager.isSpawnerActive) {
             this.intentShotComponentStore.add(playerId, new IntentShotComponent(
                 this.currentMousePos.x,
                 this.currentMousePos.y,

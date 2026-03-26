@@ -6,6 +6,7 @@ import { SpriteComponent } from "../components/sprite.component.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
 import { ZLayerComponent } from "../components/z-layer.component.js";
 import { ComponentStore } from "../core/component-store.js";
+import { OrderDebuggerOrchestrator } from "../debugger-orders/order-debugger-orchestrator.js";
 import { ISystem } from "./system.interface.js";
 
 export class WeaponSpriteAttachmenPositiontSystem implements ISystem {
@@ -20,7 +21,7 @@ export class WeaponSpriteAttachmenPositiontSystem implements ISystem {
     }
 
     update(deltaTime: number): void {
-        const attachedEntityIds = this.weaponSpriteAttachmentComponentStore.getAllEntities();        
+        const attachedEntityIds = this.weaponSpriteAttachmentComponentStore.getAllEntities(); 
         for (const attachedEntityId of attachedEntityIds) {
             if (this.disableAttachmentComponentStore.has(attachedEntityId)) continue;
             const weaponSprite = this.spriteComponentStore.get(attachedEntityId);

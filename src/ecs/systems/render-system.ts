@@ -16,7 +16,9 @@ import { AnimDirection } from "../components/types/anim-direction.js";
 import { ZLayerComponent } from "../components/z-layer.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { ISystem } from "./system.interface.js";
-import { DebuggerPainter } from "../debugger/painter.debugger.js";
+import { OrderDebuggerOrchestrator } from "../debugger-orders/order-debugger-orchestrator.js";
+import { DebugManager } from "../core/debug-manager.js";
+import { DebugSettingKey } from "../core/types/debug-manager-settings.js";
 
 export class RenderSystem implements ISystem {
   private readonly layerMultiplicator: Record<string, number> = {
@@ -37,7 +39,8 @@ export class RenderSystem implements ISystem {
     private directionAnimComponentStore: ComponentStore<DirectionAnimComponent>,
     private aimShootingComponentStore: ComponentStore<AimRotationShootingComponent>,
     private zLayerComponentStore: ComponentStore<ZLayerComponent>,
-    private visibilityManager: VisibilityManager
+    private visibilityManager: VisibilityManager,
+    private debugManager : DebugManager
   ) { }
 
   update(deltaTime: number): void {
@@ -54,24 +57,36 @@ export class RenderSystem implements ISystem {
       ...wallRenderObjects,
       ...overTerrainRenderObjects,
     ];
-
+    this.rendererEngine.toggleDebugBorderSprite(this.debugManager.getDebugSetting(DebugSettingKey.SPRITE_BOUNDS));
     this.rendererEngine.renderSprites(renderObjects);
     this.rendererEngine.uploadSpawnBatch();
     this.rendererEngine.updateParticles(deltaTime);
     this.rendererEngine.disarmSpawnStyleRects();
     this.rendererEngine.renderParticles();
-    this.renderDebugPaint();
-
     if (fogOverlayRenderObjects.length > 0) {
       this.rendererEngine.renderSprites(fogOverlayRenderObjects);
     }
+    if(this.debugManager.getDebugSetting(DebugSettingKey.DEBUG_PAINT)) {
+      this.renderDebugPaint(viewport);
+    }
   }
 
-  private renderDebugPaint() {
-    for (const order of DebuggerPainter.retrievePaintOrders()) {
+  private renderDebugPaint(viewport: CameraViewport) {
+    for (const order of OrderDebuggerOrchestrator.retrievePaintOrders()) {
+      switch (order.type) {
+        case 'circle':
+          order.centroidX = order.centroidX - viewport.left;
+          order.centroidY = order.centroidY - viewport.top;
+          break;
+        case 'fill':
+          order.x = order.x - viewport.left;
+          order.y = order.y - viewport.top;
+          break;
+      }
       this.rendererEngine.renderDebugPaint(order);
     }
   }
+  
   private getTerrainRenderObjects(viewport: CameraViewport): Array<RenderObject> {
     const terrainRenderObjects: Array<RenderObject> = [];
     const terrainTilesInViewport = this.tilemapManager.getTilesInArea(viewport);
@@ -123,7 +138,6 @@ export class RenderSystem implements ISystem {
 
       const worldX = wallTile.x * tileSize;
       const worldY = wallTile.y * tileSize;
-
       const screenX = worldX - viewport.left;
       const screenY = worldY - viewport.top;
 

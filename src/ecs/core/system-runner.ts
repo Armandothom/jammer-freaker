@@ -83,6 +83,7 @@ import { DynamicAttributeSystem } from "../systems/dynamic-attribute.system.js";
 import { EnemyLifecicleSystem } from "../systems/enemy-lifecicle.system.js";
 import { ExplosionSystem } from "../systems/explosion-system.js";
 import { InputMovementSystem } from "../systems/input-movement.system.js";
+import { InputDebugSystem } from "../systems/input-debug.system.js";
 import { LevelProgressionSystem } from "../systems/level-progression.system.js";
 import { LevelUpdateSystem } from "../systems/level-update.system.js";
 import { MeleeAttackSystem } from "../systems/melee-attack.system.js";
@@ -104,6 +105,7 @@ import { CoreManager } from "./core-manager.js";
 import { EntityManager } from "./entity-manager.js";
 import { FreezeManager } from "./freeze-manager.js";
 import { LevelManager } from "./level-manager.js";
+import { DebugManager } from "./debug-manager.js";
 
 export class SystemRunner {
   private renderSystem: RenderSystem;
@@ -176,6 +178,7 @@ export class SystemRunner {
   private cameraComponentStore: ComponentStore<CameraComponent> = new ComponentStore("CameraComponent");
   private hitBoxComponentStore: ComponentStore<HitBoxComponent> = new ComponentStore("HitBoxComponent");
   private animationSpriteSystem: AnimationSpriteSystem;
+  private inputDebugSystem: InputDebugSystem;
   private inputMovementSystem: InputMovementSystem;
   private shootingSystem: ShootingSystem;
   private projectileSpawnSystem: ProjectileSpawnSystem;
@@ -200,8 +203,8 @@ export class SystemRunner {
   private particleEmitterSystem: ParticleEmitterSystem;
   private cameraFollowSystem: CameraFollowSystem;
   private visibilitySystem: VisibilitySystem;
-  private zoneFactory: ZoneFactory
-  private structureBaker: StructureBaker
+  private zoneFactory: ZoneFactory;
+  private structureBaker: StructureBaker;
 
   constructor(
     private worldTilemapManager: WorldTilemapManager,
@@ -211,6 +214,7 @@ export class SystemRunner {
     private rendererEngine: RendererEngine,
     private levelManager: LevelManager,
     private freezeManager: FreezeManager,
+    private debugManager : DebugManager
   ) {
 
     this.cameraManager = new CameraManager(this.worldTilemapManager);
@@ -224,9 +228,10 @@ export class SystemRunner {
     this.levelManager = new LevelManager(this.enemyLifecicleSystem, this.worldTilemapManager, this.cameraManager, this.zoneFactory);
     this.dynamicAttributeSystem = new DynamicAttributeSystem(this.levelManager, this.entityFactory, this.velocityComponentStore, this.projectileComponentStore, this.playerComponentStore, this.enemyComponentStore, this.damageTakenComponentStore, this.healthComponentStore, this.damageComponentStore, this.enemiesKilledComponentStore, this.weaponMagazineComponentStore, this.reloadIntentComponentStore, this.bulletFiredComponentStore, this.grenadeBeltComponentStore, this.grenadeFiredComponentStore, this.enemyDeadComponentStore);
     this.levelUpdateSystem = new LevelUpdateSystem(this.levelManager);
-    this.renderSystem = new RenderSystem(this.renderableComponentStore, this.positionComponentStore, this.spriteComponentStore, this.cameraManager, this.worldTilemapManager, this.rendererEngine, this.spriteManager, this.directionAnimComponentStore, this.aimShootingComponent, this.zLayerComponentStore, this.visibilityManager);
+    this.renderSystem = new RenderSystem(this.renderableComponentStore, this.positionComponentStore, this.spriteComponentStore, this.cameraManager, this.worldTilemapManager, this.rendererEngine, this.spriteManager, this.directionAnimComponentStore, this.aimShootingComponent, this.zLayerComponentStore, this.visibilityManager, this.debugManager);
+    this.inputDebugSystem = new InputDebugSystem(this.debugManager, this.cameraManager);
     this.inputMovementSystem = new InputMovementSystem(this.positionComponentStore, this.movementIntentComponentStore, this.playerComponentStore, this.velocityComponentStore)
-    this.shootingSystem = new ShootingSystem(this.playerComponentStore, this.enemyComponentStore, this.intentShotComponentStore, this.positionComponentStore, this.shooterComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.spriteComponentStore, this.weaponMagazineComponentStore, this.grenadeBeltComponentStore, this.intentGrenadeComponentStore, this.weaponComponentStore, this.intentMeleeComponentStore, this.disableAimComponentStore, this.cameraManager);
+    this.shootingSystem = new ShootingSystem(this.playerComponentStore, this.enemyComponentStore, this.intentShotComponentStore, this.positionComponentStore, this.shooterComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.spriteComponentStore, this.weaponMagazineComponentStore, this.grenadeBeltComponentStore, this.intentGrenadeComponentStore, this.weaponComponentStore, this.intentMeleeComponentStore, this.disableAimComponentStore, this.cameraManager, this.debugManager);
     this.projectileSpawnSystem = new ProjectileSpawnSystem(this.spriteManager, this.soundManager, this.positionComponentStore, this.weaponSpriteAttachmentComponentStore, this.projectileComponentStore, this.entityFactory, this.spriteComponentStore, this.intentShotComponentStore, this.shootingCooldownComponentStore, this.shooterComponentStore, this.playerComponentStore, this.bulletFiredComponentStore, this.grenadeCooldownComponentStore, this.grenadeFiredComponentStore, this.intentGrenadeComponentStore)
     this.projectileUpdateSystem = new ProjectileUpdateSystem(this.positionComponentStore, this.projectileComponentStore, this.velocityComponentStore, this.movementIntentComponentStore, this.directionComponentStore, this.grenadeComponentStore, this.travelTimeComponentStore);
     this.collisionSystem = new CollisionSystem(this.spriteComponentStore, this.positionComponentStore, this.collisionBoxComponentStore, this.movementIntentComponentStore, this.projectileComponentStore, this.grenadeComponentStore, this.velocityComponentStore, this.shotOriginComponentStore, this.playerComponentStore, this.enemyComponentStore, this.damageTakenComponentStore, this.spriteManager, this.worldTilemapManager, this.entityFactory);
@@ -249,10 +254,11 @@ export class SystemRunner {
 
   update() {
     if (!this.freezeManager.gameFrozen) {
+      this.inputDebugSystem.update(CoreManager.timeSinceLastRender);
       this.cameraFollowSystem.update();
       this.levelProgressionSystem.update(CoreManager.timeSinceLastRender);
       this.spriteLevelScaler.update(CoreManager.timeSinceLastRender);
-      //this.enemyLifecicleSystem.update(CoreManager.timeSinceLastRender);
+      this.enemyLifecicleSystem.update(CoreManager.timeSinceLastRender);
       this.dynamicAttributeSystem.update(CoreManager.timeSinceLastRender);
       this.reloadSystem.update(CoreManager.timeSinceLastRender);
       this.inputMovementSystem.update(CoreManager.timeSinceLastRender);

@@ -8,6 +8,7 @@ import { LevelManager } from "./level-manager.js";
 import { SystemRunner } from "./system-runner.js";
 import { SoundMap } from "../../game/asset-manager/consts/sound-mapped.values.js"
 import { FreezeManager } from "./freeze-manager.js";
+import { DebugManager } from "./debug-manager.js";
 
 export class CoreManager {
     private previousTimestamp = 0;
@@ -22,12 +23,14 @@ export class CoreManager {
     private _soundManager!: SoundManager;
     private _levelManager!: LevelManager;
     private _freezeManager!: FreezeManager;
+    private _debugManager!: DebugManager;
 
     constructor() {
         this._assetManager = new AssetManager();
         this._rendererEngine = new RendererEngine();
         this._entityManager = new EntityManager();
         this._soundManager = new SoundManager();
+        this._debugManager = new DebugManager();
     }
 
     public async init() {
@@ -39,7 +42,7 @@ export class CoreManager {
         console.log("Game generated");
 
         this._worldTilemapManager = new WorldTilemapManager();
-        this._systemRunner = new SystemRunner(this._worldTilemapManager, this._spriteManager, this._entityManager, this._soundManager, this._rendererEngine, this._levelManager, this._freezeManager);
+        this._systemRunner = new SystemRunner(this._worldTilemapManager, this._spriteManager, this._entityManager, this._soundManager, this._rendererEngine, this._levelManager, this._freezeManager, this._debugManager);
         this._systemRunner.initialize();
         this._soundManager.resumeOnUserGesture();
         //this._soundManager.playSound("THEME", true, 0.1);

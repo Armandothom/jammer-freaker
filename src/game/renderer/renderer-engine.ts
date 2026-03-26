@@ -1,5 +1,5 @@
-import { DebuggerPainter } from "../../ecs/debugger/painter.debugger.js";
-import { DebuggerPaintOrder } from "../../ecs/debugger/types/debugger.js";
+import { OrderDebuggerOrchestrator } from "../../ecs/debugger-orders/order-debugger-orchestrator.js";
+import { DebuggerPaintOrder } from "../../ecs/debugger-orders/types/debugger.js";
 import { RenderObject } from "./types/render-objects.js";
 
 export type TrajectoryType = 0 | 1; // 0 = linear, 1 = parabólico
@@ -15,8 +15,8 @@ export type SpawnEvent = {
 };
 
 export class RendererEngine {
+  private _debugBorderSprites: boolean = false;
   private _isLoaded: boolean = false;
-  private _debugMode: boolean = false;
   private _program: WebGLProgram | undefined;
   private _canvas: HTMLCanvasElement;
   private _gl: WebGL2RenderingContext;
@@ -991,7 +991,7 @@ export class RendererEngine {
   }
 
   private setDebugMode() {
-    this._gl.uniform1f(this._gl.getUniformLocation(this.program, "debug_mode"), Number(this._debugMode));
+    this._gl.uniform1f(this._gl.getUniformLocation(this.program, "debug_mode"), Number(this._debugBorderSprites));
   }
 
   private get program() {
@@ -1003,10 +1003,6 @@ export class RendererEngine {
 
   public get isLoaded() {
     return this._isLoaded;
-  }
-
-  private floatToByte(val: number): number {
-    return Math.max(0, Math.min(255, Math.floor(val * 255)));
   }
 
   private restoreGLForObjects() {
@@ -1045,5 +1041,10 @@ export class RendererEngine {
   private worldToClipXY(xWorld: number, yWorld: number): [number, number] {
     const [cx, cy] = this.toClipSpace(xWorld, yWorld, 0, this._canvas);
     return [cx, cy];
+  }
+  
+  public toggleDebugBorderSprite(status : boolean) {
+    this._debugBorderSprites = status;
+    this.init();
   }
 }

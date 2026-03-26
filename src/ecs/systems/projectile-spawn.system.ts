@@ -156,7 +156,7 @@ export class ProjectileSpawnSystem implements ISystem {
                 shootingWeapon.parentEntityId,
                 dir.x,
                 dir.y,
-                320,
+                520,
                 SpriteName.BULLET_1,
                 SpriteSheetName.PROJECTILE,
                 AnimationName.BULLET_FIRED,

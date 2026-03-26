@@ -14,6 +14,8 @@ import { SoundManager } from "../../game/asset-manager/sound-manager.js";
 import { FreezeManager } from "../core/freeze-manager.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+import { OrderDebuggerOrchestrator } from "../debugger-orders/order-debugger-orchestrator.js";
+import { DebuggerSpawnerOrderType } from "../debugger-orders/types/debugger.js";
 
 export class EnemyLifecicleSystem implements ISystem {
     private timeSinceLastSpawn = 0;
@@ -32,18 +34,44 @@ export class EnemyLifecicleSystem implements ISystem {
         private soundManager: SoundManager,
         private freezeManager: FreezeManager,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
-        private tilemapManager: WorldTilemapManager,
+        private tilemapManager: WorldTilemapManager
     ) {
     }
 
     update(deltaTime: number): void {
-        this.timeSinceLastSpawn += deltaTime;
-        let spawnIntervalsInSeconds = 5;
-        const previousTime = this.timeSinceLastSpawn - deltaTime;
-        if (previousTime < spawnIntervalsInSeconds && this.timeSinceLastSpawn >= spawnIntervalsInSeconds) {
-            this.timeSinceLastSpawn = 0;
-            if (!this.spawnDisabled) {
-                this.spawnEnemy();
+        // this.timeSinceLastSpawn += deltaTime;
+        // let spawnIntervalsInSeconds = 5;
+        // const previousTime = this.timeSinceLastSpawn - deltaTime;
+        // if (previousTime < spawnIntervalsInSeconds && this.timeSinceLastSpawn >= spawnIntervalsInSeconds) {
+        //     this.timeSinceLastSpawn = 0;
+        //     if (!this.spawnDisabled) {
+        //         this.spawnEnemy();
+        //     }
+        // }
+        this.setSpawnFromDebug();
+    }
+
+    private setSpawnFromDebug() {
+        const debugOrders = OrderDebuggerOrchestrator.retrieveSpawnOrder();
+        if (debugOrders.length == 0) {
+            return;
+        }
+        for (const debugOrder of debugOrders) {
+            switch (debugOrder.type) {
+                case DebuggerSpawnerOrderType.INFANTRY:
+                    this.entityFactory.createSoldier(
+                        EnemyType.SOLDIER,
+                        debugOrder.x, debugOrder.y,
+                        EnemyConfig[EnemyType.SOLDIER].hp,
+                        EnemyConfig[EnemyType.SOLDIER].damage,
+                        EnemyConfig[EnemyType.SOLDIER].attackCooldownInSeconds,
+                        EnemyConfig[EnemyType.SOLDIER].attackRange,
+                        EnemyConfig[EnemyType.SOLDIER].movementRadius,
+                        EnemyConfig[EnemyType.SOLDIER].velocity)
+                    break;
+
+                default:
+                    break;
             }
         }
     }
@@ -248,13 +276,14 @@ export class EnemyLifecicleSystem implements ISystem {
         }
     }
 
+    //TODO reowork on this
     positionRoll(tries: number): { x: number, y: number } {
-        const randomTile = Math.floor(Math.random() * this.tilemapManager.validSpawnTile.length);
-        const spawnTile = this.tilemapManager.validSpawnTile[randomTile];
+        // const randomTile = Math.floor(Math.random() * this.tilemapManager.validSpawnTile.length);
+        // const spawnTile = this.tilemapManager.validSpawnTile[randomTile];
 
         return {
-            x: spawnTile.x,
-            y: spawnTile.y
+            x: 12,
+            y: 12
         }
     }
 

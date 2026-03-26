@@ -16,18 +16,17 @@
 
     body {
       display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: center;
       background: #111;
       overflow: hidden;
       font-family: Arial, sans-serif;
     }
 
     .app {
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      gap: 16px;
+      position: relative;
+      width: 800px;
+      height: 600px;
     }
 
     #gl-canvas {
@@ -36,18 +35,172 @@
       height: 600px;
     }
 
+    body.debug-spawner-active #gl-canvas {
+      cursor: crosshair;
+    }
+
     .debug-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 2;
+      min-width: 220px;
+      padding: 14px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 12px;
+      background: rgba(10, 10, 10, 0.82);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(10px);
       color: white;
     }
 
     .debug-panel h1 {
       margin: 0;
-      font-size: 20px;
+      font-size: 16px;
       line-height: 1.2;
-      white-space: break-spaces;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .debug-panel[hidden] {
+      display: none;
+    }
+
+    .debug-panel__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .debug-panel__hint {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 12px;
+    }
+
+    .debug-panel__group {
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    .debug-panel__group + .debug-panel__group {
+      margin-top: 14px;
+    }
+
+    .debug-panel__collapse {
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .debug-panel__collapse summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      cursor: pointer;
+      list-style: none;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .debug-panel__collapse summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .debug-panel__collapse summary::after {
+      content: "+";
+      color: rgba(124, 255, 134, 0.9);
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .debug-panel__collapse[open] summary::after {
+      content: "-";
+    }
+
+    .debug-panel__collapse-content {
+      padding: 0 12px 12px;
+    }
+
+    .debug-panel__group legend {
+      margin-bottom: 10px;
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .debug-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1.3;
+    }
+
+    .debug-option + .debug-option {
+      margin-top: 10px;
+    }
+
+    .debug-option input {
+      margin: 0;
+      accent-color: #08c318;
+    }
+
+    .debug-option span {
+      user-select: none;
+    }
+
+    .debug-panel button {
+      width: 100%;
+      min-height: 38px;
+      padding: 10px 12px;
+      border: 1px solid rgba(0, 0, 0, 0.35);
+      border-radius: 10px;
+      background: rgba(124, 255, 134, 0.12);
+      color: white;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 160ms ease, border-color 160ms ease;
+    }
+
+    .debug-panel button:hover {
+      background: rgba(124, 255, 134, 0.18);
+      border-color: rgba(124, 255, 134, 0.5);
+    }
+
+    .debug-panel button[aria-pressed="true"] {
+      background: rgba(124, 255, 134, 0.24);
+      border-color: rgba(124, 255, 134, 0.6);
+    }
+
+    .spawn-cursor-badge {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 4;
+      padding: 6px 10px;
+      border: 1px solid rgba(124, 255, 134, 0.45);
+      border-radius: 999px;
+      background: rgba(10, 10, 10, 0.88);
+      color: #f6fff6;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      pointer-events: none;
+      transform: translate3d(5px, 5px, 0);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
     }
   </style>
 
@@ -58,11 +211,41 @@
   <div class="app">
     <canvas id="gl-canvas" width="800" height="600"></canvas>
 
-    <div class="debug-panel">
-      <h1 id="command-pressed"></h1>
-      <h1 id="offset-x"></h1>
-      <h1 id="offset-y"></h1>
+    <div class="debug-panel" hidden id="debug-panel" aria-label="Painel de debug">
+      <div class="debug-panel__header">
+        <h1>Debug Panel</h1>
+      </div>
+
+      <fieldset class="debug-panel__group">
+        <label class="debug-option" for="spriteBounds">
+          <input type="checkbox" id="spriteBounds" name="spriteBounds" value="true" />
+          <span>Show Sprite Bounds</span>
+        </label>
+
+        <label class="debug-option" for="debugPaint">
+          <input type="checkbox" id="debugPaint" name="debugPaint" value="true" />
+          <span>Show Debug Paint</span>
+        </label>
+
+        <label class="debug-option" for="aiPath">
+          <input type="checkbox" id="aiPath" name="aiPath" value="true" />
+          <span>Show AI Path</span>
+        </label>
+      </fieldset>
+
+      <details class="debug-panel__group debug-panel__collapse">
+        <summary>Spawn Options</summary>
+        <div class="debug-panel__collapse-content">
+          <button type="button" id="spawnEnemyButton" name="spawnEnemyButton">
+            Spawn Enemy
+          </button>
+        </div>
+      </details>
     </div>
+  </div>
+
+  <div class="spawn-cursor-badge" id="spawn-cursor-badge" hidden aria-hidden="true">
+    Click to spawn
   </div>
 </body>
 
