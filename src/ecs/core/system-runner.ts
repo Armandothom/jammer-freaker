@@ -296,11 +296,6 @@ export class SystemRunner {
       this.spriteLevelScaler.update(CoreManager.timeSinceLastRender);
       this.enemyLifecicleSystem.update(CoreManager.timeSinceLastRender);
       //this.dynamicAttributeSystem.update(CoreManager.timeSinceLastRender);
-      this.cameraFollowSystem.update();
-      this.levelProgressionSystem.update(CoreManager.timeSinceLastRender);
-      this.spriteLevelScaler.update(CoreManager.timeSinceLastRender);
-      //this.enemyLifecicleSystem.update(CoreManager.timeSinceLastRender);
-      //this.dynamicAttributeSystem.update(CoreManager.timeSinceLastRender);
       this.reloadSystem.update(CoreManager.timeSinceLastRender);
       this.inputMovementSystem.update(CoreManager.timeSinceLastRender);
       this.aiMovementBehaviorSystem.update(CoreManager.timeSinceLastRender);
@@ -318,11 +313,11 @@ export class SystemRunner {
       this.damageProcessingSystem.update(CoreManager.timeSinceLastRender);
       this.deathProcessingSystem.update(CoreManager.timeSinceLastRender);
       this.movementSystem.update(CoreManager.timeSinceLastRender);
-      this.spriteLevelScaler.update(CoreManager.timeSinceLastRender);
       this.weaponSpriteAttachmentSystem.update(CoreManager.timeSinceLastRender);
       this.dialogSystem.update(CoreManager.timeSinceLastRender);
       this.visibilitySystem.update(CoreManager.timeSinceLastRender);
       this.particleEmitterSystem.update(CoreManager.timeSinceLastRender);
+      this.spriteLevelScaler.update(CoreManager.timeSinceLastRender);
       this.renderSystem.update(CoreManager.timeSinceLastRender);
       this.terminatorSystem.update(CoreManager.timeSinceLastRender);
       this.levelUpdateSystem.update();

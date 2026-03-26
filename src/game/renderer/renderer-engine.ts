@@ -1048,7 +1048,12 @@ export class RendererEngine {
   }
   
   public toggleDebugBorderSprite(status : boolean) {
+    if (this._debugBorderSprites === status) {
+      return;
+    }
+
     this._debugBorderSprites = status;
-    this.init();
+    this._gl.useProgram(this.program);
+    this.setDebugMode();
   }
 }
