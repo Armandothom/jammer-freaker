@@ -24,6 +24,7 @@ import { ISystem } from "./system.interface.js";
 import { OrderDebuggerOrchestrator } from "../debugger-orders/order-debugger-orchestrator.js";
 import { DebugManager } from "../core/debug-manager.js";
 import { DebugSettingKey } from "../core/types/debug-manager-settings.js";
+import { DebuggerPaintOrder } from "../debugger-orders/types/debugger.js";
 
 interface BitmapTextRenderContext {
   font: BitmapFontAsset;

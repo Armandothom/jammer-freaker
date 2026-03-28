@@ -50,11 +50,11 @@ export class DialogSystem implements ISystem {
   }
 
   private handleDebugDialogShortcut() {
+    debugDialogShortcutRequested = false;
+
     if (!debugDialogShortcutRequested) {
       return;
     }
-
-    debugDialogShortcutRequested = false;
 
     const sourceEntityId = this.playerComponentStore.getAllEntities()[0];
     if (sourceEntityId === undefined) {

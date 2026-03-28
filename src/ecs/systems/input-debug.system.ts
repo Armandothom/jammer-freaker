@@ -133,7 +133,6 @@ export class InputDebugSystem implements ISystem {
 
     private syncSpawnerUi() {
         document.body.classList.toggle("debug-spawner-active", this.debugManager.isSpawnerActive);
-        console.log(this.debugManager.activeSpawnerType)
         if (!this.debugManager.isSpawnerActive && this.spawnCursorBadge) {
             this.spawnEnemyButton!.textContent = "Spawn Enemy";
             this.spawnCursorBadge.hidden = true;

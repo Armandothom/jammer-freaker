@@ -8,3 +8,18 @@ export interface TilemapTile {
   spriteName: SpriteName;
   type: WorldGroundTileType;
 }
+
+export interface WorldWallTile {
+  x: number;
+  y: number;
+  spriteName: SpriteName;
+  solid: boolean;
+}
+
+export enum WorldPoiTileType {
+  COVER = "cover"
+}
+export interface WorldPoiTile {
+  x: number;
+  y: number;
+}

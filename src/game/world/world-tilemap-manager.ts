@@ -1,16 +1,10 @@
+import { OrderDebuggerOrchestrator } from '../../ecs/debugger-orders/order-debugger-orchestrator.js';
 import { SpriteSheetName } from '../asset-manager/types/sprite-sheet-name.enum.js';
 import { CameraViewport } from './types/camera-viewport.js';
 import { SpriteName } from './types/sprite-name.enum.js';
-import { TilemapTile } from './types/tilemap-tile.js';
-import { WorldLevelResult } from './types/world-level-result.js';
+import { TilemapTile, WorldPoiTile, WorldPoiTileType, WorldWallTile } from './types/tilemap-tile.js';
+import { BakedWall, WorldLevelResult } from './types/world-level-result.js';
 import { WorldZone, ZoneType } from './types/zone-type.js';
-
-export interface WorldWallTile {
-  x: number;
-  y: number;
-  spriteName: SpriteName;
-  solid: boolean;
-}
 
 export class WorldTilemapManager {
   public readonly worldWidth = 3200;
@@ -30,6 +24,7 @@ export class WorldTilemapManager {
   private readonly _tilemapSpritesheetName = SpriteSheetName.TERRAIN;
   private readonly _tilemap: Map<string, TilemapTile> = new Map();
   private readonly _wallTiles: Map<string, WorldWallTile> = new Map();
+  private readonly _poiTiles: Map<WorldPoiTileType, Map<string, WorldPoiTile>> = new Map();
   private readonly _zones: WorldZone[] = [];
 
   public readonly _maxNumberTilesX: number;
@@ -99,6 +94,7 @@ export class WorldTilemapManager {
   public applyWorldLevelResult(levelResult: WorldLevelResult): void {
     this.applyGroundTiles(levelResult.groundTiles);
     this.applyWalls(levelResult.walls);
+    this.applyPoiTiles(levelResult.walls);
   }
 
   public applyGroundTiles(groundTiles: WorldLevelResult['groundTiles']): void {
@@ -107,14 +103,43 @@ export class WorldTilemapManager {
     }
   }
 
-  public applyWalls(walls: WorldLevelResult['walls']): void {
+  public applyPoiTiles(walls: BakedWall[]) {
+    this._poiTiles.set(WorldPoiTileType.COVER, new Map());
+    const coverMapTiles = this._poiTiles.get(WorldPoiTileType.COVER)!;
+    for (const wall of walls) {
+      const neighboringTiles: number[][] = [
+        [wall.x + 1, wall.y],
+        [wall.x, wall.y + 1],
+        [wall.x + 1, wall.y + 1],
+        [wall.x + 1, wall.y - 1],
+        [wall.x - 1, wall.y],
+        [wall.x, wall.y - 1],
+        [wall.x - 1, wall.y - 1],
+        [wall.x - 1, wall.y + 1]
+      ];
+      for (const neighboringTile of neighboringTiles) {
+        const x = neighboringTile[0];
+        const y = neighboringTile[1];
+        if (x < 0 || y < 0) {
+          continue;
+        }
+        const hasWallTile = this._wallTiles.get(this.setTilemapKey(x, y))?.solid;
+        if (hasWallTile) {
+          continue;
+        }
+        coverMapTiles.set(this.setTilemapKey(x, y), {
+          x: x,
+          y: y
+        });
+      }
+    }
+    this._poiTiles.set(WorldPoiTileType.COVER, coverMapTiles);
+  }
+
+  public applyWalls(walls: BakedWall[]): void {
     for (const wall of walls) {
       this.setWall(wall.x, wall.y, SpriteName.WALL_1);
     }
-  }
-
-  public clear(): void {
-    this.clearLevelGeometry();
   }
 
   public clearLevelGeometry(): void {
@@ -143,16 +168,11 @@ export class WorldTilemapManager {
     return this._wallTiles.get(this.setTilemapKey(x, y)) ?? null;
   }
 
-  public getAllWalls(): WorldWallTile[] {
-    return Array.from(this._wallTiles.values());
-  }
-
   public isWallSolid(x: number, y: number): boolean {
     return this.getWall(x, y)?.solid ?? false;
   }
 
-  public getTilesInArea(viewport: CameraViewport): TilemapTile[] {
-    const tiles: TilemapTile[] = [];
+  private getTileLimitViewport(viewport : CameraViewport) {
     const renderPadding = this.tileSize * 2;
 
     const startTileX = Math.max(
@@ -172,6 +192,37 @@ export class WorldTilemapManager {
       this._maxNumberTilesY,
       Math.ceil((viewport.bottom + renderPadding) / this.tileSize)
     );
+
+    return {
+      startTileX,
+      endTileX,
+      startTileY,
+      endTileY
+    }
+  }
+
+  public getPoiCoverInArea(viewport: CameraViewport) {
+    const tiles: WorldPoiTile[] = [];
+    const coverMapTiles = this._poiTiles.get(WorldPoiTileType.COVER);
+    if(!coverMapTiles) {
+      return [];
+    }
+    const {startTileY, endTileY, startTileX, endTileX} = this.getTileLimitViewport(viewport);
+    for (let y = startTileY; y < endTileY; y++) {
+      for (let x = startTileX; x < endTileX; x++) {
+        if(coverMapTiles.has(this.setTilemapKey(x, y))) {
+          tiles.push({
+            x, y
+          })
+        }
+      }
+    }
+    return tiles;
+  }
+
+  public getTilesInArea(viewport: CameraViewport): TilemapTile[] {
+    const tiles: TilemapTile[] = [];
+    const {startTileY, endTileY, startTileX, endTileX} = this.getTileLimitViewport(viewport);
 
     for (let y = startTileY; y < endTileY; y++) {
       for (let x = startTileX; x < endTileX; x++) {
@@ -184,25 +235,7 @@ export class WorldTilemapManager {
 
   public getWallTilesInArea(viewport: CameraViewport): WorldWallTile[] {
     const walls: WorldWallTile[] = [];
-    const renderPadding = this.tileSize * 2;
-
-    const startTileX = Math.max(
-      0,
-      Math.floor((viewport.left - renderPadding) / this.tileSize)
-    );
-    const endTileX = Math.min(
-      this._maxNumberTilesX,
-      Math.ceil((viewport.right + renderPadding) / this.tileSize)
-    );
-
-    const startTileY = Math.max(
-      0,
-      Math.floor((viewport.top - renderPadding) / this.tileSize)
-    );
-    const endTileY = Math.min(
-      this._maxNumberTilesY,
-      Math.ceil((viewport.bottom + renderPadding) / this.tileSize)
-    );
+    const {startTileY, endTileY, startTileX, endTileX} = this.getTileLimitViewport(viewport);
 
     for (let y = startTileY; y < endTileY; y++) {
       for (let x = startTileX; x < endTileX; x++) {
@@ -258,25 +291,6 @@ export class WorldTilemapManager {
     return this._zones;
   }
 
-  public getZoneByGrid(zoneGridX: number, zoneGridY: number): WorldZone {
-    const zone = this._zones.find(
-      z => z.zoneGridX === zoneGridX && z.zoneGridY === zoneGridY,
-    );
-
-    if (!zone) {
-      throw new Error(`Zone not found for grid coordinates (${zoneGridX}, ${zoneGridY})`);
-    }
-
-    return zone;
-  }
-
-  public getZoneFromWorldPosition(worldX: number, worldY: number): WorldZone {
-    const zoneGridX = Math.floor(worldX / this.zoneWidth);
-    const zoneGridY = Math.floor(worldY / this.zoneHeight);
-
-    return this.getZoneByGrid(zoneGridX, zoneGridY);
-  }
-
   public worldToTile(worldX: number, worldY: number): { tileX: number; tileY: number } {
     return {
       tileX: Math.floor(worldX / this.tileSize),
@@ -302,18 +316,6 @@ export class WorldTilemapManager {
 
   public get appliedSpriteSheetName() {
     return this._tilemapSpritesheetName;
-  }
-
-  public get validSpawnTile(): { x: number; y: number }[] {
-    const validTiles: { x: number; y: number }[] = [];
-
-    for (const tile of this._tilemap.values()) {
-      if (!this._wallTiles.has(this.setTilemapKey(tile.x, tile.y))) {
-        validTiles.push({ x: tile.x, y: tile.y });
-      }
-    }
-
-    return validTiles;
   }
 
   private setTilemapKey(x: number, y: number): string {

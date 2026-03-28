@@ -98,7 +98,7 @@ export class ProjectileSpawnSystem implements ISystem {
             firedByPlayer,
             dir.x,
             dir.y,
-            320,
+            720,
             SpriteName.BULLET_1,
             SpriteSheetName.PROJECTILE,
             AnimationName.BULLET_FIRED,
