@@ -1,9 +1,15 @@
+import { CameraManager } from "../../game/world/camera-manager.js";
+import { EnemyComponent } from "../components/enemy.component.js";
+import { PositionComponent } from "../components/position.component.js";
 import { DebuggerSpawnerOrderType } from "../debugger-orders/types/debugger.js";
+import { ComponentStore } from "./component-store.js";
 import { DebugManagerSettings, DebugSettingKey } from "./types/debug-manager-settings.js";
 
 export class DebugManager {
-    private settings = new DebugManagerSettings();
-    private spawnerState : {
+    private _settings = new DebugManagerSettings();
+    private _selectedEnemyEntity : number | null = null;
+    private _isMoveOrderActive: boolean = false;
+    private _spawnerState : {
         active : boolean
         type : DebuggerSpawnerOrderType | null
     } = {
@@ -11,46 +17,75 @@ export class DebugManager {
         type : null
     }; 
     
-    constructor() {
+    constructor(
+        private enemyComponentStore : ComponentStore<EnemyComponent>
+    ) {
     }
 
 
     public toggleDebugSetting(key: DebugSettingKey) {
         switch (key) {
             case DebugSettingKey.SPRITE_BOUNDS:
-                this.settings.showSpriteBounds = !this.settings.showSpriteBounds;
+                this._settings.showSpriteBounds = !this._settings.showSpriteBounds;
                 break;
             case DebugSettingKey.AI_PATH:
-                this.settings.showAiPath = !this.settings.showAiPath;
+                this._settings.showAiPath = !this._settings.showAiPath;
                 break;
             case DebugSettingKey.DEBUG_PAINT:
-                this.settings.showDebugPaint = !this.settings.showDebugPaint;
+                this._settings.showDebugPaint = !this._settings.showDebugPaint;
                 break;
         }
     }
 
 
     public toggleSpawnerState(isActive : boolean, type : DebuggerSpawnerOrderType) {
-        this.spawnerState.active = isActive;
-        this.spawnerState.type = isActive ? type : null;
+        this._spawnerState.active = isActive;
+        this._spawnerState.type = isActive ? type : null;
+    }
+
+    public toggleMoveOrderState(isActive : boolean) {
+        this._isMoveOrderActive = isActive;
+    }
+
+    public toggleHighlightedEnemy(arrowSelected : "left" | "right") {
+        const options = this.enemyComponentStore.getAllEntities();
+        const selectedOptionsIndex = options.findIndex((option) => option == this._selectedEnemyEntity);
+        let newSelectedOptionIndex : number;
+        if(options.length == 0) {
+            return;
+        }
+        newSelectedOptionIndex = (selectedOptionsIndex + (arrowSelected == 'right' ? 1 : -1)) % options.length;
+        this._selectedEnemyEntity = options[newSelectedOptionIndex];
     }
 
     public getDebugSetting(key: DebugSettingKey) {
         switch (key) {
             case DebugSettingKey.SPRITE_BOUNDS:
-                return this.settings.showSpriteBounds;
+                return this._settings.showSpriteBounds;
             case DebugSettingKey.AI_PATH:
-                return this.settings.showAiPath;
+                return this._settings.showAiPath;
             case DebugSettingKey.DEBUG_PAINT:
-                return this.settings.showDebugPaint;
+                return this._settings.showDebugPaint;
         }
     }
 
-    get isSpawnerActive() {
-        return this.spawnerState.active;
+    get isDebugPointerActive() {
+        return this._spawnerState.active || this._isMoveOrderActive;
+    }
+
+    get isSpawnerPointerActive() {
+        return this._spawnerState.active;
+    }
+
+    get isMovePointerActive() {
+        return this._isMoveOrderActive;
     }
 
     get activeSpawnerType() {
-        return this.spawnerState.type;
+        return this._spawnerState.type;
+    }
+    
+    get selectedEnemyEntity() {
+        return this._selectedEnemyEntity;
     }
 }

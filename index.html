@@ -35,7 +35,7 @@
       height: 600px;
     }
 
-    body.debug-spawner-active #gl-canvas {
+    body.debug-pointer-mode-active #gl-canvas {
       cursor: crosshair;
     }
 
@@ -184,7 +184,58 @@
       border-color: rgba(124, 255, 134, 0.6);
     }
 
-    .spawn-cursor-badge {
+    .debug-panel button:disabled {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.45);
+      cursor: not-allowed;
+    }
+
+    .debug-panel button:disabled:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .debug-panel__microcopy {
+      margin-bottom: 8px;
+      color: rgba(255, 255, 255, 0.58);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .enemy-entity-selector {
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr) 38px;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .enemy-entity-selector__nav {
+      min-height: 38px;
+      padding: 0;
+    }
+
+    .enemy-entity-selector__value {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 0 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      color: #f6fff6;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      user-select: none;
+    }
+
+    .spawn-cursor-badge, .move-cursor-badge {
       position: fixed;
       top: 0;
       left: 0;
@@ -241,11 +292,40 @@
           </button>
         </div>
       </details>
+
+      <details class="debug-panel__group debug-panel__collapse">
+        <summary>Enemy Entity Options</summary>
+        <div class="debug-panel__collapse-content">
+          <div class="debug-panel__microcopy">Selected Entity</div>
+
+          <div class="enemy-entity-selector" role="group" aria-label="Enemy entity selector">
+            <button type="button" id="enemyEntityPreviousButton" class="enemy-entity-selector__nav"
+              aria-label="Select previous enemy entity">
+              &lt;
+            </button>
+
+            <div class="enemy-entity-selector__value" id="enemyEntityValue">none</div>
+
+            <button type="button" id="enemyEntityNextButton" class="enemy-entity-selector__nav"
+              aria-label="Select next enemy entity">
+              &gt;
+            </button>
+          </div>
+
+          <button type="button" id="enemyMoveButton" name="enemyMoveButton">
+            Move
+          </button>
+        </div>
+      </details>
     </div>
   </div>
 
-  <div class="spawn-cursor-badge" id="spawn-cursor-badge" hidden aria-hidden="true">
+  <div class="spawn-cursor-badge" id="spawnCursorBadge" hidden aria-hidden="true">
     Click to spawn
+  </div>
+
+  <div class="move-cursor-badge" id="moveCursorBadge" hidden aria-hidden="true">
+    Click to move
   </div>
 </body>
 

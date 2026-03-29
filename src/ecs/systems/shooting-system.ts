@@ -133,7 +133,7 @@ export class ShootingSystem implements ISystem {
             this.weaponMagazineComponentStore.get(playerId).magazineInventory > 0;
 
         //here
-        if (magazineConditions && !this.debugManager.isSpawnerActive) {
+        if (magazineConditions && !this.debugManager.isDebugPointerActive) {
             this.intentShotComponentStore.add(playerId, new IntentShotComponent(
                 this.currentMousePos.x,
                 this.currentMousePos.y,
