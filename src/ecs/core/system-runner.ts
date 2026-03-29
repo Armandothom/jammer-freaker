@@ -88,6 +88,7 @@ import { CameraFollowSystem } from "../systems/camera-follow-system.js";
 import { CollisionSystem } from "../systems/collision-system.js";
 import { DamageProcessingSystem } from "../systems/damage-processing-system.js";
 import { DeathProcessingSystem } from "../systems/death-processing-system.js";
+import { DebugProcessorSystem } from "../systems/debug-processor.system.js";
 // import { DynamicAttributeSystem } from "../systems/dynamic-attribute.system.js";
 import { DialogSystem } from "../systems/dialog-system.js";
 import { EnemyLifecicleSystem } from "../systems/enemy-lifecicle.system.js";
@@ -230,6 +231,7 @@ export class SystemRunner {
   private damageProcessingSystem: DamageProcessingSystem;
   private deathProcessingSystem: DeathProcessingSystem;
   private debugManager : DebugManager;
+  private debugProcessor : DebugProcessorSystem;
 
   constructor(
     private worldTilemapManager: WorldTilemapManager,
@@ -287,11 +289,13 @@ export class SystemRunner {
     this.cameraFollowSystem = new CameraFollowSystem(this.cameraComponentStore, this.positionComponentStore, this.cameraManager);
     this.dialogSystem = new DialogSystem(this.entityFactory, this.dialogIntentComponentStore, this.dialogComponentStore, this.dialogLifetimeComponentStore, this.dialogAnimComponentStore, this.bitmapTextComponentStore, this.animationComponentStore, this.playerComponentStore, this.positionComponentStore, this.spriteComponentStore);
     this.visibilitySystem = new VisibilitySystem(this.playerComponentStore, this.positionComponentStore, this.worldTilemapManager, this.visibilityManager);
+    this.debugProcessor = new DebugProcessorSystem(this.debugManager, this.cameraManager, this.spriteComponentStore, this.positionComponentStore);
   }
 
   update() {
     if (!this.freezeManager.gameFrozen) {
       this.inputDebugSystem.update(CoreManager.timeSinceLastRender);
+      this.debugProcessor.update(CoreManager.timeSinceLastRender);
       this.cameraFollowSystem.update();
       this.levelProgressionSystem.update(CoreManager.timeSinceLastRender);
       this.spriteLevelScaler.update(CoreManager.timeSinceLastRender);
