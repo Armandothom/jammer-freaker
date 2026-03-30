@@ -1,25 +1,27 @@
 
+import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
+import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
+import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { AIComponent } from "../components/ai.component.js";
 import { AimRotationShootingComponent } from "../components/aim-rotation-shooting.component.js";
 import { AnimationComponent } from "../components/animation.component.js";
+import { AwaitingAnimationEndComponent } from "../components/awaiting-animation-end.component.js";
 import { DirectionAnimComponent } from "../components/direction-anim.component.js";
-import { WallHitComponent } from "../components/wall-hit.component.js";
+import { GrenadeComponent } from "../components/grenade-component.js";
+import { GrenadeExplosionComponent } from "../components/grenade-explosion.component.js";
+import { ItemBoxComponent } from "../components/item-box.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
+import { OffsetAppliedComponent } from "../components/offset-applied.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
+import { ProjectileComponent } from "../components/projectile-component.js";
+import { SpriteComponent } from "../components/sprite.component.js";
 import { AnimDirection } from "../components/types/anim-direction.js";
+import { WallHitComponent } from "../components/wall-hit.component.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { ISystem } from "./system.interface.js";
-import { ProjectileComponent } from "../components/projectile-component.js";
-import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
-import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
-import { SpriteComponent } from "../components/sprite.component.js";
-import { OffsetAppliedComponent } from "../components/offset-applied.component.js";
-import { GrenadeComponent } from "../components/grenade-component.js";
-import { GrenadeExplosionComponent } from "../components/grenade-explosion.component.js";
-import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 
 
 export class AnimationSetterSystem implements ISystem {
@@ -39,6 +41,8 @@ export class AnimationSetterSystem implements ISystem {
         private offsetAppliedComponentStore: ComponentStore<OffsetAppliedComponent>,
         private grenadeComponentStore: ComponentStore<GrenadeComponent>,
         private grenadeExplosionComponentStore: ComponentStore<GrenadeExplosionComponent>,
+        private itemBoxComponentStore: ComponentStore<ItemBoxComponent>,
+        private awaitingAnimationEndComponent: ComponentStore<AwaitingAnimationEndComponent>,
     ) { }
 
     update(deltaTime: number): void {
@@ -52,6 +56,8 @@ export class AnimationSetterSystem implements ISystem {
             const isGrenade = this.grenadeComponentStore.has(entityWithAnim);
             const isExplodedGrenade = this.grenadeExplosionComponentStore.has(entityWithAnim);
             const isAttachedWeapon = this.weaponSpriteAttachmentComponent.has(entityWithAnim);
+            const isItemBox = this.itemBoxComponentStore.has(entityWithAnim);
+            const awaitingAnimationEnd = this.awaitingAnimationEndComponent.has(entityWithAnim);
             let isMoving = false;
             let loop = true;
             const entityMovementIntent = this.movementIntentComponentStore.getOrNull(entityWithAnim);
@@ -88,7 +94,7 @@ export class AnimationSetterSystem implements ISystem {
                     animToUse = AnimationName.ENEMY_RUN
                 } else {
                     animToUse = AnimationName.ENEMY_STILL
-                }   
+                }
             }
 
             if (isProjectile) {
@@ -110,6 +116,15 @@ export class AnimationSetterSystem implements ISystem {
                 }
                 else {
                     animToUse = AnimationName.GRENADE_FIRED
+                }
+            }
+
+            if (isItemBox) {
+                if (awaitingAnimationEnd) {
+                    animToUse = AnimationName.WOODEN_BOX_DESTROYED;
+                    loop = false;
+                } else {
+                    animToUse = AnimationName.WOODEN_BOX;
                 }
             }
 

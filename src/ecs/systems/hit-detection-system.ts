@@ -3,6 +3,7 @@ import { DamageTakenIntentComponent } from "../components/damage-taken-intent.co
 import { EnemyComponent } from "../components/enemy.component.js";
 import { GrenadeComponent } from "../components/grenade-component.js";
 import { HitBoxComponent } from "../components/hit-box-component.js";
+import { ItemBoxComponent } from "../components/item-box.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
@@ -28,6 +29,7 @@ export class HitDetectionSystem implements ISystem {
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private enemyComponentStore: ComponentStore<EnemyComponent>,
         private damageTakenIntentComponentStore: ComponentStore<DamageTakenIntentComponent>,
+        private itemBoxComponentStore: ComponentStore<ItemBoxComponent>,
 
     ) { }
     update(deltaTime: number): void {
@@ -153,8 +155,10 @@ export class HitDetectionSystem implements ISystem {
             const projectileDamage = projectile.damage;
             const targetIsPlayer = this.playerComponentStore.has(hitEntity);
             const targetIsEnemy = this.enemyComponentStore.has(hitEntity);
+            const targetIsItemBox = this.itemBoxComponentStore.has(hitEntity);
             const validTarget =
                 (projectile.firedByPlayer && targetIsEnemy) ||
+                (projectile.firedByPlayer && targetIsItemBox) ||
                 (!projectile.firedByPlayer && targetIsPlayer);
 
             if (validTarget && !this.damageTakenIntentComponentStore.has(hitEntity)) {

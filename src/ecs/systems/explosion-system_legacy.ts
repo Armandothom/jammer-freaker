@@ -10,7 +10,7 @@ import { GrenadeComponent } from "../components/grenade-component.js";
 import { GrenadeExplosionComponent } from "../components/grenade-explosion.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
-import { ShooterComponent } from "../components/shooter-component.js";
+import { ShooterComponent } from "../components/shooter-cooldown-component.js";
 import { EnemyConfig, EnemyType } from "../components/types/enemy-type.js";
 import { WeaponConfig, WeaponType } from "../components/types/weapon-type.js";
 import { ComponentStore } from "../core/component-store.js";

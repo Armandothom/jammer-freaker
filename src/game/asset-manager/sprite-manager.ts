@@ -1,5 +1,5 @@
-import { AssetManager } from "./asset-manager.js";
 import { SpriteName } from "../world/types/sprite-name.enum.js";
+import { AssetManager } from "./asset-manager.js";
 import { SPRITESHEET_MAPPED_VALUES } from "./consts/sprite-mapped-values.js";
 import { SpriteSheetAsset } from "./types/sprite-sheet-map.js";
 import { SpriteSheetName } from "./types/sprite-sheet-name.enum.js";
@@ -97,6 +97,7 @@ export class SpriteManager {
     const spriteSheet = this.getSpriteSheetProperties(spriteSheetName);
     const sprite = spriteSheet?.sprites.get(spriteName);
     if (!sprite) {
+      console.log(spriteName, spriteSheetName);
       throw new Error("Sprite not found");
     }
     return {

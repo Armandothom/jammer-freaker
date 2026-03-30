@@ -17,6 +17,11 @@ export enum AnimationName {
   BULLET_WALL_HIT = "bullet_wall_hit",
   GRENADE_FIRED = "grenade_fired",
   GRENADE_EXPLOSION = "grenade_explosion",
+  WOODEN_BOX = "wooden_box",
+  WOODEN_BOX_DESTROYED = "wooden_box_destroyed",
+  PISTOL_MAG_DROPPED = "pistol_mag_dropped",
+  SMG_MAG_DROPPED = "smg_mag_dropped",
+  GRENADE_DROPPED = "grenade_dropped",
 }
 
 

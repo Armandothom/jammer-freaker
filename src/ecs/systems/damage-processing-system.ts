@@ -26,6 +26,7 @@ export class DamageProcessingSystem implements ISystem {
                     this.deathIntentComponentStore.add(entity, new DeathIntentComponent(damageSource));
                 }
             }
+
             this.damageTakenIntentComponentStore.remove(entity);
         }
     }

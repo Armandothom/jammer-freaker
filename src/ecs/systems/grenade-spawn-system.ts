@@ -3,7 +3,7 @@ import { GrenadeFiredComponent } from "../components/grenade-fired.component.js"
 import { IntentGrenadeComponent } from "../components/intent-grenade.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
-import { ShooterComponent } from "../components/shooter-component.js";
+import { ShooterComponent } from "../components/shooter-cooldown-component.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityFactory } from "../entities/entity-factory.js";

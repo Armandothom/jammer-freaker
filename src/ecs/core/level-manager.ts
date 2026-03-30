@@ -5,7 +5,7 @@ import { MovementIntentComponent } from "../components/movement-intent.component
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { PlayerInitialProperties } from "../components/types/player-properties.js";
-import { WeaponConfig } from "../components/types/weapon-type.js";
+import { WeaponConfig, WeaponType } from "../components/types/weapon-type.js";
 import { EntityFactory } from "../entities/entity-factory.js";
 import { EnemyLifecicleSystem } from "../systems/enemy-lifecicle.system.js";
 import { ZoneFactory } from "../zones/zone-factory.js";
@@ -101,7 +101,9 @@ export class LevelManager {
                 this.playerInitialProperties.hp,
                 this.playerInitialProperties.velocity,
                 WeaponConfig.smg,
+                WeaponType.PISTOL
             );
+            this.entityFactory.createItemBox(worldX + 64, worldY + 64);
         } else {
             const position = this.positionComponentStore.get(playerEntityId);
             position.x = worldX;

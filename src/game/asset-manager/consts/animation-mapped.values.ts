@@ -1,5 +1,5 @@
 import { SpriteName } from "../../world/types/sprite-name.enum.js";
-import { AnimationName, AnimationKeyMap } from "../types/animation-map.js";
+import { AnimationKeyMap, AnimationName } from "../types/animation-map.js";
 import { SpriteSheetName } from "../types/sprite-sheet-name.enum.js";
 
 export const ANIMATION_MAPPED: Map<AnimationName, Map<SpriteName, AnimationKeyMap>> = new Map<AnimationName, Map<SpriteName, AnimationKeyMap>>([
@@ -392,6 +392,214 @@ export const ANIMATION_MAPPED: Map<AnimationName, Map<SpriteName, AnimationKeyMa
         order: 12,
         durationKeyFrame: 0.05
       }],
+    ])
+  ],
+
+  [
+    AnimationName.WOODEN_BOX,
+    new Map<SpriteName, AnimationKeyMap>([
+      [SpriteName.WOODEN_BOX_1, {
+        spriteName: SpriteName.WOODEN_BOX_1,
+        spriteSheetName: SpriteSheetName.WOODEN_BOX,
+        order: 1,
+        durationKeyFrame: 1
+      }]
+    ])
+  ],
+
+  [
+    AnimationName.WOODEN_BOX_DESTROYED,
+    new Map<SpriteName, AnimationKeyMap>([
+
+      [SpriteName.WOODEN_BOX_1, {
+        spriteName: SpriteName.WOODEN_BOX_1,
+        spriteSheetName: SpriteSheetName.WOODEN_BOX,
+        order: 1,
+        durationKeyFrame: 0.2
+      }],
+      [SpriteName.WOODEN_BOX_2, {
+        spriteName: SpriteName.WOODEN_BOX_2,
+        spriteSheetName: SpriteSheetName.WOODEN_BOX,
+        order: 2,
+        durationKeyFrame: 0.2
+      }],
+      [SpriteName.WOODEN_BOX_3, {
+        spriteName: SpriteName.WOODEN_BOX_3,
+        spriteSheetName: SpriteSheetName.WOODEN_BOX,
+        order: 3,
+        durationKeyFrame: 0.2
+      }],
+      [SpriteName.WOODEN_BOX_4, {
+        spriteName: SpriteName.WOODEN_BOX_4,
+        spriteSheetName: SpriteSheetName.WOODEN_BOX,
+        order: 4,
+        durationKeyFrame: 0.2
+      }],
+    ])
+  ],
+
+  [
+    AnimationName.PISTOL_MAG_DROPPED,
+    new Map<SpriteName, AnimationKeyMap>([
+      [SpriteName.PISTOL_MAG_DROP_1, {
+        spriteName: SpriteName.PISTOL_MAG_DROP_1,
+        spriteSheetName: SpriteSheetName.PISTOL_MAG_DROP,
+        order: 1,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.PISTOL_MAG_DROP_2, {
+        spriteName: SpriteName.PISTOL_MAG_DROP_2,
+        spriteSheetName: SpriteSheetName.PISTOL_MAG_DROP,
+        order: 2,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.PISTOL_MAG_DROP_3, {
+        spriteName: SpriteName.PISTOL_MAG_DROP_3,
+        spriteSheetName: SpriteSheetName.PISTOL_MAG_DROP,
+        order: 3,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.PISTOL_MAG_DROP_4, {
+        spriteName: SpriteName.PISTOL_MAG_DROP_4,
+        spriteSheetName: SpriteSheetName.PISTOL_MAG_DROP,
+        order: 4,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.PISTOL_MAG_DROP_5, {
+        spriteName: SpriteName.PISTOL_MAG_DROP_5,
+        spriteSheetName: SpriteSheetName.PISTOL_MAG_DROP,
+        order: 5,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.PISTOL_MAG_DROP_6, {
+        spriteName: SpriteName.PISTOL_MAG_DROP_6,
+        spriteSheetName: SpriteSheetName.PISTOL_MAG_DROP,
+        order: 6,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.PISTOL_MAG_DROP_7, {
+        spriteName: SpriteName.PISTOL_MAG_DROP_7,
+        spriteSheetName: SpriteSheetName.PISTOL_MAG_DROP,
+        order: 7,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.PISTOL_MAG_DROP_8, {
+        spriteName: SpriteName.PISTOL_MAG_DROP_8,
+        spriteSheetName: SpriteSheetName.PISTOL_MAG_DROP,
+        order: 8,
+        durationKeyFrame: 0.1
+      }],
+
+    ])
+  ],
+
+  [
+    AnimationName.SMG_MAG_DROPPED,
+    new Map<SpriteName, AnimationKeyMap>([
+      [SpriteName.SMG_MAG_DROP_1, {
+        spriteName: SpriteName.SMG_MAG_DROP_1,
+        spriteSheetName: SpriteSheetName.SMG_MAG_DROP,
+        order: 1,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.SMG_MAG_DROP_2, {
+        spriteName: SpriteName.SMG_MAG_DROP_2,
+        spriteSheetName: SpriteSheetName.SMG_MAG_DROP,
+        order: 2,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.SMG_MAG_DROP_3, {
+        spriteName: SpriteName.SMG_MAG_DROP_3,
+        spriteSheetName: SpriteSheetName.SMG_MAG_DROP,
+        order: 3,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.SMG_MAG_DROP_4, {
+        spriteName: SpriteName.SMG_MAG_DROP_4,
+        spriteSheetName: SpriteSheetName.SMG_MAG_DROP,
+        order: 4,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.SMG_MAG_DROP_5, {
+        spriteName: SpriteName.SMG_MAG_DROP_5,
+        spriteSheetName: SpriteSheetName.SMG_MAG_DROP,
+        order: 5,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.SMG_MAG_DROP_6, {
+        spriteName: SpriteName.SMG_MAG_DROP_6,
+        spriteSheetName: SpriteSheetName.SMG_MAG_DROP,
+        order: 6,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.SMG_MAG_DROP_7, {
+        spriteName: SpriteName.SMG_MAG_DROP_7,
+        spriteSheetName: SpriteSheetName.SMG_MAG_DROP,
+        order: 7,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.SMG_MAG_DROP_8, {
+        spriteName: SpriteName.SMG_MAG_DROP_8,
+        spriteSheetName: SpriteSheetName.SMG_MAG_DROP,
+        order: 8,
+        durationKeyFrame: 0.1
+      }],
+
+    ])
+  ],
+
+  [
+    AnimationName.GRENADE_DROPPED,
+    new Map<SpriteName, AnimationKeyMap>([
+      [SpriteName.GRENADE_DROP_1, {
+        spriteName: SpriteName.GRENADE_DROP_1,
+        spriteSheetName: SpriteSheetName.GRENADE_DROP,
+        order: 1,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.GRENADE_DROP_2, {
+        spriteName: SpriteName.GRENADE_DROP_2,
+        spriteSheetName: SpriteSheetName.GRENADE_DROP,
+        order: 2,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.GRENADE_DROP_3, {
+        spriteName: SpriteName.GRENADE_DROP_3,
+        spriteSheetName: SpriteSheetName.GRENADE_DROP,
+        order: 3,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.GRENADE_DROP_4, {
+        spriteName: SpriteName.GRENADE_DROP_4,
+        spriteSheetName: SpriteSheetName.GRENADE_DROP,
+        order: 4,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.GRENADE_DROP_5, {
+        spriteName: SpriteName.GRENADE_DROP_5,
+        spriteSheetName: SpriteSheetName.GRENADE_DROP,
+        order: 5,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.GRENADE_DROP_6, {
+        spriteName: SpriteName.GRENADE_DROP_6,
+        spriteSheetName: SpriteSheetName.GRENADE_DROP,
+        order: 6,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.GRENADE_DROP_7, {
+        spriteName: SpriteName.GRENADE_DROP_7,
+        spriteSheetName: SpriteSheetName.GRENADE_DROP,
+        order: 7,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.GRENADE_DROP_8, {
+        spriteName: SpriteName.GRENADE_DROP_8,
+        spriteSheetName: SpriteSheetName.GRENADE_DROP,
+        order: 8,
+        durationKeyFrame: 0.1
+      }],
+
     ])
   ],
 

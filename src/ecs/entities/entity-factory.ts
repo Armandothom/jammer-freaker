@@ -12,17 +12,19 @@ import { CollisionBoxComponent } from "../components/collision-box-component.js"
 import { DamageDealtComponent } from "../components/damage-dealt.component.js";
 import { DialogAnimComponent } from "../components/dialog-anim.component.js";
 import { DialogBubbleSpriteComponent } from "../components/dialog-bubble-sprite.component.js";
-import { DialogComponent } from "../components/dialog.component.js";
 import { DialogLifetimeComponent } from "../components/dialog-lifetime.component.js";
+import { DialogComponent } from "../components/dialog.component.js";
 import { DirectionAnimComponent } from "../components/direction-anim.component.js";
 import { DirectionComponent } from "../components/direction-component.js";
 import { EnemyDeadComponent } from "../components/enemy-dead.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
 import { FuseTimerComponent } from "../components/fuse-timer.component.js";
-import { GrenadeBeltComponent } from "../components/grenade-belt.component.js";
 import { GrenadeComponent } from "../components/grenade-component.js";
 import { HealthComponent } from "../components/health.component.js";
 import { HitBoxComponent } from "../components/hit-box-component.js";
+import { InventoryComponent } from "../components/inventory-component.js";
+import { ItemBoxComponent } from "../components/item-box.component.js";
+import { ItemDroppedComponent } from "../components/item-dropped.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
@@ -34,13 +36,15 @@ import { ShapeDimensionComponent } from "../components/shape-dimension.component
 import { ShapeDirectionComponent } from "../components/shape-direction.component.js";
 import { ShapeHitMemoryComponent } from "../components/shape-hitmemory-component.js";
 import { ShapePositionComponent } from "../components/shape-position.component.js";
-import { ShooterComponent } from "../components/shooter-component.js";
+import { ShooterCooldownComponent } from "../components/shooter-cooldown-component.js";
 import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
 import { ShotOriginComponent } from "../components/shot-origin.component.js";
+import { InventorySnapshot } from "../components/snapshots/inventory-snapshot.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { TravelTimeComponent } from "../components/travel-time.component.js";
 import { AnimDirection } from "../components/types/anim-direction.js";
 import { EnemyConfig, EnemyType } from "../components/types/enemy-type.js";
+import { InventoryResourceType } from "../components/types/inventory-resource-type.js";
 import { WeaponConfig, WeaponType } from "../components/types/weapon-type.js";
 import { VelocityComponent } from "../components/velocity-component.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
@@ -49,6 +53,7 @@ import { WeaponComponent } from "../components/weapon.component.js";
 import { ZLayerComponent } from "../components/z-layer.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityManager } from "../core/entity-manager.js";
+import { InventoryManager } from "../core/inventory-manager.js";
 
 const GRENADE_SPRITE_WIDTH = 14;
 const GRENADE_SPRITE_HEIGHT = 16;
@@ -65,13 +70,14 @@ const DEFAULT_DIALOG_MIN_HEIGHT = 28;
 export class EntityFactory {
   constructor(
     private entityManager: EntityManager,
+    private inventoryManager: InventoryManager,
     private renderableComponentStore: ComponentStore<RenderableComponent>,
     private playerComponentStore: ComponentStore<PlayerComponent>,
     private enemyComponentStore: ComponentStore<EnemyComponent>,
     private positionComponentStore: ComponentStore<PositionComponent>,
     private spriteComponentStore: ComponentStore<SpriteComponent>,
     private projectileComponentStore: ComponentStore<ProjectileComponent>,
-    private shooterComponentStore: ComponentStore<ShooterComponent>,
+    private shooterCooldownComponentStore: ComponentStore<ShooterCooldownComponent>,
     private velocityComponentStore: ComponentStore<VelocityComponent>,
     private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
     private animationComponentStore: ComponentStore<AnimationComponent>,
@@ -92,7 +98,6 @@ export class EntityFactory {
     private weaponComponentStore: ComponentStore<WeaponComponent>,
     private weaponMagazineComponentStore: ComponentStore<WeaponMagazineComponent>,
     private grenadeComponentStore: ComponentStore<GrenadeComponent>,
-    private grenadeBeltComponentStore: ComponentStore<GrenadeBeltComponent>,
     private travelTimeComponentStore: ComponentStore<TravelTimeComponent>,
 
     private fuseTimerComponentStore: ComponentStore<FuseTimerComponent>,
@@ -109,10 +114,13 @@ export class EntityFactory {
     private dialogBubbleSpriteComponentStore: ComponentStore<DialogBubbleSpriteComponent>,
     private bitmapTextComponentStore: ComponentStore<BitmapTextComponent>,
     private dialogAnimComponentStore: ComponentStore<DialogAnimComponent>,
+    private inventoryComponentStore: ComponentStore<InventoryComponent>,
+    private itemBoxComponentStore: ComponentStore<ItemBoxComponent>,
+    private itemDroppedComponentStore: ComponentStore<ItemDroppedComponent>,
   ) {
   }
 
-  createPlayer(startX: number, startY: number, hp: number, velocity: number, weaponConfig: WeaponConfig) {
+  createPlayer(startX: number, startY: number, hp: number, velocity: number, weaponConfig: WeaponConfig, initialWeaponType: WeaponType, inventorySnapshot?: InventorySnapshot) {
     const entityId = this.entityManager.registerEntity();
     this.renderableComponentStore.add(entityId, new RenderableComponent());
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
@@ -127,7 +135,13 @@ export class EntityFactory {
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.hitboxComponentStore.add(entityId, new HitBoxComponent());
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
-    this.createWeapon(entityId, weaponConfig);
+    const inventoryComponent = inventorySnapshot
+      ? InventoryComponent.fromSnapshot(inventorySnapshot)
+      : this.inventoryManager.createDefaultInventory(initialWeaponType);
+
+    this.inventoryComponentStore.add(entityId, inventoryComponent);
+    const equippedWeapon = inventoryComponent.equippedWeaponType!
+    this.createPlayerWeapon(entityId, equippedWeapon, WeaponConfig[equippedWeapon]);
     return entityId;
   }
 
@@ -444,6 +458,29 @@ export class EntityFactory {
     this.zLayerComponentStore.remove(entityId);
   }
 
+  createPlayerWeapon(parentEntityId: number, weaponType: WeaponType, weaponConfig: WeaponConfig) {
+    const entityId = this.entityManager.registerEntity();
+    const weaponComponentResult = this.weaponComponentStore.add(parentEntityId, new WeaponComponent(weaponConfig.spriteName, SpriteSheetName.WEAPON, weaponConfig.animation, weaponConfig.pivotPointSprite));
+    const wieldingEntityWeapon = weaponComponentResult.get(parentEntityId)!;
+    this.renderableComponentStore.add(entityId, new RenderableComponent());
+    this.positionComponentStore.add(entityId, new PositionComponent(0, 0));
+    if (wieldingEntityWeapon.spriteName != SpriteName.SHIELD) {
+      this.weaponSpriteAttachmentComponentStore.add(entityId, new WeaponSpriteAttachmentComponent(parentEntityId, 16, 18));
+    } else {
+      this.weaponSpriteAttachmentComponentStore.add(entityId, new WeaponSpriteAttachmentComponent(parentEntityId, 16, 9));
+    }
+    this.aimShootingComponentStore.add(entityId, new AimRotationShootingComponent(0, wieldingEntityWeapon.configuredPivotRotation));
+    this.animationComponentStore.add(entityId, new AnimationComponent(wieldingEntityWeapon.animationName));
+    this.spriteComponentStore.add(entityId, new SpriteComponent(
+      wieldingEntityWeapon.spriteName,
+      wieldingEntityWeapon.spriteSheetName,
+      wieldingEntityWeapon.weaponWidth,
+      wieldingEntityWeapon.weaponHeight
+    ));
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
+    this.damageDealtComponentStore.add(parentEntityId, new DamageDealtComponent(weaponConfig.damage));
+  }
+
   createWeapon(parentEntityId: number, weaponConfig: WeaponConfig) {
     const entityId = this.entityManager.registerEntity();
     const weaponComponentResult = this.weaponComponentStore.add(parentEntityId, new WeaponComponent(weaponConfig.spriteName, SpriteSheetName.WEAPON, weaponConfig.animation, weaponConfig.pivotPointSprite));
@@ -464,19 +501,52 @@ export class EntityFactory {
       wieldingEntityWeapon.weaponHeight
     ));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
-    this.weaponMagazineComponentStore.add(parentEntityId, new WeaponMagazineComponent(
-      99,
-      weaponConfig.maxBullets,
-      weaponConfig.maxBullets,
-      weaponConfig.reloadTime,
-      false
-    ));
-    this.shooterComponentStore.add(parentEntityId, new ShooterComponent(weaponConfig.shootingCooldown, WeaponConfig[WeaponType.GRENADE].shootingCooldown));
     this.damageDealtComponentStore.add(parentEntityId, new DamageDealtComponent(weaponConfig.damage));
-    this.grenadeBeltComponentStore.add(parentEntityId, new GrenadeBeltComponent(
-      WeaponConfig[WeaponType.GRENADE].maxBullets,
-      WeaponConfig[WeaponType.GRENADE].maxBullets,
-    ))
+  }
+
+  createItemBox(startX: number, startY: number) {
+    const entityId = this.entityManager.registerEntity();
+    const boxHp = 1;
+    this.renderableComponentStore.add(entityId, new RenderableComponent());
+    this.positionComponentStore.add(entityId, new PositionComponent(startX, startY))
+    this.healthComponentStore.add(entityId, new HealthComponent(boxHp));
+    this.collisionBoxComponentStore.add(entityId, new CollisionBoxComponent())
+    this.hitboxComponentStore.add(entityId, new HitBoxComponent());
+    this.itemBoxComponentStore.add(entityId, new ItemBoxComponent());
+    this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.WOODEN_BOX_1, SpriteSheetName.WOODEN_BOX));
+    this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.WOODEN_BOX, false));
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
+  }
+
+  createItemDrop(startX: number, startY: number, resourceType: InventoryResourceType, amount: number, spriteName: SpriteName, spriteSheetName: SpriteSheetName, animationName: AnimationName) {
+    const entityId = this.entityManager.registerEntity();
+    this.renderableComponentStore.add(entityId, new RenderableComponent());
+    this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
+    this.spriteComponentStore.add(entityId, new SpriteComponent(spriteName, spriteSheetName));
+    this.animationComponentStore.add(entityId, new AnimationComponent(animationName));
+    this.itemDroppedComponentStore.add(entityId, new ItemDroppedComponent(resourceType, amount));
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
+  }
+
+  destroyItemBox(entityId: number) {
+    this.renderableComponentStore.remove(entityId);
+    this.positionComponentStore.remove(entityId);
+    this.healthComponentStore.remove(entityId);
+    this.collisionBoxComponentStore.remove(entityId);
+    this.hitboxComponentStore.remove(entityId);
+    this.itemBoxComponentStore.remove(entityId);
+    this.spriteComponentStore.remove(entityId);
+    this.animationComponentStore.remove(entityId);
+    this.zLayerComponentStore.remove(entityId);
+  }
+
+  destroyItemDrop(entityId: number) {
+    this.renderableComponentStore.remove(entityId);
+    this.positionComponentStore.remove(entityId);
+    this.spriteComponentStore.remove(entityId);
+    this.animationComponentStore.remove(entityId);
+    this.itemDroppedComponentStore.remove(entityId);
+    this.zLayerComponentStore.remove(entityId);
   }
 
   destroyWeapon(parentEntityId: number) {
@@ -490,13 +560,28 @@ export class EntityFactory {
     this.animationComponentStore.remove(weaponEntityId);
     this.zLayerComponentStore.remove(weaponEntityId);
     this.weaponMagazineComponentStore.remove(parentEntityId);
-    this.shooterComponentStore.remove(parentEntityId);
+    this.shooterCooldownComponentStore.remove(parentEntityId);
     this.weaponComponentStore.remove(parentEntityId);
     this.damageDealtComponentStore.remove(parentEntityId);
-    this.grenadeBeltComponentStore.remove(parentEntityId)
   }
 
-  destroyCollisionShape(entityId: number) {
+  destroyPlayerWeapon(parentEntityId: number) {
+    const weaponAttachments = this.weaponSpriteAttachmentComponentStore.getValuesAndEntityId();
+    const weaponAttachment = weaponAttachments.find((weaponAttachmentEntry) => weaponAttachmentEntry[1].parentEntityId == parentEntityId)!;
+    const weaponEntityId = weaponAttachment[0];
+    this.renderableComponentStore.remove(weaponEntityId);
+    this.positionComponentStore.remove(weaponEntityId);
+    this.aimShootingComponentStore.remove(weaponEntityId);
+    this.weaponSpriteAttachmentComponentStore.remove(weaponEntityId);
+    this.animationComponentStore.remove(weaponEntityId);
+    this.zLayerComponentStore.remove(weaponEntityId);
+    this.weaponMagazineComponentStore.remove(parentEntityId);
+    this.shooterCooldownComponentStore.remove(parentEntityId);
+    this.weaponComponentStore.remove(parentEntityId);
+    this.damageDealtComponentStore.remove(parentEntityId);
+  }
+
+  destroyHitBox(entityId: number) {
     this.shapeComponentStore.remove(entityId);
     this.shapePositionComponentStore.remove(entityId);
     this.shapeDimensionComponentStore.remove(entityId);

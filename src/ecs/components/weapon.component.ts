@@ -8,8 +8,8 @@ export class WeaponComponent {
     public animationName: AnimationName;
     public weaponWidth: number;
     public weaponHeight: number;
-    public configuredPivotRotation : number;
-    constructor(spriteName: SpriteName, spriteSheetName: SpriteSheetName, animationName: AnimationName, configuredPivotRotation : number, weaponWidth: number = 32, weaponHeight: number = 32) {
+    public configuredPivotRotation: number;
+    constructor(spriteName: SpriteName, spriteSheetName: SpriteSheetName, animationName: AnimationName, configuredPivotRotation: number, weaponWidth: number = 32, weaponHeight: number = 32) {
         this.spriteName = spriteName;
         this.spriteSheetName = spriteSheetName;
         this.animationName = animationName;

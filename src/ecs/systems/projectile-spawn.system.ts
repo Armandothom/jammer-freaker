@@ -5,11 +5,13 @@ import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-nam
 import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { BulletFiredComponent } from "../components/bullet-fired.component.js";
 import { DamageDealtComponent } from "../components/damage-dealt.component.js";
+import { EnemyComponent } from "../components/enemy.component.js";
 import { IntentShotComponent } from "../components/intent-shot.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
-import { ShooterComponent } from "../components/shooter-component.js";
 import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
+import { EnemyConfig } from "../components/types/enemy-type.js";
+import { WeaponConfig } from "../components/types/weapon-type.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityFactory } from "../entities/entity-factory.js";
@@ -24,22 +26,60 @@ export class ProjectileSpawnSystem implements ISystem {
         private entityFactory: EntityFactory,
         private intentShotComponentStore: ComponentStore<IntentShotComponent>,
         private shootingCooldownComponentStore: ComponentStore<ShootingCooldownComponent>,
-        private shooterComponentStore: ComponentStore<ShooterComponent>,
+        private bulletFiredComponentStore: ComponentStore<BulletFiredComponent>,
         private damageDealtComponentStore: ComponentStore<DamageDealtComponent>,
         private playerComponentStore: ComponentStore<PlayerComponent>,
-        private bulletFiredComponentStore: ComponentStore<BulletFiredComponent>,
+        private enemyComponentStore: ComponentStore<EnemyComponent>,
     ) {
     }
 
     update(deltaTime: number): void {
-        this.intentShotConversion();
+        this.playerIntentShotConversion();
+        this.enemyIntentShotConversion();
     }
 
-    private intentShotConversion() {
-        const shooters = this.shooterComponentStore.getAllEntities();
+    private playerIntentShotConversion() {
+        const attachedWeapons = this.attachedSpriteComponent.getValuesAndEntityId();
+        const playerEntity = this.playerComponentStore.getAllEntities()[0];
+        if (this.intentShotComponentStore.has(playerEntity)) {
+            const playerPos = this.positionComponentStore.getOrNull(playerEntity);
+            const intent = this.intentShotComponentStore.get(playerEntity);
+            const weaponWielded = intent.weaponWielded;
+            const attachedWeaponEntry = attachedWeapons.find((value) => value[1].parentEntityId == playerEntity);
+            if (!attachedWeaponEntry) {
+                throw new Error("No weapon entry found");
+            }
+            const attachedWeapon = attachedWeaponEntry[1];
+            const attachedWeaponEntityId = attachedWeaponEntry[0];
+            const weaponPosition = this.positionComponentStore.getOrNull(attachedWeaponEntityId);
+            if (!weaponPosition) return;
+
+            const dx = intent.x - weaponPosition.x;
+            const dy = intent.y - weaponPosition.y;
+            const angle = Math.atan2(dy, dx);
+            const dir = { x: Math.cos(angle), y: Math.sin(angle) };
+
+            const weaponFireRate = WeaponConfig[weaponWielded].fireRate; // RPM
+            const shotsPerSecond = weaponFireRate / 60;
+            const fireCooldown = 1 / shotsPerSecond;
+
+            const shootingCooldown = this.shootingCooldownComponentStore.has(playerEntity);
+            if (!shootingCooldown) {
+                const damage = this.damageDealtComponentStore.get(playerEntity).damage;
+                this.spawnProjectile(dir, attachedWeapon, damage, true); // last variable: fired by player, check if it is used
+                this.bulletFiredComponentStore.add(playerEntity, new BulletFiredComponent());
+                this.shootingCooldownComponentStore.add(playerEntity, new ShootingCooldownComponent(fireCooldown));
+            }
+
+        }
+    }
+
+    private enemyIntentShotConversion() {
         const attachedWeapons = this.attachedSpriteComponent.getValuesAndEntityId();
 
-        for (const entity of shooters) {
+        for (const entity of this.intentShotComponentStore.getAllEntities()) {
+            if (!this.enemyComponentStore.has(entity)) continue;
+            const enemyType = this.enemyComponentStore.get(entity).enemyType
             const shooterPos = this.positionComponentStore.getOrNull(entity);
             const attachedWeaponEntry = attachedWeapons.find((value) => value[1].parentEntityId == entity);
             if (!attachedWeaponEntry) {
@@ -57,16 +97,12 @@ export class ProjectileSpawnSystem implements ISystem {
             const angle = Math.atan2(dy, dx);
             const dir = { x: Math.cos(angle), y: Math.sin(angle) };
 
-            const cooldownConfig = this.shooterComponentStore.get(entity);
+            const cooldownConfig = EnemyConfig[enemyType].attackCooldownInSeconds;
             const shootingCooldown = this.shootingCooldownComponentStore.has(entity);
             if (!shootingCooldown) {
                 const damage = this.damageDealtComponentStore.get(entity).damage;
-                const firedByPlayer = this.playerComponentStore.has(entity);
-                this.spawnProjectile(dir, attachedWeapon, damage, firedByPlayer);
-                this.shootingCooldownComponentStore.add(entity, new ShootingCooldownComponent(cooldownConfig.shootingCooldown));
-                if (firedByPlayer) {
-                    this.bulletFiredComponentStore.add(entity, new BulletFiredComponent());
-                }
+                this.spawnProjectile(dir, attachedWeapon, damage, false);
+                this.shootingCooldownComponentStore.add(entity, new ShootingCooldownComponent(cooldownConfig));
             }
         }
     }

@@ -1,7 +1,6 @@
 import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { AimRotationShootingComponent } from "../components/aim-rotation-shooting.component.js";
 import { AttackSpeedComponent } from "../components/attack-speed.component.js";
-import { DirectionAnimComponent } from "../components/direction-anim.component.js";
 import { DisableAimComponent } from "../components/disable-aim.component.js";
 import { DisableAttachmentComponent } from "../components/disable-attachment.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
@@ -11,14 +10,13 @@ import { MeleeIntentProcessedComponent } from "../components/melee-intent-proces
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ShapeComponent } from "../components/shape-component.js";
-import { ShooterComponent } from "../components/shooter-component.js";
+import { ShooterComponent } from "../components/shooter-cooldown-component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { EnemyConfig, EnemyType } from "../components/types/enemy-type.js";
 import { WeaponConfig, WeaponType } from "../components/types/weapon-type.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
 import { WeaponAttackOriginComponent } from "../components/weapon-attack-origin.component.js";
 import { WeaponComponent } from "../components/weapon.component.js";
-import { ZLayerComponent } from "../components/z-layer.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityFactory } from "../entities/entity-factory.js";
 import { ISystem } from "./system.interface.js";
