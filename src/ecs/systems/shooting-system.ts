@@ -176,7 +176,6 @@ export class ShootingSystem implements ISystem {
             this.currentMousePos.x,
             this.currentMousePos.y,
         ));
-
     }
 
     private pushMeeleIntent() {

@@ -3,7 +3,8 @@ import { GrenadeFiredComponent } from "../components/grenade-fired.component.js"
 import { IntentGrenadeComponent } from "../components/intent-grenade.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
-import { ShooterComponent } from "../components/shooter-cooldown-component.js";
+import { ShooterCooldownComponent } from "../components/shooter-cooldown-component.js";
+import { WeaponConfig, WeaponType } from "../components/types/weapon-type.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityFactory } from "../entities/entity-factory.js";
@@ -14,7 +15,7 @@ export class GrenadeSpawnSystem implements ISystem {
         private positionComponentStore: ComponentStore<PositionComponent>,
         private attachedSpriteComponent: ComponentStore<WeaponSpriteAttachmentComponent>,
         private entityFactory: EntityFactory,
-        private shooterComponentStore: ComponentStore<ShooterComponent>,
+        private shooterCooldownComponentStore: ComponentStore<ShooterCooldownComponent>,
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private grenadeCooldownComponentStore: ComponentStore<GrenadeCooldownComponent>,
         private grenadeFiredComponentStore: ComponentStore<GrenadeFiredComponent>,
@@ -23,23 +24,23 @@ export class GrenadeSpawnSystem implements ISystem {
     }
 
     update(deltaTime: number): void {
-        this.intentGrenadeConversion();
+        this.playerIntentGrenadeConversion();
+
+        //lacking intent grenade from enemies TO-DO
     }
 
-    private intentGrenadeConversion() {
-        const shooters = this.shooterComponentStore.getAllEntities();
+    private playerIntentGrenadeConversion() {
         const attachedWeapons = this.attachedSpriteComponent.getValuesAndEntityId();
-
-        for (const entity of shooters) {
-            const shooterPos = this.positionComponentStore.getOrNull(entity);
-            const attachedWeaponEntry = attachedWeapons.find((value) => value[1].parentEntityId == entity);
+        const playerEntity = this.playerComponentStore.getAllEntities()[0];
+        if (this.intentGrenadeComponentStore.has(playerEntity)) {
+            const grenadeIntent = this.intentGrenadeComponentStore.get(playerEntity);
+            const attachedWeaponEntry = attachedWeapons.find((value) => value[1].parentEntityId == playerEntity);
             if (!attachedWeaponEntry) {
                 throw new Error("No weapon entry found");
             }
 
             const attachedWeapon = attachedWeaponEntry[1];
-            const grenadeIntent = this.intentGrenadeComponentStore.getOrNull(entity);
-            if (!shooterPos || !grenadeIntent) continue;
+
 
             const dx = grenadeIntent.x - attachedWeapon.barrelX;
             const dy = grenadeIntent.y - attachedWeapon.barrelY;
@@ -47,15 +48,14 @@ export class GrenadeSpawnSystem implements ISystem {
             const angle = Math.atan2(dy, dx);
             const dir = { x: Math.cos(angle), y: Math.sin(angle) };
 
-            const cooldownConfig = this.shooterComponentStore.get(entity);
-            const grenadeCooldown = this.grenadeCooldownComponentStore.has(entity);
+            const cooldownConfig = WeaponConfig[WeaponType.GRENADE].fireRate;
+            const grenadeCooldown = this.grenadeCooldownComponentStore.has(playerEntity);
             if (!grenadeCooldown) {
                 this.spawnGrenade(dir, attachedWeapon, travelDistance);
-                this.grenadeCooldownComponentStore.add(entity, new GrenadeCooldownComponent(cooldownConfig.grenadeCooldown));
-                if (this.playerComponentStore.has(entity)) {
-                    this.grenadeFiredComponentStore.add(entity, new GrenadeFiredComponent());
-                }
+                this.grenadeCooldownComponentStore.add(playerEntity, new GrenadeCooldownComponent(cooldownConfig));
+                this.grenadeFiredComponentStore.add(playerEntity, new GrenadeFiredComponent());
             }
+
         }
     }
 
