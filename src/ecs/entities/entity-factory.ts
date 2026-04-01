@@ -30,6 +30,7 @@ import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ProjectileComponent } from "../components/projectile-component.js";
 import { RenderableComponent } from "../components/renderable-component.js";
+import { ScreenPositionComponent } from "../components/screen-position.component.js";
 import { ShapeAngleComponent } from "../components/shape-angle.component.js";
 import { ShapeComponent } from "../components/shape-component.js";
 import { ShapeDimensionComponent } from "../components/shape-dimension.component.js";
@@ -45,7 +46,11 @@ import { TravelTimeComponent } from "../components/travel-time.component.js";
 import { AnimDirection } from "../components/types/anim-direction.js";
 import { EnemyConfig, EnemyType } from "../components/types/enemy-type.js";
 import { InventoryResourceType } from "../components/types/inventory-resource-type.js";
+import { UIAnchor } from "../components/types/ui-anchor.js";
+import { UIEntryType, UIType } from "../components/types/ui-type.js";
 import { WeaponConfig, WeaponType } from "../components/types/weapon-type.js";
+import { UIAnchorComponent } from "../components/ui-anchor.component.js";
+import { UIComponent } from "../components/ui-component.js";
 import { VelocityComponent } from "../components/velocity-component.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
 import { WeaponMagazineComponent } from "../components/weapon-magazine.component.js";
@@ -54,6 +59,7 @@ import { ZLayerComponent } from "../components/z-layer.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityManager } from "../core/entity-manager.js";
 import { InventoryManager } from "../core/inventory-manager.js";
+import { UIManager } from "../core/ui-manager.js";
 
 const GRENADE_SPRITE_WIDTH = 14;
 const GRENADE_SPRITE_HEIGHT = 16;
@@ -66,11 +72,17 @@ const DEFAULT_DIALOG_TEXT_OFFSET_X = 8;
 const DEFAULT_DIALOG_TEXT_OFFSET_Y = 6;
 const DEFAULT_DIALOG_MIN_WIDTH = 48;
 const DEFAULT_DIALOG_MIN_HEIGHT = 28;
+const DEFAULT_HUD_TEXT_FONT_ID = DEFAULT_DIALOG_FONT_ID;
+const DEFAULT_HUD_TEXT_SCALE = DEFAULT_DIALOG_TEXT_SCALE;
+const DEFAULT_KEYBIND_HINT_WIDTH = 32;
+const DEFAULT_KEYBIND_HINT_HEIGHT = 32;
+const DEFAULT_KEYBIND_HINT_TEXT_OFFSET_Y = 6;
 
 export class EntityFactory {
   constructor(
     private entityManager: EntityManager,
     private inventoryManager: InventoryManager,
+    private uiManager: UIManager,
     private renderableComponentStore: ComponentStore<RenderableComponent>,
     private playerComponentStore: ComponentStore<PlayerComponent>,
     private enemyComponentStore: ComponentStore<EnemyComponent>,
@@ -117,6 +129,9 @@ export class EntityFactory {
     private inventoryComponentStore: ComponentStore<InventoryComponent>,
     private itemBoxComponentStore: ComponentStore<ItemBoxComponent>,
     private itemDroppedComponentStore: ComponentStore<ItemDroppedComponent>,
+    private screenPositionComponentStore: ComponentStore<ScreenPositionComponent>,
+    private uiAnchorComponentStore: ComponentStore<UIAnchorComponent>,
+    private uiComponentStore: ComponentStore<UIComponent>,
   ) {
   }
 
@@ -395,6 +410,86 @@ export class EntityFactory {
     ));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
     return entityId;
+  }
+
+  createHUDItem(
+    entryType: UIEntryType,
+    uiType: UIType,
+    anchor: UIAnchor,
+    offsetX: number,
+    offsetY: number,
+    spriteName: SpriteName,
+    spriteSheetName: SpriteSheetName,
+    width?: number,
+    height?: number,
+  ) {
+    const entityId = this.entityManager.registerEntity();
+    this.renderableComponentStore.add(entityId, new RenderableComponent());
+    this.uiComponentStore.add(entityId, new UIComponent(entryType, uiType))
+    this.uiAnchorComponentStore.add(entityId, new UIAnchorComponent(anchor, offsetX, offsetY));
+    this.spriteComponentStore.add(entityId, new SpriteComponent(spriteName, spriteSheetName, width, height));
+    const screenPosition = this.uiManager.resolveScreenPosition(anchor, offsetX, offsetY);
+    this.screenPositionComponentStore.add(entityId, new ScreenPositionComponent(screenPosition.x, screenPosition.y));
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
+  }
+
+  createHUDItemText(
+    entryType: UIEntryType,
+    uiType: UIType,
+    anchor: UIAnchor,
+    offsetX: number,
+    offsetY: number,
+    text: string,
+    width?: number,
+    height?: number,
+  ) {
+    const entityId = this.entityManager.registerEntity();
+    const layoutWidth = typeof width === "number" && width > 0 ? width : null;
+
+    this.renderableComponentStore.add(entityId, new RenderableComponent());
+    this.uiComponentStore.add(entityId, new UIComponent(entryType, uiType))
+    this.uiAnchorComponentStore.add(entityId, new UIAnchorComponent(anchor, offsetX, offsetY));
+    this.bitmapTextComponentStore.add(entityId, new BitmapTextComponent(
+      text,
+      DEFAULT_HUD_TEXT_FONT_ID,
+      DEFAULT_HUD_TEXT_SCALE,
+      layoutWidth,
+      false,
+      layoutWidth ? "center" : "left",
+    ));
+    const screenPosition = this.uiManager.resolveScreenPosition(anchor, offsetX, offsetY);
+    this.screenPositionComponentStore.add(entityId, new ScreenPositionComponent(screenPosition.x, screenPosition.y));
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
+  }
+
+  createKeybindHint(
+    entryType: UIEntryType,
+    uiType: UIType,
+    anchor: UIAnchor,
+    offsetX: number,
+    offsetY: number,
+    keyLabel: string,
+  ) {
+    this.createHUDItem(
+      entryType,
+      uiType,
+      anchor,
+      offsetX,
+      offsetY,
+      SpriteName.KEYBOARD_KEY,
+      SpriteSheetName.KEYBOARD_KEY,
+      DEFAULT_KEYBIND_HINT_WIDTH,
+      DEFAULT_KEYBIND_HINT_HEIGHT,
+    );
+    this.createHUDItemText(
+      entryType,
+      uiType,
+      anchor,
+      offsetX,
+      offsetY - DEFAULT_KEYBIND_HINT_TEXT_OFFSET_Y,
+      keyLabel.toUpperCase(),
+      DEFAULT_KEYBIND_HINT_WIDTH,
+    );
   }
 
   destroyProjectile(entityId: number): void {

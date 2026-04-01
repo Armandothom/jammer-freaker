@@ -104,10 +104,9 @@ export class TextManager {
   ) {
     const rowIndex = font.atlasMapping.rowIndexByStart.get(glyph.y) ?? 0;
 
-    // The atlas keeps the original 8px horizontal stride from the JSON. Vertically the JSON
-    // gives the logical cell start, so we remove inter-row padding and then apply offsetY to
-    // reach the actual bitmap inside the cell.
-    const logicalX = glyph.x - 1;
+    // Glyph coordinates are stored as logical cell starts. We remove inter-row padding and
+    // apply the glyph offsets to reach the actual bitmap bounds inside the atlas cell.
+    const logicalX = glyph.x + glyph.offsetX - 1;
     const logicalY = glyph.y - (rowIndex * font.padding) + (glyph.offsetY - 1);
 
     return {

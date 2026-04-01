@@ -32,6 +32,13 @@ export class CameraManager {
     };
   }
 
+  getViewportSize(): { width: number; height: number } {
+    return {
+      width: this.viewportWidth,
+      height: this.viewportHeight,
+    };
+  }
+
   screenToWorld(
     screenX: number,
     screenY: number,

@@ -46,7 +46,7 @@ export class WeaponSwitchSystem implements ISystem {
         }
 
         if (this.wasKeyPressedThisFrame("Digit4")) {
-            this.trySwitchWeapon(playerEntity, inventory, WeaponType.AWP);
+            this.trySwitchWeapon(playerEntity, inventory, WeaponType.SNIPER);
         }
 
         this.syncInputFrame();

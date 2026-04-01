@@ -5,7 +5,7 @@ export enum WeaponType {
     PISTOL = "pistol",
     SMG = "smg",
     RIFLE = "rifle",
-    AWP = "awp",
+    SNIPER = "sniper",
     KNIFE = "knife",
     GRENADE = "grenade",
     SHIELD = "shield"
@@ -57,7 +57,7 @@ export const WeaponConfig: Record<WeaponType, WeaponConfig> = {
         pivotPointSprite: 6,
         fireRate: 100,
     },
-    [WeaponType.AWP]: {
+    [WeaponType.SNIPER]: {
         damage: 1000,
         maxBullets: 5,
         reloadTime: 3,

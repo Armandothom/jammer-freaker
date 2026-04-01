@@ -1,3 +1,4 @@
+import { HealthComponent } from "../components/health.component.js";
 import { InventoryComponent } from "../components/inventory-component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { InventoryResourceType } from "../components/types/inventory-resource-type.js";
@@ -20,6 +21,7 @@ export class InventoryDebugSystem implements ISystem {
         private inventoryManager: InventoryManager,
         private inventoryComponentStore: ComponentStore<InventoryComponent>,
         private playerComponentStore: ComponentStore<PlayerComponent>,
+        private healthComponentStore: ComponentStore<HealthComponent>,
     ) {
         window.addEventListener("keydown", this.onKeyDown);
         window.addEventListener("keyup", this.onKeyUp);
@@ -84,6 +86,14 @@ export class InventoryDebugSystem implements ISystem {
 
         if (this.wasKeyPressedThisFrame("Numpad9")) {
             this.inventoryManager.removeResource(inventory, InventoryResourceType.Money, 1000);
+        }
+
+        if (this.wasKeyPressedThisFrame("KeyK")) {
+            const health = this.healthComponentStore.getOrNull(playerEntity);
+            if (health) {
+                health.takeDamage(20);
+                console.log(`[InventoryDebug] Player took 20 damage. HP: ${health.hp}/${health.maxHp}`);
+            }
         }
 
         this.syncInputFrame();

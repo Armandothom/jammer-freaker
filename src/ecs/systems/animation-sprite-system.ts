@@ -43,11 +43,18 @@ export class AnimationSpriteSystem implements ISystem {
                 }
             }
 
+            const explicitWidth = currentSprite?.hasExplicitWidth
+                ? currentSprite.width
+                : undefined;
+            const explicitHeight = currentSprite?.hasExplicitHeight
+                ? currentSprite.height
+                : undefined;
+
             this.spriteComponentStore.add(entityId, new SpriteComponent(
                 currentFrame.spriteName,
                 currentFrame.spriteSheetName,
-                currentSprite?.width ?? 32,
-                currentSprite?.height ?? 32,
+                explicitWidth,
+                explicitHeight,
             ));
 
             const hasFinished = !animComponent.loop && timePassed >= totalDuration;

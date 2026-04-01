@@ -10,6 +10,7 @@ import { EntityFactory } from "../entities/entity-factory.js";
 import { EnemyLifecicleSystem } from "../systems/enemy-lifecicle.system.js";
 import { ZoneFactory } from "../zones/zone-factory.js";
 import { ComponentStore } from "./component-store.js";
+import { UIManager } from "./ui-manager.js";
 
 export enum LevelEndReason {
     PlayerDeath = "player_death",
@@ -33,6 +34,7 @@ export class LevelManager {
         private positionComponentStore: ComponentStore<PositionComponent>,
         private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
         private playerInitialProperties: PlayerInitialProperties,
+        private uiManager: UIManager,
     ) {
         this.levelNumber = this.previousLevel;
     }
@@ -41,7 +43,7 @@ export class LevelManager {
         this.previousLevel = this.levelNumber;
         this.levelNumber = this.previousLevel + 1;
 
-        this.rebuildLevel();
+        this.rebuildLevel(); //player spawn is here
     }
 
     private rebuildLevel(): void {

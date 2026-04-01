@@ -9,6 +9,7 @@ import { EntityManager } from "./entity-manager.js";
 import { FreezeManager } from "./freeze-manager.js";
 import { LevelManager } from "./level-manager.js";
 import { SystemRunner } from "./system-runner.js";
+import { UIManager } from "./ui-manager.js";
 
 export class CoreManager {
     private previousTimestamp = 0;
@@ -22,8 +23,6 @@ export class CoreManager {
     private _rendererEngine: RendererEngine;
     private _entityManager: EntityManager;
     private _soundManager!: SoundManager;
-    private _levelManager!: LevelManager;
-    private _freezeManager!: FreezeManager;
     private _debugManager!: DebugManager;
 
     constructor() {
@@ -44,7 +43,7 @@ export class CoreManager {
         console.log("Game generated");
 
         this._worldTilemapManager = new WorldTilemapManager();
-        this._systemRunner = new SystemRunner(this._worldTilemapManager, this._spriteManager, this._textManager, this._entityManager, this._soundManager, this._rendererEngine, this._levelManager, this._freezeManager, this._debugManager);
+        this._systemRunner = new SystemRunner(this._worldTilemapManager, this._spriteManager, this._textManager, this._entityManager, this._soundManager, this._rendererEngine, this._debugManager);
         this._systemRunner.initialize();
         this._soundManager.resumeOnUserGesture();
         //this._soundManager.playSound("THEME", true, 0.1);

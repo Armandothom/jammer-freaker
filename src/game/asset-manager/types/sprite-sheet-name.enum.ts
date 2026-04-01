@@ -11,5 +11,8 @@ export enum SpriteSheetName {
   GRENADE_DROP = "grenade_drop",
   PISTOL_MAG_DROP = "pistol_mag_drop",
   SMG_MAG_DROP = "smg_mag_drop",
-  WOODEN_BOX = "wooden_box"
+  WOODEN_BOX = "wooden_box",
+  HEALTH_BAR = "health_bar",
+  RESOURCES_ICON = "resources",
+  KEYBOARD_KEY = "keyboard_key",
 }

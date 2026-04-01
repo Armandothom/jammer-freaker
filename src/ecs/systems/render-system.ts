@@ -16,6 +16,7 @@ import { DialogBubbleSpriteComponent } from "../components/dialog-bubble-sprite.
 import { DirectionAnimComponent } from "../components/direction-anim.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { RenderableComponent } from "../components/renderable-component.js";
+import { ScreenPositionComponent } from "../components/screen-position.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { AnimDirection } from "../components/types/anim-direction.js";
 import { ZLayerComponent } from "../components/z-layer.component.js";
@@ -47,6 +48,7 @@ export class RenderSystem implements ISystem {
   constructor(
     private renderableComponentStore: ComponentStore<RenderableComponent>,
     private positionComponentStore: ComponentStore<PositionComponent>,
+    private screenPositionComponentStore: ComponentStore<ScreenPositionComponent>,
     private spriteComponentStore: ComponentStore<SpriteComponent>,
     private cameraManager: CameraManager,
     private tilemapManager: WorldTilemapManager,
@@ -71,10 +73,17 @@ export class RenderSystem implements ISystem {
     const wallRenderObjects = this.getWallRenderObjects(viewport);
     const overTerrainRenderObjects = this.getOverTerrainRenderObjects(viewport);
     const fogOverlayRenderObjects = this.getFogOverlayRenderObjects(viewport);
+    const uiDepthThreshold = this.maxDepthLevel + 1;
+    const worldSpaceRenderObjects = overTerrainRenderObjects.filter(
+      (renderObject) => renderObject.zLevel <= uiDepthThreshold,
+    );
+    const uiRenderObjects = overTerrainRenderObjects.filter(
+      (renderObject) => renderObject.zLevel > uiDepthThreshold,
+    );
     const renderObjects = [
       ...terrainRenderObjects,
       ...wallRenderObjects,
-      ...overTerrainRenderObjects,
+      ...worldSpaceRenderObjects,
     ];
     this.rendererEngine.toggleDebugBorderSprite(this.debugManager.getDebugSetting(DebugSettingKey.SPRITE_BOUNDS));
     this.rendererEngine.renderSprites(renderObjects);
@@ -84,6 +93,9 @@ export class RenderSystem implements ISystem {
     this.rendererEngine.renderParticles();
     if (fogOverlayRenderObjects.length > 0) {
       this.rendererEngine.renderSprites(fogOverlayRenderObjects);
+    }
+    if (uiRenderObjects.length > 0) {
+      this.renderUiRenderObjects(uiRenderObjects);
     }
     if (this.debugManager.getDebugSetting(DebugSettingKey.DEBUG_PAINT)) {
       this.renderDebugPaint(viewport);
@@ -103,6 +115,22 @@ export class RenderSystem implements ISystem {
           break;
       }
       this.rendererEngine.renderDebugPaint(order);
+    }
+  }
+
+  private renderUiRenderObjects(renderObjects: Array<RenderObject>) {
+    const zLevels = [...new Set(renderObjects.map((renderObject) => renderObject.zLevel))]
+      .sort((left, right) => left - right);
+
+    for (const zLevel of zLevels) {
+      const renderBatch = renderObjects
+        .filter((renderObject) => renderObject.zLevel === zLevel)
+        .map((renderObject) => ({
+          ...renderObject,
+          zLevel: this.maxDepthLevel,
+        }));
+
+      this.rendererEngine.renderSprites(renderBatch);
     }
   }
 
@@ -185,11 +213,13 @@ export class RenderSystem implements ISystem {
 
     for (const entity of entities) {
       const position = this.positionComponentStore.getOrNull(entity);
+      const screenPosition = this.screenPositionComponentStore.getOrNull(entity);
       const layerComponent = this.zLayerComponentStore.getOrNull(entity);
       const dialogBubble = this.dialogBubbleSpriteComponentStore.getOrNull(entity);
       const bitmapText = this.bitmapTextComponentStore.getOrNull(entity);
+      const isScreenSpace = !!screenPosition;
 
-      if (!position || !layerComponent) {
+      if ((!position && !screenPosition) || !layerComponent) {
         continue;
       }
 
@@ -199,6 +229,7 @@ export class RenderSystem implements ISystem {
             entity,
             viewport,
             position,
+            screenPosition,
             layerComponent,
             dialogBubble,
             bitmapText,
@@ -223,42 +254,53 @@ export class RenderSystem implements ISystem {
         sprite.height ?? spriteProperties.sprite.originalRenderSpriteHeight;
       const layerMultiplier = this.layerMultiplicator[layerComponent.layer] ?? 1;
 
-      const worldLeft = position.x;
-      const worldRight = position.x + spriteWidth;
-      const worldTop = position.y;
-      const worldBottom = position.y + spriteHeight;
-
-      const isOutsideViewport =
-        worldRight < viewport.left ||
-        worldLeft > viewport.right ||
-        worldBottom < viewport.top ||
-        worldTop > viewport.bottom;
-
-      if (isOutsideViewport) {
-        //console.log('entity culled by viewport', entity);
-        continue;
-      }
-
       const aimComponent = this.aimShootingComponentStore.getOrNull(entity);
       const directionAnim = this.directionAnimComponentStore.getOrNull(entity);
 
       const mirrorSpriteX = directionAnim?.xDirection === AnimDirection.LEFT;
       const mirrorSpriteY = directionAnim?.yDirection === AnimDirection.BOTTOM;
+      let screenX = 0;
+      let screenY = 0;
+      let zLevel = this.getUiDepthLevel(layerMultiplier);
 
-      const screenX = position.x - viewport.left;
-      const screenY = position.y - viewport.top;
-      const visibilitySampleX = position.x + (spriteWidth / 2);
-      const visibilitySampleY = position.y + (spriteHeight / 2);
+      if (isScreenSpace) {
+        screenX = screenPosition.x;
+        screenY = screenPosition.y;
+      } else {
+        const worldPosition = position!;
+        const worldLeft = worldPosition.x;
+        const worldRight = worldPosition.x + spriteWidth;
+        const worldTop = worldPosition.y;
+        const worldBottom = worldPosition.y + spriteHeight;
 
-      if (
-        !this.visibilityManager.isWorldPositionVisible(
-          visibilitySampleX,
-          visibilitySampleY,
-          this.tilemapManager,
-        )
-      ) {
-        continue;
+        const isOutsideViewport =
+          worldRight < viewport.left ||
+          worldLeft > viewport.right ||
+          worldBottom < viewport.top ||
+          worldTop > viewport.bottom;
+
+        if (isOutsideViewport) {
+          continue;
+        }
+
+        const visibilitySampleX = worldPosition.x + (spriteWidth / 2);
+        const visibilitySampleY = worldPosition.y + (spriteHeight / 2);
+
+        if (
+          !this.visibilityManager.isWorldPositionVisible(
+            visibilitySampleX,
+            visibilitySampleY,
+            this.tilemapManager,
+          )
+        ) {
+          continue;
+        }
+
+        screenX = worldPosition.x - viewport.left;
+        screenY = worldPosition.y - viewport.top;
+        zLevel = this.getDepthLevel(worldPosition.y, layerMultiplier);
       }
+
       renderObjects.push({
         xWorldPosition: screenX,
         yWorldPosition: screenY,
@@ -273,7 +315,7 @@ export class RenderSystem implements ISystem {
         width: spriteWidth,
         angleRotation: aimComponent?.aimAngle || null,
         offsetRotation: aimComponent?.pivotPointSprite || 0,
-        zLevel: this.getDepthLevel(position.y, layerMultiplier),
+        zLevel,
       });
     }
 
@@ -283,12 +325,14 @@ export class RenderSystem implements ISystem {
   private getDialogRenderObjects(
     entity: number,
     viewport: CameraViewport,
-    position: PositionComponent,
+    position: PositionComponent | null,
+    screenPosition: ScreenPositionComponent | null,
     layerComponent: ZLayerComponent,
     dialogBubble: DialogBubbleSpriteComponent | null,
     bitmapText: BitmapTextComponent | null,
   ) {
     const renderObjects: Array<RenderObject> = [];
+    const isScreenSpace = !!screenPosition;
     const textContext = bitmapText
       ? this.buildBitmapTextRenderContext(bitmapText, dialogBubble)
       : null;
@@ -310,38 +354,49 @@ export class RenderSystem implements ISystem {
       return renderObjects;
     }
 
-    const worldLeft = dialogBubble
-      ? position.x - (bubbleWidth / 2)
-      : position.x;
-    const worldTop = dialogBubble
-      ? position.y - bubbleHeight
-      : position.y;
+    const baseX = isScreenSpace ? screenPosition.x : position?.x;
+    const baseY = isScreenSpace ? screenPosition.y : position?.y;
 
-    if (this.isOutsideViewport(worldLeft, worldTop, boundsWidth, boundsHeight, viewport)) {
+    if (baseX === undefined || baseY === undefined) {
       return renderObjects;
     }
 
-    const visibilitySampleX = dialogBubble
-      ? position.x
-      : worldLeft + (boundsWidth / 2);
-    const visibilitySampleY = dialogBubble
-      ? position.y
-      : worldTop + (boundsHeight / 2);
+    const left = dialogBubble
+      ? baseX - (bubbleWidth / 2)
+      : baseX;
+    const top = dialogBubble
+      ? baseY - bubbleHeight
+      : baseY;
 
-    if (
-      !this.visibilityManager.isWorldPositionVisible(
-        visibilitySampleX,
-        visibilitySampleY,
-        this.tilemapManager,
-      )
-    ) {
-      return renderObjects;
+    if (!isScreenSpace) {
+      if (this.isOutsideViewport(left, top, boundsWidth, boundsHeight, viewport)) {
+        return renderObjects;
+      }
+
+      const visibilitySampleX = dialogBubble
+        ? baseX
+        : left + (boundsWidth / 2);
+      const visibilitySampleY = dialogBubble
+        ? baseY
+        : top + (boundsHeight / 2);
+
+      if (
+        !this.visibilityManager.isWorldPositionVisible(
+          visibilitySampleX,
+          visibilitySampleY,
+          this.tilemapManager,
+        )
+      ) {
+        return renderObjects;
+      }
     }
 
     const layerMultiplier = this.layerMultiplicator[layerComponent.layer] ?? 1;
-    const baseZLevel = this.getDepthLevel(position.y, layerMultiplier);
-    const bubbleScreenX = Math.round(worldLeft - viewport.left);
-    const bubbleScreenY = Math.round(worldTop - viewport.top);
+    const baseZLevel = isScreenSpace
+      ? this.getUiDepthLevel(layerMultiplier)
+      : this.getDepthLevel(position!.y, layerMultiplier);
+    const bubbleScreenX = Math.round(isScreenSpace ? left : left - viewport.left);
+    const bubbleScreenY = Math.round(isScreenSpace ? top : top - viewport.top);
 
     if (dialogBubble) {
       const bubbleSprite = this.spriteComponentStore.getOrNull(entity);
@@ -372,13 +427,17 @@ export class RenderSystem implements ISystem {
       return renderObjects;
     }
 
-    const textWorldLeft = worldLeft + (dialogBubble?.textOffsetX ?? 0);
-    const textWorldTop = worldTop + (dialogBubble?.textOffsetY ?? 0);
+    const textLeft = left + (dialogBubble?.textOffsetX ?? 0);
+    const textTop = top + (dialogBubble?.textOffsetY ?? 0);
 
     for (const glyph of textContext.layout.glyphs) {
       renderObjects.push({
-        xWorldPosition: Math.round((textWorldLeft + glyph.x) - viewport.left),
-        yWorldPosition: Math.round((textWorldTop + glyph.y) - viewport.top),
+        xWorldPosition: Math.round(
+          isScreenSpace ? textLeft + glyph.x : (textLeft + glyph.x) - viewport.left,
+        ),
+        yWorldPosition: Math.round(
+          isScreenSpace ? textTop + glyph.y : (textTop + glyph.y) - viewport.top,
+        ),
         spriteSheetTexture: textContext.font.texture,
         uvCoordinates: this.textManager.getGlyphUvCoordinatesForFont(
           textContext.font,
@@ -543,5 +602,9 @@ export class RenderSystem implements ISystem {
 
     // Keeps the existing Y/layer ordering while staying inside the clip-space depth range.
     return (clampedWorldY * layerMultiplier / maxDepthSource) * this.maxDepthLevel;
+  }
+
+  private getUiDepthLevel(layerMultiplier: number): number {
+    return this.maxDepthLevel + layerMultiplier + 1;
   }
 }

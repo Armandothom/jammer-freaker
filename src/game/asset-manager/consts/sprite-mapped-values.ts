@@ -195,6 +195,7 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
       ])
     }
   ],
+
   [
     SpriteSheetName.PROJECTILE,
     {
@@ -737,6 +738,87 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
         [SpriteName.GRENADE_DROP_8, {
           row: 1,
           column: 8,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+      ])
+    }
+  ],
+
+  [
+    SpriteSheetName.HEALTH_BAR,
+    {
+      rows: 1,
+      columns: 2,
+      eachSpriteCellSizeHeight: 48,
+      eachSpriteCellSizeWidth: 288,
+      srcImagePath: 'src/assets/images/health_bar.png',
+      sprites: new Map([
+        [SpriteName.HEALTH_BAR_EMPTY, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 48,
+          originalRenderSpriteWidth: 288,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 288, height: 48 }
+        }],
+        [SpriteName.HEALTH_BAR_FILL, {
+          row: 1,
+          column: 2,
+          originalRenderSpriteHeight: 48,
+          originalRenderSpriteWidth: 288,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 288, height: 48 }
+        }],
+      ])
+    }
+  ],
+
+  [
+    SpriteSheetName.RESOURCES_ICON,
+    {
+      rows: 1,
+      columns: 3,
+      eachSpriteCellSizeHeight: 32,
+      eachSpriteCellSizeWidth: 32,
+      srcImagePath: 'src/assets/images/resources_spritesheet.png',
+      sprites: new Map([
+        [SpriteName.BULLET_ICON, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 9, offsetY: 0, width: 25, height: 27 }
+        }],
+        [SpriteName.PISTOL_MAG_ICON, {
+          row: 1,
+          column: 2,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 10, offsetY: 0, width: 25, height: 28 }
+        }],
+        [SpriteName.SMG_MAG_ICON, {
+          row: 1,
+          column: 3,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 4, offsetY: 0, width: 25, height: 28 }
+        }],
+      ])
+    }
+  ],
+
+  [
+    SpriteSheetName.KEYBOARD_KEY,
+    {
+      rows: 1,
+      columns: 1,
+      eachSpriteCellSizeHeight: 32,
+      eachSpriteCellSizeWidth: 32,
+      srcImagePath: 'src/assets/images/keyboard_key.png',
+      sprites: new Map([
+        [SpriteName.KEYBOARD_KEY, {
+          row: 1,
+          column: 1,
           originalRenderSpriteHeight: 32,
           originalRenderSpriteWidth: 32,
           spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }

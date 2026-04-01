@@ -80,4 +80,10 @@ export enum SpriteName {
   WOODEN_BOX_2 = "wooden_box_2",
   WOODEN_BOX_3 = "wooden_box_3",
   WOODEN_BOX_4 = "wooden_box_4",
+  HEALTH_BAR_EMPTY = "health_bar_empty",
+  HEALTH_BAR_FILL = "health_bar_fill",
+  BULLET_ICON = "bullet_icon",
+  PISTOL_MAG_ICON = "pistol_mag_icon",
+  SMG_MAG_ICON = "smg_mag_icon",
+  KEYBOARD_KEY = "keyboard_key",
 }

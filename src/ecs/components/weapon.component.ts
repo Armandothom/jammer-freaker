@@ -6,10 +6,17 @@ export class WeaponComponent {
     public spriteName: SpriteName;
     public spriteSheetName: SpriteSheetName;
     public animationName: AnimationName;
-    public weaponWidth: number;
-    public weaponHeight: number;
+    public weaponWidth?: number;
+    public weaponHeight?: number;
     public configuredPivotRotation: number;
-    constructor(spriteName: SpriteName, spriteSheetName: SpriteSheetName, animationName: AnimationName, configuredPivotRotation: number, weaponWidth: number = 32, weaponHeight: number = 32) {
+    constructor(
+        spriteName: SpriteName,
+        spriteSheetName: SpriteSheetName,
+        animationName: AnimationName,
+        configuredPivotRotation: number,
+        weaponWidth?: number,
+        weaponHeight?: number,
+    ) {
         this.spriteName = spriteName;
         this.spriteSheetName = spriteSheetName;
         this.animationName = animationName;
