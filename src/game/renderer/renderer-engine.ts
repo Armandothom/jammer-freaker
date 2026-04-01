@@ -47,6 +47,10 @@ export class RendererEngine {
 
   private _particleRenderVAO!: WebGLVertexArrayObject;
   private _particleRenderVBO!: WebGLBuffer;
+  private _spriteVAO!: WebGLVertexArrayObject;
+  private _spritePositionBuffer!: WebGLBuffer;
+  private _spriteUvBuffer!: WebGLBuffer;
+  private _spriteLocalUvBuffer!: WebGLBuffer;
 
   private static readonly TEX_UNIT_STATE_READ = 1;
   private static readonly TEX_UNIT_SPAWN_KIN = 2;
@@ -124,6 +128,7 @@ export class RendererEngine {
     this._gl.enable(this._gl.BLEND);
     this._gl.blendFunc(this._gl.SRC_ALPHA, this._gl.ONE_MINUS_SRC_ALPHA);
     this.createProgram(vertexShader, fragmentShader);
+    this.initSpriteRenderer();
     this.setDebugMode();
 
     const textureLocation = this._gl.getUniformLocation(this.program, "u_texture");
@@ -281,6 +286,35 @@ export class RendererEngine {
     this.initParticleSimulation(512); // capacidade arbitrária
     this.compileParticleRenderProgram();
     this.initParticleRender();
+  }
+
+  private initSpriteRenderer() {
+    const gl = this._gl;
+    this._spriteVAO = gl.createVertexArray()!;
+    this._spritePositionBuffer = gl.createBuffer()!;
+    this._spriteUvBuffer = gl.createBuffer()!;
+    this._spriteLocalUvBuffer = gl.createBuffer()!;
+
+    const positionAttribLocation = gl.getAttribLocation(this.program, "a_position");
+    const uvAttributeLocation = gl.getAttribLocation(this.program, "a_uv");
+    const uvLocalAttributeLocation = gl.getAttribLocation(this.program, "a_local_uv");
+
+    gl.bindVertexArray(this._spriteVAO);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._spritePositionBuffer);
+    gl.enableVertexAttribArray(positionAttribLocation);
+    gl.vertexAttribPointer(positionAttribLocation, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._spriteUvBuffer);
+    gl.enableVertexAttribArray(uvAttributeLocation);
+    gl.vertexAttribPointer(uvAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._spriteLocalUvBuffer);
+    gl.enableVertexAttribArray(uvLocalAttributeLocation);
+    gl.vertexAttribPointer(uvLocalAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+
+    gl.bindVertexArray(null);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
   }
 
   private initDebugger() {
@@ -825,6 +859,8 @@ export class RendererEngine {
       groups.get(obj.spriteSheetTexture)!.push(obj);
     }
 
+    this._gl.bindVertexArray(this._spriteVAO);
+
     for (const [texture, renderObjects] of groups) {
       const vertices: number[] = [];
       const uvTextures: number[] = [];
@@ -875,33 +911,20 @@ export class RendererEngine {
       this._gl.activeTexture(this._gl.TEXTURE0);
       this._gl.bindTexture(this._gl.TEXTURE_2D, texture);
 
-      // Send position of vertices
-      const positionAttribLocation = this._gl.getAttribLocation(this.program, "a_position");
-      const bufferLocation = this._gl.createBuffer();
-      this._gl.bindBuffer(this._gl.ARRAY_BUFFER, bufferLocation);
-      this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(vertices), this._gl.STATIC_DRAW);
-      this._gl.enableVertexAttribArray(positionAttribLocation);
-      this._gl.vertexAttribPointer(positionAttribLocation, 3, this._gl.FLOAT, false, 0, 0);
+      this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._spritePositionBuffer);
+      this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(vertices), this._gl.DYNAMIC_DRAW);
 
-      // Send the UV vertices
-      const uvAttributeLocation = this._gl.getAttribLocation(this.program, "a_uv");
-      const uvBuffer = this._gl.createBuffer();
-      this._gl.bindBuffer(this._gl.ARRAY_BUFFER, uvBuffer);
-      this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(uvTextures), this._gl.STATIC_DRAW);
-      this._gl.enableVertexAttribArray(uvAttributeLocation);
-      this._gl.vertexAttribPointer(uvAttributeLocation, 2, this._gl.FLOAT, false, 0, 0);
+      this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._spriteUvBuffer);
+      this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(uvTextures), this._gl.DYNAMIC_DRAW);
 
-      // Local UV to debug border
-      const uvLocalAttributeLocation = this._gl.getAttribLocation(this.program, "a_local_uv");
-      const uLocalvBuffer = this._gl.createBuffer();
-      this._gl.bindBuffer(this._gl.ARRAY_BUFFER, uLocalvBuffer);
-      this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(uvLocal), this._gl.STATIC_DRAW);
-      this._gl.enableVertexAttribArray(uvLocalAttributeLocation);
-      this._gl.vertexAttribPointer(uvLocalAttributeLocation, 2, this._gl.FLOAT, false, 0, 0);
+      this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._spriteLocalUvBuffer);
+      this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(uvLocal), this._gl.DYNAMIC_DRAW);
 
       // Final call to render everything
       this._gl.drawArrays(this._gl.TRIANGLES, 0, vertices.length / 3);
     }
+
+    this._gl.bindVertexArray(null);
   }
 
   private createShader(type: number, source: string) {
