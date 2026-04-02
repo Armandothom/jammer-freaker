@@ -1,11 +1,14 @@
 export enum UIType {
     HEALTH_BAR = "health_bar",
     HEALTH_BAR_TEXT = "health_bar_text",
+    WEAPON_FRAME = "weapon_frame",
     WEAPON_ICON = "weapon_icon",
     BULLET_QUANTITY = "bullet_quantity",
     BULLET_ICON = "bullet_icon",
     MAG_ICON = "mag_icon",
     MAG_QUANTITY = "mag_quantity",
+    GRENADE_ICON = "grenade_icon",
+    GRENADE_QUANTITY = "grenade_quantity",
     MONEY = "money",
     HOSTAGES = "hostages",
 

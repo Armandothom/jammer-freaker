@@ -10,50 +10,69 @@ export type UITypeLayoutPreset = {
 export const UI_TYPE_LAYOUT_PRESET: Record<UIType, UITypeLayoutPreset> = {
     [UIType.HEALTH_BAR]: {
         anchor: UIAnchor.TOP_LEFT,
-        offsetX: 20,
-        offsetY: 20,
+        offsetX: 72,
+        offsetY: 42,
     },
 
     [UIType.HEALTH_BAR_TEXT]: {
         anchor: UIAnchor.TOP_LEFT,
-        offsetX: 20,
-        offsetY: 28,
+        offsetX: 72,
+        offsetY: 48,
     },
 
     [UIType.WEAPON_ICON]: {
         anchor: UIAnchor.TOP_LEFT,
-        offsetX: 32,
-        offsetY: 56,
+        offsetX: 26,
+        offsetY: 34,
+    },
+
+    [UIType.WEAPON_FRAME]: {
+        anchor: UIAnchor.TOP_LEFT,
+        offsetX: 20,
+        offsetY: 20,
     },
 
     [UIType.BULLET_QUANTITY]: {
         anchor: UIAnchor.TOP_LEFT,
-        offsetX: 76,
-        offsetY: 58,
+        offsetX: 32,
+        offsetY: 72,
     },
 
     [UIType.BULLET_ICON]: {
         anchor: UIAnchor.TOP_LEFT,
-        offsetX: 98,
-        offsetY: 55,
+        offsetX: 54,
+        offsetY: 70,
     },
 
     [UIType.MAG_QUANTITY]: {
         anchor: UIAnchor.TOP_LEFT,
-        offsetX: 124,
-        offsetY: 58,
+        offsetX: 74,
+        offsetY: 72,
     },
 
     [UIType.MAG_ICON]: {
         anchor: UIAnchor.TOP_LEFT,
-        offsetX: 138,
-        offsetY: 56,
+        offsetX: 86,
+        offsetY: 70,
     },
 
+    [UIType.GRENADE_QUANTITY]: {
+        anchor: UIAnchor.TOP_LEFT,
+        offsetX: 116,
+        offsetY: 72,
+    },
+
+    [UIType.GRENADE_ICON]: {
+        anchor: UIAnchor.TOP_LEFT,
+        offsetX: 128,
+        offsetY: 70,
+    },
+
+
     [UIType.MONEY]: {
-        anchor: UIAnchor.TOP_RIGHT,
-        offsetX: 40,
-        offsetY: 28,
+        anchor: UIAnchor.TOP_LEFT,
+        offsetX: 72,
+        offsetY: 24,
     },
 
     [UIType.HOSTAGES]: {

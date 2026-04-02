@@ -787,21 +787,21 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
           column: 1,
           originalRenderSpriteHeight: 32,
           originalRenderSpriteWidth: 32,
-          spriteCellOffset: { offsetX: 9, offsetY: 0, width: 25, height: 27 }
+          spriteCellOffset: { offsetX: 9, offsetY: 0, width: 14, height: 32 }
         }],
         [SpriteName.PISTOL_MAG_ICON, {
           row: 1,
           column: 2,
           originalRenderSpriteHeight: 32,
           originalRenderSpriteWidth: 32,
-          spriteCellOffset: { offsetX: 10, offsetY: 0, width: 25, height: 28 }
+          spriteCellOffset: { offsetX: 10, offsetY: 0, width: 13, height: 32 }
         }],
         [SpriteName.SMG_MAG_ICON, {
           row: 1,
           column: 3,
           originalRenderSpriteHeight: 32,
           originalRenderSpriteWidth: 32,
-          spriteCellOffset: { offsetX: 4, offsetY: 0, width: 25, height: 28 }
+          spriteCellOffset: { offsetX: 4, offsetY: 0, width: 22, height: 32 }
         }],
       ])
     }
@@ -826,5 +826,26 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
       ])
     }
   ],
+
+  [
+    SpriteSheetName.WEAPON_FRAME,
+    {
+      rows: 1,
+      columns: 1,
+      eachSpriteCellSizeHeight: 38,
+      eachSpriteCellSizeWidth: 38,
+      srcImagePath: 'src/assets/images/weapon_frame.png',
+      sprites: new Map([
+        [SpriteName.WEAPON_FRAME, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 38,
+          originalRenderSpriteWidth: 38,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 38, height: 38 }
+        }],
+      ])
+    }
+  ],
+
 
 ]);

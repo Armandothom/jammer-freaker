@@ -15,4 +15,5 @@ export enum SpriteSheetName {
   HEALTH_BAR = "health_bar",
   RESOURCES_ICON = "resources",
   KEYBOARD_KEY = "keyboard_key",
+  WEAPON_FRAME = "weapon_frame",
 }

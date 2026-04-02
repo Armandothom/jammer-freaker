@@ -1,9 +1,11 @@
+import { SPRITESHEET_MAPPED_VALUES } from "../../game/asset-manager/consts/sprite-mapped-values.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
 import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { BitmapTextComponent } from "../components/bitmap-text.component.js";
 import { HealthComponent } from "../components/health.component.js";
 import { InventoryComponent } from "../components/inventory-component.js";
 import { PlayerComponent } from "../components/player.component.js";
+import { ScreenPositionComponent } from "../components/screen-position.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { InventoryResourceType } from "../components/types/inventory-resource-type.js";
 import { PlayerInitialProperties } from "../components/types/player-properties.js";
@@ -14,11 +16,10 @@ import { UIComponent } from "../components/ui-component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { InventoryManager } from "../core/inventory-manager.js";
 import { EntityFactory } from "../entities/entity-factory.js";
-import { SPRITESHEET_MAPPED_VALUES } from "../../game/asset-manager/consts/sprite-mapped-values.js";
 import { ISystem } from "./system.interface.js";
 
 const HEALTH_BAR_RENDER_WIDTH = 192;
-const HEALTH_BAR_RENDER_HEIGHT = 32;
+const HEALTH_BAR_RENDER_HEIGHT = 24;
 const HEALTH_BAR_FILL_SOURCE_WIDTH = 288;
 const ACTION_BAR_WEAPON_SLOT_SPACING = 40;
 const HIDDEN_UI_SIZE = 0;
@@ -43,6 +44,7 @@ export class UIUpdateSystem implements ISystem {
         private healthComponentStore: ComponentStore<HealthComponent>,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
         private bitmapTextComponentStore: ComponentStore<BitmapTextComponent>,
+        private screenPositionComponentStore: ComponentStore<ScreenPositionComponent>,
     ) {
 
     }
@@ -69,6 +71,7 @@ export class UIUpdateSystem implements ISystem {
         const bulletsInMag = this.inventoryManager.getRoundsInMag(inventory, equippedWeaponType);
         const magUsed = this.inventoryManager.getAmmoResourceTypeForWeapon(equippedWeaponType);
         const magsAvaliable = this.inventoryManager.getResourceAmount(inventory, magUsed);
+        const grenadeAvaliable = this.inventoryManager.getResourceAmount(inventory, InventoryResourceType.Grenade);
         const magSprite = this.resolveInventoryResourceSprite(magUsed);
         const actualMoney = this.inventoryManager.getResourceAmount(inventory, InventoryResourceType.Money);
 
@@ -105,6 +108,17 @@ export class UIUpdateSystem implements ISystem {
         );
         this.entityFactory.createHUDItem(
             UIEntryType.HUD,
+            UIType.WEAPON_FRAME,
+            preset.weapon_frame.anchor,
+            preset.weapon_frame.offsetX,
+            preset.weapon_frame.offsetY,
+            SpriteName.WEAPON_FRAME,
+            SpriteSheetName.WEAPON_FRAME,
+            48,
+            48,
+        );
+        this.entityFactory.createHUDItem(
+            UIEntryType.HUD,
             UIType.WEAPON_ICON,
             preset.weapon_icon.anchor,
             preset.weapon_icon.offsetX,
@@ -130,7 +144,7 @@ export class UIUpdateSystem implements ISystem {
             preset.bullet_icon.offsetY,
             SpriteName.BULLET_ICON,
             SpriteSheetName.RESOURCES_ICON,
-            7,
+            8,
             16,
         );
         this.entityFactory.createHUDItemText(
@@ -154,70 +168,89 @@ export class UIUpdateSystem implements ISystem {
         );
         this.entityFactory.createHUDItemText(
             UIEntryType.HUD,
+            UIType.GRENADE_QUANTITY,
+            preset.grenade_quantity.anchor,
+            preset.grenade_quantity.offsetX,
+            preset.grenade_quantity.offsetY,
+            `${magsAvaliable}`,
+        );
+        this.entityFactory.createHUDItem(
+            UIEntryType.HUD,
+            UIType.GRENADE_ICON,
+            preset.grenade_icon.anchor,
+            preset.grenade_icon.offsetX,
+            preset.grenade_icon.offsetY,
+            SpriteName.GRENADE_1,
+            SpriteSheetName.PROJECTILE,
+            14,
+            16,
+        );
+        this.entityFactory.createHUDItemText(
+            UIEntryType.HUD,
             UIType.MONEY,
             preset.money.anchor,
             preset.money.offsetX,
             preset.money.offsetY,
             `$${actualMoney}`,
         );
-        this.entityFactory.createKeybindHint(
-            UIEntryType.ACTION_BAR,
-            UIType.WEAPON_KEYBIND_1,
-            preset.weapon_keybind_1.anchor,
-            preset.weapon_keybind_1.offsetX,
-            preset.weapon_keybind_1.offsetY,
-            "1",
-        );
-        this.entityFactory.createHUDItem(
-            UIEntryType.ACTION_BAR,
-            UIType.WEAPON_SLOT_1,
-            preset.weapon_slot_1.anchor,
-            preset.weapon_slot_1.offsetX,
-            preset.weapon_slot_1.offsetY,
-            SpriteName.PISTOL,
-            SpriteSheetName.WEAPON,
-            36,
-            20,
-        )
-        this.createSecondaryWeaponActionBarSlot(UIType.WEAPON_KEYBIND_2, UIType.WEAPON_SLOT_2, 1);
-        this.createSecondaryWeaponActionBarSlot(UIType.WEAPON_KEYBIND_3, UIType.WEAPON_SLOT_3, 2);
-        this.createSecondaryWeaponActionBarSlot(UIType.WEAPON_KEYBIND_4, UIType.WEAPON_SLOT_4, 3);
-        this.entityFactory.createKeybindHint(
-            UIEntryType.ACTION_BAR,
-            UIType.GRENADE_KEYBIND,
-            preset.grenade_slot_keybind.anchor,
-            preset.grenade_slot_keybind.offsetX,
-            preset.grenade_slot_keybind.offsetY,
-            "G",
-        );
-        this.entityFactory.createHUDItem(
-            UIEntryType.ACTION_BAR,
-            UIType.GRENADE_SLOT,
-            preset.grenade_slot.anchor,
-            preset.grenade_slot.offsetX,
-            preset.grenade_slot.offsetY,
-            SpriteName.GRENADE_1,
-            SpriteSheetName.PROJECTILE,
-        );
-        this.entityFactory.createKeybindHint(
-            UIEntryType.ACTION_BAR,
-            UIType.KNIFE_KEYBIND,
-            preset.knife_slot_keybind.anchor,
-            preset.knife_slot_keybind.offsetX,
-            preset.knife_slot_keybind.offsetY,
-            "F",
-        );
-        this.entityFactory.createHUDItem(
-            UIEntryType.ACTION_BAR,
-            UIType.KNIFE_SLOT,
-            preset.knife_slot.anchor,
-            preset.knife_slot.offsetX,
-            preset.knife_slot.offsetY,
-            SpriteName.KNIFE,
-            SpriteSheetName.WEAPON,
-            24,
-            14,
-        )
+        // this.entityFactory.createKeybindHint(
+        //     UIEntryType.ACTION_BAR,
+        //     UIType.WEAPON_KEYBIND_1,
+        //     preset.weapon_keybind_1.anchor,
+        //     preset.weapon_keybind_1.offsetX,
+        //     preset.weapon_keybind_1.offsetY,
+        //     "1",
+        // );
+        // this.entityFactory.createHUDItem(
+        //     UIEntryType.ACTION_BAR,
+        //     UIType.WEAPON_SLOT_1,
+        //     preset.weapon_slot_1.anchor,
+        //     preset.weapon_slot_1.offsetX,
+        //     preset.weapon_slot_1.offsetY,
+        //     SpriteName.PISTOL,
+        //     SpriteSheetName.WEAPON,
+        //     36,
+        //     20,
+        // )
+        // this.createSecondaryWeaponActionBarSlot(UIType.WEAPON_KEYBIND_2, UIType.WEAPON_SLOT_2, 1);
+        // this.createSecondaryWeaponActionBarSlot(UIType.WEAPON_KEYBIND_3, UIType.WEAPON_SLOT_3, 2);
+        // this.createSecondaryWeaponActionBarSlot(UIType.WEAPON_KEYBIND_4, UIType.WEAPON_SLOT_4, 3);
+        // this.entityFactory.createKeybindHint(
+        //     UIEntryType.ACTION_BAR,
+        //     UIType.GRENADE_KEYBIND,
+        //     preset.grenade_slot_keybind.anchor,
+        //     preset.grenade_slot_keybind.offsetX,
+        //     preset.grenade_slot_keybind.offsetY,
+        //     "G",
+        // );
+        // this.entityFactory.createHUDItem(
+        //     UIEntryType.ACTION_BAR,
+        //     UIType.GRENADE_SLOT,
+        //     preset.grenade_slot.anchor,
+        //     preset.grenade_slot.offsetX,
+        //     preset.grenade_slot.offsetY,
+        //     SpriteName.GRENADE_1,
+        //     SpriteSheetName.PROJECTILE,
+        // );
+        // this.entityFactory.createKeybindHint(
+        //     UIEntryType.ACTION_BAR,
+        //     UIType.KNIFE_KEYBIND,
+        //     preset.knife_slot_keybind.anchor,
+        //     preset.knife_slot_keybind.offsetX,
+        //     preset.knife_slot_keybind.offsetY,
+        //     "F",
+        // );
+        // this.entityFactory.createHUDItem(
+        //     UIEntryType.ACTION_BAR,
+        //     UIType.KNIFE_SLOT,
+        //     preset.knife_slot.anchor,
+        //     preset.knife_slot.offsetX,
+        //     preset.knife_slot.offsetY,
+        //     SpriteName.KNIFE,
+        //     SpriteSheetName.WEAPON,
+        //     24,
+        //     14,
+        // )
         this.secondaryWeaponStateKey = this.buildSecondaryWeaponStateKey(inventory);
         this.syncSecondaryWeaponActionBar(inventory);
 
@@ -532,6 +565,14 @@ export class UIUpdateSystem implements ISystem {
             const magsAvaliable = this.inventoryManager.getResourceAmount(inventory, magUsed);
             this.bitmapTextComponentStore.get(uiEntity).text = `${magsAvaliable}`;
         },
+        [UIType.GRENADE_ICON]: (uiEntity: number, playerEntity: number) => {
+            // No update
+        },
+        [UIType.GRENADE_QUANTITY]: (uiEntity: number, playerEntity: number) => {
+            const inventory = this.inventoryComponentStore.get(playerEntity);
+            const grenadeQuantity = this.inventoryManager.getResourceAmount(inventory, InventoryResourceType.Grenade);
+            this.bitmapTextComponentStore.get(uiEntity).text = `${grenadeQuantity}`;
+        },
         [UIType.MONEY]: (uiEntity: number, playerEntity: number) => {
             const inventory = this.inventoryComponentStore.get(playerEntity);
             const money = this.inventoryManager.getResourceAmount(inventory, InventoryResourceType.Money);
@@ -575,6 +616,9 @@ export class UIUpdateSystem implements ISystem {
             // No update
         },
         [UIType.KNIFE_SLOT]: (uiEntity: number, playerEntity: number) => {
+            // No update
+        },
+        [UIType.WEAPON_FRAME]: (uiEntity: number, playerEntity: number) => {
             // No update
         },
         [UIType.FLOATING_TEXT]: (uiEntity: number, playerEntity: number) => { },
