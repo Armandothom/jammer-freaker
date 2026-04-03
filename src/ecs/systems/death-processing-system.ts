@@ -22,7 +22,7 @@ export class DeathProcessingSystem implements ISystem {
         private enemyComponentStore: ComponentStore<EnemyComponent>,
         private enemyDeadComponentStore: ComponentStore<EnemyDeadComponent>,
         private itemBoxComponentStore: ComponentStore<ItemBoxComponent>,
-        private awaitingAnimationEndStore: ComponentStore<AwaitingAnimationEndComponent>,
+        private awaitingAnimationEndComponentStore: ComponentStore<AwaitingAnimationEndComponent>,
         private itemDropIntentComponentStore: ComponentStore<ItemDropIntentComponent>,
         private positionComponentStore: ComponentStore<PositionComponent>,
     ) {
@@ -44,11 +44,11 @@ export class DeathProcessingSystem implements ISystem {
                 this.deathIntentComponentStore.remove(entity);
             }
             if (isItemBox) {
-                if (!this.awaitingAnimationEndStore.has(entity)) {
-                    this.awaitingAnimationEndStore.add(entity, new AwaitingAnimationEndComponent(AnimationName.WOODEN_BOX_DESTROYED));
+                if (!this.awaitingAnimationEndComponentStore.has(entity)) {
+                    this.awaitingAnimationEndComponentStore.add(entity, new AwaitingAnimationEndComponent(AnimationName.WOODEN_BOX_DESTROYED));
                     continue;
                 }
-                if (this.awaitingAnimationEndStore.get(entity).resolved === true) {
+                if (this.awaitingAnimationEndComponentStore.get(entity).resolved === true) {
                     let deathPos = this.positionComponentStore.get(entity);
                     this.itemDropIntentComponentStore.add(entity, new ItemDropIntentComponent(deathPos.x, deathPos.y, 8))
                     this.entityFactory.destroyItemBox(entity);

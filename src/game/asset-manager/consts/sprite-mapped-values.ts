@@ -847,5 +847,39 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
     }
   ],
 
+  [
+    SpriteSheetName.MELEE_ATTACK,
+    {
+      rows: 1,
+      columns: 3,
+      eachSpriteCellSizeHeight: 57,
+      eachSpriteCellSizeWidth: 34,
+      srcImagePath: 'src/assets/images/melee_attack.png',
+      sprites: new Map([
+        [SpriteName.MELEE_ATTACK_1, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 57,
+          originalRenderSpriteWidth: 34,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 34, height: 57 }
+        }],
+        [SpriteName.MELEE_ATTACK_2, {
+          row: 1,
+          column: 2,
+          originalRenderSpriteHeight: 57,
+          originalRenderSpriteWidth: 34,
+          spriteCellOffset: { offsetX: 10, offsetY: 0, width: 24, height: 57 }
+        }],
+        [SpriteName.MELEE_ATTACK_3, {
+          row: 1,
+          column: 3,
+          originalRenderSpriteHeight: 57,
+          originalRenderSpriteWidth: 34,
+          spriteCellOffset: { offsetX: 4, offsetY: 0, width: 30, height: 57 }
+        }],
+      ])
+    }
+  ],
+
 
 ]);

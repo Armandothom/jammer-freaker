@@ -87,4 +87,7 @@ export enum SpriteName {
   SMG_MAG_ICON = "smg_mag_icon",
   KEYBOARD_KEY = "keyboard_key",
   WEAPON_FRAME = "weapon_frame",
+  MELEE_ATTACK_1 = "melee_attack_1",
+  MELEE_ATTACK_2 = "melee_attack_2",
+  MELEE_ATTACK_3 = "melee_attack_3",
 }

@@ -1,4 +1,6 @@
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
+import { AimRotationShootingComponent } from "../components/aim-rotation-shooting.component.js";
+import { DamageDealtComponent } from "../components/damage-dealt.component.js";
 import { DamageTakenIntentComponent } from "../components/damage-taken-intent.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
 import { GrenadeComponent } from "../components/grenade-component.js";
@@ -23,9 +25,11 @@ export class HitDetectionSystem implements ISystem {
         private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
         private positionComponentStore: ComponentStore<PositionComponent>,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
+        private aimShootingComponentStore: ComponentStore<AimRotationShootingComponent>,
         private projectileComponentStore: ComponentStore<ProjectileComponent>,
         private grenadeComponentStore: ComponentStore<GrenadeComponent>,
         private shotOriginComponentStore: ComponentStore<ShotOriginComponent>,
+        private damageDealtComponentStore: ComponentStore<DamageDealtComponent>,
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private enemyComponentStore: ComponentStore<EnemyComponent>,
         private damageTakenIntentComponentStore: ComponentStore<DamageTakenIntentComponent>,
@@ -40,12 +44,15 @@ export class HitDetectionSystem implements ISystem {
             if (!this.hitBoxComponentStore.has(entity)) {
                 continue;
             }
+            if (!this.hitBoxComponentStore.get(entity).hitboxOn) {
+                continue;
+            }
 
             const intendedRect = this.buildEntityRectFromIntent(entity, intent);
             const hitEntity = this.getHittingEntity(entity, intendedRect);
 
             if (hitEntity != null) {
-                if (this.handleProjectileEntityHit(entity, hitEntity)) {
+                if (this.handleEntityHit(entity, hitEntity)) {
                     continue;
                 }
             }
@@ -56,46 +63,65 @@ export class HitDetectionSystem implements ISystem {
         entity: number,
         intent: MovementIntentComponent,
     ): Rect {
-        const spriteComponent = this.spriteComponentStore.get(entity);
-        const hitBox = this.hitBoxComponentStore.get(entity);
-
-        const spriteProps = this.spriteManager.getSpriteProperties(
-            spriteComponent.spriteName,
-            spriteComponent.spriteSheetName,
-        );
-
-        const spriteWidth = spriteProps.sprite.originalRenderSpriteWidth;
-        const spriteHeight = spriteProps.sprite.originalRenderSpriteHeight;
-
-        return {
-            left: intent.x,
-            right: intent.x + spriteWidth,
-            top: intent.y,
-            bottom: intent.y + spriteHeight,
-        };
+        return this.buildEntityRect(entity, intent.x, intent.y);
     }
 
     private buildEntityRectFromPosition(entity: number): Rect {
         const position = this.positionComponentStore.get(entity);
+        return this.buildEntityRect(entity, position.x, position.y);
+    }
+
+    private buildEntityRect(entity: number, baseX: number, baseY: number): Rect {
         const spriteComponent = this.spriteComponentStore.get(entity);
         const hitBox = this.hitBoxComponentStore.get(entity);
-
         const spriteProps = this.spriteManager.getSpriteProperties(
             spriteComponent.spriteName,
             spriteComponent.spriteSheetName,
         );
 
-        const spriteWidth = spriteProps.sprite.originalRenderSpriteWidth;
-        const spriteHeight = spriteProps.sprite.originalRenderSpriteHeight;
+        const width = hitBox.width
+            ?? (spriteComponent.hasExplicitWidth ? spriteComponent.width : spriteProps.sprite.originalRenderSpriteWidth);
+        const height = hitBox.height
+            ?? (spriteComponent.hasExplicitHeight ? spriteComponent.height : spriteProps.sprite.originalRenderSpriteHeight);
+        const aimComponent = this.aimShootingComponentStore.getOrNull(entity);
 
-        const width = spriteWidth;
-        const height = spriteHeight;
+        if (!aimComponent) {
+            return {
+                left: baseX,
+                right: baseX + width,
+                top: baseY,
+                bottom: baseY + height,
+            };
+        }
+
+        const angle = aimComponent.aimAngle;
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
+        const isMirrored = cos < 0;
+        const pivot = {
+            x: 0,
+            y: isMirrored ? height - aimComponent.pivotPointSprite : aimComponent.pivotPointSprite,
+        };
+        const localQuad = [
+            { x: 0, y: 0 },
+            { x: 0, y: height },
+            { x: width, y: 0 },
+            { x: width, y: height },
+        ];
+        const worldPoints = localQuad.map((point) => {
+            const dx = point.x - pivot.x;
+            const dy = point.y - pivot.y;
+            return {
+                x: baseX + (dx * cos - dy * sin),
+                y: baseY + (dx * sin + dy * cos),
+            };
+        });
 
         return {
-            left: position.x,
-            right: position.x + width,
-            top: position.y,
-            bottom: position.y + height,
+            left: Math.min(...worldPoints.map((point) => point.x)),
+            right: Math.max(...worldPoints.map((point) => point.x)),
+            top: Math.min(...worldPoints.map((point) => point.y)),
+            bottom: Math.max(...worldPoints.map((point) => point.y)),
         };
     }
 
@@ -111,9 +137,7 @@ export class HitDetectionSystem implements ISystem {
     private getHittingEntity(self: number, intendedRect: Rect): number | null {
         const isProjectile = this.projectileComponentStore.has(self);
         const isGrenade = this.grenadeComponentStore.has(self);
-        const shooterId = (isProjectile || isGrenade)
-            ? this.shotOriginComponentStore.getOrNull(self)?.shooterEntity ?? null
-            : null;
+        const shooterId = this.shotOriginComponentStore.getOrNull(self)?.shooterEntity ?? null;
 
         if (isGrenade) {
             return null;
@@ -127,9 +151,18 @@ export class HitDetectionSystem implements ISystem {
             if (isProjectile) {
                 if (other === shooterId) continue;
                 if (this.projectileComponentStore.has(other) || this.grenadeComponentStore.has(other)) continue;
-            } else if (this.projectileComponentStore.has(other) || this.grenadeComponentStore.has(other)) {
+            } else if (
+                this.projectileComponentStore.has(other) ||
+                this.grenadeComponentStore.has(other)
+            ) {
                 continue;
             }
+
+            const otherIsPlayer = this.playerComponentStore.has(other);
+            const otherIsEnemy = this.enemyComponentStore.has(other);
+            const otherIsItemBox = this.itemBoxComponentStore.has(other);
+            if (!otherIsPlayer && !otherIsEnemy && !otherIsItemBox) continue;
+            if (!this.isValidDamageTarget(self, other)) continue;
 
             const otherCollision = this.hitBoxComponentStore.get(other);
             if (!otherCollision.hitboxOn) continue;
@@ -144,30 +177,62 @@ export class HitDetectionSystem implements ISystem {
         return null;
     }
 
-    private handleProjectileEntityHit(entity: number, hitEntity: number): boolean {
-        if (!this.projectileComponentStore.has(entity)) {
+    private handleEntityHit(entity: number, hitEntity: number): boolean {
+        const shooterId = this.shotOriginComponentStore.getOrNull(entity)?.shooterEntity;
+        if (this.projectileComponentStore.has(entity)) {
+            if (shooterId !== undefined) {
+                const projectile = this.projectileComponentStore.get(entity);
+                const projectileDamage = projectile.damage;
+
+                if (!this.damageTakenIntentComponentStore.has(hitEntity)) {
+                    this.damageTakenIntentComponentStore.add(hitEntity, new DamageTakenIntentComponent(shooterId, projectileDamage));
+                }
+            }
+
+            this.entityFactory.destroyProjectile(entity);
+            return true;
+        }
+
+        if (shooterId === undefined || !this.damageDealtComponentStore.has(entity)) {
             return false;
         }
 
-        const shooterId = this.shotOriginComponentStore.getOrNull(entity)?.shooterEntity;
-        if (shooterId !== undefined) {
-            const projectile = this.projectileComponentStore.get(entity);
-            const projectileDamage = projectile.damage;
-            const targetIsPlayer = this.playerComponentStore.has(hitEntity);
-            const targetIsEnemy = this.enemyComponentStore.has(hitEntity);
-            const targetIsItemBox = this.itemBoxComponentStore.has(hitEntity);
-            const validTarget =
-                (projectile.firedByPlayer && targetIsEnemy) ||
-                (projectile.firedByPlayer && targetIsItemBox) ||
-                (!projectile.firedByPlayer && targetIsPlayer);
-
-            if (validTarget && !this.damageTakenIntentComponentStore.has(hitEntity)) {
-                this.damageTakenIntentComponentStore.add(hitEntity, new DamageTakenIntentComponent(shooterId, projectileDamage));
-            }
+        if (!this.isValidDamageTarget(entity, hitEntity)) {
+            return false;
         }
 
-        this.entityFactory.destroyProjectile(entity);
-        // destroy projectile anim after
+        const damage = this.damageDealtComponentStore.get(entity).damage;
+        if (!this.damageTakenIntentComponentStore.has(hitEntity)) {
+            this.damageTakenIntentComponentStore.add(hitEntity, new DamageTakenIntentComponent(shooterId, damage));
+        }
+
+        const hitbox = this.hitBoxComponentStore.get(entity);
+        hitbox.hitboxOn = false;
         return true;
+    }
+
+    private isValidDamageTarget(entity: number, targetEntity: number) {
+        const targetIsPlayer = this.playerComponentStore.has(targetEntity);
+        const targetIsEnemy = this.enemyComponentStore.has(targetEntity);
+        const targetIsItemBox = this.itemBoxComponentStore.has(targetEntity);
+
+        if (this.projectileComponentStore.has(entity)) {
+            const projectile = this.projectileComponentStore.get(entity);
+            return (
+                (projectile.firedByPlayer && targetIsEnemy) ||
+                (projectile.firedByPlayer && targetIsItemBox) ||
+                (!projectile.firedByPlayer && targetIsPlayer)
+            );
+        }
+
+        const shooterId = this.shotOriginComponentStore.getOrNull(entity)?.shooterEntity;
+        if (shooterId == null) {
+            return false;
+        }
+
+        const attackerIsPlayer = this.playerComponentStore.has(shooterId);
+        return attackerIsPlayer
+            ? (targetIsEnemy || targetIsItemBox)
+            : targetIsPlayer;
     }
 }

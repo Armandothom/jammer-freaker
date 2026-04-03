@@ -13,6 +13,8 @@ import { UIManager } from "./ui-manager.js";
 
 export class CoreManager {
     private previousTimestamp = 0;
+    private fpsFrameCount = 0;
+    private fpsElapsedTime = 0;
     static timeSinceLastRender = 0;
     static timeGlobalSinceStart = 0;
     private _assetManager: AssetManager;
@@ -52,10 +54,32 @@ export class CoreManager {
     }
 
     private runLoop(startTimePageLoaded: number) {
+        const isFirstFrame = this.previousTimestamp === 0;
         CoreManager.timeSinceLastRender = (startTimePageLoaded - this.previousTimestamp) / 1000;
         CoreManager.timeGlobalSinceStart += CoreManager.timeSinceLastRender
         this.previousTimestamp = startTimePageLoaded;
+        if (!isFirstFrame) {
+            this.debugFps(CoreManager.timeSinceLastRender);
+        }
         this._systemRunner.update();
         window.requestAnimationFrame(this.runLoop.bind(this))
+    }
+
+    private debugFps(deltaTime: number) {
+        if (deltaTime <= 0) {
+            return;
+        }
+
+        this.fpsFrameCount += 1;
+        this.fpsElapsedTime += deltaTime;
+
+        if (this.fpsElapsedTime < 1) {
+            return;
+        }
+
+        const fps = this.fpsFrameCount / this.fpsElapsedTime;
+        console.log(`[DEBUG][FPS] ${fps.toFixed(1)}`);
+        this.fpsFrameCount = 0;
+        this.fpsElapsedTime = 0;
     }
 }

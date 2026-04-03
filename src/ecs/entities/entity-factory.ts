@@ -25,6 +25,7 @@ import { HitBoxComponent } from "../components/hit-box-component.js";
 import { InventoryComponent } from "../components/inventory-component.js";
 import { ItemBoxComponent } from "../components/item-box.component.js";
 import { ItemDroppedComponent } from "../components/item-dropped.component.js";
+import { MeleeIntentProcessedComponent } from "../components/melee-intent-processed.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
@@ -132,6 +133,7 @@ export class EntityFactory {
     private screenPositionComponentStore: ComponentStore<ScreenPositionComponent>,
     private uiAnchorComponentStore: ComponentStore<UIAnchorComponent>,
     private uiComponentStore: ComponentStore<UIComponent>,
+    private meleeIntentProcessedComponent: ComponentStore<MeleeIntentProcessedComponent>,
   ) {
   }
 
@@ -342,17 +344,37 @@ export class EntityFactory {
     return entityId;
   }
 
-  createHitBox(parentEntityId: number, startX: number, startY: number, shapeWidth: number, shapeHeight: number) {
+  createMeleeHitBox(
+    parentEntityId: number,
+    startX: number,
+    startY: number,
+    hitboxWidth: number,
+    hitboxHeight: number,
+    aimAngle: number,
+    pivotPointSprite: number,
+    hiddenAttachmentEntityId: number | null = null,
+  ) {
     const entityId = this.entityManager.registerEntity();
-    this.shapeComponentStore.add(entityId, new ShapeComponent(parentEntityId));
-    //this.renderableComponentStore.add(entityId, new RenderableComponent());
-    //this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
-    //this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.BLANK, SpriteSheetName.BLANK, shapeWidth, shapeHeight));
-    this.shapePositionComponentStore.add(entityId, new ShapePositionComponent(startX, startY));
-    this.shapeDimensionComponentStore.add(entityId, new ShapeDimensionComponent(shapeWidth, shapeHeight));
-    this.hitboxComponentStore.add(entityId, new HitBoxComponent());
-    this.shapeHitMemoryComponentStore.add(entityId, new ShapeHitMemoryComponent());
-    this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
+    this.renderableComponentStore.add(entityId, new RenderableComponent());
+    this.meleeIntentProcessedComponent.add(entityId, new MeleeIntentProcessedComponent(parentEntityId, hiddenAttachmentEntityId));
+    this.hitboxComponentStore.add(entityId, new HitBoxComponent(true, hitboxWidth, hitboxHeight));
+    this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
+    this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY));
+    this.shotOriginComponentStore.add(entityId, new ShotOriginComponent(parentEntityId));
+    this.aimShootingComponentStore.add(entityId, new AimRotationShootingComponent(aimAngle, pivotPointSprite));
+    this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
+    this.spriteComponentStore.add(entityId, new SpriteComponent(
+      SpriteName.MELEE_ATTACK_1,
+      SpriteSheetName.MELEE_ATTACK,
+      hitboxWidth,
+      hitboxHeight,
+    ))
+    this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.MELEE_ATTACK, false));
+    if (this.damageDealtComponentStore.has(parentEntityId)) {
+      const parentDamage = this.damageDealtComponentStore.get(parentEntityId).damage;
+      this.damageDealtComponentStore.add(entityId, new DamageDealtComponent(parentDamage));
+    }
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
     return entityId;
   }
 
@@ -676,13 +698,31 @@ export class EntityFactory {
     this.damageDealtComponentStore.remove(parentEntityId);
   }
 
-  destroyHitBox(entityId: number) {
-    this.shapeComponentStore.remove(entityId);
-    this.shapePositionComponentStore.remove(entityId);
-    this.shapeDimensionComponentStore.remove(entityId);
-    this.shapeHitMemoryComponentStore.remove(entityId);
-    this.collisionBoxComponentStore.remove(entityId);
-    return entityId;
+  destroyMeleeHitBox(entityId: number) {
+    this.renderableComponentStore.remove(entityId);
+    this.hitboxComponentStore.remove(entityId);
+    this.positionComponentStore.remove(entityId);
+    if (this.movementIntentComponentStore.has(entityId)) {
+      this.movementIntentComponentStore.remove(entityId);
+    }
+    if (this.shotOriginComponentStore.has(entityId)) {
+      this.shotOriginComponentStore.remove(entityId);
+    }
+    if (this.aimShootingComponentStore.has(entityId)) {
+      this.aimShootingComponentStore.remove(entityId);
+    }
+    if (this.directionAnimationComponentStore.has(entityId)) {
+      this.directionAnimationComponentStore.remove(entityId);
+    }
+    if (this.damageDealtComponentStore.has(entityId)) {
+      this.damageDealtComponentStore.remove(entityId);
+    }
+    if (this.meleeIntentProcessedComponent.has(entityId)) {
+      this.meleeIntentProcessedComponent.remove(entityId);
+    }
+    this.spriteComponentStore.remove(entityId);
+    this.animationComponentStore.remove(entityId);
+    this.zLayerComponentStore.remove(entityId);
   }
 
 }

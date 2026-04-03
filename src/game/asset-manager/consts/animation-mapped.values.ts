@@ -603,6 +603,30 @@ export const ANIMATION_MAPPED: Map<AnimationName, Map<SpriteName, AnimationKeyMa
     ])
   ],
 
+  [
+    AnimationName.MELEE_ATTACK,
+    new Map<SpriteName, AnimationKeyMap>([
+      [SpriteName.MELEE_ATTACK_1, {
+        spriteName: SpriteName.MELEE_ATTACK_1,
+        spriteSheetName: SpriteSheetName.MELEE_ATTACK,
+        order: 1,
+        durationKeyFrame: 0.05
+      }],
+      [SpriteName.MELEE_ATTACK_2, {
+        spriteName: SpriteName.MELEE_ATTACK_2,
+        spriteSheetName: SpriteSheetName.MELEE_ATTACK,
+        order: 2,
+        durationKeyFrame: 0.05
+      }],
+      [SpriteName.MELEE_ATTACK_3, {
+        spriteName: SpriteName.MELEE_ATTACK_3,
+        spriteSheetName: SpriteSheetName.MELEE_ATTACK,
+        order: 3,
+        durationKeyFrame: 0.3
+      }],
+    ])
+  ],
+
 
   // next map
 ]);
