@@ -2,7 +2,7 @@ import { OrderDebuggerOrchestrator } from '../../ecs/debugger-orders/order-debug
 import { SpriteSheetName } from '../asset-manager/types/sprite-sheet-name.enum.js';
 import { CameraViewport } from './types/camera-viewport.js';
 import { SpriteName } from './types/sprite-name.enum.js';
-import { TilemapTile, WorldPoiTile, WorldPoiTileType, WorldWallTile } from './types/tilemap-tile.js';
+import { TilemapTile, WorldPoiTile, WorldPoiTileType, TilemapWallTile, TilemapPathInformation } from './types/tilemap-tile.js';
 import { BakedWall, WorldLevelResult } from './types/world-level-result.js';
 import { WorldZone, ZoneType } from './types/zone-type.js';
 
@@ -23,7 +23,7 @@ export class WorldTilemapManager {
 
   private readonly _tilemapSpritesheetName = SpriteSheetName.TERRAIN;
   private readonly _tilemap: Map<string, TilemapTile> = new Map();
-  private readonly _wallTiles: Map<string, WorldWallTile> = new Map();
+  private readonly _wallTiles: Map<string, TilemapWallTile> = new Map();
   private readonly _poiTiles: Map<WorldPoiTileType, Map<string, WorldPoiTile>> = new Map();
   private readonly _zones: WorldZone[] = [];
 
@@ -129,7 +129,8 @@ export class WorldTilemapManager {
         }
         coverMapTiles.set(this.setTilemapKey(x, y), {
           x: x,
-          y: y
+          y: y,
+          type : WorldPoiTileType.COVER
         });
       }
     }
@@ -163,7 +164,7 @@ export class WorldTilemapManager {
     return this._wallTiles.has(this.setTilemapKey(x, y));
   }
 
-  public getWall(x: number, y: number): WorldWallTile | null {
+  public getWall(x: number, y: number): TilemapWallTile | null {
     this.ensureTileBounds(x, y);
     return this._wallTiles.get(this.setTilemapKey(x, y)) ?? null;
   }
@@ -212,7 +213,9 @@ export class WorldTilemapManager {
       for (let x = startTileX; x < endTileX; x++) {
         if(coverMapTiles.has(this.setTilemapKey(x, y))) {
           tiles.push({
-            x, y
+            x,
+            y,
+            type : WorldPoiTileType.COVER
           })
         }
       }
@@ -233,8 +236,8 @@ export class WorldTilemapManager {
     return tiles;
   }
 
-  public getWallTilesInArea(viewport: CameraViewport): WorldWallTile[] {
-    const walls: WorldWallTile[] = [];
+  public getWallTilesInArea(viewport: CameraViewport): TilemapWallTile[] {
+    const walls: TilemapWallTile[] = [];
     const {startTileY, endTileY, startTileX, endTileX} = this.getTileLimitViewport(viewport);
 
     for (let y = startTileY; y < endTileY; y++) {
@@ -261,17 +264,16 @@ export class WorldTilemapManager {
     return tile;
   }
 
-  public setTile(x: number, y: number, spriteName: SpriteName): void {
-    this.ensureTileBounds(x, y);
-    const currentTile = this.getTile(x, y);
 
-    this._tilemap.set(this.setTilemapKey(x, y), {
-      x,
-      y,
-      spriteName,
-      type: currentTile.type,
-    });
+  public getTilemapPathInformation() : TilemapPathInformation {
+    const impassableWallTiles = Array.from(this._wallTiles.values()).filter((value) => value.solid);
+    return {
+      maxTilesX : this._maxNumberTilesX,
+      maxTilesY : this._maxNumberTilesY,
+      impassableTiles : new Map<string, TilemapWallTile>(impassableWallTiles.map((wallTile) => [this.setTilemapKey(wallTile.x, wallTile.y), wallTile]))
+    };
   }
+
 
   public setTileType(x: number, y: number, type: TilemapTile['type']): void {
     this.ensureTileBounds(x, y);
@@ -318,7 +320,7 @@ export class WorldTilemapManager {
     return this._tilemapSpritesheetName;
   }
 
-  private setTilemapKey(x: number, y: number): string {
+  public setTilemapKey(x: number, y: number): string {
     return `${x}_${y}`;
   }
 

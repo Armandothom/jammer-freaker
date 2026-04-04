@@ -124,7 +124,7 @@ export class SystemRunner {
   private renderSystem: RenderSystem;
   private visibilityManager: VisibilityManager;
   private cameraManager: CameraManager;
-  private pathFindingManager: PathFindingManager = new PathFindingManager();
+  private pathFindingManager: PathFindingManager;
   private renderableComponentStore: ComponentStore<RenderableComponent> = new ComponentStore("RenderableComponent");
   private spriteComponentStore: ComponentStore<SpriteComponent> = new ComponentStore("SpriteComponent");
   private positionComponentStore: ComponentStore<PositionComponent> = new ComponentStore("PositionComponent");
@@ -244,6 +244,7 @@ export class SystemRunner {
     private freezeManager: FreezeManager
   ) {
 
+    this.pathFindingManager = new PathFindingManager(this.worldTilemapManager);
     this.cameraManager = new CameraManager(this.worldTilemapManager);
     this.debugManager = new DebugManager(this.enemyComponentStore);
     this.visibilityManager = new VisibilityManager();

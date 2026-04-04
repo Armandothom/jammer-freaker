@@ -2,24 +2,30 @@ import { SpriteName } from "./sprite-name.enum.js";
 
 export type WorldGroundTileType = "ground" | "player_spawn" | "extraction_area";
 
-export interface TilemapTile {
-  x: number;
-  y: number;
-  spriteName: SpriteName;
-  type: WorldGroundTileType;
+export abstract class TilemapBase {
+  x!: number;
+  y!: number;
+  spriteName?: SpriteName;
+}
+export abstract class TilemapTile extends TilemapBase {
+  spriteName!: SpriteName;
+  type!: WorldGroundTileType;
 }
 
-export interface WorldWallTile {
-  x: number;
-  y: number;
-  spriteName: SpriteName;
-  solid: boolean;
+export abstract class TilemapWallTile extends TilemapBase {
+  spriteName!: SpriteName;
+  solid!: boolean;
 }
 
 export enum WorldPoiTileType {
   COVER = "cover"
 }
-export interface WorldPoiTile {
-  x: number;
-  y: number;
+export interface WorldPoiTile extends TilemapBase {
+  type : WorldPoiTileType
+}
+
+export abstract class TilemapPathInformation {
+  maxTilesX! : number;
+  maxTilesY! : number;
+  impassableTiles!: Map<string, TilemapWallTile>
 }

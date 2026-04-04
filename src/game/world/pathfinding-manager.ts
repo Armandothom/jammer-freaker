@@ -1,12 +1,15 @@
 import { PriorityQueue } from "../../utils/priority-queue.js";
 import { PathfindingCoordinates, PathfindingNode } from "./types/pathfinding-node.js";
+import { TilemapPathInformation, TilemapWallTile } from "./types/tilemap-tile.js";
+import { WorldTilemapManager } from "./world-tilemap-manager.js";
 
 export class PathFindingManager {
-  constructor() {
-
+  constructor(
+    private worldTilemapManager : WorldTilemapManager) {;
   }
 
   computePath(xOrigin: number, yOrigin: number, xTarget: number, yTarget: number) {
+    const tilemapInfo = this.worldTilemapManager.getTilemapPathInformation();
     xOrigin = Math.floor(xOrigin);
     yOrigin = Math.floor(yOrigin);
     xTarget = Math.floor(xTarget);
@@ -23,18 +26,25 @@ export class PathFindingManager {
       g: 0,
       previousCoordinate: null
     };
-    openList.set(this.getKeyFromTileCoordinate(xOrigin, yOrigin), initialNode);
+    openList.set(this.worldTilemapManager.setTilemapKey(xOrigin, yOrigin), initialNode);
     supportQueue.insert(initialNode, 0)
     let closedList: Map<string, PathfindingNode> = new Map();
     const historyList: Map<string, PathfindingNode> = new Map();
     let finalNodeKey!: string;
     while (hasFinishedSearching == false) {
-      const node = supportQueue.extractMin()!;
-      const keyCurrentNode = this.getKeyFromTileCoordinate(node.x, node.y);
+      const node = supportQueue.extractMin();
+      if(!node) {
+        return;
+      }
+      const keyCurrentNode = this.worldTilemapManager.setTilemapKey(node.x, node.y);
+      //If a node is remaining on the support queue, and it was already closed, we ignore it
+      if(closedList.has(keyCurrentNode)) {
+        continue;
+      }
       closedList.set(keyCurrentNode, node);
       historyList.set(keyCurrentNode, node);
       openList.delete(keyCurrentNode);
-      const neighboringTiles = this.getNeighborTiles(node.x, node.y);
+      const neighboringTiles = this.getNeighborTiles(node.x, node.y, tilemapInfo);
       for (const neighborTile of neighboringTiles) {
         const octileDistance = this.getOctileDistance(neighborTile.x, neighborTile.y, xTarget, yTarget);
         const distanceFromOrigin = node.g + (neighborTile.isDiagonal ? 1.41 : 1);
@@ -46,7 +56,7 @@ export class PathFindingManager {
           x: neighborTile.x,
           y: neighborTile.y
         };
-        const keyNeighborTile = this.getKeyFromTileCoordinate(neighborTile.x, neighborTile.y);
+        const keyNeighborTile = this.worldTilemapManager.setTilemapKey(neighborTile.x, neighborTile.y);
         const neighborClosedList = closedList.get(keyNeighborTile);
 
         //If you find the target coordinate
@@ -108,7 +118,7 @@ export class PathFindingManager {
     return weightVerticalMove * (horizontalDistance + verticalDistance) + (weightDiagonalMove - 2 * weightVerticalMove) * Math.min(horizontalDistance, verticalDistance);
   }
 
-  private getNeighborTiles(x: number, y: number) {
+  private getNeighborTiles(x: number, y: number, tilemapInfo : TilemapPathInformation) {
     return [
       { x: x + 0, y: y + -1, isDiagonal : false }, // top
       { x: x + 1, y: y + 0, isDiagonal : false },  // right
@@ -118,10 +128,22 @@ export class PathFindingManager {
       { x: x + 1, y: y + 1, isDiagonal : true },  // diagonal bottom-right
       { x: x + -1, y: y + 1, isDiagonal : true }, // diagonal bottom-left
       { x: x + -1, y: y + -1, isDiagonal : true } // diagonal top-left
-    ].filter((coord) => coord.x > 0 && coord.y > 0)
+    ].filter((coord) => 
+      (coord.x >= 0 && coord.y >= 0) && 
+      (coord.x < tilemapInfo.maxTilesX && coord.y < tilemapInfo.maxTilesY) &&
+      (tilemapInfo.impassableTiles.has(this.worldTilemapManager.setTilemapKey(coord.x, coord.y)) == false) &&
+      (coord.isDiagonal == false || coord.isDiagonal && !this.isDiagonalOrtogonalNeighborsImpassable(x, y, coord.x, coord.y, tilemapInfo.impassableTiles)))
   }
 
-  private getKeyFromTileCoordinate(x: number, y: number) {
-    return `${x}_${y}`
+  private isDiagonalOrtogonalNeighborsImpassable(xOrigin : number, yOrigin : number, xDiagonal : number, yDiagonal : number, impassableTiles : Map<string, TilemapWallTile>) {
+    const deltaX = xDiagonal - xOrigin;
+    const deltaY = yDiagonal - yOrigin;
+    if(impassableTiles.has(this.worldTilemapManager.setTilemapKey(xOrigin + deltaX, yOrigin))) {
+      return true;
+    }
+    if(impassableTiles.has(this.worldTilemapManager.setTilemapKey(xOrigin, yOrigin + deltaY))) {
+      return true;
+    }
+    return false;
   }
 }

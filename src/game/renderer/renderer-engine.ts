@@ -901,6 +901,10 @@ export class RendererEngine {
 
       // Final call to render everything
       this._gl.drawArrays(this._gl.TRIANGLES, 0, vertices.length / 3);
+      this._gl.bindBuffer(this._gl.ARRAY_BUFFER, null);
+      this._gl.deleteBuffer(bufferLocation);
+      this._gl.deleteBuffer(uvBuffer);
+      this._gl.deleteBuffer(uLocalvBuffer);
     }
   }
 
