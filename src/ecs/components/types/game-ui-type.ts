@@ -1,4 +1,4 @@
-export enum UIType {
+export enum GameUIType {
     HEALTH_BAR = "health_bar",
     HEALTH_BAR_TEXT = "health_bar_text",
     WEAPON_FRAME = "weapon_frame",
@@ -29,7 +29,7 @@ export enum UIType {
     FLOATING_TEXT = "floating_text",
 }
 
-export enum UIEntryType {
+export enum GameUIEntryType {
     HUD = "hud",
     FEEDBACK = "feedback",
     ACTION_BAR = "action_bar",

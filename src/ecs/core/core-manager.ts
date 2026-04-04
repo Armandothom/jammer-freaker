@@ -6,10 +6,7 @@ import { TextManager } from "../../game/text/text-manager.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { DebugManager } from "./debug-manager.js";
 import { EntityManager } from "./entity-manager.js";
-import { FreezeManager } from "./freeze-manager.js";
-import { LevelManager } from "./level-manager.js";
-import { SystemRunner } from "./system-runner.js";
-import { UIManager } from "./ui-manager.js";
+import { GameManager } from "./game-manager.js";
 
 export class CoreManager {
     private previousTimestamp = 0;
@@ -20,7 +17,7 @@ export class CoreManager {
     private _assetManager: AssetManager;
     private _spriteManager!: SpriteManager;
     private _textManager!: TextManager;
-    private _systemRunner!: SystemRunner;
+    private _gameManager!: GameManager;
     private _worldTilemapManager!: WorldTilemapManager;
     private _rendererEngine: RendererEngine;
     private _entityManager: EntityManager;
@@ -45,8 +42,8 @@ export class CoreManager {
         console.log("Game generated");
 
         this._worldTilemapManager = new WorldTilemapManager();
-        this._systemRunner = new SystemRunner(this._worldTilemapManager, this._spriteManager, this._textManager, this._entityManager, this._soundManager, this._rendererEngine, this._debugManager);
-        this._systemRunner.initialize();
+        this._gameManager = new GameManager(this._worldTilemapManager, this._spriteManager, this._textManager, this._entityManager, this._soundManager, this._rendererEngine, this._debugManager);
+        this._gameManager.initialize();
         this._soundManager.resumeOnUserGesture();
         //this._soundManager.playSound("THEME", true, 0.1);
         CoreManager.timeGlobalSinceStart = 0;
@@ -61,7 +58,7 @@ export class CoreManager {
         if (!isFirstFrame) {
             this.debugFps(CoreManager.timeSinceLastRender);
         }
-        this._systemRunner.update();
+        this._gameManager.update();
         window.requestAnimationFrame(this.runLoop.bind(this))
     }
 

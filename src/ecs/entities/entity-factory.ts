@@ -48,10 +48,10 @@ import { AnimDirection } from "../components/types/anim-direction.js";
 import { EnemyConfig, EnemyType } from "../components/types/enemy-type.js";
 import { InventoryResourceType } from "../components/types/inventory-resource-type.js";
 import { UIAnchor } from "../components/types/ui-anchor.js";
-import { UIEntryType, UIType } from "../components/types/ui-type.js";
+import { GameUIEntryType, GameUIType } from "../components/types/game-ui-type.js";
 import { WeaponConfig, WeaponType } from "../components/types/weapon-type.js";
-import { UIAnchorComponent } from "../components/ui-anchor.component.js";
-import { UIComponent } from "../components/ui-component.js";
+import { GameUIAnchorComponent } from "../components/game-ui-anchor.component.js";
+import { GameUIComponent } from "../components/game-ui-component.js";
 import { VelocityComponent } from "../components/velocity-component.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
 import { WeaponMagazineComponent } from "../components/weapon-magazine.component.js";
@@ -60,7 +60,7 @@ import { ZLayerComponent } from "../components/z-layer.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityManager } from "../core/entity-manager.js";
 import { InventoryManager } from "../core/inventory-manager.js";
-import { UIManager } from "../core/ui-manager.js";
+import { GameUIManager } from "../core/game-ui-manager.js";
 
 const GRENADE_SPRITE_WIDTH = 14;
 const GRENADE_SPRITE_HEIGHT = 16;
@@ -83,7 +83,7 @@ export class EntityFactory {
   constructor(
     private entityManager: EntityManager,
     private inventoryManager: InventoryManager,
-    private uiManager: UIManager,
+    private gameUiManager: GameUIManager,
     private renderableComponentStore: ComponentStore<RenderableComponent>,
     private playerComponentStore: ComponentStore<PlayerComponent>,
     private enemyComponentStore: ComponentStore<EnemyComponent>,
@@ -131,8 +131,8 @@ export class EntityFactory {
     private itemBoxComponentStore: ComponentStore<ItemBoxComponent>,
     private itemDroppedComponentStore: ComponentStore<ItemDroppedComponent>,
     private screenPositionComponentStore: ComponentStore<ScreenPositionComponent>,
-    private uiAnchorComponentStore: ComponentStore<UIAnchorComponent>,
-    private uiComponentStore: ComponentStore<UIComponent>,
+    private gameUiAnchorComponentStore: ComponentStore<GameUIAnchorComponent>,
+    private gameUiComponentStore: ComponentStore<GameUIComponent>,
     private meleeIntentProcessedComponent: ComponentStore<MeleeIntentProcessedComponent>,
   ) {
   }
@@ -435,8 +435,8 @@ export class EntityFactory {
   }
 
   createHUDItem(
-    entryType: UIEntryType,
-    uiType: UIType,
+    entryType: GameUIEntryType,
+    gameUiType: GameUIType,
     anchor: UIAnchor,
     offsetX: number,
     offsetY: number,
@@ -447,17 +447,17 @@ export class EntityFactory {
   ) {
     const entityId = this.entityManager.registerEntity();
     this.renderableComponentStore.add(entityId, new RenderableComponent());
-    this.uiComponentStore.add(entityId, new UIComponent(entryType, uiType))
-    this.uiAnchorComponentStore.add(entityId, new UIAnchorComponent(anchor, offsetX, offsetY));
+    this.gameUiComponentStore.add(entityId, new GameUIComponent(entryType, gameUiType))
+    this.gameUiAnchorComponentStore.add(entityId, new GameUIAnchorComponent(anchor, offsetX, offsetY));
     this.spriteComponentStore.add(entityId, new SpriteComponent(spriteName, spriteSheetName, width, height));
-    const screenPosition = this.uiManager.resolveScreenPosition(anchor, offsetX, offsetY);
+    const screenPosition = this.gameUiManager.resolveScreenPosition(anchor, offsetX, offsetY);
     this.screenPositionComponentStore.add(entityId, new ScreenPositionComponent(screenPosition.x, screenPosition.y));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
   }
 
   createHUDItemText(
-    entryType: UIEntryType,
-    uiType: UIType,
+    entryType: GameUIEntryType,
+    gameUiType: GameUIType,
     anchor: UIAnchor,
     offsetX: number,
     offsetY: number,
@@ -469,8 +469,8 @@ export class EntityFactory {
     const layoutWidth = typeof width === "number" && width > 0 ? width : null;
 
     this.renderableComponentStore.add(entityId, new RenderableComponent());
-    this.uiComponentStore.add(entityId, new UIComponent(entryType, uiType))
-    this.uiAnchorComponentStore.add(entityId, new UIAnchorComponent(anchor, offsetX, offsetY));
+    this.gameUiComponentStore.add(entityId, new GameUIComponent(entryType, gameUiType))
+    this.gameUiAnchorComponentStore.add(entityId, new GameUIAnchorComponent(anchor, offsetX, offsetY));
     this.bitmapTextComponentStore.add(entityId, new BitmapTextComponent(
       text,
       DEFAULT_HUD_TEXT_FONT_ID,
@@ -479,14 +479,14 @@ export class EntityFactory {
       false,
       layoutWidth ? "center" : "left",
     ));
-    const screenPosition = this.uiManager.resolveScreenPosition(anchor, offsetX, offsetY);
+    const screenPosition = this.gameUiManager.resolveScreenPosition(anchor, offsetX, offsetY);
     this.screenPositionComponentStore.add(entityId, new ScreenPositionComponent(screenPosition.x, screenPosition.y));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
   }
 
   createKeybindHint(
-    entryType: UIEntryType,
-    uiType: UIType,
+    entryType: GameUIEntryType,
+    gameUiType: GameUIType,
     anchor: UIAnchor,
     offsetX: number,
     offsetY: number,
@@ -494,7 +494,7 @@ export class EntityFactory {
   ) {
     this.createHUDItem(
       entryType,
-      uiType,
+      gameUiType,
       anchor,
       offsetX,
       offsetY,
@@ -505,7 +505,7 @@ export class EntityFactory {
     );
     this.createHUDItemText(
       entryType,
-      uiType,
+      gameUiType,
       anchor,
       offsetX,
       offsetY - DEFAULT_KEYBIND_HINT_TEXT_OFFSET_Y,

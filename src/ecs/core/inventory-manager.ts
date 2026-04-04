@@ -1,4 +1,5 @@
 import { InventoryComponent } from "../components/inventory-component.js";
+import { InventorySnapshot } from "../components/snapshots/inventory-snapshot.js";
 import { OwnedWeaponState } from "../components/states/owned-weapon-state.js";
 import { WeaponUpgradeState } from "../components/states/weapon-upgrade-state.js";
 import { InventoryResourceType } from "../components/types/inventory-resource-type.js";
@@ -205,5 +206,9 @@ export class InventoryManager {
         console.log(`money: ${this.getResourceAmount(inventory, InventoryResourceType.Money)}`);
 
         console.log("====================");
+    }
+
+    public createSnapshot(inventory: InventoryComponent): InventorySnapshot {
+        return inventory.toSnapshot();
     }
 }

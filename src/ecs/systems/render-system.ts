@@ -73,12 +73,12 @@ export class RenderSystem implements ISystem {
     const wallRenderObjects = this.getWallRenderObjects(viewport);
     const overTerrainRenderObjects = this.getOverTerrainRenderObjects(viewport);
     const fogOverlayRenderObjects = this.getFogOverlayRenderObjects(viewport);
-    const uiDepthThreshold = this.maxDepthLevel + 1;
+    const gameUiDepthThreshold = this.maxDepthLevel + 1;
     const worldSpaceRenderObjects = overTerrainRenderObjects.filter(
-      (renderObject) => renderObject.zLevel <= uiDepthThreshold,
+      (renderObject) => renderObject.zLevel <= gameUiDepthThreshold,
     );
-    const uiRenderObjects = overTerrainRenderObjects.filter(
-      (renderObject) => renderObject.zLevel > uiDepthThreshold,
+    const gameUiRenderObjects = overTerrainRenderObjects.filter(
+      (renderObject) => renderObject.zLevel > gameUiDepthThreshold,
     );
     const renderObjects = [
       ...terrainRenderObjects,
@@ -94,8 +94,8 @@ export class RenderSystem implements ISystem {
     if (fogOverlayRenderObjects.length > 0) {
       this.rendererEngine.renderSprites(fogOverlayRenderObjects);
     }
-    if (uiRenderObjects.length > 0) {
-      this.renderUiRenderObjects(uiRenderObjects);
+    if (gameUiRenderObjects.length > 0) {
+      this.renderGameUiRenderObjects(gameUiRenderObjects);
     }
     if (this.debugManager.getDebugSetting(DebugSettingKey.DEBUG_PAINT)) {
       this.renderDebugPaint(viewport);
@@ -118,7 +118,7 @@ export class RenderSystem implements ISystem {
     }
   }
 
-  private renderUiRenderObjects(renderObjects: Array<RenderObject>) {
+  private renderGameUiRenderObjects(renderObjects: Array<RenderObject>) {
     const zLevels = [...new Set(renderObjects.map((renderObject) => renderObject.zLevel))]
       .sort((left, right) => left - right);
 
@@ -261,7 +261,7 @@ export class RenderSystem implements ISystem {
       const mirrorSpriteY = directionAnim?.yDirection === AnimDirection.BOTTOM;
       let screenX = 0;
       let screenY = 0;
-      let zLevel = this.getUiDepthLevel(layerMultiplier);
+      let zLevel = this.getGameUiDepthLevel(layerMultiplier);
 
       if (isScreenSpace) {
         screenX = screenPosition.x;
@@ -393,7 +393,7 @@ export class RenderSystem implements ISystem {
 
     const layerMultiplier = this.layerMultiplicator[layerComponent.layer] ?? 1;
     const baseZLevel = isScreenSpace
-      ? this.getUiDepthLevel(layerMultiplier)
+      ? this.getGameUiDepthLevel(layerMultiplier)
       : this.getDepthLevel(position!.y, layerMultiplier);
     const bubbleScreenX = Math.round(isScreenSpace ? left : left - viewport.left);
     const bubbleScreenY = Math.round(isScreenSpace ? top : top - viewport.top);
@@ -604,7 +604,7 @@ export class RenderSystem implements ISystem {
     return (clampedWorldY * layerMultiplier / maxDepthSource) * this.maxDepthLevel;
   }
 
-  private getUiDepthLevel(layerMultiplier: number): number {
+  private getGameUiDepthLevel(layerMultiplier: number): number {
     return this.maxDepthLevel + layerMultiplier + 1;
   }
 }

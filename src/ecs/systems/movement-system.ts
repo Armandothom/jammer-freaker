@@ -1,7 +1,7 @@
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
-import { ShooterComponent } from "../components/shooter-cooldown-component.js";
+import { ShooterCooldownComponent } from "../components/shooter-cooldown-component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { ISystem } from "./system.interface.js";
 
@@ -11,7 +11,7 @@ export class MovementSystem implements ISystem {
         private positionComponentStore: ComponentStore<PositionComponent>,
         private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
         private playerComponentStore: ComponentStore<PlayerComponent>,
-        private shooterComponentStore: ComponentStore<ShooterComponent>
+        private shooterComponentStore: ComponentStore<ShooterCooldownComponent>
     ) { }
 
     update(deltaTime: number): void {

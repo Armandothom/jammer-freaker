@@ -13,6 +13,7 @@ import { PositionComponent } from "../components/position.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { AiAttackOrder } from "../components/types/ai-attack-order.js";
 import { EnemyType } from "../components/types/enemy-type.js";
+import { WeaponType } from "../components/types/weapon-type.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
 import { WeaponComponent } from "../components/weapon.component.js";
 import { ComponentStore } from "../core/component-store.js";
@@ -59,20 +60,34 @@ export class AiAttackBehaviorSystem implements ISystem {
                         const weaponAttachments = this.weaponAttachmentComponentStore.getValuesAndEntityId();
                         const weaponAttachment = weaponAttachments.find((weaponAttachmentEntry) => weaponAttachmentEntry[1].parentEntityId == aiEntityId)!;
                         const weaponPosition = this.positionComponentStore.get(weaponAttachment[0]);
-                        const weapon = this.weaponComponentStore.get(playerEntityId);
+                        const weapon = this.weaponComponentStore.get(aiEntityId);
                         const playerSprite = this.spriteComponentStore.get(playerEntityId);
                         const dx = playerPos.x - weaponPosition.x + playerSprite.width / 2;
                         const dy = playerPos.y - weaponPosition.y + playerSprite.height / 2;
                         const angle = Math.atan2(dy, dx);
 
                         if (enemyType === EnemyType.SOLDIER || enemyType === EnemyType.SNIPER) {
-                            this.intentShotComponentStore.add(aiEntityId, new IntentShotComponent(playerPos.x + playerSprite.width / 2, playerPos.y, false));
+                            this.intentShotComponentStore.add(
+                                aiEntityId,
+                                new IntentShotComponent(
+                                    playerPos.x + playerSprite.width / 2,
+                                    playerPos.y,
+                                    false,
+                                    WeaponType.SMG,
+                                ),
+                            );
                         }
                         if (enemyType === EnemyType.BOMBER) {
-                            this.intentGrenadeComponentStore.add(aiEntityId, new IntentShotComponent(playerPos.x + playerSprite.width / 2, playerPos.y, false));
+                            this.intentGrenadeComponentStore.add(
+                                aiEntityId,
+                                new IntentGrenadeComponent(playerPos.x + playerSprite.width / 2, playerPos.y),
+                            );
                         }
                         if (enemyType === EnemyType.KAMIKAZE || enemyType === EnemyType.JUGG) {
-                            this.intentMeleeComponentStore.add(aiEntityId, new IntentShotComponent(playerPos.x + playerSprite.width / 2, playerPos.y, false));
+                            this.intentMeleeComponentStore.add(
+                                aiEntityId,
+                                new IntentMeleeComponent(playerPos.x + playerSprite.width / 2, playerPos.y),
+                            );
                         }
                         if (!this.disableAimComponentStore.has(aiEntityId)) {
                             this.aimShootingComponentStore.add(weaponAttachment[0], new AimRotationShootingComponent(angle, weapon.configuredPivotRotation));

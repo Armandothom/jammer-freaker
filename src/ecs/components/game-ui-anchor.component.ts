@@ -1,6 +1,6 @@
 import { UIAnchor } from "./types/ui-anchor.js";
 
-export class UIAnchorComponent {
+export class GameUIAnchorComponent {
     constructor(
         public anchor: UIAnchor,
         public offsetX: number,

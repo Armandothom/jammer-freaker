@@ -10,5 +10,9 @@
     "moduleResolution": "NodeNext",
     "resolveJsonModule": true,
     "noEmit": false,
-  }
+  },
+  "exclude": [
+    "src/ecs/systems/*_legacy.ts",
+    "src/ecs/systems/dynamic-attribute.system.ts"
+  ]
 }

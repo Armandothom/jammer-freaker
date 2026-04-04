@@ -77,8 +77,8 @@ import { SparkParticlesComponent } from "../components/spark-particles.component
 import { SpriteComponent } from "../components/sprite.component.js";
 import { TravelTimeComponent } from "../components/travel-time.component.js";
 import { PlayerInitialProperties } from "../components/types/player-properties.js";
-import { UIAnchorComponent } from "../components/ui-anchor.component.js";
-import { UIComponent } from "../components/ui-component.js";
+import { GameUIAnchorComponent } from "../components/game-ui-anchor.component.js";
+import { GameUIComponent } from "../components/game-ui-component.js";
 import { VelocityComponent } from "../components/velocity-component.js";
 import { WallHitComponent } from "../components/wall-hit.component.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
@@ -118,7 +118,7 @@ import { ReloadSystem } from "../systems/reload-system.js";
 import { RenderSystem } from "../systems/render-system.js";
 import { ShootingSystem } from "../systems/shooting-system.js";
 import { TerminatorSystem } from "../systems/terminator-system.js";
-import { UIUpdateSystem } from "../systems/ui-update-system.js";
+import { GameUIUpdateSystem } from "../systems/game-ui-update-system.js";
 import { VisibilitySystem } from "../systems/visibility-system.js";
 import { WeaponSpriteAttachmenPositiontSystem } from "../systems/weapon-attachment-position-system.js";
 import { WeaponSwitchSystem } from "../systems/weapon-switch-system.js";
@@ -132,9 +132,11 @@ import { EntityManager } from "./entity-manager.js";
 import { FreezeManager } from "./freeze-manager.js";
 import { InventoryManager } from "./inventory-manager.js";
 import { LevelManager } from "./level-manager.js";
-import { UIManager } from "./ui-manager.js";
+import { GameUIManager } from "./game-ui-manager.js";
+import type { GameManager } from "./game-manager.js";
+import type { InventorySnapshot } from "../components/snapshots/inventory-snapshot.js";
 
-export class SystemRunner {
+export class GameplaySystemRunner {
   private renderSystem: RenderSystem;
   private visibilityManager: VisibilityManager;
   private cameraManager: CameraManager;
@@ -142,7 +144,7 @@ export class SystemRunner {
   private inventoryManager: InventoryManager;
   private levelManager: LevelManager;
   private freezeManager: FreezeManager;
-  private uiManager: UIManager;
+  private gameUiManager: GameUIManager;
   private renderableComponentStore: ComponentStore<RenderableComponent> = new ComponentStore("RenderableComponent");
   private spriteComponentStore: ComponentStore<SpriteComponent> = new ComponentStore("SpriteComponent");
   private positionComponentStore: ComponentStore<PositionComponent> = new ComponentStore("PositionComponent");
@@ -220,8 +222,8 @@ export class SystemRunner {
   private itemDropIntentComponentStore: ComponentStore<ItemDropIntentComponent> = new ComponentStore("ItemDropIntentComponent");
   private itemDroppedComponentStore: ComponentStore<ItemDroppedComponent> = new ComponentStore("ItemDroppedComponent");
   private screenPositionComponentStore: ComponentStore<ScreenPositionComponent> = new ComponentStore("ScreenPositionComponent");
-  private uiAnchorComponentStore: ComponentStore<UIAnchorComponent> = new ComponentStore("UIAnchorComponent");
-  private uiComponentStore: ComponentStore<UIComponent> = new ComponentStore("UIComponent");
+  private gameUiAnchorComponentStore: ComponentStore<GameUIAnchorComponent> = new ComponentStore("GameUIAnchorComponent");
+  private gameUiComponentStore: ComponentStore<GameUIComponent> = new ComponentStore("GameUIComponent");
   private animationSpriteSystem: AnimationSpriteSystem;
   private inputDebugSystem: InputDebugSystem;
   private inputMovementSystem: InputMovementSystem;
@@ -259,7 +261,7 @@ export class SystemRunner {
   private inventoryDebugSystem: InventoryDebugSystem;
   private itemDropSpawnSystem: ItemDropSpawnSystem;
   private itemDropUpdateSystem: ItemDropUpdateSystem;
-  private uiUpdateSystem: UIUpdateSystem;
+  private gameUiUpdateSystem: GameUIUpdateSystem;
   private weaponSwitchSystem: WeaponSwitchSystem;
 
   constructor(
@@ -279,10 +281,10 @@ export class SystemRunner {
     this.playerInitialProperties = new PlayerInitialProperties();
     this.structureBaker = new StructureBaker();
     this.zoneFactory = new ZoneFactory(this.structureBaker)
-    this.uiManager = new UIManager(this.cameraManager);
-    this.entityFactory = new EntityFactory(entityManager, this.inventoryManager, this.uiManager, this.renderableComponentStore, this.playerComponentStore, this.enemyComponentStore, this.positionComponentStore, this.spriteComponentStore, this.projectileComponentStore, this.shooterCooldownComponentStore, this.velocityComponentStore, this.movementIntentComponentStore, this.animationComponentStore, this.directionAnimComponentStore, this.collisionBoxComponentStore, this.aiComponentStore, this.healthComponentStore, this.shotOriginComponentStore, this.damageDealtComponentStore, this.shootingCooldownComponentStore, this.aiAttackRangeComponentStore, this.aiMovementRadiusComponentStore, this.enemyDeadComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.zLayerComponentStore, this.directionComponentStore, this.weaponComponentStore, this.weaponMagazineComponentStore, this.grenadeComponentStore, this.travelTimeComponentStore, this.fuseTimerComponentStore, this.shapeDimensionComponentStore, this.shapePositionComponentStore, this.shapeComponentStore, this.shapeDirectionComponentStore, this.shapeAngleComponentStore, this.shapeHitMemoryComponentStore, this.cameraComponentStore, this.hitBoxComponentStore, this.dialogComponentStore, this.dialogLifetimeComponentStore, this.dialogBubbleSpriteComponentStore, this.bitmapTextComponentStore, this.dialogAnimComponentStore, this.inventoryComponentStore, this.itemBoxComponentStore, this.itemDroppedComponentStore, this.screenPositionComponentStore, this.uiAnchorComponentStore, this.uiComponentStore, this.meleeIntentProcessedComponentStore);
+    this.gameUiManager = new GameUIManager(this.cameraManager);
+    this.entityFactory = new EntityFactory(entityManager, this.inventoryManager, this.gameUiManager, this.renderableComponentStore, this.playerComponentStore, this.enemyComponentStore, this.positionComponentStore, this.spriteComponentStore, this.projectileComponentStore, this.shooterCooldownComponentStore, this.velocityComponentStore, this.movementIntentComponentStore, this.animationComponentStore, this.directionAnimComponentStore, this.collisionBoxComponentStore, this.aiComponentStore, this.healthComponentStore, this.shotOriginComponentStore, this.damageDealtComponentStore, this.shootingCooldownComponentStore, this.aiAttackRangeComponentStore, this.aiMovementRadiusComponentStore, this.enemyDeadComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.zLayerComponentStore, this.directionComponentStore, this.weaponComponentStore, this.weaponMagazineComponentStore, this.grenadeComponentStore, this.travelTimeComponentStore, this.fuseTimerComponentStore, this.shapeDimensionComponentStore, this.shapePositionComponentStore, this.shapeComponentStore, this.shapeDirectionComponentStore, this.shapeAngleComponentStore, this.shapeHitMemoryComponentStore, this.cameraComponentStore, this.hitBoxComponentStore, this.dialogComponentStore, this.dialogLifetimeComponentStore, this.dialogBubbleSpriteComponentStore, this.bitmapTextComponentStore, this.dialogAnimComponentStore, this.inventoryComponentStore, this.itemBoxComponentStore, this.itemDroppedComponentStore, this.screenPositionComponentStore, this.gameUiAnchorComponentStore, this.gameUiComponentStore, this.meleeIntentProcessedComponentStore);
     this.enemyLifecicleSystem = new EnemyLifecicleSystem(this.positionComponentStore, this.playerComponentStore, this.enemyComponentStore, this.enemyDeadComponentStore, this.entityFactory, this.worldTilemapManager, this.spriteManager, this.soundManager, this.freezeManager, this.spriteComponentStore, this.worldTilemapManager);
-    this.levelManager = new LevelManager(this.enemyLifecicleSystem, this.worldTilemapManager, this.cameraManager, this.zoneFactory, this.entityFactory, this.playerComponentStore, this.positionComponentStore, this.movementIntentComponentStore, this.playerInitialProperties, this.uiManager);
+    this.levelManager = new LevelManager(this.enemyLifecicleSystem, this.worldTilemapManager, this.cameraManager, this.zoneFactory, this.entityFactory, this.playerComponentStore, this.positionComponentStore, this.movementIntentComponentStore, this.playerInitialProperties, this.gameUiManager);
     // this.dynamicAttributeSystem = new DynamicAttributeSystem(this.levelManager, this.entityFactory, this.velocityComponentStore, this.projectileComponentStore, this.playerComponentStore, this.enemyComponentStore, this.damageTakenIntentComponentStore, this.healthComponentStore, this.damageDealtComponentStore, this.enemiesKilledComponentStore, this.weaponMagazineComponentStore, this.reloadIntentComponentStore, this.bulletFiredComponentStore, this.grenadeBeltComponentStore, this.grenadeFiredComponentStore, this.enemyDeadComponentStore);
     this.levelUpdateSystem = new LevelUpdateSystem(this.levelManager);
     this.inputDebugSystem = new InputDebugSystem(this.debugManager, this.cameraManager);
@@ -319,11 +321,15 @@ export class SystemRunner {
     this.inventorySystem = new InventorySystem(this.inventoryManager, this.inventoryComponentStore, this.playerComponentStore, this.bulletFiredComponentStore, this.grenadeFiredComponentStore);
     this.itemDropSpawnSystem = new ItemDropSpawnSystem(this.entityFactory, this.itemDropIntentComponentStore);
     this.itemDropUpdateSystem = new ItemDropUpdateSystem(this.entityFactory, this.spriteManager, this.inventoryManager, this.itemDroppedComponentStore, this.positionComponentStore, this.playerComponentStore, this.spriteComponentStore, this.inventoryComponentStore);
-    this.uiUpdateSystem = new UIUpdateSystem(this.entityFactory, this.inventoryManager, this.playerInitialProperties, this.uiComponentStore, this.inventoryComponentStore, this.playerComponentStore, this.healthComponentStore, this.spriteComponentStore, this.bitmapTextComponentStore, this.screenPositionComponentStore);
+    this.gameUiUpdateSystem = new GameUIUpdateSystem(this.entityFactory, this.inventoryManager, this.playerInitialProperties, this.gameUiComponentStore, this.inventoryComponentStore, this.playerComponentStore, this.healthComponentStore, this.spriteComponentStore, this.bitmapTextComponentStore, this.screenPositionComponentStore);
     this.weaponSwitchSystem = new WeaponSwitchSystem(this.inventoryManager, this.entityFactory, this.inventoryComponentStore, this.playerComponentStore);
   }
 
   update() {
+    if (this.levelManager.updateStateTransitions()) {
+      return;
+    }
+
     if (!this.freezeManager.gameFrozen) {
       this.inputDebugSystem.update(CoreManager.timeSinceLastRender);
       this.inventoryDebugSystem.update(CoreManager.timeSinceLastRender);
@@ -358,7 +364,7 @@ export class SystemRunner {
       this.inventorySystem.update(CoreManager.timeSinceLastRender);
       this.particleEmitterSystem.update(CoreManager.timeSinceLastRender);
       this.spriteLevelScaler.update(CoreManager.timeSinceLastRender);
-      this.uiUpdateSystem.update(CoreManager.timeSinceLastRender);
+      this.gameUiUpdateSystem.update(CoreManager.timeSinceLastRender);
       this.renderSystem.update(CoreManager.timeSinceLastRender);
       this.terminatorSystem.update(CoreManager.timeSinceLastRender);
       this.levelUpdateSystem.update();
@@ -367,5 +373,25 @@ export class SystemRunner {
 
   initialize() {
     this.levelManager.update();
+  }
+
+  bindGameManager(gameManager: GameManager): void {
+    this.levelManager.bindGameManager(gameManager);
+  }
+
+  capturePlayerInventorySnapshot(): InventorySnapshot | null {
+    const playerEntity = this.playerComponentStore.getAllEntities()[0];
+
+    if (playerEntity == null) {
+      return null;
+    }
+
+    const inventory = this.inventoryComponentStore.getOrNull(playerEntity);
+
+    if (!inventory) {
+      return null;
+    }
+
+    return this.inventoryManager.createSnapshot(inventory);
   }
 }

@@ -10,7 +10,8 @@ import { EntityFactory } from "../entities/entity-factory.js";
 import { EnemyLifecicleSystem } from "../systems/enemy-lifecicle.system.js";
 import { ZoneFactory } from "../zones/zone-factory.js";
 import { ComponentStore } from "./component-store.js";
-import { UIManager } from "./ui-manager.js";
+import { GameUIManager } from "./game-ui-manager.js";
+import type { GameManager } from "./game-manager.js";
 
 export enum LevelEndReason {
     PlayerDeath = "player_death",
@@ -23,6 +24,9 @@ export class LevelManager {
     public previousLevel = 0;
     public levelNumber: number;
     public levelUpdatePending = false;
+    private pressedKeys = new Set<string>();
+    private previousPressedKeys = new Set<string>();
+    private gameManager: GameManager | null = null;
 
     constructor(
         private enemyLifecicleSystem: EnemyLifecicleSystem,
@@ -34,9 +38,11 @@ export class LevelManager {
         private positionComponentStore: ComponentStore<PositionComponent>,
         private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
         private playerInitialProperties: PlayerInitialProperties,
-        private uiManager: UIManager,
+        private gameUiManager: GameUIManager,
     ) {
         this.levelNumber = this.previousLevel;
+        window.addEventListener("keydown", this.onKeyDown);
+        window.addEventListener("keyup", this.onKeyUp);
     }
 
     async update(): Promise<void> {
@@ -83,6 +89,23 @@ export class LevelManager {
     private finalizeLevelBuild(): void {
     }
 
+    public bindGameManager(gameManager: GameManager): void {
+        this.gameManager = gameManager;
+    }
+
+    public updateStateTransitions(): boolean {
+        const shouldEnterShopState = this.wasKeyPressedThisFrame("Digit0");
+
+        this.syncInputFrame();
+
+        if (!shouldEnterShopState || !this.gameManager) {
+            return false;
+        }
+
+        this.gameManager.requestShopState();
+        return true;
+    }
+
     private spawnPlayer(levelResult: WorldLevelResult): void {
         const spawn = levelResult.playerSpawns[0];
         const fallbackSpawn = { worldX: 400, worldY: 32 };
@@ -120,4 +143,20 @@ export class LevelManager {
 
         this.cameraManager.follow(worldX, worldY);
     }
+
+    private wasKeyPressedThisFrame(code: string): boolean {
+        return this.pressedKeys.has(code) && !this.previousPressedKeys.has(code);
+    }
+
+    private syncInputFrame(): void {
+        this.previousPressedKeys = new Set(this.pressedKeys);
+    }
+
+    private onKeyDown = (event: KeyboardEvent): void => {
+        this.pressedKeys.add(event.code);
+    };
+
+    private onKeyUp = (event: KeyboardEvent): void => {
+        this.pressedKeys.delete(event.code);
+    };
 }

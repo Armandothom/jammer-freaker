@@ -1,4 +1,4 @@
-import fontAtlasDefinition from "../../../assets/font/font_atlas.json";
+import fontAtlasDefinition from "../../../assets/font/font_atlas.json" assert { type: "json" };
 import { BitmapFontDefinition } from "../types/bitmap-font.js";
 
 export interface FontBlueprint {
