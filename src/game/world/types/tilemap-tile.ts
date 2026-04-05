@@ -28,4 +28,5 @@ export abstract class TilemapPathInformation {
   maxTilesX! : number;
   maxTilesY! : number;
   impassableTiles!: Map<string, TilemapWallTile>
+  tileSize! : number;
 }

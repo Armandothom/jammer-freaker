@@ -2,7 +2,6 @@ import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
 import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { AiAttackRangeComponent } from "../components/ai-attack-range.component.js";
-import { AiMovementRadiusComponent } from "../components/ai-movement-radius.component.js";
 import { AIComponent } from "../components/ai.component.js";
 import { AimRotationShootingComponent } from "../components/aim-rotation-shooting.component.js";
 import { AnimationComponent } from "../components/animation.component.js";
@@ -83,7 +82,6 @@ export class EntityFactory {
     private damageDealtComponentStore: ComponentStore<DamageDealtComponent>,
     private shootingCooldownComponentStore: ComponentStore<ShootingCooldownComponent>,
     private aiAttackRangeComponentStore: ComponentStore<AiAttackRangeComponent>,
-    private aiMovementRadiusComponentStore: ComponentStore<AiMovementRadiusComponent>,
     private enemyDeadComponentStore: ComponentStore<EnemyDeadComponent>,
     private aimShootingComponentStore: ComponentStore<AimRotationShootingComponent>,
     private weaponSpriteAttachmentComponentStore: ComponentStore<WeaponSpriteAttachmentComponent>,
@@ -94,7 +92,6 @@ export class EntityFactory {
     private grenadeComponentStore: ComponentStore<GrenadeComponent>,
     private grenadeBeltComponentStore: ComponentStore<GrenadeBeltComponent>,
     private travelTimeComponentStore: ComponentStore<TravelTimeComponent>,
-
     private fuseTimerComponentStore: ComponentStore<FuseTimerComponent>,
     private shapeDimensionComponentStore: ComponentStore<ShapeDimensionComponent>,
     private shapePositionComponentStore: ComponentStore<ShapePositionComponent>,
@@ -223,7 +220,6 @@ export class EntityFactory {
     this.aiComponentStore.add(entityId, new AIComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
-    this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
     this.createWeapon(entityId, WeaponConfig.smg);
     return entityId;
@@ -244,7 +240,6 @@ export class EntityFactory {
     this.aiComponentStore.add(entityId, new AIComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
-    this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
     this.createWeapon(entityId, WeaponConfig.smg);
     return entityId;
@@ -265,7 +260,6 @@ export class EntityFactory {
     this.aiComponentStore.add(entityId, new AIComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
-    this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
     this.createWeapon(entityId, WeaponConfig.smg);
     return entityId;
@@ -286,7 +280,6 @@ export class EntityFactory {
     this.aiComponentStore.add(entityId, new AIComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
-    this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
     this.createWeapon(entityId, WeaponConfig.smg);
     return entityId;
@@ -307,7 +300,6 @@ export class EntityFactory {
     this.aiComponentStore.add(entityId, new AIComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
-    this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
     this.createWeapon(entityId, WeaponConfig.smg);
     return entityId;

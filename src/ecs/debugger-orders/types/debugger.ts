@@ -23,7 +23,13 @@ export type DebuggerPaintOrder = DebugPainterOrderCircle | DebugPainterOrderFill
 export class DebuggerSpawnerOrder {
   x! : number;
   y! : number;
-  type! : DebuggerSpawnerOrderType
+  type! : DebuggerSpawnerOrderType;
+}
+
+export class DebuggerMoveOrder {
+  x! : number;
+  y! : number;
+  entityId! : number;
 }
 
 export enum DebuggerSpawnerOrderType {

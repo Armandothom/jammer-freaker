@@ -96,19 +96,14 @@ export class InputDebugSystem implements ISystem {
         if(!this.debugManager.isSpawnerPointerActive) {
             return;
         }
-        const rect = this.canvas!.getBoundingClientRect();
-        const viewport = this.cameraManager.getViewport();
-        const mousePosX = e.clientX - rect.left;
-        const mousePosY = e.clientY - rect.top;
-        const worldPosY = mousePosY + viewport.top;
-        const worldPosX = mousePosX + viewport.left;
-        if(worldPosX < 0 || worldPosY < 0) {
+        const coords = this.getWorldCoordFromClick(e);
+        if(!coords) {
             return;
         }
         OrderDebuggerOrchestrator.insertSpawnOrder([
             {
-                x : worldPosX,
-                y : worldPosY,
+                x : coords.worldPosX,
+                y : coords.worldPosY,
                 type : this.debugManager.activeSpawnerType!
             }
         ])
@@ -151,13 +146,24 @@ export class InputDebugSystem implements ISystem {
     }
 
 
-    private handleCanvasMouseOrderMove = (event: MouseEvent): void => {
+    private handleCanvasMouseOrderMove = (e: MouseEvent): void => {
         if (!this.debugManager.isMovePointerActive || !this.moveCursorBadge) {
             return;
         }
         this.moveCursorBadge.hidden = false;
-        this.moveCursorBadge.style.left = `${event.clientX}px`;
-        this.moveCursorBadge.style.top = `${event.clientY}px`;
+        this.moveCursorBadge.style.left = `${e.clientX}px`;
+        this.moveCursorBadge.style.top = `${e.clientY}px`;
+        const coords = this.getWorldCoordFromClick(e);
+        if(!coords || !this.debugManager.selectedEnemyEntity) {
+            return;
+        }
+        OrderDebuggerOrchestrator.insertMoveOrder([
+            {
+                x : coords.worldPosX,
+                y : coords.worldPosY,
+                entityId : this.debugManager.selectedEnemyEntity
+            }
+        ])
     }
 
 
@@ -217,8 +223,22 @@ export class InputDebugSystem implements ISystem {
         }
 
         if(this.enemyEntityHighlightDiv && this.debugManager.selectedEnemyEntity != null) {
-            console.log( this.debugManager.selectedEnemyEntity)
             this.enemyEntityHighlightDiv.textContent = this.debugManager.selectedEnemyEntity.toString();
+        }
+    }
+
+    private getWorldCoordFromClick(e : MouseEvent) {
+        const rect = this.canvas!.getBoundingClientRect();
+        const viewport = this.cameraManager.getViewport();
+        const mousePosX = e.clientX - rect.left;
+        const mousePosY = e.clientY - rect.top;
+        const worldPosY = mousePosY + viewport.top;
+        const worldPosX = mousePosX + viewport.left;
+        if(worldPosX < 0 || worldPosY < 0) {
+            return;
+        }
+        return {
+            worldPosY, worldPosX
         }
     }
 }

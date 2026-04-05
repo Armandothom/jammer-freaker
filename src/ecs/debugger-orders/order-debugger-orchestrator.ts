@@ -1,9 +1,10 @@
-import { DebuggerPaintOrder, DebuggerSpawnerOrder } from "./types/debugger.js";
+import { DebuggerMoveOrder, DebuggerPaintOrder, DebuggerSpawnerOrder } from "./types/debugger.js";
 
 
 export class OrderDebuggerOrchestrator {
   private static paintFrameOrder : Array<DebuggerPaintOrder> = [];
   private static spawnOrder : Array<DebuggerSpawnerOrder> = [];
+  private static moveOrder : Array<DebuggerMoveOrder> = [];
 
   static insertPaintOrder(orders : DebuggerPaintOrder[]) {
     this.paintFrameOrder.push(...orders);
@@ -23,6 +24,17 @@ export class OrderDebuggerOrchestrator {
   static retrieveSpawnOrder() {
     const orders = this.spawnOrder;
     this.spawnOrder = [];
+    return orders;
+  }
+
+  static insertMoveOrder(orders : DebuggerMoveOrder[]) {
+    this.moveOrder.push(...orders)
+    return orders;
+  }
+
+  static retrieveModeOrder() {
+    const orders = this.moveOrder;
+    this.moveOrder = [];
     return orders;
   }
 }

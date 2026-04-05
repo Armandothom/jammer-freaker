@@ -270,7 +270,8 @@ export class WorldTilemapManager {
     return {
       maxTilesX : this._maxNumberTilesX,
       maxTilesY : this._maxNumberTilesY,
-      impassableTiles : new Map<string, TilemapWallTile>(impassableWallTiles.map((wallTile) => [this.setTilemapKey(wallTile.x, wallTile.y), wallTile]))
+      impassableTiles : new Map<string, TilemapWallTile>(impassableWallTiles.map((wallTile) => [this.setTilemapKey(wallTile.x, wallTile.y), wallTile])),
+      tileSize : this.tileSize
     };
   }
 
@@ -300,10 +301,11 @@ export class WorldTilemapManager {
     };
   }
 
-  public tileToWorld(tileX: number, tileY: number): { worldX: number; worldY: number } {
+  public tileToWorld(tileX: number, tileY: number, anchorPosition : "topLeft" | "center" = "topLeft"): { worldX: number; worldY: number } {
+    
     return {
-      worldX: tileX * this.tileSize,
-      worldY: tileY * this.tileSize,
+      worldX: tileX * this.tileSize + (anchorPosition == "center" ? this.tileSize / 2 : 0),
+      worldY: tileY * this.tileSize + (anchorPosition == "center" ? this.tileSize / 2 : 0),
     };
   }
 

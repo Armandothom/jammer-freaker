@@ -8,26 +8,43 @@ import { AIComponent } from "../components/ai.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
-import { AiMovementOrder } from "../components/types/ai-movement-order.js";
 import { VelocityComponent } from "../components/velocity-component.js";
 import { ComponentStore } from "../core/component-store.js";
-import { CoreManager } from "../core/core-manager.js";
+import { DebugManager } from "../core/debug-manager.js";
+import { DebugSettingKey } from "../core/types/debug-manager-settings.js";
+import { OrderDebuggerOrchestrator } from "../debugger-orders/order-debugger-orchestrator.js";
 import { ISystem } from "./system.interface.js";
 
 
 export class AiMovementBehaviorSystem implements ISystem {
     constructor(
-        private positionComponentStore: ComponentStore<PositionComponent>,
-        private velocityComponentStore: ComponentStore<VelocityComponent>,
-        private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
-        private aiComponentStore: ComponentStore<AIComponent>,
+        private positionComponent: ComponentStore<PositionComponent>,
         private aiMovementOrderComponentStore: ComponentStore<AIMovementOrderComponent>,
-        private playerComponentStore: ComponentStore<PlayerComponent>,
-        private pathFindingManager: PathFindingManager
+        private debugAiInput : DebugManager
     ) { }
 
     update(deltaTime: number): void {
-        
+        for (const [entity, value] of this.aiMovementOrderComponentStore.getValuesAndEntityId()) {
+            this.paintAiPath(value);
+        };
+    }
+
+    private paintAiPath(movementOrder: AIMovementOrderComponent) {
+        if (this.debugAiInput.getDebugSetting(DebugSettingKey.AI_PATH)) {
+            const color = movementOrder.debugColor;
+            OrderDebuggerOrchestrator.insertPaintOrder(
+                movementOrder.pathList.map((pathItem) => {
+                    return {
+                        centroidX : pathItem.x,
+                        centroidY : pathItem.y,
+                        type : "circle",
+                        width : 8,
+                        height : 8,
+                        color
+                    }
+                })
+            )
+        }
     }
 
 
