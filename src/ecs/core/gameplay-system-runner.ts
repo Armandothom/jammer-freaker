@@ -39,6 +39,8 @@ import { EnemiesKilledComponent } from "../components/enemies-killed.component.j
 import { EnemyDeadComponent } from "../components/enemy-dead.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
 import { FuseTimerComponent } from "../components/fuse-timer.component.js";
+import { GameUIAnchorComponent } from "../components/game-ui-anchor.component.js";
+import { GameUIComponent } from "../components/game-ui-component.js";
 import { GrenadeComponent } from "../components/grenade-component.js";
 import { GrenadeCooldownComponent } from "../components/grenade-cooldown.component.js";
 import { GrenadeExplosionComponent } from "../components/grenade-explosion.component.js";
@@ -77,8 +79,6 @@ import { SparkParticlesComponent } from "../components/spark-particles.component
 import { SpriteComponent } from "../components/sprite.component.js";
 import { TravelTimeComponent } from "../components/travel-time.component.js";
 import { PlayerInitialProperties } from "../components/types/player-properties.js";
-import { GameUIAnchorComponent } from "../components/game-ui-anchor.component.js";
-import { GameUIComponent } from "../components/game-ui-component.js";
 import { VelocityComponent } from "../components/velocity-component.js";
 import { WallHitComponent } from "../components/wall-hit.component.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
@@ -96,8 +96,10 @@ import { CollisionSystem } from "../systems/collision-system.js";
 import { DamageProcessingSystem } from "../systems/damage-processing-system.js";
 import { DeathProcessingSystem } from "../systems/death-processing-system.js";
 // import { DynamicAttributeSystem } from "../systems/dynamic-attribute.system.js";
+import type { InventorySnapshot } from "../components/snapshots/inventory-snapshot.js";
 import { DialogSystem } from "../systems/dialog-system.js";
 import { EnemyLifecicleSystem } from "../systems/enemy-lifecicle.system.js";
+import { GameUIUpdateSystem } from "../systems/game-ui-update-system.js";
 import { GrenadeSpawnSystem } from "../systems/grenade-spawn-system.js";
 import { GrenadeUpdateSystem } from "../systems/grenade-update-system.js";
 import { HitDetectionSystem } from "../systems/hit-detection-system.js";
@@ -118,7 +120,6 @@ import { ReloadSystem } from "../systems/reload-system.js";
 import { RenderSystem } from "../systems/render-system.js";
 import { ShootingSystem } from "../systems/shooting-system.js";
 import { TerminatorSystem } from "../systems/terminator-system.js";
-import { GameUIUpdateSystem } from "../systems/game-ui-update-system.js";
 import { VisibilitySystem } from "../systems/visibility-system.js";
 import { WeaponSpriteAttachmenPositiontSystem } from "../systems/weapon-attachment-position-system.js";
 import { WeaponSwitchSystem } from "../systems/weapon-switch-system.js";
@@ -130,13 +131,13 @@ import { CoreManager } from "./core-manager.js";
 import { DebugManager } from "./debug-manager.js";
 import { EntityManager } from "./entity-manager.js";
 import { FreezeManager } from "./freeze-manager.js";
+import type { GameManager } from "./game-manager.js";
 import { InventoryManager } from "./inventory-manager.js";
 import { LevelManager } from "./level-manager.js";
-import { GameUIManager } from "./game-ui-manager.js";
-import type { GameManager } from "./game-manager.js";
-import type { InventorySnapshot } from "../components/snapshots/inventory-snapshot.js";
+import { UIManager } from "./ui-manager.js";
 
 export class GameplaySystemRunner {
+  private static hasLoggedDebugKeybinds = false;
   private renderSystem: RenderSystem;
   private visibilityManager: VisibilityManager;
   private cameraManager: CameraManager;
@@ -144,7 +145,7 @@ export class GameplaySystemRunner {
   private inventoryManager: InventoryManager;
   private levelManager: LevelManager;
   private freezeManager: FreezeManager;
-  private gameUiManager: GameUIManager;
+  private uiManager: UIManager;
   private renderableComponentStore: ComponentStore<RenderableComponent> = new ComponentStore("RenderableComponent");
   private spriteComponentStore: ComponentStore<SpriteComponent> = new ComponentStore("SpriteComponent");
   private positionComponentStore: ComponentStore<PositionComponent> = new ComponentStore("PositionComponent");
@@ -281,10 +282,10 @@ export class GameplaySystemRunner {
     this.playerInitialProperties = new PlayerInitialProperties();
     this.structureBaker = new StructureBaker();
     this.zoneFactory = new ZoneFactory(this.structureBaker)
-    this.gameUiManager = new GameUIManager(this.cameraManager);
-    this.entityFactory = new EntityFactory(entityManager, this.inventoryManager, this.gameUiManager, this.renderableComponentStore, this.playerComponentStore, this.enemyComponentStore, this.positionComponentStore, this.spriteComponentStore, this.projectileComponentStore, this.shooterCooldownComponentStore, this.velocityComponentStore, this.movementIntentComponentStore, this.animationComponentStore, this.directionAnimComponentStore, this.collisionBoxComponentStore, this.aiComponentStore, this.healthComponentStore, this.shotOriginComponentStore, this.damageDealtComponentStore, this.shootingCooldownComponentStore, this.aiAttackRangeComponentStore, this.aiMovementRadiusComponentStore, this.enemyDeadComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.zLayerComponentStore, this.directionComponentStore, this.weaponComponentStore, this.weaponMagazineComponentStore, this.grenadeComponentStore, this.travelTimeComponentStore, this.fuseTimerComponentStore, this.shapeDimensionComponentStore, this.shapePositionComponentStore, this.shapeComponentStore, this.shapeDirectionComponentStore, this.shapeAngleComponentStore, this.shapeHitMemoryComponentStore, this.cameraComponentStore, this.hitBoxComponentStore, this.dialogComponentStore, this.dialogLifetimeComponentStore, this.dialogBubbleSpriteComponentStore, this.bitmapTextComponentStore, this.dialogAnimComponentStore, this.inventoryComponentStore, this.itemBoxComponentStore, this.itemDroppedComponentStore, this.screenPositionComponentStore, this.gameUiAnchorComponentStore, this.gameUiComponentStore, this.meleeIntentProcessedComponentStore);
+    this.uiManager = new UIManager(this.cameraManager);
+    this.entityFactory = new EntityFactory(entityManager, this.inventoryManager, this.uiManager, this.renderableComponentStore, this.playerComponentStore, this.enemyComponentStore, this.positionComponentStore, this.spriteComponentStore, this.projectileComponentStore, this.shooterCooldownComponentStore, this.velocityComponentStore, this.movementIntentComponentStore, this.animationComponentStore, this.directionAnimComponentStore, this.collisionBoxComponentStore, this.aiComponentStore, this.healthComponentStore, this.shotOriginComponentStore, this.damageDealtComponentStore, this.shootingCooldownComponentStore, this.aiAttackRangeComponentStore, this.aiMovementRadiusComponentStore, this.enemyDeadComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.zLayerComponentStore, this.directionComponentStore, this.weaponComponentStore, this.weaponMagazineComponentStore, this.grenadeComponentStore, this.travelTimeComponentStore, this.fuseTimerComponentStore, this.shapeDimensionComponentStore, this.shapePositionComponentStore, this.shapeComponentStore, this.shapeDirectionComponentStore, this.shapeAngleComponentStore, this.shapeHitMemoryComponentStore, this.cameraComponentStore, this.hitBoxComponentStore, this.dialogComponentStore, this.dialogLifetimeComponentStore, this.dialogBubbleSpriteComponentStore, this.bitmapTextComponentStore, this.dialogAnimComponentStore, this.inventoryComponentStore, this.itemBoxComponentStore, this.itemDroppedComponentStore, this.screenPositionComponentStore, this.gameUiAnchorComponentStore, this.gameUiComponentStore, this.meleeIntentProcessedComponentStore);
     this.enemyLifecicleSystem = new EnemyLifecicleSystem(this.positionComponentStore, this.playerComponentStore, this.enemyComponentStore, this.enemyDeadComponentStore, this.entityFactory, this.worldTilemapManager, this.spriteManager, this.soundManager, this.freezeManager, this.spriteComponentStore, this.worldTilemapManager);
-    this.levelManager = new LevelManager(this.enemyLifecicleSystem, this.worldTilemapManager, this.cameraManager, this.zoneFactory, this.entityFactory, this.playerComponentStore, this.positionComponentStore, this.movementIntentComponentStore, this.playerInitialProperties, this.gameUiManager);
+    this.levelManager = new LevelManager(this.enemyLifecicleSystem, this.worldTilemapManager, this.cameraManager, this.zoneFactory, this.entityFactory, this.playerComponentStore, this.positionComponentStore, this.movementIntentComponentStore, this.inventoryComponentStore, this.healthComponentStore, this.playerInitialProperties, this.uiManager);
     // this.dynamicAttributeSystem = new DynamicAttributeSystem(this.levelManager, this.entityFactory, this.velocityComponentStore, this.projectileComponentStore, this.playerComponentStore, this.enemyComponentStore, this.damageTakenIntentComponentStore, this.healthComponentStore, this.damageDealtComponentStore, this.enemiesKilledComponentStore, this.weaponMagazineComponentStore, this.reloadIntentComponentStore, this.bulletFiredComponentStore, this.grenadeBeltComponentStore, this.grenadeFiredComponentStore, this.enemyDeadComponentStore);
     this.levelUpdateSystem = new LevelUpdateSystem(this.levelManager);
     this.inputDebugSystem = new InputDebugSystem(this.debugManager, this.cameraManager);
@@ -323,6 +324,7 @@ export class GameplaySystemRunner {
     this.itemDropUpdateSystem = new ItemDropUpdateSystem(this.entityFactory, this.spriteManager, this.inventoryManager, this.itemDroppedComponentStore, this.positionComponentStore, this.playerComponentStore, this.spriteComponentStore, this.inventoryComponentStore);
     this.gameUiUpdateSystem = new GameUIUpdateSystem(this.entityFactory, this.inventoryManager, this.playerInitialProperties, this.gameUiComponentStore, this.inventoryComponentStore, this.playerComponentStore, this.healthComponentStore, this.spriteComponentStore, this.bitmapTextComponentStore, this.screenPositionComponentStore);
     this.weaponSwitchSystem = new WeaponSwitchSystem(this.inventoryManager, this.entityFactory, this.inventoryComponentStore, this.playerComponentStore);
+    this.logDebugKeybinds();
   }
 
   update() {
@@ -379,6 +381,10 @@ export class GameplaySystemRunner {
     this.levelManager.bindGameManager(gameManager);
   }
 
+  startNextLevelWithInventorySnapshot(inventorySnapshot: InventorySnapshot | null): void {
+    this.levelManager.startNextLevelWithInventorySnapshot(inventorySnapshot);
+  }
+
   capturePlayerInventorySnapshot(): InventorySnapshot | null {
     const playerEntity = this.playerComponentStore.getAllEntities()[0];
 
@@ -393,5 +399,39 @@ export class GameplaySystemRunner {
     }
 
     return this.inventoryManager.createSnapshot(inventory);
+  }
+
+  private logDebugKeybinds(): void {
+    if (GameplaySystemRunner.hasLoggedDebugKeybinds) {
+      return;
+    }
+
+    GameplaySystemRunner.hasLoggedDebugKeybinds = true;
+
+    const debugKeybinds = [
+      '[DEBUG][KEYBINDS] Available debug shortcuts:',
+      'Press O to toggle the debug panel.',
+      'Press O to trigger the debug dialog ("Follow me!").',
+      'Press N to print the player inventory.',
+      'Press Numpad+ or + to add 1000 money.',
+      'Press Numpad* to add the debug weapon (SMG).',
+      'Press Numpad0 to add 1 pistol mag.',
+      'Press Numpad1 to add 1 SMG mag.',
+      'Press Numpad2 to add 1 rifle mag.',
+      'Press Numpad3 to add 1 grenade.',
+      'Press Numpad4 to add 1000 money.',
+      'Press Numpad5 to remove 1 pistol mag.',
+      'Press Numpad6 to remove 1 SMG mag.',
+      'Press Numpad7 to remove 1 rifle mag.',
+      'Press Numpad8 to remove 1 grenade.',
+      'Press Numpad9 to remove 1000 money.',
+      'Press K to damage the player by 20 HP.',
+      'Press 0 to end the level and go to the shop.',
+      'Use the debug panel to toggle sprite bounds, debug paint, and AI path.',
+    ];
+
+    for (const line of debugKeybinds) {
+      console.log(line);
+    }
   }
 }

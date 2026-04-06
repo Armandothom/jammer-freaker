@@ -39,8 +39,10 @@ export class GameManager {
             this.textManager,
             this.rendererEngine,
             this.debugManager,
+            this.entityManager,
         );
         this.gameplaySystemRunner.bindGameManager(this);
+        this.shopSystemRunner.bindGameManager(this);
     }
 
     initialize(): void {
@@ -70,11 +72,26 @@ export class GameManager {
         }
 
         this.inventorySnapshot = this.gameplaySystemRunner.capturePlayerInventorySnapshot();
+        this.shopSystemRunner.reset();
         this.shopSystemRunner.setInventorySnapshot(this.inventorySnapshot);
         this.shopSystemRunner.initialize();
         this.activeState = GameState.ShopState;
 
         console.log("[GameManager] Transitioned to ShopState.");
+        console.log("[GameManager] Inventory snapshot:", this.inventorySnapshot);
+    }
+
+    requestGameplayState(): void {
+        if (this.activeState === GameState.GameplayState) {
+            return;
+        }
+
+        this.inventorySnapshot = this.shopSystemRunner.captureInventorySnapshot();
+        this.gameplaySystemRunner.startNextLevelWithInventorySnapshot(this.inventorySnapshot);
+        this.shopSystemRunner.reset();
+        this.activeState = GameState.GameplayState;
+
+        console.log("[GameManager] Transitioned to GameplayState.");
         console.log("[GameManager] Inventory snapshot:", this.inventorySnapshot);
     }
 

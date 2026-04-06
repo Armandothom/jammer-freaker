@@ -3,7 +3,7 @@ import { CameraManager } from "../../game/world/camera-manager.js";
 import { UIAnchor } from "../components/types/ui-anchor.js";
 
 
-export class GameUIManager {
+export class UIManager {
     constructor(
         private cameraManager: CameraManager,
     ) {

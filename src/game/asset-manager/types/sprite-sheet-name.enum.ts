@@ -17,4 +17,6 @@ export enum SpriteSheetName {
   KEYBOARD_KEY = "keyboard_key",
   WEAPON_FRAME = "weapon_frame",
   MELEE_ATTACK = "melee_attack",
+  SHOP_BACKGROUND = "shop_background",
+  BUTTONS = "buttons",
 }

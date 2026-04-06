@@ -9,6 +9,7 @@ import { EntityManager } from "./entity-manager.js";
 import { GameManager } from "./game-manager.js";
 
 export class CoreManager {
+    private static readonly FPS_DEBUG_INTERVAL_SECONDS = 5;
     private previousTimestamp = 0;
     private fpsFrameCount = 0;
     private fpsElapsedTime = 0;
@@ -70,7 +71,7 @@ export class CoreManager {
         this.fpsFrameCount += 1;
         this.fpsElapsedTime += deltaTime;
 
-        if (this.fpsElapsedTime < 1) {
+        if (this.fpsElapsedTime < CoreManager.FPS_DEBUG_INTERVAL_SECONDS) {
             return;
         }
 

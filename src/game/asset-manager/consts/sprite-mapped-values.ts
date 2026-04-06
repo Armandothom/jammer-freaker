@@ -777,7 +777,7 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
     SpriteSheetName.RESOURCES_ICON,
     {
       rows: 1,
-      columns: 3,
+      columns: 4,
       eachSpriteCellSizeHeight: 32,
       eachSpriteCellSizeWidth: 32,
       srcImagePath: 'src/assets/images/resources_spritesheet.png',
@@ -802,6 +802,13 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
           originalRenderSpriteHeight: 32,
           originalRenderSpriteWidth: 32,
           spriteCellOffset: { offsetX: 4, offsetY: 0, width: 22, height: 32 }
+        }],
+        [SpriteName.GRENADE_ICON, {
+          row: 1,
+          column: 4,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 2, offsetY: 0, width: 28, height: 32 }
         }],
       ])
     }
@@ -881,5 +888,101 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
     }
   ],
 
+  [
+    SpriteSheetName.SHOP_BACKGROUND,
+    {
+      rows: 1,
+      columns: 1,
+      eachSpriteCellSizeHeight: 600,
+      eachSpriteCellSizeWidth: 800,
+      srcImagePath: 'src/assets/images/shop_background.png',
+      sprites: new Map([
+        [SpriteName.SHOP_BACKGROUND, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 600,
+          originalRenderSpriteWidth: 800,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 800, height: 600 }
+        }],
+      ])
+    }
+  ],
+
+  [
+    SpriteSheetName.BUTTONS,
+    {
+      rows: 2,
+      columns: 3,
+      eachSpriteCellSizeHeight: 32,
+      eachSpriteCellSizeWidth: 64,
+      srcImagePath: 'src/assets/images/buttons.png',
+      sprites: new Map([
+        [SpriteName.BUTTON_1, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 64,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 32 }
+        }],
+        [SpriteName.BUTTON_1_SELECTED, {
+          row: 1,
+          column: 2,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 64,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 32 }
+        }],
+        [SpriteName.BUTTON_1_DISABLED, {
+          row: 1,
+          column: 3,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 64,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 32 }
+        }],
+        [SpriteName.BUTTON_2, {
+          row: 2,
+          column: 1,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 64,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 32 }
+        }],
+        [SpriteName.BUTTON_2_SELECTED, {
+          row: 2,
+          column: 2,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 64,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 32 }
+        }],
+        [SpriteName.BUTTON_2_DISABLED, {
+          row: 2,
+          column: 3,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 64,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 32 }
+        }],
+        [SpriteName.BUTTON_3, {
+          row: 3,
+          column: 1,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 64,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 32 }
+        }],
+        [SpriteName.BUTTON_3_SELECTED, {
+          row: 3,
+          column: 2,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 64,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 32 }
+        }],
+        [SpriteName.BUTTON_3_DISABLED, {
+          row: 3,
+          column: 3,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 64,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 32 }
+        }],
+
+      ])
+    }
+  ],
 
 ]);

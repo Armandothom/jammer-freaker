@@ -1,36 +1,40 @@
-export enum GameUIType {
-    HEALTH_BAR = "health_bar",
-    HEALTH_BAR_TEXT = "health_bar_text",
-    WEAPON_FRAME = "weapon_frame",
-    WEAPON_ICON = "weapon_icon",
-    BULLET_QUANTITY = "bullet_quantity",
-    BULLET_ICON = "bullet_icon",
-    MAG_ICON = "mag_icon",
-    MAG_QUANTITY = "mag_quantity",
-    GRENADE_ICON = "grenade_icon",
-    GRENADE_QUANTITY = "grenade_quantity",
-    MONEY = "money",
-    HOSTAGES = "hostages",
+export const GameUIType = {
+    HEALTH_BAR: "health_bar",
+    HEALTH_BAR_TEXT: "health_bar_text",
+    WEAPON_FRAME: "weapon_frame",
+    WEAPON_ICON: "weapon_icon",
+    BULLET_QUANTITY: "bullet_quantity",
+    BULLET_ICON: "bullet_icon",
+    MAG_ICON: "mag_icon",
+    MAG_QUANTITY: "mag_quantity",
+    GRENADE_ICON: "grenade_icon",
+    GRENADE_QUANTITY: "grenade_quantity",
+    MONEY: "money",
+    HOSTAGES: "hostages",
 
-    WEAPON_KEYBIND_1 = "weapon_keybind_1",
-    WEAPON_KEYBIND_2 = "weapon_keybind_2",
-    WEAPON_KEYBIND_3 = "weapon_keybind_3",
-    WEAPON_KEYBIND_4 = "weapon_keybind_4",
-    GRENADE_KEYBIND = "grenade_slot_keybind",
-    KNIFE_KEYBIND = "knife_slot_keybind",
+    WEAPON_KEYBIND_1: "weapon_keybind_1",
+    WEAPON_KEYBIND_2: "weapon_keybind_2",
+    WEAPON_KEYBIND_3: "weapon_keybind_3",
+    WEAPON_KEYBIND_4: "weapon_keybind_4",
+    GRENADE_KEYBIND: "grenade_slot_keybind",
+    KNIFE_KEYBIND: "knife_slot_keybind",
 
-    WEAPON_SLOT_1 = "weapon_slot_1",
-    WEAPON_SLOT_2 = "weapon_slot_2",
-    WEAPON_SLOT_3 = "weapon_slot_3",
-    WEAPON_SLOT_4 = "weapon_slot_4",
-    GRENADE_SLOT = "grenade_slot",
-    KNIFE_SLOT = "knife_slot",
+    WEAPON_SLOT_1: "weapon_slot_1",
+    WEAPON_SLOT_2: "weapon_slot_2",
+    WEAPON_SLOT_3: "weapon_slot_3",
+    WEAPON_SLOT_4: "weapon_slot_4",
+    GRENADE_SLOT: "grenade_slot",
+    KNIFE_SLOT: "knife_slot",
 
-    FLOATING_TEXT = "floating_text",
-}
+    FLOATING_TEXT: "floating_text",
+} as const;
 
-export enum GameUIEntryType {
-    HUD = "hud",
-    FEEDBACK = "feedback",
-    ACTION_BAR = "action_bar",
-}
+export type GameUIType = typeof GameUIType[keyof typeof GameUIType];
+
+export const GameUIEntryType = {
+    HUD: "hud",
+    FEEDBACK: "feedback",
+    ACTION_BAR: "action_bar",
+} as const;
+
+export type GameUIEntryType = typeof GameUIEntryType[keyof typeof GameUIEntryType];

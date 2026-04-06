@@ -14,8 +14,9 @@ export class InventoryDebugSystem implements ISystem {
     private pressedKeys = new Set<string>();
     private previousPressedKeys = new Set<string>();
 
-    // decide aqui qual arma o "+" adiciona
+    // decide aqui qual arma o "*" do numpad adiciona
     private readonly debugWeaponToAdd: WeaponType = WeaponType.SMG;
+    private readonly debugMoneyToAdd = 1000;
 
     constructor(
         private inventoryManager: InventoryManager,
@@ -44,7 +45,12 @@ export class InventoryDebugSystem implements ISystem {
             this.inventoryManager.debugPrintInventory(inventory);
         }
 
-        if (this.wasKeyPressedThisFrame("NumpadAdd")) {
+        if (this.wasMoneyDebugPressedThisFrame()) {
+            this.inventoryManager.addResource(inventory, InventoryResourceType.Money, this.debugMoneyToAdd);
+            console.log(`[InventoryDebug] Money added: ${this.debugMoneyToAdd}`);
+        }
+
+        if (this.wasKeyPressedThisFrame("NumpadMultiply")) {
             this.addWeapon(inventory, this.debugWeaponToAdd);
         }
 
@@ -114,6 +120,10 @@ export class InventoryDebugSystem implements ISystem {
         return this.pressedKeys.has(code) && !this.previousPressedKeys.has(code);
     }
 
+    private wasMoneyDebugPressedThisFrame(): boolean {
+        return this.wasKeyPressedThisFrame("NumpadAdd") || this.wasKeyPressedThisFrame("Plus");
+    }
+
     private syncInputFrame(): void {
         this.previousPressedKeys = new Set(this.pressedKeys);
         this.wasNPressedLastFrame = this.isNPressed;
@@ -121,6 +131,9 @@ export class InventoryDebugSystem implements ISystem {
 
     private onKeyDown = (event: KeyboardEvent): void => {
         this.pressedKeys.add(event.code);
+        if (event.key === "+") {
+            this.pressedKeys.add("Plus");
+        }
 
         if (event.code === "KeyN") {
             this.isNPressed = true;
@@ -129,6 +142,9 @@ export class InventoryDebugSystem implements ISystem {
 
     private onKeyUp = (event: KeyboardEvent): void => {
         this.pressedKeys.delete(event.code);
+        if (event.key === "+") {
+            this.pressedKeys.delete("Plus");
+        }
 
         if (event.code === "KeyN") {
             this.isNPressed = false;

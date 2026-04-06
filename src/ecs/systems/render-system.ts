@@ -35,6 +35,13 @@ interface BitmapTextRenderContext {
   textBoxHeight: number;
 }
 
+interface BitmapTextBounds {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
 export class RenderSystem implements ISystem {
   private readonly layerMultiplicator: Record<string, number> = {
     "1": 1,
@@ -223,7 +230,7 @@ export class RenderSystem implements ISystem {
         continue;
       }
 
-      if (dialogBubble || bitmapText) {
+      if (dialogBubble) {
         renderObjects.push(
           ...this.getDialogRenderObjects(
             entity,
@@ -239,84 +246,95 @@ export class RenderSystem implements ISystem {
       }
 
       const sprite = this.spriteComponentStore.getOrNull(entity);
-      if (!sprite) {
-        continue;
-      }
-
-      const spriteProperties = this.spriteManager.getSpriteProperties(
-        sprite.spriteName,
-        sprite.spriteSheetName
-      );
-
-      const spriteWidth =
-        sprite.width ?? spriteProperties.sprite.originalRenderSpriteWidth;
-      const spriteHeight =
-        sprite.height ?? spriteProperties.sprite.originalRenderSpriteHeight;
-      const layerMultiplier = this.layerMultiplicator[layerComponent.layer] ?? 1;
-
-      const aimComponent = this.aimShootingComponentStore.getOrNull(entity);
-      const directionAnim = this.directionAnimComponentStore.getOrNull(entity);
-
-      const mirrorSpriteX = directionAnim?.xDirection === AnimDirection.LEFT;
-      const mirrorSpriteY = directionAnim?.yDirection === AnimDirection.BOTTOM;
-      let screenX = 0;
-      let screenY = 0;
-      let zLevel = this.getGameUiDepthLevel(layerMultiplier);
-
-      if (isScreenSpace) {
-        screenX = screenPosition.x;
-        screenY = screenPosition.y;
-      } else {
-        const worldPosition = position!;
-        const worldLeft = worldPosition.x;
-        const worldRight = worldPosition.x + spriteWidth;
-        const worldTop = worldPosition.y;
-        const worldBottom = worldPosition.y + spriteHeight;
-
-        const isOutsideViewport =
-          worldRight < viewport.left ||
-          worldLeft > viewport.right ||
-          worldBottom < viewport.top ||
-          worldTop > viewport.bottom;
-
-        if (isOutsideViewport) {
-          continue;
-        }
-
-        const visibilitySampleX = worldPosition.x + (spriteWidth / 2);
-        const visibilitySampleY = worldPosition.y + (spriteHeight / 2);
-
-        if (
-          !this.visibilityManager.isWorldPositionVisible(
-            visibilitySampleX,
-            visibilitySampleY,
-            this.tilemapManager,
-          )
-        ) {
-          continue;
-        }
-
-        screenX = worldPosition.x - viewport.left;
-        screenY = worldPosition.y - viewport.top;
-        zLevel = this.getDepthLevel(worldPosition.y, layerMultiplier);
-      }
-
-      renderObjects.push({
-        xWorldPosition: screenX,
-        yWorldPosition: screenY,
-        spriteSheetTexture: spriteProperties.spriteSheet.texture,
-        uvCoordinates: this.spriteManager.getUvCoordinates(
+      if (sprite) {
+        const spriteProperties = this.spriteManager.getSpriteProperties(
           sprite.spriteName,
-          sprite.spriteSheetName,
-          mirrorSpriteX,
-          mirrorSpriteY
-        ),
-        height: spriteHeight,
-        width: spriteWidth,
-        angleRotation: aimComponent?.aimAngle || null,
-        offsetRotation: aimComponent?.pivotPointSprite || 0,
-        zLevel,
-      });
+          sprite.spriteSheetName
+        );
+
+        const spriteWidth =
+          sprite.width ?? spriteProperties.sprite.originalRenderSpriteWidth;
+        const spriteHeight =
+          sprite.height ?? spriteProperties.sprite.originalRenderSpriteHeight;
+        const layerMultiplier = this.layerMultiplicator[layerComponent.layer] ?? 1;
+
+        const aimComponent = this.aimShootingComponentStore.getOrNull(entity);
+        const directionAnim = this.directionAnimComponentStore.getOrNull(entity);
+
+        const mirrorSpriteX = directionAnim?.xDirection === AnimDirection.LEFT;
+        const mirrorSpriteY = directionAnim?.yDirection === AnimDirection.BOTTOM;
+        let screenX = 0;
+        let screenY = 0;
+        let zLevel = this.getGameUiDepthLevel(layerMultiplier);
+
+        if (isScreenSpace) {
+          screenX = screenPosition.x;
+          screenY = screenPosition.y;
+        } else {
+          const worldPosition = position!;
+          const worldLeft = worldPosition.x;
+          const worldRight = worldPosition.x + spriteWidth;
+          const worldTop = worldPosition.y;
+          const worldBottom = worldPosition.y + spriteHeight;
+
+          const isOutsideViewport =
+            worldRight < viewport.left ||
+            worldLeft > viewport.right ||
+            worldBottom < viewport.top ||
+            worldTop > viewport.bottom;
+
+          if (isOutsideViewport) {
+            continue;
+          }
+
+          const visibilitySampleX = worldPosition.x + (spriteWidth / 2);
+          const visibilitySampleY = worldPosition.y + (spriteHeight / 2);
+
+          if (
+            !this.visibilityManager.isWorldPositionVisible(
+              visibilitySampleX,
+              visibilitySampleY,
+              this.tilemapManager,
+            )
+          ) {
+            continue;
+          }
+
+          screenX = worldPosition.x - viewport.left;
+          screenY = worldPosition.y - viewport.top;
+          zLevel = this.getDepthLevel(worldPosition.y, layerMultiplier);
+        }
+
+        renderObjects.push({
+          xWorldPosition: screenX,
+          yWorldPosition: screenY,
+          spriteSheetTexture: spriteProperties.spriteSheet.texture,
+          uvCoordinates: this.spriteManager.getUvCoordinates(
+            sprite.spriteName,
+            sprite.spriteSheetName,
+            mirrorSpriteX,
+            mirrorSpriteY
+          ),
+          height: spriteHeight,
+          width: spriteWidth,
+          angleRotation: aimComponent?.aimAngle || null,
+          offsetRotation: aimComponent?.pivotPointSprite || 0,
+          zLevel,
+        });
+      }
+
+      if (bitmapText) {
+        renderObjects.push(
+          ...this.getBitmapTextRenderObjects(
+            viewport,
+            position,
+            screenPosition,
+            layerComponent,
+            bitmapText,
+            sprite,
+          ),
+        );
+      }
     }
 
     return renderObjects;
@@ -454,6 +472,87 @@ export class RenderSystem implements ISystem {
     return renderObjects;
   }
 
+  private getBitmapTextRenderObjects(
+    viewport: CameraViewport,
+    position: PositionComponent | null,
+    screenPosition: ScreenPositionComponent | null,
+    layerComponent: ZLayerComponent,
+    bitmapText: BitmapTextComponent,
+    containerSprite: SpriteComponent | null,
+  ) {
+    const renderObjects: Array<RenderObject> = [];
+    const isScreenSpace = !!screenPosition;
+    const textContext = this.buildBitmapTextRenderContext(bitmapText, null);
+    const glyphBounds = this.getBitmapTextBounds(textContext.layout);
+    const baseX = isScreenSpace ? screenPosition.x : position?.x;
+    const baseY = isScreenSpace ? screenPosition.y : position?.y;
+
+    if (baseX === undefined || baseY === undefined) {
+      return renderObjects;
+    }
+
+    const boundsWidth = containerSprite
+      ? containerSprite.width
+      : textContext.textBoxWidth;
+    const boundsHeight = containerSprite
+      ? containerSprite.height
+      : textContext.textBoxHeight;
+
+    if (boundsWidth <= 0 && boundsHeight <= 0) {
+      return renderObjects;
+    }
+
+    if (!isScreenSpace) {
+      if (this.isOutsideViewport(baseX, baseY, boundsWidth, boundsHeight, viewport)) {
+        return renderObjects;
+      }
+
+      if (
+        !this.visibilityManager.isWorldPositionVisible(
+          baseX + (boundsWidth / 2),
+          baseY + (boundsHeight / 2),
+          this.tilemapManager,
+        )
+      ) {
+        return renderObjects;
+      }
+    }
+
+    const layerMultiplier = this.layerMultiplicator[layerComponent.layer] ?? 1;
+    const baseZLevel = isScreenSpace
+      ? this.getGameUiDepthLevel(layerMultiplier)
+      : this.getDepthLevel(position!.y, layerMultiplier);
+    const textLeft = containerSprite
+      ? baseX + Math.round(((containerSprite.width - glyphBounds.width) / 2) - glyphBounds.left)
+      : baseX;
+    const textTop = containerSprite
+      ? baseY + Math.round(((containerSprite.height - glyphBounds.height) / 2) - glyphBounds.top)
+      : baseY;
+
+    for (const glyph of textContext.layout.glyphs) {
+      renderObjects.push({
+        xWorldPosition: Math.round(
+          isScreenSpace ? textLeft + glyph.x : (textLeft + glyph.x) - viewport.left,
+        ),
+        yWorldPosition: Math.round(
+          isScreenSpace ? textTop + glyph.y : (textTop + glyph.y) - viewport.top,
+        ),
+        spriteSheetTexture: textContext.font.texture,
+        uvCoordinates: this.textManager.getGlyphUvCoordinatesForFont(
+          textContext.font,
+          glyph.glyph,
+        ),
+        height: glyph.height,
+        width: glyph.width,
+        angleRotation: null,
+        offsetRotation: 0,
+        zLevel: baseZLevel + 0.01,
+      });
+    }
+
+    return renderObjects;
+  }
+
   private buildBitmapTextRenderContext(
     bitmapText: BitmapTextComponent,
     dialogBubble: DialogBubbleSpriteComponent | null,
@@ -531,6 +630,36 @@ export class RenderSystem implements ISystem {
       return bitmapText.maxWidth;
     }
     return Math.max(fallbackWidth, 0);
+  }
+
+  private getBitmapTextBounds(layout: BitmapTextLayout): BitmapTextBounds {
+    if (layout.glyphs.length === 0) {
+      return {
+        left: 0,
+        top: 0,
+        width: 0,
+        height: 0,
+      };
+    }
+
+    let minX = Number.POSITIVE_INFINITY;
+    let minY = Number.POSITIVE_INFINITY;
+    let maxX = Number.NEGATIVE_INFINITY;
+    let maxY = Number.NEGATIVE_INFINITY;
+
+    for (const glyph of layout.glyphs) {
+      minX = Math.min(minX, glyph.x);
+      minY = Math.min(minY, glyph.y);
+      maxX = Math.max(maxX, glyph.x + glyph.width);
+      maxY = Math.max(maxY, glyph.y + glyph.height);
+    }
+
+    return {
+      left: minX,
+      top: minY,
+      width: maxX - minX,
+      height: maxY - minY,
+    };
   }
 
   private isOutsideViewport(
