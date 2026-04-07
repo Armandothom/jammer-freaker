@@ -1,5 +1,7 @@
-import { AnimationName } from "../../../game/asset-manager/types/animation-map.js"
-import { SpriteName } from "../../../game/world/types/sprite-name.enum.js"
+import { AnimationName } from "../../../game/asset-manager/types/animation-map.js";
+import { SpriteName } from "../../../game/world/types/sprite-name.enum.js";
+import { GRENADE_CONFIG } from "./grenade-config.js";
+import { KNIFE_CONFIG } from "./knife-config.js";
 
 export enum WeaponType {
     PISTOL = "pistol",
@@ -8,20 +10,34 @@ export enum WeaponType {
     SNIPER = "sniper",
     KNIFE = "knife",
     GRENADE = "grenade",
-    SHIELD = "shield"
+    SHIELD = "shield",
 }
 
 export interface WeaponConfig {
-    damage: number,
-    maxBullets: number,
-    reloadTime: number,
-    explosionRadius: number,
-    fuseTimer: number,
-    animation: AnimationName,
-    spriteName: SpriteName,
-    pivotPointSprite: number,
-    fireRate: number,
+    damage: number;
+    maxBullets: number;
+    reloadTime: number;
+    explosionRadius: number;
+    fuseTimer: number;
+    animation: AnimationName;
+    spriteName: SpriteName;
+    pivotPointSprite: number;
+    fireRate: number;
+    maxedOut: boolean;
 }
+
+const SHIELD_CONFIG: WeaponConfig = {
+    damage: 0,
+    maxBullets: 0,
+    reloadTime: 0,
+    explosionRadius: 0,
+    fuseTimer: 0,
+    animation: AnimationName.WEAPON_SHIELD,
+    spriteName: SpriteName.SHIELD,
+    pivotPointSprite: 0,
+    fireRate: 0,
+    maxedOut: false,
+};
 
 export const WeaponConfig: Record<WeaponType, WeaponConfig> = {
     [WeaponType.PISTOL]: {
@@ -34,6 +50,7 @@ export const WeaponConfig: Record<WeaponType, WeaponConfig> = {
         spriteName: SpriteName.PISTOL,
         pivotPointSprite: 3,
         fireRate: 100,
+        maxedOut: false,
     },
     [WeaponType.SMG]: {
         damage: 20,
@@ -45,6 +62,7 @@ export const WeaponConfig: Record<WeaponType, WeaponConfig> = {
         spriteName: SpriteName.SMG,
         pivotPointSprite: 6,
         fireRate: 100,
+        maxedOut: false,
     },
     [WeaponType.RIFLE]: {
         damage: 34,
@@ -56,49 +74,21 @@ export const WeaponConfig: Record<WeaponType, WeaponConfig> = {
         spriteName: SpriteName.RIFLE,
         pivotPointSprite: 6,
         fireRate: 100,
+        maxedOut: false,
     },
     [WeaponType.SNIPER]: {
-        damage: 1000,
+        damage: 100,
         maxBullets: 5,
         reloadTime: 3,
         explosionRadius: 0,
         fuseTimer: 0,
-        animation: AnimationName.WEAPON_RIFLE,
-        spriteName: SpriteName.RIFLE,
+        animation: AnimationName.WEAPON_SNIPER,
+        spriteName: SpriteName.SNIPER,
         pivotPointSprite: 6,
         fireRate: 100,
+        maxedOut: false,
     },
-    [WeaponType.KNIFE]: {
-        damage: 50,
-        maxBullets: 5, // use this as the knife "breaking"
-        reloadTime: 0,
-        explosionRadius: 0,
-        fuseTimer: 0,
-        animation: AnimationName.WEAPON_KNIFE,
-        spriteName: SpriteName.KNIFE,
-        pivotPointSprite: 1,
-        fireRate: 100,
-    },
-    [WeaponType.GRENADE]: {
-        damage: 150,
-        maxBullets: 3,
-        reloadTime: 0,
-        explosionRadius: 192,
-        fuseTimer: 2,
-        animation: AnimationName.GRENADE_FIRED,
-        spriteName: SpriteName.GRENADE_1,
-        pivotPointSprite: 0,
-        fireRate: 100,
-    },
-    [WeaponType.SHIELD]: {
-        damage: 150,
-        maxBullets: 3,
-        reloadTime: 0,
-        explosionRadius: 192,
-        fuseTimer: 2,
-        animation: AnimationName.WEAPON_SHIELD,
-        spriteName: SpriteName.SHIELD,
-        pivotPointSprite: 0,
-        fireRate: 100,
-    },
-}
+    [WeaponType.KNIFE]: KNIFE_CONFIG,
+    [WeaponType.GRENADE]: GRENADE_CONFIG,
+    [WeaponType.SHIELD]: SHIELD_CONFIG,
+};

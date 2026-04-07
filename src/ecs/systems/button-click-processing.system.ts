@@ -1,15 +1,22 @@
 import { ButtonClickIntentComponent } from "../components/button-click-intent.component.js";
+import { GunDealerComponent } from "../components/gun-dealer-component.js";
 import { ParentEntityComponent } from "../components/parent-entity-component.js";
 import { ResourceShopItemComponent } from "../components/resource-shop-item.component.js";
 import { ShopButtonComponent } from "../components/shop-button-component.js";
+import { ShopDialogIntentComponent } from "../components/shop-dialog-intent.component.js";
 import { ShopTabButtonComponent } from "../components/shop-tab-button.component.js";
 import { ShopUIComponent } from "../components/shop-ui-component.js";
+import { ShopUpgradeTabButtonComponent } from "../components/shop-upgrade-tab-button-component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { ShopInventoryState } from "../components/states/shop-inventory-state.js";
 import { ShopTabState } from "../components/states/shop-tab-state.js";
+import { ShopUpgradeTabState } from "../components/states/shop-upgrade-tab-state.js";
 import { SHOP_BUTTON_CONFIG, ShopButtonState, ShopButtonType } from "../components/types/shop-button-config.js";
+import { ShopDialogEvent } from "../components/types/shop-dialog-event.enum.js";
 import { ShopTabType } from "../components/types/shop-tab-config.js";
 import { ShopUIType } from "../components/types/shop-ui-type.js";
+import { SHOP_UPGRADE_TAB_CONFIG, ShopUpgradeTabType } from "../components/types/shop-upgrade-tab-config.js";
+import { UpgradeShopItemComponent } from "../components/upgrade-shop-item-component.js";
 import { WeaponShopItemComponent } from "../components/weapon-shop-item.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { ShopManager } from "../core/shop-manager.js";
@@ -22,6 +29,7 @@ export class ButtonClickProcessingSystem implements ISystem {
         private shopEntityFactory: ShopEntityFactory,
         private shopInventoryState: ShopInventoryState,
         private shopTabState: ShopTabState,
+        private shopUpgradeTabState: ShopUpgradeTabState,
         private buttonClickIntentComponentStore: ComponentStore<ButtonClickIntentComponent>,
         private shopUIComponentStore: ComponentStore<ShopUIComponent>,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
@@ -30,6 +38,10 @@ export class ButtonClickProcessingSystem implements ISystem {
         private resourceShopItemComponentStore: ComponentStore<ResourceShopItemComponent>,
         private shopTabButtonComponentStore: ComponentStore<ShopTabButtonComponent>,
         private parentEntityComponentStore: ComponentStore<ParentEntityComponent>,
+        private gunDealerComponentStore: ComponentStore<GunDealerComponent>,
+        private shopDialogIntentComponentStore: ComponentStore<ShopDialogIntentComponent>,
+        private upgradeShopItemComponentStore: ComponentStore<UpgradeShopItemComponent>,
+        private shopUpgradeTabButtonComponentStore: ComponentStore<ShopUpgradeTabButtonComponent>,
         private requestGameplayState: () => void,
     ) { }
 
@@ -56,6 +68,19 @@ export class ButtonClickProcessingSystem implements ISystem {
 
             if (uiType === ShopUIType.BUY_BUTTON) {
                 this.processBuyButtonClick(intent);
+                this.buttonClickIntentComponentStore.remove(intent);
+                continue;
+            }
+
+            if (uiType === ShopUIType.UPGRADE_TAB_BUTTON) {
+                const newTab = this.shopUpgradeTabButtonComponentStore.get(intent).tabType
+                if (newTab === this.shopUpgradeTabState.getActiveTabType()) {
+                    this.buttonClickIntentComponentStore.remove(intent);
+                    continue;
+                }
+                this.resetUpgradeTabButtons(intent);
+                this.setButtonState(intent, ShopButtonType.UPGRADE_TAB, ShopButtonState.SELECTED);
+                this.changeUpgradeTab(newTab);
                 this.buttonClickIntentComponentStore.remove(intent);
                 continue;
             }
@@ -89,6 +114,13 @@ export class ButtonClickProcessingSystem implements ISystem {
         }
     }
 
+    private resetUpgradeTabButtons(selfEntityId: number): void {
+        for (const entityId of this.shopUpgradeTabButtonComponentStore.getAllEntities()) {
+            if (entityId === selfEntityId) continue;
+            this.setButtonState(entityId, ShopButtonType.UPGRADE_TAB, ShopButtonState.NORMAL);
+        }
+    }
+
     private setButtonState(
         entityId: number,
         buttonType: ShopButtonType,
@@ -119,6 +151,13 @@ export class ButtonClickProcessingSystem implements ISystem {
 
     private changeShopTab(activeTab: ShopTabType, newTab: ShopTabType) {
         const shopItemEntitiesToDestroy = new Set<number>();
+        const upgradeTabButtonEntitiesToDestroy = this.shopUIComponentStore
+            .getAllEntities()
+            .filter((entityId) => this.shopUIComponentStore.get(entityId).shopUiType === ShopUIType.UPGRADE_TAB_BUTTON);
+
+        for (const upgradeTabButtonEntityId of upgradeTabButtonEntitiesToDestroy) {
+            this.shopEntityFactory.destroyUpgradeTabButtonAndAssociates(upgradeTabButtonEntityId);
+        }
 
         for (const button of this.shopButtonComponentStore.getAllEntities()) {
             const buttonTabSource = this.shopButtonComponentStore.get(button).shopTabType;
@@ -144,13 +183,22 @@ export class ButtonClickProcessingSystem implements ISystem {
                 break;
 
             case ShopTabType.UPGRADES:
-                // lógica para UPGRADES
+                this.shopManager.createUpgradeTabButtons();
+                this.shopManager.createUpgrades();
                 break;
 
             default:
                 // fallback
                 break;
         }
+    }
+
+    private changeUpgradeTab(newUpgradeTab: ShopUpgradeTabType): void {
+        const activeUpgradeTab = this.shopUpgradeTabState.getActiveTabType();
+        if (activeUpgradeTab === newUpgradeTab) return;
+
+        this.shopUpgradeTabState.setActiveTabType(newUpgradeTab);
+        this.refreshUpgradeItems();
     }
 
     private processBuyButtonClick(buttonEntityId: number): void {
@@ -160,12 +208,20 @@ export class ButtonClickProcessingSystem implements ISystem {
         const parentEntityId = this.parentEntityComponentStore.get(buttonEntityId).parentEntityId;
         if (button.state === ShopButtonState.DISABLED) return;
 
+        const gunDealerId = this.gunDealerComponentStore.getAllEntities()[0];
+
         if (this.weaponShopItemComponentStore.has(parentEntityId)) {
             const itemType = this.weaponShopItemComponentStore.get(parentEntityId).itemType;
             const didPurchase = this.shopInventoryState.tryPurchaseWeaponItem(itemType);
 
-            if (!didPurchase) return;
-
+            if (!didPurchase) {
+                if (!this.shopDialogIntentComponentStore.has(gunDealerId)) {
+                    if (this.randomRoll(0.5)) {
+                        this.shopDialogIntentComponentStore.add(gunDealerId, new ShopDialogIntentComponent(ShopDialogEvent.CANT_BUY));
+                    }
+                }
+                return;
+            }
             this.setButtonState(buttonEntityId, ShopButtonType.BUY, ShopButtonState.DISABLED);
             this.shopManager.updateMoneyText();
             return;
@@ -176,12 +232,19 @@ export class ButtonClickProcessingSystem implements ISystem {
             const itemType = resourceShopItem.itemType;
             const didPurchase = this.shopInventoryState.tryPurchaseResourceItem(itemType);
 
-            if (!didPurchase) return;
+            if (!didPurchase) {
+                if (!this.shopDialogIntentComponentStore.has(gunDealerId)) {
+                    if (this.randomRoll(0.5)) {
+                        this.shopDialogIntentComponentStore.add(gunDealerId, new ShopDialogIntentComponent(ShopDialogEvent.CANT_BUY));
+                    }
+                }
+                return;
+            }
 
             const remainingStock = this.shopInventoryState.getAvailableResourceItemStock(itemType);
 
             if (resourceShopItem.quantityTextEntityId != null) {
-                this.shopEntityFactory.updateAssociatedText(
+                this.shopManager.updateAssociatedText(
                     resourceShopItem.quantityTextEntityId,
                     `x${remainingStock}`,
                 );
@@ -194,6 +257,42 @@ export class ButtonClickProcessingSystem implements ISystem {
             this.shopManager.updateMoneyText();
             return;
         }
+
+        if (this.upgradeShopItemComponentStore.has(parentEntityId)) {
+            const upgradeShopItem = this.upgradeShopItemComponentStore.get(parentEntityId);
+            const weaponType = SHOP_UPGRADE_TAB_CONFIG[upgradeShopItem.shopUpgradeTab].weaponType;
+            const didPurchase = this.shopInventoryState.tryPurchaseWeaponUpgrade(
+                weaponType,
+                upgradeShopItem.weaponUpgradeType,
+            );
+
+            if (!didPurchase) {
+                if (!this.shopDialogIntentComponentStore.has(gunDealerId)) {
+                    if (this.randomRoll(0.5)) {
+                        this.shopDialogIntentComponentStore.add(gunDealerId, new ShopDialogIntentComponent(ShopDialogEvent.CANT_BUY));
+                    }
+                }
+                return;
+            }
+
+            this.refreshUpgradeItems();
+            this.shopManager.updateMoneyText();
+        }
     }
 
+    private refreshUpgradeItems(): void {
+        const upgradeItemEntitiesToDestroy = [
+            ...this.upgradeShopItemComponentStore.getAllEntities(),
+        ];
+
+        for (const upgradeItemEntityId of upgradeItemEntitiesToDestroy) {
+            this.shopEntityFactory.destroyUpgradeItemAndAssociates(upgradeItemEntityId);
+        }
+
+        this.shopManager.createUpgrades();
+    }
+
+    private randomRoll(threshold: number): boolean {
+        return Math.random() > threshold;
+    }
 }

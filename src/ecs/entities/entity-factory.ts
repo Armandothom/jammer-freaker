@@ -58,6 +58,10 @@ import { WeaponMagazineComponent } from "../components/weapon-magazine.component
 import { WeaponComponent } from "../components/weapon.component.js";
 import { ZLayerComponent } from "../components/z-layer.component.js";
 import { ComponentStore } from "../core/component-store.js";
+import {
+  createDialogBitmapTextComponent,
+  GAMEPLAY_DIALOG_FALLBACK_MAX_WIDTH,
+} from "../core/dialog-text-layout.js";
 import { EntityManager } from "../core/entity-manager.js";
 import { InventoryManager } from "../core/inventory-manager.js";
 import { UIManager } from "../core/ui-manager.js";
@@ -66,7 +70,6 @@ const GRENADE_SPRITE_WIDTH = 14;
 const GRENADE_SPRITE_HEIGHT = 16;
 const DEFAULT_DIALOG_FONT_ID = "04b_03";
 const DEFAULT_DIALOG_TEXT_SCALE = 2;
-const DEFAULT_DIALOG_TEXT_MAX_WIDTH = 96;
 const DEFAULT_DIALOG_PADDING_X = 8;
 const DEFAULT_DIALOG_PADDING_Y = 6;
 const DEFAULT_DIALOG_TEXT_OFFSET_X = 8;
@@ -256,7 +259,7 @@ export class EntityFactory {
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
-    this.createWeapon(entityId, WeaponConfig.smg);
+    this.createWeapon(entityId, WeaponConfig[WeaponType.SMG]);
     return entityId;
   }
 
@@ -277,7 +280,7 @@ export class EntityFactory {
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
-    this.createWeapon(entityId, WeaponConfig.smg);
+    this.createWeapon(entityId, WeaponConfig[WeaponType.SMG]);
     return entityId;
   }
 
@@ -298,7 +301,7 @@ export class EntityFactory {
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
-    this.createWeapon(entityId, WeaponConfig.smg);
+    this.createWeapon(entityId, WeaponConfig[WeaponType.SMG]);
     return entityId;
   }
 
@@ -319,7 +322,7 @@ export class EntityFactory {
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
-    this.createWeapon(entityId, WeaponConfig.smg);
+    this.createWeapon(entityId, WeaponConfig[WeaponType.SMG]);
     return entityId;
   }
 
@@ -340,7 +343,7 @@ export class EntityFactory {
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
-    this.createWeapon(entityId, WeaponConfig.smg);
+    this.createWeapon(entityId, WeaponConfig[WeaponType.SMG]);
     return entityId;
   }
 
@@ -414,14 +417,15 @@ export class EntityFactory {
       DEFAULT_DIALOG_MIN_WIDTH,
       DEFAULT_DIALOG_MIN_HEIGHT,
     ));
-    this.bitmapTextComponentStore.add(entityId, new BitmapTextComponent(
-      text,
-      DEFAULT_DIALOG_FONT_ID,
-      DEFAULT_DIALOG_TEXT_SCALE,
-      DEFAULT_DIALOG_TEXT_MAX_WIDTH,
-      true,
-      "center",
-    ));
+    this.bitmapTextComponentStore.add(
+      entityId,
+      createDialogBitmapTextComponent(
+        text,
+        DEFAULT_DIALOG_FONT_ID,
+        DEFAULT_DIALOG_TEXT_SCALE,
+        GAMEPLAY_DIALOG_FALLBACK_MAX_WIDTH,
+      ),
+    );
     this.dialogAnimComponentStore.add(entityId, dialogAnimation);
     this.animationComponentStore.add(entityId, animationComponent);
     this.spriteComponentStore.add(entityId, new SpriteComponent(

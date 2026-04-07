@@ -43,4 +43,16 @@ export const SHOP_UI_TYPE_LAYOUT_PRESET: Record<ShopUIType, ShopUITypeLayoutPres
         offsetX: 96,
         offsetY: 32,
     },
-};
+
+    [ShopUIType.UPGRADE_TAB_BUTTON]: {
+        anchor: UIAnchor.TOP_RIGHT,
+        offsetX: 112,
+        offsetY: 100,
+    },
+
+    [ShopUIType.UPGRADE_ITEM]: {
+        anchor: UIAnchor.TOP_RIGHT,
+        offsetX: 326,
+        offsetY: 164,
+    },
+};  

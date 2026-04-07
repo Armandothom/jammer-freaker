@@ -5,6 +5,8 @@ export const ShopUIType = {
     BUY_BUTTON: "buy_button",
     RETURN_BUTTON: "return_button",
     MONEY_TEXT: "money_text",
+    UPGRADE_TAB_BUTTON: "upgrade_tab_button",
+    UPGRADE_ITEM: "upgrade_item",
 } as const;
 
 export type ShopUIType = typeof ShopUIType[keyof typeof ShopUIType];

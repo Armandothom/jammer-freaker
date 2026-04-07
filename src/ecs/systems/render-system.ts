@@ -446,7 +446,9 @@ export class RenderSystem implements ISystem {
     }
 
     const textLeft = left + (dialogBubble?.textOffsetX ?? 0);
-    const textTop = top + (dialogBubble?.textOffsetY ?? 0);
+    const textTop = top
+      + (dialogBubble?.textOffsetY ?? 0)
+      + Math.round((textContext.textBoxHeight - textContext.layout.height) / 2);
 
     for (const glyph of textContext.layout.glyphs) {
       renderObjects.push({
@@ -603,7 +605,7 @@ export class RenderSystem implements ISystem {
       bubbleWidth,
       bubbleHeight,
       textBoxWidth: Math.max(0, bubbleWidth - dialogBubble.textOffsetX - dialogBubble.paddingX),
-      textBoxHeight: Math.max(initialBubbleHeight, bubbleHeight),
+      textBoxHeight: Math.max(0, bubbleHeight - dialogBubble.textOffsetY - dialogBubble.paddingY),
     };
   }
 

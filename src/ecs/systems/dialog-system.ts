@@ -8,12 +8,17 @@ import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { ComponentStore } from "../core/component-store.js";
+import {
+  applyDialogBitmapTextLayout,
+  GAMEPLAY_DIALOG_FALLBACK_MAX_WIDTH,
+} from "../core/dialog-text-layout.js";
 import { EntityFactory } from "../entities/entity-factory.js";
 import { ISystem } from "./system.interface.js";
 
 const MIN_DIALOG_DURATION_SECONDS = 1.8;
 const DIALOG_DURATION_PER_CHARACTER_SECONDS = 0.06;
 const DIALOG_FOLLOW_OFFSET_Y = 8;
+const DEBUG_DIALOG_TEXT = "Follow\nme!";
 let debugDialogShortcutRequested = false;
 
 window.addEventListener("keydown", (event) => {
@@ -60,10 +65,9 @@ export class DialogSystem implements ISystem {
     if (sourceEntityId === undefined) {
       return;
     }
-    const debugDialogText = "Follow me!";
     this.dialogIntentComponentStore.add(
       sourceEntityId,
-      new DialogIntentComponent(debugDialogText),
+      new DialogIntentComponent(DEBUG_DIALOG_TEXT),
     );
   }
 
@@ -91,7 +95,11 @@ export class DialogSystem implements ISystem {
       if (!bitmapText || bitmapText.text === dialog.text) {
         continue;
       }
-      bitmapText.text = dialog.text;
+      applyDialogBitmapTextLayout(
+        bitmapText,
+        dialog.text,
+        GAMEPLAY_DIALOG_FALLBACK_MAX_WIDTH,
+      );
     }
   }
 

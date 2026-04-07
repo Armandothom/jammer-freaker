@@ -911,7 +911,7 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
   [
     SpriteSheetName.BUTTONS,
     {
-      rows: 2,
+      rows: 4,
       columns: 3,
       eachSpriteCellSizeHeight: 32,
       eachSpriteCellSizeWidth: 64,
@@ -975,6 +975,27 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
         }],
         [SpriteName.BUTTON_3_DISABLED, {
           row: 3,
+          column: 3,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 64,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 32 }
+        }],
+        [SpriteName.BUTTON_4, {
+          row: 4,
+          column: 1,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 64,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 32 }
+        }],
+        [SpriteName.BUTTON_4_SELECTED, {
+          row: 4,
+          column: 2,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 64,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 32 }
+        }],
+        [SpriteName.BUTTON_4_DISABLED, {
+          row: 4,
           column: 3,
           originalRenderSpriteHeight: 32,
           originalRenderSpriteWidth: 64,

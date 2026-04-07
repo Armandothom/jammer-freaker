@@ -411,7 +411,7 @@ export class GameplaySystemRunner {
     const debugKeybinds = [
       '[DEBUG][KEYBINDS] Available debug shortcuts:',
       'Press O to toggle the debug panel.',
-      'Press O to trigger the debug dialog ("Follow me!").',
+      'Press O to trigger the debug dialog ("Follow\\nme!").',
       'Press N to print the player inventory.',
       'Press Numpad+ or + to add 1000 money.',
       'Press Numpad* to add the debug weapon (SMG).',

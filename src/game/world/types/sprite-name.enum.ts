@@ -101,4 +101,7 @@ export enum SpriteName {
   BUTTON_3 = "button_3",
   BUTTON_3_SELECTED = "button_3_selected",
   BUTTON_3_DISABLED = "button_3_disabled",
+  BUTTON_4 = "button_4",
+  BUTTON_4_SELECTED = "button_4_selected",
+  BUTTON_4_DISABLED = "button_4_disabled",
 }

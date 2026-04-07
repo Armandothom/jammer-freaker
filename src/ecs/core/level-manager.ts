@@ -136,7 +136,7 @@ export class LevelManager {
                 worldY,
                 this.playerInitialProperties.hp,
                 this.playerInitialProperties.velocity,
-                WeaponConfig.smg,
+                WeaponConfig[WeaponType.SMG],
                 WeaponType.PISTOL,
                 inventorySnapshot ?? undefined,
             );

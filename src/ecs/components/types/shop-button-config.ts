@@ -9,6 +9,7 @@ export const ShopButtonState = {
 export const ShopButtonType = {
     BUY: "buy",
     TAB: "tab",
+    UPGRADE_TAB: "upgrade_tab",
     RETURN: "return",
 } as const;
 
@@ -54,6 +55,15 @@ export const SHOP_BUTTON_CONFIG: Record<ShopButtonType, ShopButtonConfig> = {
             [ShopButtonState.NORMAL]: { spriteName: SpriteName.BUTTON_3 },
             [ShopButtonState.SELECTED]: { spriteName: SpriteName.BUTTON_3_SELECTED },
             [ShopButtonState.DISABLED]: { spriteName: SpriteName.BUTTON_3_DISABLED },
+        },
+    },
+    [ShopButtonType.UPGRADE_TAB]: {
+        width: 64,
+        height: 32,
+        states: {
+            [ShopButtonState.NORMAL]: { spriteName: SpriteName.BUTTON_4 },
+            [ShopButtonState.SELECTED]: { spriteName: SpriteName.BUTTON_4_SELECTED },
+            [ShopButtonState.DISABLED]: { spriteName: SpriteName.BUTTON_4_DISABLED },
         },
     },
 };
