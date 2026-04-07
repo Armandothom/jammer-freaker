@@ -106,7 +106,7 @@ export class PathFindingManager {
     return builtList.reverse()
     .slice(1) //We remove the first node, since it's the start node
     .map((item) => {
-      const worldCoord = this.worldTilemapManager.tileToWorld(item.x, item.y, "center");
+      const worldCoord = this.worldTilemapManager.tileToWorld(item.x, item.y);
       return {
         x : worldCoord.worldX,
         y : worldCoord.worldY

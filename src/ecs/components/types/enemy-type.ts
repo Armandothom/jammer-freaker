@@ -25,7 +25,7 @@ export const EnemyConfig: Record<EnemyType, PropertiesTable> = {
         attackCooldownInSeconds: 2,
         attackRange: 640,
         movementRadius: 320,
-        velocity: 1,
+        velocity: 8 * 32 / 60,
         attackExplosionRadius: 0,
     },
     [EnemyType.SNIPER]: {
@@ -35,7 +35,7 @@ export const EnemyConfig: Record<EnemyType, PropertiesTable> = {
         attackCooldownInSeconds: 3,
         attackRange: 640,
         movementRadius: 320,
-        velocity: 1,
+        velocity: 8 * 32 / 60,
         attackExplosionRadius: 0,
     },
     [EnemyType.KAMIKAZE]: {
@@ -45,7 +45,7 @@ export const EnemyConfig: Record<EnemyType, PropertiesTable> = {
         attackCooldownInSeconds: 1,
         attackRange: 640,
         movementRadius: 320,
-        velocity: 1,
+        velocity: 8 * 32 / 60,
         attackExplosionRadius: 0,
     },
     [EnemyType.JUGG]: {
@@ -55,7 +55,7 @@ export const EnemyConfig: Record<EnemyType, PropertiesTable> = {
         attackCooldownInSeconds: 0.5,
         attackRange: 640,
         movementRadius: 320,
-        velocity: 1,
+        velocity: 8 * 32 / 60,
         attackExplosionRadius: 0,
     },
     [EnemyType.BOMBER]: {
@@ -65,7 +65,7 @@ export const EnemyConfig: Record<EnemyType, PropertiesTable> = {
         attackCooldownInSeconds: 3,
         attackRange: 640,
         movementRadius: 320,
-        velocity: 1,
+        velocity: 8 * 32 / 60,
         attackExplosionRadius: 128,
     },
     // Spawn frequency has to sum up to 1, adjust the values when we implement the attack behavior
