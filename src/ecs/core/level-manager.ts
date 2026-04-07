@@ -8,7 +8,7 @@ import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import type { InventorySnapshot } from "../components/snapshots/inventory-snapshot.js";
 import { PlayerInitialProperties } from "../components/types/player-properties.js";
-import { WeaponConfig, WeaponType } from "../components/types/weapon-type.js";
+import { WeaponType } from "../components/types/weapon-config.js";
 import { EntityFactory } from "../entities/entity-factory.js";
 import { EnemyLifecicleSystem } from "../systems/enemy-lifecicle.system.js";
 import { ZoneFactory } from "../zones/zone-factory.js";
@@ -136,7 +136,6 @@ export class LevelManager {
                 worldY,
                 this.playerInitialProperties.hp,
                 this.playerInitialProperties.velocity,
-                WeaponConfig[WeaponType.SMG],
                 WeaponType.PISTOL,
                 inventorySnapshot ?? undefined,
             );
@@ -168,7 +167,6 @@ export class LevelManager {
                 this.entityFactory.createPlayerWeapon(
                     playerEntityId,
                     nextWeaponType,
-                    WeaponConfig[nextWeaponType],
                 );
             }
         }

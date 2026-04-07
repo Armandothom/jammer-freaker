@@ -1,5 +1,5 @@
 import { SpriteName } from "../../../game/world/types/sprite-name.enum.js";
-import { WeaponType } from "./weapon-type.js";
+import { WeaponType } from "./weapon-config.js";
 
 export const ShopWeaponItemType = {
     WEAPON_1: "weapon_1",

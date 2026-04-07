@@ -3,7 +3,7 @@ import { InventorySnapshot } from "../components/snapshots/inventory-snapshot.js
 import { OwnedWeaponState } from "../components/states/owned-weapon-state.js";
 import { WeaponUpgradeState } from "../components/states/weapon-upgrade-state.js";
 import { InventoryResourceType } from "../components/types/inventory-resource-type.js";
-import { WeaponConfig, WeaponType } from "../components/types/weapon-type.js";
+import { WeaponConfig, WeaponType } from "../components/types/weapon-config.js";
 
 export class InventoryManager {
     public createDefaultInventory(initialWeaponType: WeaponType): InventoryComponent {

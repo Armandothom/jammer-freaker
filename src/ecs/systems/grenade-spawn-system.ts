@@ -4,7 +4,7 @@ import { IntentGrenadeComponent } from "../components/intent-grenade.component.j
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ShooterCooldownComponent } from "../components/shooter-cooldown-component.js";
-import { WeaponConfig, WeaponType } from "../components/types/weapon-type.js";
+import { WeaponConfig, WeaponType } from "../components/types/weapon-config.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityFactory } from "../entities/entity-factory.js";

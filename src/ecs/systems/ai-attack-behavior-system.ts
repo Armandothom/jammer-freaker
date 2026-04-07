@@ -13,7 +13,7 @@ import { PositionComponent } from "../components/position.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { AiAttackOrder } from "../components/types/ai-attack-order.js";
 import { EnemyType } from "../components/types/enemy-type.js";
-import { WeaponType } from "../components/types/weapon-type.js";
+import { WeaponType } from "../components/types/weapon-config.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
 import { WeaponComponent } from "../components/weapon.component.js";
 import { ComponentStore } from "../core/component-store.js";

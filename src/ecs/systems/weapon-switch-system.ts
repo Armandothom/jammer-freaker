@@ -1,6 +1,6 @@
 import { InventoryComponent } from "../components/inventory-component.js";
 import { PlayerComponent } from "../components/player.component.js";
-import { WeaponConfig, WeaponType } from "../components/types/weapon-type.js";
+import { WeaponType } from "../components/types/weapon-config.js";
 import { ComponentStore } from "../core/component-store.js";
 import { InventoryManager } from "../core/inventory-manager.js";
 import { EntityFactory } from "../entities/entity-factory.js";
@@ -73,7 +73,7 @@ export class WeaponSwitchSystem implements ISystem {
 
         // troca física (entidade)
         this.entityFactory.destroyPlayerWeapon(playerEntity);
-        this.entityFactory.createPlayerWeapon(playerEntity, nextWeapon, WeaponConfig[nextWeapon]);
+        this.entityFactory.createPlayerWeapon(playerEntity, nextWeapon);
     }
 
     private wasKeyPressedThisFrame(code: string): boolean {

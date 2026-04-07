@@ -1,5 +1,5 @@
 import { InventoryResourceType } from "../types/inventory-resource-type.js";
-import { WeaponType } from "../types/weapon-type.js";
+import { WeaponType } from "../types/weapon-config.js";
 import { WeaponSnapshot } from "./weapon-snapshot.js";
 
 export class InventorySnapshot {

@@ -11,8 +11,9 @@ import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
 import { EnemyConfig } from "../components/types/enemy-type.js";
-import { WeaponConfig } from "../components/types/weapon-type.js";
+import { WeaponConfig } from "../components/types/weapon-config.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
+import { WeaponStatsComponent } from "../components/weapon-stats.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityFactory } from "../entities/entity-factory.js";
 import { ISystem } from "./system.interface.js";
@@ -28,6 +29,7 @@ export class ProjectileSpawnSystem implements ISystem {
         private shootingCooldownComponentStore: ComponentStore<ShootingCooldownComponent>,
         private bulletFiredComponentStore: ComponentStore<BulletFiredComponent>,
         private damageDealtComponentStore: ComponentStore<DamageDealtComponent>,
+        private weaponStatsComponentStore: ComponentStore<WeaponStatsComponent>,
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private enemyComponentStore: ComponentStore<EnemyComponent>,
     ) {
@@ -59,7 +61,9 @@ export class ProjectileSpawnSystem implements ISystem {
             const angle = Math.atan2(dy, dx);
             const dir = { x: Math.cos(angle), y: Math.sin(angle) };
 
-            const weaponFireRate = WeaponConfig[weaponWielded].fireRate; // RPM
+            const weaponFireRate = this.weaponStatsComponentStore.has(playerEntity)
+                ? this.weaponStatsComponentStore.get(playerEntity).fireRate
+                : WeaponConfig[weaponWielded].fireRate;
             const shotsPerSecond = weaponFireRate / 60;
             const fireCooldown = 1 / shotsPerSecond;
 

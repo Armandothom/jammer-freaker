@@ -10,8 +10,9 @@ import { PositionComponent } from "../components/position.component.js";
 import { ReloadIntentComponent } from "../components/reload-intent.component.js";
 import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
 import { InventoryResourceType } from "../components/types/inventory-resource-type.js";
-import { WeaponConfig } from "../components/types/weapon-type.js";
+import { WeaponConfig } from "../components/types/weapon-config.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
+import { WeaponStatsComponent } from "../components/weapon-stats.component.js";
 import { WeaponComponent } from "../components/weapon.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { DebugManager } from "../core/debug-manager.js";
@@ -40,6 +41,7 @@ export class ShootingSystem implements ISystem {
         private inventoryComponentStore: ComponentStore<InventoryComponent>,
         private reloadIntentComponentStore: ComponentStore<ReloadIntentComponent>,
         private shootingCooldownComponentStore: ComponentStore<ShootingCooldownComponent>,
+        private weaponStatsComponentStore: ComponentStore<WeaponStatsComponent>,
         private cameraManager: CameraManager,
         private debugManager: DebugManager,
         private inventoryManager: InventoryManager,
@@ -139,7 +141,9 @@ export class ShootingSystem implements ISystem {
             if (this.reloadIntentComponentStore.has(playerEntity)) {
                 return;
             }
-            const reloadTime = WeaponConfig[weaponWielded].reloadTime;
+            const reloadTime = this.weaponStatsComponentStore.has(playerEntity)
+                ? this.weaponStatsComponentStore.get(playerEntity).reloadTime
+                : WeaponConfig[weaponWielded].reloadTime;
             this.reloadIntentComponentStore.add(playerEntity, new ReloadIntentComponent(reloadTime, weaponWielded));
             return;
         }

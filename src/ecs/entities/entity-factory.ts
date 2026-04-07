@@ -51,10 +51,11 @@ import { EnemyConfig, EnemyType } from "../components/types/enemy-type.js";
 import { GameUIEntryType, GameUIType } from "../components/types/game-ui-type.js";
 import { InventoryResourceType } from "../components/types/inventory-resource-type.js";
 import { UIAnchor } from "../components/types/ui-anchor.js";
-import { WeaponConfig, WeaponType } from "../components/types/weapon-type.js";
+import { WeaponConfig, WeaponType } from "../components/types/weapon-config.js";
 import { VelocityComponent } from "../components/velocity-component.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
 import { WeaponMagazineComponent } from "../components/weapon-magazine.component.js";
+import { WeaponStatsComponent } from "../components/weapon-stats.component.js";
 import { WeaponComponent } from "../components/weapon.component.js";
 import { ZLayerComponent } from "../components/z-layer.component.js";
 import { ComponentStore } from "../core/component-store.js";
@@ -65,6 +66,7 @@ import {
 import { EntityManager } from "../core/entity-manager.js";
 import { InventoryManager } from "../core/inventory-manager.js";
 import { UIManager } from "../core/ui-manager.js";
+import { resolveEffectiveWeaponConfigFromInventory } from "../core/weapon-stats-resolver.js";
 
 const GRENADE_SPRITE_WIDTH = 14;
 const GRENADE_SPRITE_HEIGHT = 16;
@@ -113,6 +115,7 @@ export class EntityFactory {
     private directionComponentStore: ComponentStore<DirectionComponent>,
     private weaponComponentStore: ComponentStore<WeaponComponent>,
     private weaponMagazineComponentStore: ComponentStore<WeaponMagazineComponent>,
+    private weaponStatsComponentStore: ComponentStore<WeaponStatsComponent>,
     private grenadeComponentStore: ComponentStore<GrenadeComponent>,
     private travelTimeComponentStore: ComponentStore<TravelTimeComponent>,
 
@@ -140,7 +143,7 @@ export class EntityFactory {
   ) {
   }
 
-  createPlayer(startX: number, startY: number, hp: number, velocity: number, weaponConfig: WeaponConfig, initialWeaponType: WeaponType, inventorySnapshot?: InventorySnapshot) {
+  createPlayer(startX: number, startY: number, hp: number, velocity: number, initialWeaponType: WeaponType, inventorySnapshot?: InventorySnapshot) {
     const entityId = this.entityManager.registerEntity();
     this.renderableComponentStore.add(entityId, new RenderableComponent());
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
@@ -161,7 +164,7 @@ export class EntityFactory {
 
     this.inventoryComponentStore.add(entityId, inventoryComponent);
     const equippedWeapon = inventoryComponent.equippedWeaponType!
-    this.createPlayerWeapon(entityId, equippedWeapon, WeaponConfig[equippedWeapon]);
+    this.createPlayerWeapon(entityId, equippedWeapon);
     return entityId;
   }
 
@@ -259,7 +262,7 @@ export class EntityFactory {
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
-    this.createWeapon(entityId, WeaponConfig[WeaponType.SMG]);
+    this.createWeapon(entityId, WeaponType.SMG);
     return entityId;
   }
 
@@ -280,7 +283,7 @@ export class EntityFactory {
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
-    this.createWeapon(entityId, WeaponConfig[WeaponType.SMG]);
+    this.createWeapon(entityId, WeaponType.SMG);
     return entityId;
   }
 
@@ -301,7 +304,7 @@ export class EntityFactory {
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
-    this.createWeapon(entityId, WeaponConfig[WeaponType.SMG]);
+    this.createWeapon(entityId, WeaponType.SMG);
     return entityId;
   }
 
@@ -322,7 +325,7 @@ export class EntityFactory {
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
-    this.createWeapon(entityId, WeaponConfig[WeaponType.SMG]);
+    this.createWeapon(entityId, WeaponType.SMG);
     return entityId;
   }
 
@@ -343,7 +346,7 @@ export class EntityFactory {
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.aiMovementRadiusComponentStore.add(entityId, new AiMovementRadiusComponent(movementRadius));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
-    this.createWeapon(entityId, WeaponConfig[WeaponType.SMG]);
+    this.createWeapon(entityId, WeaponType.SMG);
     return entityId;
   }
 
@@ -579,7 +582,9 @@ export class EntityFactory {
     this.zLayerComponentStore.remove(entityId);
   }
 
-  createPlayerWeapon(parentEntityId: number, weaponType: WeaponType, weaponConfig: WeaponConfig) {
+  createPlayerWeapon(parentEntityId: number, weaponType: WeaponType) {
+    const inventory = this.inventoryComponentStore.getOrNull(parentEntityId);
+    const weaponConfig = resolveEffectiveWeaponConfigFromInventory(inventory, weaponType);
     const entityId = this.entityManager.registerEntity();
     const weaponComponentResult = this.weaponComponentStore.add(parentEntityId, new WeaponComponent(weaponConfig.spriteName, SpriteSheetName.WEAPON, weaponConfig.animation, weaponConfig.pivotPointSprite));
     const wieldingEntityWeapon = weaponComponentResult.get(parentEntityId)!;
@@ -599,10 +604,18 @@ export class EntityFactory {
       wieldingEntityWeapon.weaponHeight
     ));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
+    this.weaponStatsComponentStore.add(parentEntityId, new WeaponStatsComponent(
+      weaponConfig.damage,
+      weaponConfig.maxBullets,
+      weaponConfig.reloadTime,
+      weaponConfig.fireRate,
+      weaponConfig.maxedOut,
+    ));
     this.damageDealtComponentStore.add(parentEntityId, new DamageDealtComponent(weaponConfig.damage));
   }
 
-  createWeapon(parentEntityId: number, weaponConfig: WeaponConfig) {
+  createWeapon(parentEntityId: number, weaponType: WeaponType) {
+    const weaponConfig = WeaponConfig[weaponType];
     const entityId = this.entityManager.registerEntity();
     const weaponComponentResult = this.weaponComponentStore.add(parentEntityId, new WeaponComponent(weaponConfig.spriteName, SpriteSheetName.WEAPON, weaponConfig.animation, weaponConfig.pivotPointSprite));
     const wieldingEntityWeapon = weaponComponentResult.get(parentEntityId)!;
@@ -622,6 +635,13 @@ export class EntityFactory {
       wieldingEntityWeapon.weaponHeight
     ));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
+    this.weaponStatsComponentStore.add(parentEntityId, new WeaponStatsComponent(
+      weaponConfig.damage,
+      weaponConfig.maxBullets,
+      weaponConfig.reloadTime,
+      weaponConfig.fireRate,
+      weaponConfig.maxedOut,
+    ));
     this.damageDealtComponentStore.add(parentEntityId, new DamageDealtComponent(weaponConfig.damage));
   }
 
@@ -684,6 +704,7 @@ export class EntityFactory {
     this.shooterCooldownComponentStore.remove(parentEntityId);
     this.weaponComponentStore.remove(parentEntityId);
     this.damageDealtComponentStore.remove(parentEntityId);
+    this.weaponStatsComponentStore.remove(parentEntityId);
   }
 
   destroyPlayerWeapon(parentEntityId: number) {
@@ -700,6 +721,7 @@ export class EntityFactory {
     this.shooterCooldownComponentStore.remove(parentEntityId);
     this.weaponComponentStore.remove(parentEntityId);
     this.damageDealtComponentStore.remove(parentEntityId);
+    this.weaponStatsComponentStore.remove(parentEntityId);
   }
 
   destroyMeleeHitBox(entityId: number) {

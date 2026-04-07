@@ -1,22 +1,22 @@
 import { InventoryManager } from "../../core/inventory-manager.js";
 import { InventoryComponent } from "../inventory-component.js";
 import type { InventorySnapshot } from "../snapshots/inventory-snapshot.js";
-import type { OwnedWeaponState } from "./owned-weapon-state.js";
 import { InventoryResourceType } from "../types/inventory-resource-type.js";
 import { SHOP_RESOURCE_ITEM_CONFIG, ShopResourceItemType } from "../types/shop-resource-item-config.js";
 import { SHOP_WEAPON_ITEM_CONFIG, ShopWeaponItemType } from "../types/shop-weapon-item-config.js";
+import { WeaponConfig, WeaponType } from "../types/weapon-config.js";
 import {
     getNextWeaponUpgradeProgressLevel,
     getWeaponUpgradeLevelFromProgress,
     getWeaponUpgradePrice,
     isWeaponUpgradeProgressMaxed,
     normalizeStoredWeaponUpgradeLevel,
+    type StoredWeaponUpgradeLevel,
     type UpgradableWeaponType,
     type UpgradeLevel,
-    type StoredWeaponUpgradeLevel,
     WeaponUpgradeType,
 } from "../types/weapon-upgrade-config.js";
-import { WeaponConfig, WeaponType } from "../types/weapon-type.js";
+import type { OwnedWeaponState } from "./owned-weapon-state.js";
 
 export class ShopInventoryState {
     private readonly inventoryManager = new InventoryManager();

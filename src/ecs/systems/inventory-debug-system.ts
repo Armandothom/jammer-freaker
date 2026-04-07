@@ -2,7 +2,7 @@ import { HealthComponent } from "../components/health.component.js";
 import { InventoryComponent } from "../components/inventory-component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { InventoryResourceType } from "../components/types/inventory-resource-type.js";
-import { WeaponConfig, WeaponType } from "../components/types/weapon-type.js";
+import { WeaponConfig, WeaponType } from "../components/types/weapon-config.js";
 import { ComponentStore } from "../core/component-store.js";
 import { InventoryManager } from "../core/inventory-manager.js";
 import { ISystem } from "./system.interface.js";

@@ -1,6 +1,6 @@
 import { AnimationName } from "../../../game/asset-manager/types/animation-map.js";
 import { SpriteName } from "../../../game/world/types/sprite-name.enum.js";
-import type { WeaponConfig } from "./weapon-type.js";
+import type { WeaponConfig } from "./weapon-config.js";
 
 export const KNIFE_CONFIG: WeaponConfig = {
     damage: 50,

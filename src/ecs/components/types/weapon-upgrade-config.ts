@@ -1,4 +1,4 @@
-import { WeaponConfig, WeaponType } from "./weapon-type.js";
+import { WeaponConfig, WeaponType } from "./weapon-config.js";
 
 export type UpgradeLevel = 1 | 2 | 3;
 export type StoredWeaponUpgradeLevel = 0 | 1 | 2 | 3;
@@ -322,7 +322,7 @@ export function getCurrentWeaponUpgradeValue(
     weaponType: UpgradableWeaponType,
     upgradeType: WeaponUpgradeType,
     progressLevel: number,
-) : WeaponUpgradeDisplayValue {
+): WeaponUpgradeDisplayValue {
     const normalizedLevel = normalizeStoredWeaponUpgradeLevel(progressLevel);
 
     if (normalizedLevel === 0) {

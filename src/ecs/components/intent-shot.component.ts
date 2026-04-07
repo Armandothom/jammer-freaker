@@ -1,4 +1,4 @@
-import { WeaponType } from "./types/weapon-type.js";
+import { WeaponType } from "./types/weapon-config.js";
 
 export class IntentShotComponent {
     constructor(

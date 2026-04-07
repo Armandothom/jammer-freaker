@@ -4,7 +4,7 @@ import { WeaponSnapshot } from "./snapshots/weapon-snapshot.js";
 import { OwnedWeaponState } from "./states/owned-weapon-state.js";
 import { WeaponUpgradeState } from "./states/weapon-upgrade-state.js";
 import { InventoryResourceType } from "./types/inventory-resource-type.js";
-import { WeaponType } from "./types/weapon-type.js";
+import { WeaponType } from "./types/weapon-config.js";
 
 export class InventoryComponent {
     public weapons: Map<WeaponType, OwnedWeaponState>;
