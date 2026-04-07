@@ -71,7 +71,6 @@ export class RenderSystem implements ISystem {
     const terrainRenderObjects = this.getTerrainRenderObjects(viewport);
     const wallRenderObjects = this.getWallRenderObjects(viewport);
     const overTerrainRenderObjects = this.getOverTerrainRenderObjects(viewport);
-    const fogOverlayRenderObjects = this.getFogOverlayRenderObjects(viewport);
     const renderObjects = [
       ...terrainRenderObjects,
       ...wallRenderObjects,
@@ -83,9 +82,6 @@ export class RenderSystem implements ISystem {
     this.rendererEngine.updateParticles(deltaTime);
     this.rendererEngine.disarmSpawnStyleRects();
     this.rendererEngine.renderParticles();
-    if (fogOverlayRenderObjects.length > 0) {
-      this.rendererEngine.renderSprites(fogOverlayRenderObjects);
-    }
     if (this.debugManager.getDebugSetting(DebugSettingKey.DEBUG_PAINT)) {
       this.renderDebugPaint(viewport);
     }
@@ -248,18 +244,6 @@ export class RenderSystem implements ISystem {
 
       const screenX = position.x - viewport.left;
       const screenY = position.y - viewport.top;
-      const visibilitySampleX = position.x + (spriteWidth / 2);
-      const visibilitySampleY = position.y + (spriteHeight / 2);
-
-      if (
-        !this.visibilityManager.isWorldPositionVisible(
-          visibilitySampleX,
-          visibilitySampleY,
-          this.tilemapManager,
-        )
-      ) {
-        continue;
-      }
       renderObjects.push({
         xWorldPosition: screenX,
         yWorldPosition: screenY,
@@ -322,22 +306,6 @@ export class RenderSystem implements ISystem {
       return renderObjects;
     }
 
-    const visibilitySampleX = dialogBubble
-      ? position.x
-      : worldLeft + (boundsWidth / 2);
-    const visibilitySampleY = dialogBubble
-      ? position.y
-      : worldTop + (boundsHeight / 2);
-
-    if (
-      !this.visibilityManager.isWorldPositionVisible(
-        visibilitySampleX,
-        visibilitySampleY,
-        this.tilemapManager,
-      )
-    ) {
-      return renderObjects;
-    }
 
     const layerMultiplier = this.layerMultiplicator[layerComponent.layer] ?? 1;
     const baseZLevel = this.getDepthLevel(position.y, layerMultiplier);
@@ -491,47 +459,6 @@ export class RenderSystem implements ISystem {
       worldBottom < viewport.top ||
       worldTop > viewport.bottom
     );
-  }
-
-  private getFogOverlayRenderObjects(viewport: CameraViewport): Array<RenderObject> {
-    if (!this.visibilityManager.fogOfWarEnabled) {
-      return [];
-    }
-
-    const fogOverlayRenderObjects: Array<RenderObject> = [];
-    const terrainTilesInViewport = this.tilemapManager.getTilesInArea(viewport);
-    const fogSpriteDetails = this.spriteManager.getSpriteProperties(
-      SpriteName.BLANK,
-      SpriteSheetName.BLANK,
-    );
-    const fogUvCoordinates = this.spriteManager.getUvCoordinates(
-      SpriteName.BLANK,
-      SpriteSheetName.BLANK,
-    );
-    const tileSize = this.tilemapManager.tileSize;
-
-    for (const terrainTile of terrainTilesInViewport) {
-      if (this.visibilityManager.isTileVisible(terrainTile.x, terrainTile.y)) {
-        continue;
-      }
-
-      const worldX = terrainTile.x * tileSize;
-      const worldY = terrainTile.y * tileSize;
-
-      fogOverlayRenderObjects.push({
-        xWorldPosition: worldX - viewport.left,
-        yWorldPosition: worldY - viewport.top,
-        spriteSheetTexture: fogSpriteDetails.spriteSheet.texture,
-        uvCoordinates: fogUvCoordinates,
-        height: tileSize,
-        width: tileSize,
-        angleRotation: null,
-        offsetRotation: 0,
-        zLevel: this.maxDepthLevel,
-      });
-    }
-
-    return fogOverlayRenderObjects;
   }
 
   private getDepthLevel(worldY: number, layerMultiplier: number): number {

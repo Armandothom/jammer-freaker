@@ -14,32 +14,6 @@ export class VisibilitySystem implements ISystem {
   ) { }
 
   update(_: number): void {
-    if (!this.visibilityManager.fogOfWarEnabled) {
-      this.visibilityManager.clear();
-      return;
-    }
-
-    const [playerEntity] = this.playerComponentStore.getAllEntities();
-
-    if (playerEntity === undefined) {
-      this.visibilityManager.clear();
-      return;
-    }
-
-    const playerPosition = this.positionComponentStore.getOrNull(playerEntity);
-
-    if (!playerPosition) {
-      this.visibilityManager.clear();
-      return;
-    }
-
-    const visionOriginX = playerPosition.x + (this.worldTilemapManager.tileSize / 2);
-    const visionOriginY = playerPosition.y + (this.worldTilemapManager.tileSize / 2);
-
-    this.visibilityManager.updateVisibilityFromWorldPosition(
-      visionOriginX,
-      visionOriginY,
-      this.worldTilemapManager,
-    );
+    
   }
 }
