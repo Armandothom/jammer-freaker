@@ -19,7 +19,7 @@ export class InputMovementSystem implements ISystem {
         for (const playerId of this.playerComponentStore.getAllEntities()) {
             const velocity = this.velocityComponentStore.get(playerId);
 
-            const input = getInputForEntity(playerId); // Definido abaixo
+            const input = getInputForEntity(); // Definido abaixo
             if (!input) continue;
 
             const pos = this.positionComponentStore.get(playerId);
@@ -34,13 +34,13 @@ export class InputMovementSystem implements ISystem {
     }
 }
 
-function getInputForEntity(entityId: number): { dx: number, dy: number } | null {
+function getInputForEntity(): { dx: number, dy: number } | null {
     let dx = 0, dy = 0;
-    const speed = 1;
-    if (keys["arrowup"] || keys["w"] || keys["W"]) dy -= speed;
-    if (keys["arrowdown"] || keys["s"] || keys["S"]) dy += speed;
-    if (keys["arrowleft"] || keys["a"] || keys["A"]) dx -= speed;
-    if (keys["arrowright"] || keys["d"] || keys["D"]) dx += speed;
+    const axisStep = 1;
+    if (keys["arrowup"] || keys["w"] || keys["W"]) dy -= axisStep;
+    if (keys["arrowdown"] || keys["s"] || keys["S"]) dy += axisStep;
+    if (keys["arrowleft"] || keys["a"] || keys["A"]) dx -= axisStep;
+    if (keys["arrowright"] || keys["d"] || keys["D"]) dx += axisStep;
 
     if (dx === 0 && dy === 0) return null;
 

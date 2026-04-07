@@ -1,12 +1,6 @@
 
-import { PathFindingManager } from "../../game/world/pathfinding-manager.js";
-import { randomNumberWithSeedInfluence } from "../../utils/get-random-with-seed.js";
-import { detectByRadius, lerpPosition } from "../../utils/lerp-position.js";
-import { Position } from "../../utils/types/position.js";
 import { AIMovementOrderComponent } from "../components/ai-movement-order.component.js";
-import { AIComponent } from "../components/ai.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
-import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { VelocityComponent } from "../components/velocity-component.js";
 import { ComponentStore } from "../core/component-store.js";
@@ -19,14 +13,38 @@ import { ISystem } from "./system.interface.js";
 export class AiMovementBehaviorSystem implements ISystem {
     constructor(
         private positionComponent: ComponentStore<PositionComponent>,
-        private aiMovementOrderComponentStore: ComponentStore<AIMovementOrderComponent>,
+        private velocityComponent: ComponentStore<VelocityComponent>,
+        private aiMovementOrderComponent: ComponentStore<AIMovementOrderComponent>,
+        private movimentIntentComponent: ComponentStore<MovementIntentComponent>,
         private debugAiInput : DebugManager
     ) { }
 
     update(deltaTime: number): void {
-        for (const [entity, value] of this.aiMovementOrderComponentStore.getValuesAndEntityId()) {
+        for (const [entityId, value] of this.aiMovementOrderComponent.getValuesAndEntityId()) {
+            const position = this.positionComponent.get(entityId);
+            const pathTarget = value.pathList[0];
+            const velocity = this.velocityComponent.get(entityId);
+            const dx = pathTarget.x - position.x;
+            const dy = pathTarget.y - position.y;
+            const magnitudeOriginToTarget = this.getMagnitudeBetweenPoints(dx, dy);
+            const xNewPosition = position.x + ((dx / magnitudeOriginToTarget) * velocity.currentVelocityX);
+            const yNewPosition = position.y + ((dy / magnitudeOriginToTarget) * velocity.currentVelocityY);
+            const dxNewPos = position.x - xNewPosition;
+            const dYNewPos = position.y - yNewPosition;
+            const magnitudeOriginToNewPos = this.getMagnitudeBetweenPoints(dxNewPos, dYNewPos);
+            if(magnitudeOriginToNewPos > magnitudeOriginToTarget) {
+                value.pathList.shift();
+                if(value.pathList.length == 0) {
+                    this.aiMovementOrderComponent.remove(entityId);
+                }
+            }
+            this.movimentIntentComponent.add(entityId, new MovementIntentComponent(xNewPosition, yNewPosition));
             this.paintAiPath(value);
         };
+    }
+
+    private getMagnitudeBetweenPoints(dx : number, dy : number) {
+        return Math.sqrt(dx * dx + dy * dy);
     }
 
     private paintAiPath(movementOrder: AIMovementOrderComponent) {
