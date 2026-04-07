@@ -344,7 +344,7 @@ export class GameplaySystemRunner {
     this.inventoryDebugSystem.update(CoreManager.timeSinceLastRender);
     this.cameraFollowSystem.update();
     this.levelProgressionSystem.update(CoreManager.timeSinceLastRender);
-    this.spriteLevelScaler.update(CoreManager.timeSinceLastRender);
+    //this.spriteLevelScaler.update(CoreManager.timeSinceLastRender);
     this.enemyLifecicleSystem.update(CoreManager.timeSinceLastRender);
     this.aiIntentProcessorSystem.update(CoreManager.timeSinceLastRender);
     this.reloadSystem.update(CoreManager.timeSinceLastRender);
@@ -373,6 +373,7 @@ export class GameplaySystemRunner {
     this.inventorySystem.update(CoreManager.timeSinceLastRender);
     this.particleEmitterSystem.update(CoreManager.timeSinceLastRender);
     this.gameUiUpdateSystem.update(CoreManager.timeSinceLastRender);
+    this.spriteLevelScaler.update(CoreManager.timeSinceLastRender);
     this.renderSystem.update(CoreManager.timeSinceLastRender);
     this.terminatorSystem.update(CoreManager.timeSinceLastRender);
     this.levelUpdateSystem.update();

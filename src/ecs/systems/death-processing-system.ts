@@ -1,5 +1,4 @@
 import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
-import { AnimationComponent } from "../components/animation.component.js";
 import { AwaitingAnimationEndComponent } from "../components/awaiting-animation-end.component.js";
 import { DeathIntentComponent } from "../components/death-intent.component.js";
 import { EnemyDeadComponent } from "../components/enemy-dead.component.js";
@@ -49,8 +48,10 @@ export class DeathProcessingSystem implements ISystem {
                     continue;
                 }
                 if (this.awaitingAnimationEndComponentStore.get(entity).resolved === true) {
-                    let deathPos = this.positionComponentStore.get(entity);
-                    this.itemDropIntentComponentStore.add(entity, new ItemDropIntentComponent(deathPos.x, deathPos.y, 8))
+                    const deathPos = this.positionComponentStore.get(entity);
+                    this.itemDropIntentComponentStore.add(entity, new ItemDropIntentComponent(deathPos.x, deathPos.y, 8));
+                    this.awaitingAnimationEndComponentStore.remove(entity);
+                    this.deathIntentComponentStore.remove(entity);
                     this.entityFactory.destroyItemBox(entity);
                 }
             }

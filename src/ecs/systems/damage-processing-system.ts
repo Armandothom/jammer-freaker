@@ -23,7 +23,9 @@ export class DamageProcessingSystem implements ISystem {
             if (health.hp > 0) {
                 health.hp -= damage;
                 if (health.hp <= 0) {
-                    //this.deathIntentComponentStore.add(entity, new DeathIntentComponent(damageSource));
+                    if (!this.deathIntentComponentStore.has(entity)) {
+                        this.deathIntentComponentStore.add(entity, new DeathIntentComponent(damageSource));
+                    }
                 }
             }
 
