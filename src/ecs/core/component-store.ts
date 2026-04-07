@@ -46,4 +46,8 @@ export class ComponentStore<T> {
   public getValuesAndEntityId() {
     return Array.from(this.components.entries());
   }
+
+  public clear() {
+    this.components.clear();
+  }
 }

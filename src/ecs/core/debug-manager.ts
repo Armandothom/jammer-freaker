@@ -18,8 +18,12 @@ export class DebugManager {
     }; 
     
     constructor(
-        private enemyComponentStore : ComponentStore<EnemyComponent>
+        private enemyComponentStore : ComponentStore<EnemyComponent> | null = null
     ) {
+    }
+
+    public bindEnemyComponentStore(enemyComponentStore: ComponentStore<EnemyComponent>) {
+        this.enemyComponentStore = enemyComponentStore;
     }
 
 
@@ -48,13 +52,13 @@ export class DebugManager {
     }
 
     public toggleHighlightedEnemy(arrowSelected : "left" | "right") {
-        const options = this.enemyComponentStore.getAllEntities();
+        const options = this.enemyComponentStore?.getAllEntities() ?? [];
         const selectedOptionsIndex = options.findIndex((option) => option == this._selectedEnemyEntity);
         let newSelectedOptionIndex : number;
         if(options.length == 0) {
             return;
         }
-        newSelectedOptionIndex = (selectedOptionsIndex + (arrowSelected == 'right' ? 1 : -1)) % options.length;
+        newSelectedOptionIndex = (selectedOptionsIndex + (arrowSelected == 'right' ? 1 : -1) + options.length) % options.length;
         this._selectedEnemyEntity = options[newSelectedOptionIndex];
     }
 

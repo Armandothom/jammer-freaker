@@ -195,6 +195,7 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
       ])
     }
   ],
+
   [
     SpriteSheetName.PROJECTILE,
     {
@@ -490,6 +491,517 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
           originalRenderSpriteWidth: 12,
           spriteCellOffset: { offsetX: 0, offsetY: 0, width: 16, height: 16 }
         }],
+      ])
+    }
+  ],
+
+  [
+    SpriteSheetName.WOODEN_BOX,
+    {
+      rows: 1,
+      columns: 4,
+      eachSpriteCellSizeHeight: 32,
+      eachSpriteCellSizeWidth: 32,
+      srcImagePath: 'src/assets/images/wooden_box.png',
+      sprites: new Map([
+        [SpriteName.WOODEN_BOX_1, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+        [SpriteName.WOODEN_BOX_2, {
+          row: 1,
+          column: 2,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+        [SpriteName.WOODEN_BOX_3, {
+          row: 1,
+          column: 3,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+        [SpriteName.WOODEN_BOX_4, {
+          row: 1,
+          column: 4,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+      ])
+    }
+  ],
+
+  [
+    SpriteSheetName.PISTOL_MAG_DROP,
+    {
+      rows: 1,
+      columns: 8,
+      eachSpriteCellSizeHeight: 32,
+      eachSpriteCellSizeWidth: 32,
+      srcImagePath: 'src/assets/images/pistol_mag_drop.png',
+      sprites: new Map([
+
+        [SpriteName.PISTOL_MAG_DROP_1, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+        [SpriteName.PISTOL_MAG_DROP_2, {
+          row: 1,
+          column: 2,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+        [SpriteName.PISTOL_MAG_DROP_3, {
+          row: 1,
+          column: 3,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+        [SpriteName.PISTOL_MAG_DROP_4, {
+          row: 1,
+          column: 4,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+        [SpriteName.PISTOL_MAG_DROP_5, {
+          row: 1,
+          column: 5,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+        [SpriteName.PISTOL_MAG_DROP_6, {
+          row: 1,
+          column: 6,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+        [SpriteName.PISTOL_MAG_DROP_7, {
+          row: 1,
+          column: 7,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+        [SpriteName.PISTOL_MAG_DROP_8, {
+          row: 1,
+          column: 8,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+      ])
+    }
+  ],
+
+  [
+    SpriteSheetName.SMG_MAG_DROP,
+    {
+      rows: 1,
+      columns: 8,
+      eachSpriteCellSizeHeight: 32,
+      eachSpriteCellSizeWidth: 32,
+      srcImagePath: 'src/assets/images/smg_mag_drop.png',
+      sprites: new Map([
+
+        [SpriteName.SMG_MAG_DROP_1, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+        [SpriteName.SMG_MAG_DROP_2, {
+          row: 1,
+          column: 2,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+        [SpriteName.SMG_MAG_DROP_3, {
+          row: 1,
+          column: 3,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+        [SpriteName.SMG_MAG_DROP_4, {
+          row: 1,
+          column: 4,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+        [SpriteName.SMG_MAG_DROP_5, {
+          row: 1,
+          column: 5,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+        [SpriteName.SMG_MAG_DROP_6, {
+          row: 1,
+          column: 6,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+        [SpriteName.SMG_MAG_DROP_7, {
+          row: 1,
+          column: 7,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+        [SpriteName.SMG_MAG_DROP_8, {
+          row: 1,
+          column: 8,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+      ])
+    }
+  ],
+
+  [
+    SpriteSheetName.GRENADE_DROP,
+    {
+      rows: 1,
+      columns: 8,
+      eachSpriteCellSizeHeight: 32,
+      eachSpriteCellSizeWidth: 32,
+      srcImagePath: 'src/assets/images/grenade_drop.png',
+      sprites: new Map([
+
+        [SpriteName.GRENADE_DROP_1, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+        [SpriteName.GRENADE_DROP_2, {
+          row: 1,
+          column: 2,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+        [SpriteName.GRENADE_DROP_3, {
+          row: 1,
+          column: 3,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+        [SpriteName.GRENADE_DROP_4, {
+          row: 1,
+          column: 4,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+        [SpriteName.GRENADE_DROP_5, {
+          row: 1,
+          column: 5,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+        [SpriteName.GRENADE_DROP_6, {
+          row: 1,
+          column: 6,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+        [SpriteName.GRENADE_DROP_7, {
+          row: 1,
+          column: 7,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+        [SpriteName.GRENADE_DROP_8, {
+          row: 1,
+          column: 8,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+      ])
+    }
+  ],
+
+  [
+    SpriteSheetName.HEALTH_BAR,
+    {
+      rows: 1,
+      columns: 2,
+      eachSpriteCellSizeHeight: 48,
+      eachSpriteCellSizeWidth: 288,
+      srcImagePath: 'src/assets/images/health_bar.png',
+      sprites: new Map([
+        [SpriteName.HEALTH_BAR_EMPTY, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 48,
+          originalRenderSpriteWidth: 288,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 288, height: 48 }
+        }],
+        [SpriteName.HEALTH_BAR_FILL, {
+          row: 1,
+          column: 2,
+          originalRenderSpriteHeight: 48,
+          originalRenderSpriteWidth: 288,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 288, height: 48 }
+        }],
+      ])
+    }
+  ],
+
+  [
+    SpriteSheetName.RESOURCES_ICON,
+    {
+      rows: 1,
+      columns: 4,
+      eachSpriteCellSizeHeight: 32,
+      eachSpriteCellSizeWidth: 32,
+      srcImagePath: 'src/assets/images/resources_spritesheet.png',
+      sprites: new Map([
+        [SpriteName.BULLET_ICON, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 9, offsetY: 0, width: 14, height: 32 }
+        }],
+        [SpriteName.PISTOL_MAG_ICON, {
+          row: 1,
+          column: 2,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 10, offsetY: 0, width: 13, height: 32 }
+        }],
+        [SpriteName.SMG_MAG_ICON, {
+          row: 1,
+          column: 3,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 4, offsetY: 0, width: 22, height: 32 }
+        }],
+        [SpriteName.GRENADE_ICON, {
+          row: 1,
+          column: 4,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 2, offsetY: 0, width: 28, height: 32 }
+        }],
+      ])
+    }
+  ],
+
+  [
+    SpriteSheetName.KEYBOARD_KEY,
+    {
+      rows: 1,
+      columns: 1,
+      eachSpriteCellSizeHeight: 32,
+      eachSpriteCellSizeWidth: 32,
+      srcImagePath: 'src/assets/images/keyboard_key.png',
+      sprites: new Map([
+        [SpriteName.KEYBOARD_KEY, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+      ])
+    }
+  ],
+
+  [
+    SpriteSheetName.WEAPON_FRAME,
+    {
+      rows: 1,
+      columns: 1,
+      eachSpriteCellSizeHeight: 38,
+      eachSpriteCellSizeWidth: 38,
+      srcImagePath: 'src/assets/images/weapon_frame.png',
+      sprites: new Map([
+        [SpriteName.WEAPON_FRAME, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 38,
+          originalRenderSpriteWidth: 38,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 38, height: 38 }
+        }],
+      ])
+    }
+  ],
+
+  [
+    SpriteSheetName.MELEE_ATTACK,
+    {
+      rows: 1,
+      columns: 3,
+      eachSpriteCellSizeHeight: 57,
+      eachSpriteCellSizeWidth: 34,
+      srcImagePath: 'src/assets/images/melee_attack.png',
+      sprites: new Map([
+        [SpriteName.MELEE_ATTACK_1, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 57,
+          originalRenderSpriteWidth: 34,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 34, height: 57 }
+        }],
+        [SpriteName.MELEE_ATTACK_2, {
+          row: 1,
+          column: 2,
+          originalRenderSpriteHeight: 57,
+          originalRenderSpriteWidth: 34,
+          spriteCellOffset: { offsetX: 10, offsetY: 0, width: 24, height: 57 }
+        }],
+        [SpriteName.MELEE_ATTACK_3, {
+          row: 1,
+          column: 3,
+          originalRenderSpriteHeight: 57,
+          originalRenderSpriteWidth: 34,
+          spriteCellOffset: { offsetX: 4, offsetY: 0, width: 30, height: 57 }
+        }],
+      ])
+    }
+  ],
+
+  [
+    SpriteSheetName.SHOP_BACKGROUND,
+    {
+      rows: 1,
+      columns: 1,
+      eachSpriteCellSizeHeight: 600,
+      eachSpriteCellSizeWidth: 800,
+      srcImagePath: 'src/assets/images/shop_background.png',
+      sprites: new Map([
+        [SpriteName.SHOP_BACKGROUND, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 600,
+          originalRenderSpriteWidth: 800,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 800, height: 600 }
+        }],
+      ])
+    }
+  ],
+
+  [
+    SpriteSheetName.BUTTONS,
+    {
+      rows: 4,
+      columns: 3,
+      eachSpriteCellSizeHeight: 32,
+      eachSpriteCellSizeWidth: 64,
+      srcImagePath: 'src/assets/images/buttons.png',
+      sprites: new Map([
+        [SpriteName.BUTTON_1, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 64,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 32 }
+        }],
+        [SpriteName.BUTTON_1_SELECTED, {
+          row: 1,
+          column: 2,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 64,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 32 }
+        }],
+        [SpriteName.BUTTON_1_DISABLED, {
+          row: 1,
+          column: 3,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 64,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 32 }
+        }],
+        [SpriteName.BUTTON_2, {
+          row: 2,
+          column: 1,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 64,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 32 }
+        }],
+        [SpriteName.BUTTON_2_SELECTED, {
+          row: 2,
+          column: 2,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 64,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 32 }
+        }],
+        [SpriteName.BUTTON_2_DISABLED, {
+          row: 2,
+          column: 3,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 64,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 32 }
+        }],
+        [SpriteName.BUTTON_3, {
+          row: 3,
+          column: 1,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 64,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 32 }
+        }],
+        [SpriteName.BUTTON_3_SELECTED, {
+          row: 3,
+          column: 2,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 64,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 32 }
+        }],
+        [SpriteName.BUTTON_3_DISABLED, {
+          row: 3,
+          column: 3,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 64,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 32 }
+        }],
+        [SpriteName.BUTTON_4, {
+          row: 4,
+          column: 1,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 64,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 32 }
+        }],
+        [SpriteName.BUTTON_4_SELECTED, {
+          row: 4,
+          column: 2,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 64,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 32 }
+        }],
+        [SpriteName.BUTTON_4_DISABLED, {
+          row: 4,
+          column: 3,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 64,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 64, height: 32 }
+        }],
+
       ])
     }
   ],

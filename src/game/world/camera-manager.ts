@@ -33,11 +33,18 @@ export class CameraManager {
   }
 
   isWithinViewport(xStart : number, xEnd : number, yStart : number, yEnd : number) {
-    const viewport= this.getViewport();
+    const viewport = this.getViewport();
     return xStart >= viewport.left &&
         xEnd <= viewport.right &&
         yStart >= viewport.top &&
         yEnd <= viewport.bottom;
+  }
+
+  getViewportSize(): { width: number; height: number } {
+    return {
+      width: this.viewportWidth,
+      height: this.viewportHeight,
+    };
   }
 
   screenToWorld(

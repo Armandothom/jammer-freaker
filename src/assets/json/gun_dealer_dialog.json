@@ -1,0 +1,29 @@
+{
+    "gun_dealer": {
+        "enter-shop-high-money": {
+            "dialogText": [
+                "Business must be good, huh?\nThe Paramilitary thanks you.",
+                "Careful... money attracts trouble.\nYou could leave this bag with me."
+            ]
+        },
+        "enter-shop-medium-money": {
+            "dialogText": [
+                "Got some cash, huh?\nLet's see what fits your budget.",
+                "Not bad... could be worse.\nBuy wisely."
+            ]
+        },
+        "enter-shop-low-money": {
+            "dialogText": [
+                "You sure you can\nafford anything here?",
+                "We can talk way more when\nyour pockets are heavier."
+            ]
+        },
+        "cant-buy": {
+            "dialogText": [
+                "Not enough cash.",
+                "Are you kiddin' me?\nNo money.",
+                "Nothing is free."
+            ]
+        }
+    }
+}

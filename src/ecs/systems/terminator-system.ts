@@ -5,7 +5,6 @@ import { IntentClickComponent } from "../components/intent-click.component.js";
 import { IntentGrenadeComponent } from "../components/intent-grenade.component.js";
 import { IntentMeleeComponent } from "../components/intent-melee.component.js";
 import { IntentShotComponent } from "../components/intent-shot.component.js";
-import { MeleeIntentProcessedComponent } from "../components/melee-intent-processed.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { ProjectileComponent } from "../components/projectile-component.js";
 import { ShapeComponent } from "../components/shape-component.js";
@@ -29,7 +28,6 @@ export class TerminatorSystem implements ISystem {
         private grenadeCooldownComponentStore: ComponentStore<GrenadeCooldownComponent>,
         private intentGrenadeComponentStore: ComponentStore<IntentGrenadeComponent>,
         private intentMeleeComponentStore: ComponentStore<IntentMeleeComponent>,
-        private meleeIntentProcessedComponentStore: ComponentStore<MeleeIntentProcessedComponent>,
         private enemyDeadComponentStore: ComponentStore<EnemyDeadComponent>,
         private shapeComponentStore: ComponentStore<ShapeComponent>,
         private projectileComponentStore: ComponentStore<ProjectileComponent>,
@@ -58,10 +56,7 @@ export class TerminatorSystem implements ISystem {
 
         const meleeIntentComponentEntities = this.intentMeleeComponentStore.getAllEntities();
         for (const meleeIntentComponentEntity of meleeIntentComponentEntities) {
-            if (this.meleeIntentProcessedComponentStore.has(meleeIntentComponentEntity)) {
-                this.intentMeleeComponentStore.remove(meleeIntentComponentEntity);
-                this.meleeIntentProcessedComponentStore.remove(meleeIntentComponentEntity);
-            }
+            this.intentMeleeComponentStore.remove(meleeIntentComponentEntity);
         }
 
         const shootingCooldownComponentEntities = this.shootingCooldownComponentStore.getAllEntities();
@@ -88,13 +83,5 @@ export class TerminatorSystem implements ISystem {
 
         //     }
         // }
-
-        const shapes = this.shapeComponentStore.getAllEntities();
-        for (const shape of shapes) {
-            const parentEntityId = this.shapeComponentStore.get(shape).shapeSource;
-            if (this.enemyDeadComponentStore.has(parentEntityId)) {
-                this.entityFactory.destroyCollisionShape(shape);
-            }
-        }
     }
 }

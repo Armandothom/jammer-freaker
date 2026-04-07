@@ -22,8 +22,12 @@ export class SpriteLevelScalerSystem implements ISystem {
             if (!this.renderableComponentStore.has(sprite[0])) continue;
             //console.log("sprite", sprite[1].spriteName, sprite[1].spriteSheetName);
             const spriteProperties = this.spriteManager.getSpriteProperties(sprite[1].spriteName, sprite[1].spriteSheetName);
-            sprite[1].height = spriteProperties.sprite.originalRenderSpriteHeight * zoomProgressionFactor;
-            sprite[1].width = spriteProperties.sprite.originalRenderSpriteWidth * zoomProgressionFactor;
+            if (!sprite[1].hasExplicitHeight) {
+                sprite[1].height = spriteProperties.sprite.originalRenderSpriteHeight * zoomProgressionFactor;
+            }
+            if (!sprite[1].hasExplicitWidth) {
+                sprite[1].width = spriteProperties.sprite.originalRenderSpriteWidth * zoomProgressionFactor;
+            }
         }
     }
 

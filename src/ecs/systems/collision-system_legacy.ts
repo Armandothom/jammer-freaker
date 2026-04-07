@@ -22,7 +22,7 @@ import { ShapeComponent } from "../components/shape-component.js";
 import { ShapeDimensionComponent } from "../components/shape-dimension.component.js";
 import { ShapeHitMemoryComponent } from "../components/shape-hitmemory-component.js";
 import { ShapePositionComponent } from "../components/shape-position.component.js";
-import { ShooterComponent } from "../components/shooter-component.js";
+import { ShooterComponent } from "../components/shooter-cooldown-component.js";
 import { ShotOriginComponent } from "../components/shot-origin.component.js";
 import { SparkParticlesComponent } from "../components/spark-particles.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";

@@ -1,6 +1,7 @@
 
 import { ANIMATION_MAPPED } from "../../game/asset-manager/consts/animation-mapped.values.js";
 import { AnimationComponent } from "../components/animation.component.js";
+import { AwaitingAnimationEndComponent } from "../components/awaiting-animation-end.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { CoreManager } from "../core/core-manager.js";
@@ -11,6 +12,7 @@ export class AnimationSpriteSystem implements ISystem {
     constructor(
         private animationComponentStore: ComponentStore<AnimationComponent>,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
+        private awaitingAnimationEndComponentStore: ComponentStore<AwaitingAnimationEndComponent>,
     ) { }
 
     update(deltaTime: number): void {
@@ -18,6 +20,7 @@ export class AnimationSpriteSystem implements ISystem {
         for (const entityId of entitiesWithAnim) {
             const animComponent = this.animationComponentStore.get(entityId);
             const currentSprite = this.spriteComponentStore.getOrNull(entityId);
+            const isAwaited = this.awaitingAnimationEndComponentStore.has(entityId);
             const keyframes = ANIMATION_MAPPED.get(animComponent.animationName);
 
             if (!keyframes) {
@@ -40,12 +43,29 @@ export class AnimationSpriteSystem implements ISystem {
                 }
             }
 
+            const explicitWidth = currentSprite?.hasExplicitWidth
+                ? currentSprite.width
+                : undefined;
+            const explicitHeight = currentSprite?.hasExplicitHeight
+                ? currentSprite.height
+                : undefined;
+
             this.spriteComponentStore.add(entityId, new SpriteComponent(
                 currentFrame.spriteName,
                 currentFrame.spriteSheetName,
-                currentSprite?.width ?? 32,
-                currentSprite?.height ?? 32,
+                explicitWidth,
+                explicitHeight,
             ));
+
+            const hasFinished = !animComponent.loop && timePassed >= totalDuration;
+
+            if (isAwaited && hasFinished) {
+                const awaiting = this.awaitingAnimationEndComponentStore.get(entityId);
+
+                if (!awaiting.resolved) {
+                    awaiting.resolved = true;
+                }
+            }
         }
     }
 
