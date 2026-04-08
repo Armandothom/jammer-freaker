@@ -242,6 +242,14 @@ export class CollisionSystem implements ISystem {
     }
 
     private stopGrenade(entity: number): void {
+        const intent = this.movementIntentComponentStore.getOrNull(entity);
+        const position = this.positionComponentStore.getOrNull(entity);
+
+        if (intent && position) {
+            position.x = intent.x;
+            position.y = intent.y;
+        }
+
         this.movementIntentComponentStore.remove(entity);
 
         if (this.velocityComponentStore.has(entity)) {

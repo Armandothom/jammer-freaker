@@ -18,6 +18,7 @@ import { DialogComponent } from "../components/dialog.component.js";
 import { DirectionAnimComponent } from "../components/direction-anim.component.js";
 import { GrenadeComponent } from "../components/grenade-component.js";
 import { GrenadeExplosionComponent } from "../components/grenade-explosion.component.js";
+import { GrenadeTravelComponent } from "../components/grenade-travel.component.js";
 import { GunDealerComponent } from "../components/gun-dealer-component.js";
 import { ItemBoxComponent } from "../components/item-box.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
@@ -87,6 +88,7 @@ export class ShopSystemRunner {
     private offsetAppliedComponentStore: ComponentStore<OffsetAppliedComponent> = new ComponentStore("OffsetAppliedComponent");
     private grenadeComponentStore: ComponentStore<GrenadeComponent> = new ComponentStore("GrenadeComponent");
     private grenadeExplosionComponentStore: ComponentStore<GrenadeExplosionComponent> = new ComponentStore("GrenadeExplosionComponent");
+    private grenadeTravelComponentStore: ComponentStore<GrenadeTravelComponent> = new ComponentStore("GrenadeTravelComponent");
     private itemBoxComponentStore: ComponentStore<ItemBoxComponent> = new ComponentStore("ItemBoxComponent");
     private zLayerComponentStore: ComponentStore<ZLayerComponent> = new ComponentStore("ZLayerComponent");
     private dialogComponentStore: ComponentStore<DialogComponent> = new ComponentStore("DialogComponent");
@@ -140,7 +142,7 @@ export class ShopSystemRunner {
         this.shopEntityFactory = new ShopEntityFactory(this.entityManager, this.uiManager, this.renderableComponentStore, this.spriteComponentStore, this.zLayerComponentStore, this.screenPositionComponentStore, this.shopUIComponentStore, this.shopUIAnchorComponentStore, this.clickableRegionComponentStore, this.regionClickedComponentStore, this.bitmapTextComponentStore, this.weaponShopItemComponentStore, this.resourceShopItemComponentStore, this.shopButtonComponentStore, this.shopTabButtonComponentStore, this.parentEntityComponentStore, this.dialogComponentStore, this.dialogLifetimeComponentStore, this.dialogBubbleSpriteComponentStore, this.dialogAnimComponentStore, this.animationComponentStore, this.shopDialogIntentComponentStore, this.gunDealerComponentStore, this.shopUpgradeTabButtonComponentStore, this.upgradeShopItemComponent);
         this.shopManager = new ShopManager(this.shopEntityFactory, this.shopInventoryState, this.shopTabState, this.shopUpgradeTabState, this.uiManager, this.bitmapTextComponentStore);
         this.cameraManager.follow(this.worldTilemapManager.worldWidth / 2, this.worldTilemapManager.worldHeight / 2);
-        this.renderSystem = new RenderSystem(this.renderableComponentStore, this.positionComponentStore, this.screenPositionComponentStore, this.spriteComponentStore, this.cameraManager, this.worldTilemapManager, this.rendererEngine, this.spriteManager, this.directionAnimComponentStore, this.aimShootingComponentStore, this.zLayerComponentStore, this.visibilityManager, this.debugManager, this.dialogBubbleSpriteComponentStore, this.bitmapTextComponentStore, this.textManager);
+        this.renderSystem = new RenderSystem(this.renderableComponentStore, this.positionComponentStore, this.screenPositionComponentStore, this.spriteComponentStore, this.cameraManager, this.worldTilemapManager, this.rendererEngine, this.spriteManager, this.directionAnimComponentStore, this.aimShootingComponentStore, this.zLayerComponentStore, this.visibilityManager, this.debugManager, this.dialogBubbleSpriteComponentStore, this.bitmapTextComponentStore, this.textManager, this.grenadeComponentStore, this.grenadeExplosionComponentStore, this.grenadeTravelComponentStore);
         this.shopUIUpdateSystem = new ShopUIUpdateSystem(this.shopManager);
         this.animationSetterSystem = new AnimationSetterSystem(this.spriteManager, this.movementIntentComponentStore, this.positionComponentStore, this.directionAnimComponentStore, this.animationComponentStore, this.aiComponentStore, this.playerComponentStore, this.aimShootingComponentStore, this.weaponSpriteAttachmentComponentStore, this.wallHitComponentStore, this.projectileComponentStore, this.spriteComponentStore, this.offsetAppliedComponentStore, this.grenadeComponentStore, this.grenadeExplosionComponentStore, this.itemBoxComponentStore, this.awaitingAnimationEndComponentStore);
         this.animationSpriteSystem = new AnimationSpriteSystem(this.animationComponentStore, this.spriteComponentStore, this.awaitingAnimationEndComponentStore);
@@ -199,6 +201,7 @@ export class ShopSystemRunner {
         this.offsetAppliedComponentStore.clear();
         this.grenadeComponentStore.clear();
         this.grenadeExplosionComponentStore.clear();
+        this.grenadeTravelComponentStore.clear();
         this.itemBoxComponentStore.clear();
         this.zLayerComponentStore.clear();
         this.dialogComponentStore.clear();

@@ -14,6 +14,9 @@ import { AimRotationShootingComponent } from "../components/aim-rotation-shootin
 import { BitmapTextComponent } from "../components/bitmap-text.component.js";
 import { DialogBubbleSpriteComponent } from "../components/dialog-bubble-sprite.component.js";
 import { DirectionAnimComponent } from "../components/direction-anim.component.js";
+import { GrenadeComponent } from "../components/grenade-component.js";
+import { GrenadeExplosionComponent } from "../components/grenade-explosion.component.js";
+import { GrenadeTravelComponent } from "../components/grenade-travel.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { RenderableComponent } from "../components/renderable-component.js";
 import { ScreenPositionComponent } from "../components/screen-position.component.js";
@@ -70,6 +73,9 @@ export class RenderSystem implements ISystem {
     private dialogBubbleSpriteComponentStore: ComponentStore<DialogBubbleSpriteComponent>,
     private bitmapTextComponentStore: ComponentStore<BitmapTextComponent>,
     private textManager: TextManager,
+    private grenadeComponentStore: ComponentStore<GrenadeComponent>,
+    private grenadeExplosionComponentStore: ComponentStore<GrenadeExplosionComponent>,
+    private grenadeTravelComponentStore: ComponentStore<GrenadeTravelComponent>,
   ) { }
 
   update(deltaTime: number): void {
@@ -341,7 +347,7 @@ export class RenderSystem implements ISystem {
           }
 
           screenX = worldPosition.x - viewport.left;
-          screenY = worldPosition.y - viewport.top;
+          screenY = worldPosition.y - viewport.top - this.getPossibleRenderOffsetY(entity);
           zLevel = this.getDepthLevel(worldPosition.y, layerMultiplier);
         }
 
@@ -777,5 +783,18 @@ export class RenderSystem implements ISystem {
 
   private getGameUiDepthLevel(layerMultiplier: number): number {
     return this.maxDepthLevel + layerMultiplier + 1;
+  }
+
+  private getPossibleRenderOffsetY(entity: number): number {
+    if (!this.grenadeComponentStore.has(entity) || this.grenadeExplosionComponentStore.has(entity)) {
+      return 0;
+    }
+
+    const grenadeTravel = this.grenadeTravelComponentStore.getOrNull(entity);
+    if (!grenadeTravel) {
+      return 0;
+    }
+
+    return grenadeTravel.currentRenderOffsetY;
   }
 }

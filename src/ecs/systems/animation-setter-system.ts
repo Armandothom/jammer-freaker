@@ -166,6 +166,8 @@ export class AnimationSetterSystem implements ISystem {
 
         initialPosition.x = currentCenterX - nextSpriteProperties.sprite.originalRenderSpriteWidth / 2;
         initialPosition.y = currentCenterY - nextSpriteProperties.sprite.originalRenderSpriteHeight / 2;
+        currentSprite.hasExplicitWidth = false;
+        currentSprite.hasExplicitHeight = false;
         this.offsetAppliedComponentStore.add(entityWithAnim, new OffsetAppliedComponent());
     }
 }

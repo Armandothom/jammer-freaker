@@ -22,6 +22,7 @@ import { FuseTimerComponent } from "../components/fuse-timer.component.js";
 import { GameUIAnchorComponent } from "../components/game-ui-anchor.component.js";
 import { GameUIComponent } from "../components/game-ui-component.js";
 import { GrenadeComponent } from "../components/grenade-component.js";
+import { GrenadeTravelComponent } from "../components/grenade-travel.component.js";
 import { HealthComponent } from "../components/health.component.js";
 import { HitBoxComponent } from "../components/hit-box-component.js";
 import { InventoryComponent } from "../components/inventory-component.js";
@@ -47,7 +48,6 @@ import { ShootingCooldownComponent } from "../components/shooting-cooldown.compo
 import { ShotOriginComponent } from "../components/shot-origin.component.js";
 import { InventorySnapshot } from "../components/snapshots/inventory-snapshot.js";
 import { SpriteComponent } from "../components/sprite.component.js";
-import { TravelTimeComponent } from "../components/travel-time.component.js";
 import { AnimDirection } from "../components/types/anim-direction.js";
 import { EnemyConfig, EnemyType } from "../components/types/enemy-type.js";
 import { GameUIEntryType, GameUIType } from "../components/types/game-ui-type.js";
@@ -73,6 +73,8 @@ import { resolveEffectiveWeaponConfigFromInventory } from "../core/weapon-stats-
 
 const GRENADE_SPRITE_WIDTH = 14;
 const GRENADE_SPRITE_HEIGHT = 16;
+const GRENADE_SHADOW_WIDTH = 18;
+const GRENADE_SHADOW_HEIGHT = 7;
 const DEFAULT_DIALOG_FONT_ID = "04b_03";
 const DEFAULT_DIALOG_TEXT_SCALE = 2;
 const DEFAULT_DIALOG_PADDING_X = 8;
@@ -119,7 +121,6 @@ export class EntityFactory {
     private weaponMagazineComponentStore: ComponentStore<WeaponMagazineComponent>,
     private weaponStatsComponentStore: ComponentStore<WeaponStatsComponent>,
     private grenadeComponentStore: ComponentStore<GrenadeComponent>,
-    private travelTimeComponentStore: ComponentStore<TravelTimeComponent>,
     private fuseTimerComponentStore: ComponentStore<FuseTimerComponent>,
     private shapeDimensionComponentStore: ComponentStore<ShapeDimensionComponent>,
     private shapePositionComponentStore: ComponentStore<ShapePositionComponent>,
@@ -143,6 +144,7 @@ export class EntityFactory {
     private meleeIntentProcessedComponent: ComponentStore<MeleeIntentProcessedComponent>,
     private shadowComponentStore: ComponentStore<ShadowComponent>,
     private parentEntityComponentStore: ComponentStore<ParentEntityComponent>,
+    private grenadeTravelComponentStore: ComponentStore<GrenadeTravelComponent>,
   ) {
   }
 
@@ -222,31 +224,38 @@ export class EntityFactory {
         ? EnemyConfig[EnemyType.BOMBER].attackExplosionRadius
         : WeaponConfig[WeaponType.GRENADE].explosionRadius;
 
+
+    const targetX = originX + travelDistance.x;
+    const targetY = originY + travelDistance.y;
+
+    const distance = Math.hypot(travelDistance.x, travelDistance.y);
+    const totalTravelTime = distance / velocity;
+
     const entityId = this.entityManager.registerEntity();
+    const grenadeStartX = originX - GRENADE_SPRITE_WIDTH / 2;
+    const grenadeStartY = originY - GRENADE_SPRITE_HEIGHT / 2;
     this.renderableComponentStore.add(entityId, new RenderableComponent());
-    this.positionComponentStore.add(entityId, new PositionComponent(
-      originX - GRENADE_SPRITE_WIDTH / 2,
-      originY - GRENADE_SPRITE_HEIGHT / 2,
-    ));
-    this.spriteComponentStore.add(entityId, new SpriteComponent(
-      SpriteName.GRENADE_1,
-      SpriteSheetName.PROJECTILE,
-      GRENADE_SPRITE_WIDTH,
-      GRENADE_SPRITE_HEIGHT,
-    ));
+    this.positionComponentStore.add(entityId, new PositionComponent(grenadeStartX, grenadeStartY));
+    this.spriteComponentStore.add(entityId, new SpriteComponent(SpriteName.GRENADE_1, SpriteSheetName.PROJECTILE, GRENADE_SPRITE_WIDTH, GRENADE_SPRITE_HEIGHT));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.GRENADE_FIRED));
     this.directionComponentStore.add(entityId, new DirectionComponent(dirX, dirY));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity));
     this.shotOriginComponentStore.add(entityId, new ShotOriginComponent(entityShooterId))
-    this.collisionBoxComponentStore.add(entityId, new CollisionBoxComponent({ widthFactor: 1, heightFactor: 1, offsetX: 0, offsetY: 0 }));
+    this.collisionBoxComponentStore.add(entityId, new CollisionBoxComponent({ widthFactor: 1, heightFactor: 1, offsetX: 0, offsetY: 0 })); //manipulate this
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
-    this.travelTimeComponentStore.add(entityId, new TravelTimeComponent(Math.hypot(travelDistance.x, travelDistance.y) / velocity));
     this.fuseTimerComponentStore.add(entityId, new FuseTimerComponent(WeaponConfig[WeaponType.GRENADE].fuseTimer));
-    this.grenadeComponentStore.add(entityId, new GrenadeComponent(
-      grenadeDamage,
-      firedByPlayer,
-      grenadeExplosionRadius,
-    ));
+    this.grenadeComponentStore.add(entityId, new GrenadeComponent(grenadeDamage, firedByPlayer, grenadeExplosionRadius,));
+    const maxArchHeight = 96;
+    this.grenadeTravelComponentStore.add(entityId, new GrenadeTravelComponent(originX, originY, targetX, targetY, totalTravelTime, maxArchHeight));
+    this.createShadow(
+      entityId,
+      grenadeStartX,
+      grenadeStartY,
+      GRENADE_SPRITE_WIDTH,
+      GRENADE_SPRITE_HEIGHT,
+      GRENADE_SHADOW_WIDTH,
+      GRENADE_SHADOW_HEIGHT,
+    );
     return entityId;
   }
 
@@ -441,10 +450,16 @@ export class EntityFactory {
     return entityId;
   }
 
-  createShadow(parentEntityId: number, startX: number, startY: number, parentSpriteWidth: number, parentSpriteHeight: number) {
+  createShadow(
+    parentEntityId: number,
+    startX: number,
+    startY: number,
+    parentSpriteWidth: number,
+    parentSpriteHeight: number,
+    shadowWidth: number = 36,
+    shadowHeight: number = 14,
+  ) {
     const entityId = this.entityManager.registerEntity();
-    const shadowWidth = 36;
-    const shadowHeight = 14;
 
     const spriteSheet = SPRITESHEET_MAPPED_VALUES.get(SpriteSheetName.SHADOWS);
     const spriteData = spriteSheet?.sprites.get(SpriteName.SHADOW_1);
@@ -657,9 +672,10 @@ export class EntityFactory {
     this.shotOriginComponentStore.remove(entityId);
     this.collisionBoxComponentStore.remove(entityId);
     this.zLayerComponentStore.remove(entityId);
-    this.travelTimeComponentStore.remove(entityId);
+    this.grenadeTravelComponentStore.remove(entityId);
     this.fuseTimerComponentStore.remove(entityId);
     this.grenadeComponentStore.remove(entityId);
+    this.destroyShadow(entityId);
     if (this.movementIntentComponentStore.has(entityId)) {
       this.movementIntentComponentStore.remove(entityId);
     }

@@ -48,14 +48,13 @@ export class GrenadeSpawnSystem implements ISystem {
             const angle = Math.atan2(dy, dx);
             const dir = { x: Math.cos(angle), y: Math.sin(angle) };
 
-            const cooldownConfig = WeaponConfig[WeaponType.GRENADE].fireRate;
+            const cooldownConfig = this.resolveGrenadeCooldownSeconds();
             const grenadeCooldown = this.grenadeCooldownComponentStore.has(playerEntity);
             if (!grenadeCooldown) {
                 this.spawnGrenade(dir, attachedWeapon, travelDistance);
                 this.grenadeCooldownComponentStore.add(playerEntity, new GrenadeCooldownComponent(cooldownConfig));
                 this.grenadeFiredComponentStore.add(playerEntity, new GrenadeFiredComponent());
             }
-
         }
     }
 
@@ -73,5 +72,16 @@ export class GrenadeSpawnSystem implements ISystem {
             240,
             travelDistance,
         );
+    }
+
+    private resolveGrenadeCooldownSeconds(): number {
+        const grenadeFireRate = WeaponConfig[WeaponType.GRENADE].fireRate;
+        const shotsPerSecond = grenadeFireRate / 60;
+
+        if (shotsPerSecond <= 0) {
+            return 0;
+        }
+
+        return 1 / shotsPerSecond;
     }
 }
