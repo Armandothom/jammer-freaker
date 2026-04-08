@@ -98,6 +98,8 @@ import { DamageProcessingSystem } from "../systems/damage-processing-system.js";
 import { DeathProcessingSystem } from "../systems/death-processing-system.js";
 import { DebugProcessorSystem } from "../systems/debug-processor.system.js";
 // import { DynamicAttributeSystem } from "../systems/dynamic-attribute.system.js";
+import { ParentEntityComponent } from "../components/parent-entity-component.js";
+import { ShadowComponent } from "../components/shadow-component.js";
 import type { InventorySnapshot } from "../components/snapshots/inventory-snapshot.js";
 import { DialogSystem } from "../systems/dialog-system.js";
 import { EnemyLifecicleSystem } from "../systems/enemy-lifecicle.system.js";
@@ -120,6 +122,7 @@ import { ProjectileSpawnSystem } from "../systems/projectile-spawn.system.js";
 import { ProjectileUpdateSystem } from "../systems/projectile-update.system.js";
 import { ReloadSystem } from "../systems/reload-system.js";
 import { RenderSystem } from "../systems/render-system.js";
+import { ShadowPositionUpdateSystem } from "../systems/shadow-position-update-system.js";
 import { ShootingSystem } from "../systems/shooting-system.js";
 import { TerminatorSystem } from "../systems/terminator-system.js";
 import { VisibilitySystem } from "../systems/visibility-system.js";
@@ -227,6 +230,8 @@ export class GameplaySystemRunner {
   private screenPositionComponentStore: ComponentStore<ScreenPositionComponent> = new ComponentStore("ScreenPositionComponent");
   private gameUiAnchorComponentStore: ComponentStore<GameUIAnchorComponent> = new ComponentStore("GameUIAnchorComponent");
   private gameUiComponentStore: ComponentStore<GameUIComponent> = new ComponentStore("GameUIComponent");
+  private shadowComponentStore: ComponentStore<ShadowComponent> = new ComponentStore("ShadowComponent");
+  private parentEntityComponentStore: ComponentStore<ParentEntityComponent> = new ComponentStore("ParentEntityComponent");
   private animationSpriteSystem: AnimationSpriteSystem;
   private inputDebugSystem: InputDebugSystem;
   private inputMovementSystem: InputMovementSystem;
@@ -268,6 +273,7 @@ export class GameplaySystemRunner {
   private itemDropUpdateSystem: ItemDropUpdateSystem;
   private gameUiUpdateSystem: GameUIUpdateSystem;
   private weaponSwitchSystem: WeaponSwitchSystem;
+  private shadowPositionUpdateSystem: ShadowPositionUpdateSystem;
 
   constructor(
     private worldTilemapManager: WorldTilemapManager,
@@ -289,7 +295,7 @@ export class GameplaySystemRunner {
     this.zoneFactory = new ZoneFactory(this.structureBaker);
     this.inputDebugSystem = new InputDebugSystem(this.debugManager, this.cameraManager);
     this.uiManager = new UIManager(this.cameraManager);
-    this.entityFactory = new EntityFactory(entityManager, this.inventoryManager, this.uiManager, this.renderableComponentStore, this.playerComponentStore, this.enemyComponentStore, this.positionComponentStore, this.spriteComponentStore, this.projectileComponentStore, this.shooterCooldownComponentStore, this.velocityComponentStore, this.movementIntentComponentStore, this.animationComponentStore, this.directionAnimComponentStore, this.collisionBoxComponentStore, this.aiComponentStore, this.healthComponentStore, this.shotOriginComponentStore, this.damageDealtComponentStore, this.shootingCooldownComponentStore, this.aiAttackRangeComponentStore, this.enemyDeadComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.zLayerComponentStore, this.directionComponentStore, this.weaponComponentStore, this.weaponMagazineComponentStore, this.weaponStatsComponentStore, this.grenadeComponentStore, this.travelTimeComponentStore, this.fuseTimerComponentStore, this.shapeDimensionComponentStore, this.shapePositionComponentStore, this.shapeComponentStore, this.shapeDirectionComponentStore, this.shapeAngleComponentStore, this.shapeHitMemoryComponentStore, this.cameraComponentStore, this.hitBoxComponentStore, this.dialogComponentStore, this.dialogLifetimeComponentStore, this.dialogBubbleSpriteComponentStore, this.bitmapTextComponentStore, this.dialogAnimComponentStore, this.inventoryComponentStore, this.itemBoxComponentStore, this.itemDroppedComponentStore, this.screenPositionComponentStore, this.gameUiAnchorComponentStore, this.gameUiComponentStore, this.meleeIntentProcessedComponentStore);
+    this.entityFactory = new EntityFactory(entityManager, this.inventoryManager, this.uiManager, this.renderableComponentStore, this.playerComponentStore, this.enemyComponentStore, this.positionComponentStore, this.spriteComponentStore, this.projectileComponentStore, this.shooterCooldownComponentStore, this.velocityComponentStore, this.movementIntentComponentStore, this.animationComponentStore, this.directionAnimComponentStore, this.collisionBoxComponentStore, this.aiComponentStore, this.healthComponentStore, this.shotOriginComponentStore, this.damageDealtComponentStore, this.shootingCooldownComponentStore, this.aiAttackRangeComponentStore, this.enemyDeadComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.zLayerComponentStore, this.directionComponentStore, this.weaponComponentStore, this.weaponMagazineComponentStore, this.weaponStatsComponentStore, this.grenadeComponentStore, this.travelTimeComponentStore, this.fuseTimerComponentStore, this.shapeDimensionComponentStore, this.shapePositionComponentStore, this.shapeComponentStore, this.shapeDirectionComponentStore, this.shapeAngleComponentStore, this.shapeHitMemoryComponentStore, this.cameraComponentStore, this.hitBoxComponentStore, this.dialogComponentStore, this.dialogLifetimeComponentStore, this.dialogBubbleSpriteComponentStore, this.bitmapTextComponentStore, this.dialogAnimComponentStore, this.inventoryComponentStore, this.itemBoxComponentStore, this.itemDroppedComponentStore, this.screenPositionComponentStore, this.gameUiAnchorComponentStore, this.gameUiComponentStore, this.meleeIntentProcessedComponentStore, this.shadowComponentStore, this.parentEntityComponentStore);
     this.enemyLifecicleSystem = new EnemyLifecicleSystem(this.positionComponentStore, this.playerComponentStore, this.enemyComponentStore, this.enemyDeadComponentStore, this.entityFactory, this.worldTilemapManager, this.spriteManager, this.soundManager, this.freezeManager, this.spriteComponentStore, this.worldTilemapManager);
     this.levelManager = new LevelManager(this.enemyLifecicleSystem, this.worldTilemapManager, this.cameraManager, this.zoneFactory, this.entityFactory, this.playerComponentStore, this.positionComponentStore, this.movementIntentComponentStore, this.inventoryComponentStore, this.healthComponentStore, this.playerInitialProperties, this.uiManager);
     this.levelUpdateSystem = new LevelUpdateSystem(this.levelManager);
@@ -327,6 +333,7 @@ export class GameplaySystemRunner {
     this.itemDropUpdateSystem = new ItemDropUpdateSystem(this.entityFactory, this.spriteManager, this.inventoryManager, this.itemDroppedComponentStore, this.positionComponentStore, this.playerComponentStore, this.spriteComponentStore, this.inventoryComponentStore);
     this.gameUiUpdateSystem = new GameUIUpdateSystem(this.entityFactory, this.inventoryManager, this.playerInitialProperties, this.gameUiComponentStore, this.inventoryComponentStore, this.playerComponentStore, this.healthComponentStore, this.spriteComponentStore, this.bitmapTextComponentStore, this.screenPositionComponentStore);
     this.weaponSwitchSystem = new WeaponSwitchSystem(this.inventoryManager, this.entityFactory, this.inventoryComponentStore, this.playerComponentStore);
+    this.shadowPositionUpdateSystem = new ShadowPositionUpdateSystem(this.shadowComponentStore, this.parentEntityComponentStore, this.positionComponentStore, this.spriteComponentStore);
     this.logDebugKeybinds();
   }
 
@@ -344,7 +351,6 @@ export class GameplaySystemRunner {
     this.inventoryDebugSystem.update(CoreManager.timeSinceLastRender);
     this.cameraFollowSystem.update();
     this.levelProgressionSystem.update(CoreManager.timeSinceLastRender);
-    //this.spriteLevelScaler.update(CoreManager.timeSinceLastRender);
     this.enemyLifecicleSystem.update(CoreManager.timeSinceLastRender);
     this.aiIntentProcessorSystem.update(CoreManager.timeSinceLastRender);
     this.reloadSystem.update(CoreManager.timeSinceLastRender);
@@ -367,6 +373,7 @@ export class GameplaySystemRunner {
     this.damageProcessingSystem.update(CoreManager.timeSinceLastRender);
     this.deathProcessingSystem.update(CoreManager.timeSinceLastRender);
     this.movementSystem.update(CoreManager.timeSinceLastRender);
+    this.shadowPositionUpdateSystem.update(CoreManager.timeSinceLastRender);
     this.weaponSpriteAttachmentSystem.update(CoreManager.timeSinceLastRender);
     this.dialogSystem.update(CoreManager.timeSinceLastRender);
     this.visibilitySystem.update(CoreManager.timeSinceLastRender);

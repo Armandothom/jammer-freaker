@@ -1006,4 +1006,44 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
     }
   ],
 
+  [
+    SpriteSheetName.WORLD_BACKGROUND,
+    {
+      rows: 1,
+      columns: 1,
+      eachSpriteCellSizeHeight: 32,
+      eachSpriteCellSizeWidth: 32,
+      srcImagePath: 'src/assets/images/world_background.png',
+      sprites: new Map([
+        [SpriteName.WORLD_BACKGROUND, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+      ])
+    }
+  ],
+
+  [
+    SpriteSheetName.SHADOWS,
+    {
+      rows: 1,
+      columns: 1,
+      eachSpriteCellSizeHeight: 16,
+      eachSpriteCellSizeWidth: 32,
+      srcImagePath: 'src/assets/images/shadows.png',
+      sprites: new Map([
+        [SpriteName.SHADOW_1, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 16,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 6, width: 32, height: 10 }
+        }],
+      ])
+    }
+  ],
+
 ]);

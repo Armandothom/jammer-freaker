@@ -104,4 +104,6 @@ export enum SpriteName {
   BUTTON_4 = "button_4",
   BUTTON_4_SELECTED = "button_4_selected",
   BUTTON_4_DISABLED = "button_4_disabled",
+  WORLD_BACKGROUND = "world_background",
+  SHADOW_1 = "shadow_1",
 }

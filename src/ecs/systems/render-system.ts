@@ -77,6 +77,7 @@ export class RenderSystem implements ISystem {
 
     this.rendererEngine.clear();
 
+    const viewportBackgroundRenderObjects = this.getViewportBackgroundRenderObjects(viewport);
     const terrainRenderObjects = this.getTerrainRenderObjects(viewport);
     const wallRenderObjects = this.getWallRenderObjects(viewport);
     const overTerrainRenderObjects = this.getOverTerrainRenderObjects(viewport);
@@ -89,6 +90,7 @@ export class RenderSystem implements ISystem {
       (renderObject) => renderObject.zLevel > gameUiDepthThreshold,
     );
     const renderObjects = [
+      ...viewportBackgroundRenderObjects,
       ...terrainRenderObjects,
       ...wallRenderObjects,
       ...worldSpaceRenderObjects,
@@ -177,6 +179,43 @@ export class RenderSystem implements ISystem {
     }
 
     return terrainRenderObjects;
+  }
+
+  private getViewportBackgroundRenderObjects(viewport: CameraViewport): Array<RenderObject> {
+    const renderObjects: Array<RenderObject> = [];
+    const { width: viewportWidth, height: viewportHeight } = this.cameraManager.getViewportSize();
+    const backgroundSpriteName = SpriteName.WORLD_BACKGROUND;
+    const backgroundSpriteSheet = SpriteSheetName.WORLD_BACKGROUND;
+    const spriteDetails = this.spriteManager.getSpriteProperties(
+      backgroundSpriteName,
+      backgroundSpriteSheet,
+    );
+    const uvCoordinates = this.spriteManager.getUvCoordinates(
+      backgroundSpriteName,
+      backgroundSpriteSheet,
+    );
+    const tileWidth = spriteDetails.sprite.originalRenderSpriteWidth;
+    const tileHeight = spriteDetails.sprite.originalRenderSpriteHeight;
+    const startWorldX = Math.floor(viewport.left / tileWidth) * tileWidth;
+    const startWorldY = Math.floor(viewport.top / tileHeight) * tileHeight;
+
+    for (let worldY = startWorldY; (worldY - viewport.top) < viewportHeight; worldY += tileHeight) {
+      for (let worldX = startWorldX; (worldX - viewport.left) < viewportWidth; worldX += tileWidth) {
+        renderObjects.push({
+          xWorldPosition: worldX - viewport.left,
+          yWorldPosition: worldY - viewport.top,
+          spriteSheetTexture: spriteDetails.spriteSheet.texture,
+          uvCoordinates,
+          height: tileHeight,
+          width: tileWidth,
+          angleRotation: null,
+          offsetRotation: 0,
+          zLevel: 0,
+        });
+      }
+    }
+
+    return renderObjects;
   }
 
   private getWallRenderObjects(viewport: CameraViewport): Array<RenderObject> {

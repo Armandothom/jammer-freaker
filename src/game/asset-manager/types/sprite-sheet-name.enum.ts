@@ -19,4 +19,6 @@ export enum SpriteSheetName {
   MELEE_ATTACK = "melee_attack",
   SHOP_BACKGROUND = "shop_background",
   BUTTONS = "buttons",
+  WORLD_BACKGROUND = "world_background",
+  SHADOWS = "shadows",
 }
