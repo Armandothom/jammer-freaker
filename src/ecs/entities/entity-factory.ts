@@ -48,6 +48,7 @@ import { WeaponComponent } from "../components/weapon.component.js";
 import { ZLayerComponent } from "../components/z-layer.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityManager } from "../core/entity-manager.js";
+import { PathFindingObstacleComponent } from "../components/pathfinding-obstacle.component.js";
 
 const GRENADE_SPRITE_WIDTH = 14;
 const GRENADE_SPRITE_HEIGHT = 16;
@@ -106,6 +107,7 @@ export class EntityFactory {
     private dialogBubbleSpriteComponentStore: ComponentStore<DialogBubbleSpriteComponent>,
     private bitmapTextComponentStore: ComponentStore<BitmapTextComponent>,
     private dialogAnimComponentStore: ComponentStore<DialogAnimComponent>,
+    private pathFindingObstacleComponent: ComponentStore<PathFindingObstacleComponent>,
   ) {
   }
 
@@ -124,6 +126,7 @@ export class EntityFactory {
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.hitboxComponentStore.add(entityId, new HitBoxComponent());
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
+    this.pathFindingObstacleComponent.add(entityId, new PathFindingObstacleComponent());
     this.createWeapon(entityId, weaponConfig);
     return entityId;
   }
@@ -221,6 +224,7 @@ export class EntityFactory {
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
+    this.pathFindingObstacleComponent.add(entityId, new PathFindingObstacleComponent());
     this.createWeapon(entityId, WeaponConfig.smg);
     return entityId;
   }
@@ -241,6 +245,7 @@ export class EntityFactory {
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
+    this.pathFindingObstacleComponent.add(entityId, new PathFindingObstacleComponent());
     this.createWeapon(entityId, WeaponConfig.smg);
     return entityId;
   }
@@ -261,6 +266,7 @@ export class EntityFactory {
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
+    this.pathFindingObstacleComponent.add(entityId, new PathFindingObstacleComponent());
     this.createWeapon(entityId, WeaponConfig.smg);
     return entityId;
   }
@@ -281,6 +287,7 @@ export class EntityFactory {
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
+    this.pathFindingObstacleComponent.add(entityId, new PathFindingObstacleComponent());
     this.createWeapon(entityId, WeaponConfig.smg);
     return entityId;
   }
@@ -301,6 +308,7 @@ export class EntityFactory {
     this.healthComponentStore.add(entityId, new HealthComponent(hp));
     this.aiAttackRangeComponentStore.add(entityId, new AiAttackRangeComponent(attackRange));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
+    this.pathFindingObstacleComponent.add(entityId, new PathFindingObstacleComponent());
     this.createWeapon(entityId, WeaponConfig.smg);
     return entityId;
   }
@@ -417,6 +425,7 @@ export class EntityFactory {
     this.collisionBoxComponentStore.remove(entityId);
     this.velocityComponentStore.remove(entityId);
     this.aiComponentStore.remove(entityId);
+    this.pathFindingObstacleComponent.remove(entityId);
     if (this.movementIntentComponentStore.has(entityId)) {
       this.movementIntentComponentStore.remove(entityId);
     }

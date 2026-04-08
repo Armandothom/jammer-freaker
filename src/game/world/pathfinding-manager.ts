@@ -8,7 +8,8 @@ export class PathFindingManager {
     private worldTilemapManager : WorldTilemapManager) {;
   }
 
-  computePath(xWorldOrigin: number, yWorldOrigin: number, xWorldTarget: number, yWorldTarget: number) {
+  //Using A* algorithm, we transform the coords from world to tile, and then after from tile to world
+  computePath(xWorldOrigin: number, yWorldOrigin: number, xWorldTarget: number, yWorldTarget: number, additionalObstacles? : Set<string>) {
     const tilemapInfo = this.worldTilemapManager.getTilemapPathInformation();
     const tileOrigin = this.worldTilemapManager.worldToTile(xWorldOrigin, yWorldOrigin);
     const tileTarget = this.worldTilemapManager.worldToTile(xWorldTarget, yWorldTarget);
@@ -42,7 +43,7 @@ export class PathFindingManager {
       closedList.set(keyCurrentNode, node);
       historyList.set(keyCurrentNode, node);
       openList.delete(keyCurrentNode);
-      const neighboringTiles = this.getNeighborTiles(node.x, node.y, tilemapInfo);
+      const neighboringTiles = this.getNeighborTiles(node.x, node.y, tilemapInfo, additionalObstacles);
       for (const neighborTile of neighboringTiles) {
         const octileDistance = this.getOctileDistance(neighborTile.x, neighborTile.y, tileTarget.tileX, tileTarget.tileY);
         const distanceFromOrigin = node.g + (neighborTile.isDiagonal ? 1.41 : 1);
@@ -114,7 +115,6 @@ export class PathFindingManager {
     });
   }
 
-
   //Heuristic used to get distance weight
   private getOctileDistance(xOrigin: number, yOrigin: number, xTarget: number, yTarget: number) {
     const horizontalDistance = Math.abs(xOrigin - xTarget);
@@ -124,7 +124,7 @@ export class PathFindingManager {
     return weightVerticalMove * (horizontalDistance + verticalDistance) + (weightDiagonalMove - 2 * weightVerticalMove) * Math.min(horizontalDistance, verticalDistance);
   }
 
-  private getNeighborTiles(x: number, y: number, tilemapInfo: TilemapPathInformation) {
+  private getNeighborTiles(x: number, y: number, tilemapInfo: TilemapPathInformation, additionalObstacles?: Set<string>) {
     return [
       { x: x + 0, y: y + -1, isDiagonal: false }, // top
       { x: x + 1, y: y + 0, isDiagonal: false },  // right
@@ -137,6 +137,7 @@ export class PathFindingManager {
     ].filter((coord) => {
       if ((coord.x >= 0 && coord.y >= 0) &&
         (coord.x < tilemapInfo.maxTilesX && coord.y < tilemapInfo.maxTilesY) &&
+        (!additionalObstacles || additionalObstacles.has(this.worldTilemapManager.setTilemapKey(coord.x, coord.y)) == false) &&
         (tilemapInfo.impassableTiles.has(this.worldTilemapManager.setTilemapKey(coord.x, coord.y)) == false) &&
         (coord.isDiagonal == false || coord.isDiagonal && !this.isDiagonalOrtogonalNeighborsImpassable(x, y, coord.x, coord.y, tilemapInfo.impassableTiles))) {
         return true;
@@ -145,7 +146,7 @@ export class PathFindingManager {
     })
   }
 
-  private isDiagonalOrtogonalNeighborsImpassable(xOrigin : number, yOrigin : number, xDiagonal : number, yDiagonal : number, impassableTiles : Map<string, TilemapWallTile>) {
+  private isDiagonalOrtogonalNeighborsImpassable(xOrigin : number, yOrigin : number, xDiagonal : number, yDiagonal : number, impassableTiles : Set<string>) {
     const deltaX = xDiagonal - xOrigin;
     const deltaY = yDiagonal - yOrigin;
     if(impassableTiles.has(this.worldTilemapManager.setTilemapKey(xOrigin + deltaX, yOrigin))) {

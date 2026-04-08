@@ -24,6 +24,7 @@ export class WorldTilemapManager {
   private readonly _tilemapSpritesheetName = SpriteSheetName.TERRAIN;
   private readonly _tilemap: Map<string, TilemapTile> = new Map();
   private readonly _wallTiles: Map<string, TilemapWallTile> = new Map();
+  private readonly _impassableWallTiles: Map<string, TilemapWallTile> = new Map();
   private readonly _poiTiles: Map<WorldPoiTileType, Map<string, WorldPoiTile>> = new Map();
   private readonly _zones: WorldZone[] = [];
 
@@ -145,18 +146,27 @@ export class WorldTilemapManager {
 
   public clearLevelGeometry(): void {
     this._wallTiles.clear();
+    this._impassableWallTiles.clear();
     this.resetTilemapToGround();
   }
 
   public setWall(x: number, y: number, spriteName: SpriteName): void {
     this.ensureTileBounds(x, y);
-
+    const isSolid = true;
     this._wallTiles.set(this.setTilemapKey(x, y), {
       x,
       y,
       spriteName,
-      solid: true,
+      solid: isSolid,
     });
+    if(isSolid) {
+      this._impassableWallTiles.set(this.setTilemapKey(x, y), {
+        x,
+        y,
+        spriteName,
+        solid: true,
+      })
+    }
   }
 
   public hasWall(x: number, y: number): boolean {
@@ -266,11 +276,11 @@ export class WorldTilemapManager {
 
 
   public getTilemapPathInformation() : TilemapPathInformation {
-    const impassableWallTiles = Array.from(this._wallTiles.values()).filter((value) => value.solid);
+    const impassableWallTiles = Array.from(this._impassableWallTiles.keys());
     return {
       maxTilesX : this._maxNumberTilesX,
       maxTilesY : this._maxNumberTilesY,
-      impassableTiles : new Map<string, TilemapWallTile>(impassableWallTiles.map((wallTile) => [this.setTilemapKey(wallTile.x, wallTile.y), wallTile])),
+      impassableTiles : new Set<string>(impassableWallTiles),
       tileSize : this.tileSize
     };
   }
