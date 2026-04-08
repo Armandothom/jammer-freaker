@@ -12,6 +12,7 @@ import { MovementIntentComponent } from "../components/movement-intent.component
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ShotOriginComponent } from "../components/shot-origin.component.js";
+import { SpriteComponent } from "../components/sprite.component.js";
 import { VelocityComponent } from "../components/velocity-component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityFactory } from "../entities/entity-factory.js";
@@ -23,8 +24,6 @@ type ExplosionProfile = {
     targetEntities: number[];
 };
 
-const GRENADE_SPRITE_WIDTH = 14;
-const GRENADE_SPRITE_HEIGHT = 16;
 const GRENADE_FALL_RENDER_SPEED = 240;
 
 export class GrenadeUpdateSystem implements ISystem {
@@ -45,6 +44,7 @@ export class GrenadeUpdateSystem implements ISystem {
         private animationComponentStore: ComponentStore<AnimationComponent>,
         private enemyDeadComponentStore: ComponentStore<EnemyDeadComponent>,
         private grenadeTravelComponent: ComponentStore<GrenadeTravelComponent>,
+        private spriteComponentStore: ComponentStore<SpriteComponent>,
     ) {
     }
 
@@ -79,7 +79,11 @@ export class GrenadeUpdateSystem implements ISystem {
 
         if (grenadeTravel.totalTravelTime <= 0 || grenadeTravel.travelTime >= grenadeTravel.totalTravelTime) {
             grenadeTravel.currentRenderOffsetY = 0;
-            const groundedTarget = this.toSpriteTopLeft(grenadeTravel.targetX, grenadeTravel.targetY);
+            const groundedTarget = this.toSpriteTopLeft(
+                grenadeEntity,
+                grenadeTravel.targetX,
+                grenadeTravel.targetY,
+            );
             this.movementIntentComponentStore.add(
                 grenadeEntity,
                 new MovementIntentComponent(groundedTarget.x, groundedTarget.y),
@@ -93,7 +97,7 @@ export class GrenadeUpdateSystem implements ISystem {
         const groundX = grenadeTravel.originX + (grenadeTravel.targetX - grenadeTravel.originX) * progress;
         const groundY = grenadeTravel.originY + (grenadeTravel.targetY - grenadeTravel.originY) * progress;
         grenadeTravel.currentRenderOffsetY = this.calculateRenderOffsetY(grenadeTravel);
-        const groundedPosition = this.toSpriteTopLeft(groundX, groundY);
+        const groundedPosition = this.toSpriteTopLeft(grenadeEntity, groundX, groundY);
 
         this.movementIntentComponentStore.add(
             grenadeEntity,
@@ -185,10 +189,11 @@ export class GrenadeUpdateSystem implements ISystem {
         this.entityFactory.destroyGrenade(grenadeEntity);
     }
 
-    private toSpriteTopLeft(centerX: number, centerY: number): { x: number; y: number } {
+    private toSpriteTopLeft(grenadeEntity: number, centerX: number, centerY: number): { x: number; y: number } {
+        const sprite = this.spriteComponentStore.get(grenadeEntity);
         return {
-            x: centerX - (GRENADE_SPRITE_WIDTH / 2),
-            y: centerY - (GRENADE_SPRITE_HEIGHT / 2),
+            x: centerX - (sprite.width / 2),
+            y: centerY - (sprite.height / 2),
         };
     }
 
@@ -228,6 +233,7 @@ export class GrenadeUpdateSystem implements ISystem {
         const groundX = grenadeTravel.originX + (grenadeTravel.targetX - grenadeTravel.originX) * progress;
         const groundY = grenadeTravel.originY + (grenadeTravel.targetY - grenadeTravel.originY) * progress;
         const visiblePosition = this.toSpriteTopLeft(
+            grenadeEntity,
             groundX,
             groundY - grenadeTravel.currentRenderOffsetY,
         );
