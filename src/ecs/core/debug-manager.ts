@@ -34,6 +34,9 @@ export class DebugManager {
             case DebugSettingKey.DEBUG_PAINT:
                 this._settings.showDebugPaint = !this._settings.showDebugPaint;
                 break;
+            case DebugSettingKey.INSPECT_TILE:
+                this._settings.showInspectTile = !this._settings.showInspectTile;
+                break;
         }
     }
 
@@ -66,11 +69,13 @@ export class DebugManager {
                 return this._settings.showAiPath;
             case DebugSettingKey.DEBUG_PAINT:
                 return this._settings.showDebugPaint;
+            case DebugSettingKey.INSPECT_TILE:
+                return this._settings.showInspectTile;
         }
     }
 
     get isDebugPointerActive() {
-        return this._spawnerState.active || this._isMoveOrderActive;
+        return this._spawnerState.active || this._isMoveOrderActive || this._settings.showInspectTile;
     }
 
     get isSpawnerPointerActive() {
@@ -79,6 +84,10 @@ export class DebugManager {
 
     get isMovePointerActive() {
         return this._isMoveOrderActive;
+    }
+
+    get isInspectTileActive() {
+        return this._settings.showInspectTile;
     }
 
     get activeSpawnerType() {

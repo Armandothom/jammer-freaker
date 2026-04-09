@@ -218,7 +218,7 @@ export class EntityFactory {
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
     this.enemyComponentStore.add(entityId, new EnemyComponent(enemyType));
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY));
-    this.collisionBoxComponentStore.add(entityId, new CollisionBoxComponent());
+    this.collisionBoxComponentStore.add(entityId, new CollisionBoxComponent({ widthFactor: 1, heightFactor: 1, offsetX: 0, offsetY: 0 }));
     this.hitboxComponentStore.add(entityId, new HitBoxComponent());
     this.aiComponentStore.add(entityId, new AIComponent());
     this.healthComponentStore.add(entityId, new HealthComponent(hp));

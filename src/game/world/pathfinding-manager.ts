@@ -135,11 +135,11 @@ export class PathFindingManager {
       { x: x + -1, y: y + 1, isDiagonal: true }, // diagonal bottom-left
       { x: x + -1, y: y + -1, isDiagonal: true } // diagonal top-left
     ].filter((coord) => {
-      if ((coord.x >= 0 && coord.y >= 0) &&
-        (coord.x < tilemapInfo.maxTilesX && coord.y < tilemapInfo.maxTilesY) &&
-        (!additionalObstacles || additionalObstacles.has(this.worldTilemapManager.setTilemapKey(coord.x, coord.y)) == false) &&
-        (tilemapInfo.impassableTiles.has(this.worldTilemapManager.setTilemapKey(coord.x, coord.y)) == false) &&
-        (coord.isDiagonal == false || coord.isDiagonal && !this.isDiagonalOrtogonalNeighborsImpassable(x, y, coord.x, coord.y, tilemapInfo.impassableTiles))) {
+      const isInBounds = (coord.x >= 0 && coord.y >= 0) && (coord.x < tilemapInfo.maxTilesX && coord.y < tilemapInfo.maxTilesY);
+      const isNotOnAdditionalObstacles = (!additionalObstacles || additionalObstacles.has(this.worldTilemapManager.setTilemapKey(coord.x, coord.y)) == false);
+      const isNotOnImpassableTiles = (tilemapInfo.impassableTiles.has(this.worldTilemapManager.setTilemapKey(coord.x, coord.y)) == false);
+      const isNotDiagonallyForbidden = (coord.isDiagonal == false || (coord.isDiagonal && !this.isDiagonalOrtogonalNeighborsImpassable(x, y, coord.x, coord.y, tilemapInfo.impassableTiles)));
+      if (isInBounds && isNotOnAdditionalObstacles && isNotOnImpassableTiles && isNotDiagonallyForbidden) {
         return true;
       }
       return false;

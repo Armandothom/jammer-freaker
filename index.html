@@ -173,6 +173,10 @@
       cursor: pointer;
       transition: background 160ms ease, border-color 160ms ease;
     }
+    
+    .inspect-button {
+      margin-top: 10px;
+    }
 
     .debug-panel button:hover {
       background: rgba(124, 255, 134, 0.18);
@@ -235,7 +239,7 @@
       user-select: none;
     }
 
-    .spawn-cursor-badge, .move-cursor-badge {
+    .spawn-cursor-badge, .move-cursor-badge, .inspect-tile-badge {
       position: fixed;
       top: 0;
       left: 0;
@@ -282,6 +286,10 @@
           <input type="checkbox" id="aiPath" name="aiPath" value="true" />
           <span>Show AI Path</span>
         </label>
+
+        <button type="button" class="inspect-button" id="inspectTileButton" name="inspectTileButton">
+          Inspect Tile
+        </button>
       </fieldset>
 
       <details class="debug-panel__group debug-panel__collapse">
@@ -326,6 +334,10 @@
 
   <div class="move-cursor-badge" id="moveCursorBadge" hidden aria-hidden="true">
     Click to move
+  </div>
+
+  <div class="inspect-tile-badge" id="inspectTileBadge" hidden aria-hidden="true">
+    Tile: 0, 0
   </div>
 </body>
 
