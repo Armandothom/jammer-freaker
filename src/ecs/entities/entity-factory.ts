@@ -581,6 +581,9 @@ export class EntityFactory {
       weaponConfig.maxBullets,
       weaponConfig.reloadTime,
       weaponConfig.fireRate,
+      weaponConfig.spreadAngle,
+      weaponConfig.projectilesFired,
+      weaponConfig.projectileVelocity,
       weaponConfig.maxedOut,
     ));
     this.parentEntityComponentStore.add(entityId, new ParentEntityComponent(parentEntityId));
@@ -613,6 +616,9 @@ export class EntityFactory {
       weaponConfig.maxBullets,
       weaponConfig.reloadTime,
       weaponConfig.fireRate,
+      weaponConfig.spreadAngle,
+      weaponConfig.projectilesFired,
+      weaponConfig.projectileVelocity,
       weaponConfig.maxedOut,
     ));
     this.parentEntityComponentStore.add(entityId, new ParentEntityComponent(parentEntityId));

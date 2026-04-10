@@ -7,6 +7,7 @@ export const ShopUpgradeTabType = {
     SMG: WeaponType.SMG,
     RIFLE: WeaponType.RIFLE,
     SNIPER: WeaponType.SNIPER,
+    SHOTGUN: WeaponType.SHOTGUN,
 } as const;
 
 export type ShopUpgradeTabType =
@@ -58,6 +59,16 @@ export const SHOP_UPGRADE_TAB_CONFIG: Record<ShopUpgradeTabType, ShopUpgradeTabC
         tabType: ShopUpgradeTabType.SNIPER,
         weaponType: WeaponType.SNIPER,
         weaponSprite: SpriteName.SNIPER,
+        order: 0,
+        spriteName: SpriteName.BUTTON_4,
+        spriteActiveName: SpriteName.BUTTON_4_SELECTED,
+        width: 96,
+        height: 32,
+    },
+    [ShopUpgradeTabType.SHOTGUN]: {
+        tabType: ShopUpgradeTabType.SHOTGUN,
+        weaponType: WeaponType.SHOTGUN,
+        weaponSprite: SpriteName.SHOTGUN,
         order: 0,
         spriteName: SpriteName.BUTTON_4,
         spriteActiveName: SpriteName.BUTTON_4_SELECTED,

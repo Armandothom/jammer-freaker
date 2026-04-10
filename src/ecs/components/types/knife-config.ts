@@ -12,5 +12,8 @@ export const KNIFE_CONFIG: WeaponConfig = {
     spriteName: SpriteName.KNIFE,
     pivotPointSprite: 1,
     fireRate: 100,
+    spreadAngle: null,
+    projectilesFired: null,
+    projectileVelocity: null,
     maxedOut: false,
 };

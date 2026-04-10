@@ -15,7 +15,7 @@ export class InventoryDebugSystem implements ISystem {
     private previousPressedKeys = new Set<string>();
 
     // decide aqui qual arma o "*" do numpad adiciona
-    private readonly debugWeaponToAdd: WeaponType = WeaponType.SMG;
+    private readonly debugWeaponToAdd: WeaponType = WeaponType.SHOTGUN;
     private readonly debugMoneyToAdd = 1000;
 
     constructor(

@@ -410,6 +410,38 @@ export class ShopEntityFactory {
         return entityId;
     }
 
+    createUpgradeTabNavigationButton(
+        entryType: ShopUIEntryType,
+        uiType: ShopUIType,
+        uiAnchor: UIAnchor,
+        offsetX: number,
+        offsetY: number,
+        spriteName: SpriteName,
+        width: number,
+        height: number,
+    ) {
+        const entityId = this.entityManager.registerEntity();
+
+        this.renderableComponentStore.add(entityId, new RenderableComponent());
+        this.spriteComponentStore.add(entityId, new SpriteComponent(
+            spriteName,
+            SpriteSheetName.BUTTON_ARROWS,
+            width,
+            height,
+        ));
+        this.zLayerComponentStore.add(entityId, new ZLayerComponent(2));
+        this.shopUIComponentStore.add(entityId, new ShopUIComponent(entryType, uiType));
+        this.shopUIAnchorComponentStore.add(entityId, new ShopUIAnchorComponent(uiAnchor, offsetX, offsetY));
+        this.shopButtonComponentStore.add(entityId, new ShopButtonComponent(undefined, ShopButtonState.NORMAL));
+
+        const screenPosition = this.uiManager.resolveScreenPosition(uiAnchor, offsetX, offsetY);
+        this.screenPositionComponentStore.add(entityId, new ScreenPositionComponent(screenPosition.x, screenPosition.y));
+        this.clickableRegionComponent.add(entityId, new ClickableRegionComponent(screenPosition.x, screenPosition.y));
+        this.regionClickedComponentStore.add(entityId, new RegionClickedComponent());
+
+        return entityId;
+    }
+
     createTabInnerContent(parentEntityId: number, uiAnchor: UIAnchor, offsetX: number, offsetY: number, innerSprite: SpriteName) {
         const entityId = this.entityManager.registerEntity();
         const innerSprite_offsetX = 16;

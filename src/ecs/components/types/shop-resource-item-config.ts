@@ -5,6 +5,7 @@ export const ShopResourceItemType = {
     PISTOL_MAG: "pistol_mag",
     SMG_MAG: "smg_mag",
     RIFLE_MAG: "rifle_mag",
+    SHOTGUN_SHELL_BOX: "shotgun_shell_box",
     GRENADE: "grenade",
 } as const;
 
@@ -56,6 +57,16 @@ export const SHOP_RESOURCE_ITEM_CONFIG: Record<
         height: 24,
         order: 2,
     },
+    [ShopResourceItemType.SHOTGUN_SHELL_BOX]: {
+        name: "Shotgun Shells",
+        price: 300,
+        availableQuantity: 1,
+        resourceType: InventoryResourceType.ShotgunShellBox,
+        spriteName: SpriteName.SHOTGUN_SHELL_BOX_ICON,
+        width: 24,
+        height: 24,
+        order: 3,
+    },
     [ShopResourceItemType.GRENADE]: {
         name: "Fuse Grenade",
         price: 500,
@@ -64,7 +75,7 @@ export const SHOP_RESOURCE_ITEM_CONFIG: Record<
         spriteName: SpriteName.GRENADE_ICON,
         width: 24,
         height: 24,
-        order: 3,
+        order: 4,
     },
 };
 

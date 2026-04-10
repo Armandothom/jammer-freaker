@@ -11,7 +11,7 @@ import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
 import { EnemyConfig } from "../components/types/enemy-type.js";
-import { WeaponConfig } from "../components/types/weapon-config.js";
+import { WeaponConfig, WeaponType } from "../components/types/weapon-config.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
 import { WeaponStatsComponent } from "../components/weapon-stats.component.js";
 import { ComponentStore } from "../core/component-store.js";
@@ -59,7 +59,7 @@ export class ProjectileSpawnSystem implements ISystem {
             const dx = intent.x - weaponPosition.x;
             const dy = intent.y - weaponPosition.y;
             const angle = Math.atan2(dy, dx);
-            const dir = { x: Math.cos(angle), y: Math.sin(angle) };
+            let dir = { x: Math.cos(angle), y: Math.sin(angle) };
 
             const weaponFireRate = this.weaponStatsComponentStore.has(playerEntity)
                 ? this.weaponStatsComponentStore.get(playerEntity).fireRate
@@ -67,10 +67,24 @@ export class ProjectileSpawnSystem implements ISystem {
             const shotsPerSecond = weaponFireRate / 60;
             const fireCooldown = 1 / shotsPerSecond;
 
+            const weaponStats = this.weaponStatsComponentStore.get(playerEntity);
             const shootingCooldown = this.shootingCooldownComponentStore.has(playerEntity);
             if (!shootingCooldown) {
                 const damage = this.damageDealtComponentStore.get(playerEntity).damage;
-                this.spawnProjectile(dir, attachedWeapon, damage, true); // last variable: fired by player, check if it is used
+                if (weaponWielded === WeaponType.SHOTGUN) {
+                    const projectileAnglesResult = this.generateRandomProjectileDirections(
+                        weaponStats.projectilesFired!,
+                        weaponStats.spreadAngle!,
+                        0.05, // hardcoded minimum angle step
+                        angle,
+                    );
+                    for (const projectile of projectileAnglesResult) {
+                        const projectileVelocity = this.randomizeProjectileVelocity(weaponStats.projectileVelocity!, 10);
+                        this.spawnProjectile(projectile.dir, attachedWeapon, damage, projectileVelocity, true);
+                    }
+                } else {
+                    this.spawnProjectile(dir, attachedWeapon, damage, weaponStats.projectileVelocity!, true); // last variable: fired by player, check if it is used
+                }
                 this.bulletFiredComponentStore.add(playerEntity, new BulletFiredComponent());
                 this.shootingCooldownComponentStore.add(playerEntity, new ShootingCooldownComponent(fireCooldown));
             }
@@ -105,7 +119,7 @@ export class ProjectileSpawnSystem implements ISystem {
             const shootingCooldown = this.shootingCooldownComponentStore.has(entity);
             if (!shootingCooldown) {
                 const damage = this.damageDealtComponentStore.get(entity).damage;
-                this.spawnProjectile(dir, attachedWeapon, damage, false);
+                this.spawnProjectile(dir, attachedWeapon, damage, 720, false); // Projectile velocity hard coded 720 - add to the EnemyConfig later;
                 this.shootingCooldownComponentStore.add(entity, new ShootingCooldownComponent(cooldownConfig));
             }
         }
@@ -115,7 +129,9 @@ export class ProjectileSpawnSystem implements ISystem {
         dir: { x: number; y: number },
         shootingWeapon: WeaponSpriteAttachmentComponent,
         damage: number,
+        projectileVelocity: number,
         firedByPlayer: boolean,
+
     ): void {
         this.soundManager.playSound("SMG_FIRE");
         const bulletSpriteProperties = this.spriteManager.getSpriteProperties(SpriteName.BULLET_1, SpriteSheetName.PROJECTILE)!;
@@ -138,10 +154,100 @@ export class ProjectileSpawnSystem implements ISystem {
             firedByPlayer,
             dir.x,
             dir.y,
-            720,
+            projectileVelocity,
             SpriteName.BULLET_1,
             SpriteSheetName.PROJECTILE,
             AnimationName.BULLET_FIRED,
         );
+    }
+
+    private generateRandomProjectileDirections(
+        projectileCount: number,
+        spreadAngle: number,
+        step: number,
+        baseAngle: number
+    ): { angle: number; dir: { x: number; y: number } }[] {
+        if (projectileCount % 2 === 0) {
+            throw new Error("projectileCount must be odd");
+        }
+
+        if (spreadAngle <= 0) {
+            throw new Error("spreadAngle must be greater than 0");
+        }
+
+        if (step <= 0) {
+            throw new Error("step must be greater than 0");
+        }
+
+        const half = (projectileCount - 1) / 2;
+
+        const possibleOffsets: number[] = [];
+        for (let offset = step; offset <= spreadAngle / 2; offset += step) {
+            possibleOffsets.push(offset);
+        }
+
+        if (possibleOffsets.length < half) {
+            throw new Error(
+                `invalid step: need ${half} offsets, got ${possibleOffsets.length}`
+            );
+        }
+
+        // shuffle
+        for (let i = possibleOffsets.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [possibleOffsets[i], possibleOffsets[j]] = [possibleOffsets[j], possibleOffsets[i]];
+        }
+
+        const selectedOffsets = possibleOffsets.slice(0, half);
+
+        const result: { angle: number; dir: { x: number; y: number } }[] = [];
+
+        // projétil central
+        result.push({
+            angle: baseAngle,
+            dir: {
+                x: Math.cos(baseAngle),
+                y: Math.sin(baseAngle),
+            },
+        });
+
+        // pares simétricos
+        for (const offset of selectedOffsets) {
+            const leftAngle = baseAngle - offset;
+            const rightAngle = baseAngle + offset;
+
+            result.push({
+                angle: leftAngle,
+                dir: {
+                    x: Math.cos(leftAngle),
+                    y: Math.sin(leftAngle),
+                },
+            });
+
+            result.push({
+                angle: rightAngle,
+                dir: {
+                    x: Math.cos(rightAngle),
+                    y: Math.sin(rightAngle),
+                },
+            });
+        }
+
+        return result.sort((a, b) => a.angle - b.angle);
+    }
+
+    private randomizeProjectileVelocity(
+        projectileMaxVelocity: number,
+        lowerPercent: number,
+
+    ): number {
+        if (lowerPercent < 0 || lowerPercent > 100) {
+            throw new Error("lowerPercent must be between 0 and 100");
+        }
+
+        const min = projectileMaxVelocity * (1 - lowerPercent / 100);
+        const max = projectileMaxVelocity;
+
+        return Math.random() * (max - min) + min;
     }
 }

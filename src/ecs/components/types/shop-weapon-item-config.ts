@@ -5,6 +5,7 @@ export const ShopWeaponItemType = {
     WEAPON_1: "weapon_1",
     WEAPON_2: "weapon_2",
     WEAPON_3: "weapon_3",
+    WEAPON_4: "weapon_4",
 } as const;
 
 export type ShopWeaponItemType =
@@ -40,14 +41,24 @@ export const SHOP_WEAPON_ITEM_CONFIG: Record<ShopWeaponItemType, ShopWeaponItemC
         order: 1,
     },
     [ShopWeaponItemType.WEAPON_3]: {
+        name: "Shotgun",
+        price: 2500,
+        weaponType: WeaponType.SHOTGUN,
+        spriteName: SpriteName.SHOTGUN,
+        width: 56,
+        height: 26,
+        order: 2,
+    },
+    [ShopWeaponItemType.WEAPON_4]: {
         name: "Precision Rifle",
         price: 2500,
         weaponType: WeaponType.SNIPER,
         spriteName: SpriteName.SNIPER,
         width: 56,
         height: 26,
-        order: 2,
+        order: 3,
     },
+
 };
 
 export const SHOP_WEAPON_ITEMS_ORDER: ShopWeaponItemType[] = (

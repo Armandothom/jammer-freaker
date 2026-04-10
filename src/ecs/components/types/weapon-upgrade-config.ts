@@ -12,7 +12,8 @@ export type UpgradableWeaponType =
     | WeaponType.PISTOL
     | WeaponType.SMG
     | WeaponType.RIFLE
-    | WeaponType.SNIPER;
+    | WeaponType.SNIPER
+    | WeaponType.SHOTGUN;
 
 export const WeaponUpgradeType = {
     DAMAGE: "damage",
@@ -152,6 +153,29 @@ const WEAPON_UPGRADE_PRICE_CONFIG: Record<UpgradableWeaponType, WeaponUpgradePri
             3: 3900,
         },
     },
+
+    [WeaponType.SHOTGUN]: {
+        [WeaponUpgradeType.DAMAGE]: {
+            1: 700,
+            2: 1200,
+            3: 1900,
+        },
+        [WeaponUpgradeType.FIRE_RATE]: {
+            1: 600,
+            2: 1100,
+            3: 1600,
+        },
+        [WeaponUpgradeType.MAG_SIZE]: {
+            1: 400,
+            2: 800,
+            3: 1400,
+        },
+        [WeaponUpgradeType.MAXED_OUT]: {
+            1: 3900,
+            2: 3900,
+            3: 3900,
+        },
+    },
 };
 
 function roundUpgradeNumericValue(value: number): number {
@@ -214,6 +238,7 @@ export const WEAPON_UPGRADE_CONFIG: Record<UpgradableWeaponType, WeaponUpgradeCo
     [WeaponType.SMG]: createWeaponUpgradeConfig(WeaponType.SMG),
     [WeaponType.RIFLE]: createWeaponUpgradeConfig(WeaponType.RIFLE),
     [WeaponType.SNIPER]: createWeaponUpgradeConfig(WeaponType.SNIPER),
+    [WeaponType.SHOTGUN]: createWeaponUpgradeConfig(WeaponType.SHOTGUN),
 };
 
 export const WEAPON_UPGRADE_TYPES_ORDER: WeaponUpgradeType[] = [
@@ -227,7 +252,8 @@ export function isUpgradableWeaponType(value: string): value is UpgradableWeapon
     return value === WeaponType.PISTOL
         || value === WeaponType.SMG
         || value === WeaponType.RIFLE
-        || value === WeaponType.SNIPER;
+        || value === WeaponType.SNIPER
+        || value === WeaponType.SHOTGUN
 }
 
 export function isWeaponUpgradeType(value: string): value is WeaponUpgradeType {

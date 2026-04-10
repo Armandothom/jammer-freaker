@@ -182,6 +182,9 @@ export class InventoryManager {
             case WeaponType.RIFLE:
                 return InventoryResourceType.RifleMag;
 
+            case WeaponType.SHOTGUN:
+                return InventoryResourceType.ShotgunShellBox;
+
             default:
                 throw new Error(`Weapon ${weaponType} does not consume ammo`);
         }
@@ -202,6 +205,8 @@ export class InventoryManager {
         console.log(`pistol_mag: ${this.getResourceAmount(inventory, InventoryResourceType.PistolMag)}`);
         console.log(`smg_mag: ${this.getResourceAmount(inventory, InventoryResourceType.SmgMag)}`);
         console.log(`rifle_mag: ${this.getResourceAmount(inventory, InventoryResourceType.RifleMag)}`);
+        console.log(`rifle_mag: ${this.getResourceAmount(inventory, InventoryResourceType.ShotgunShellBox)}`);
+        console.log(`shotgun_shell_box: ${this.getResourceAmount(inventory, InventoryResourceType.ShotgunShellBox)}`);
         console.log(`grenade: ${this.getResourceAmount(inventory, InventoryResourceType.Grenade)}`);
         console.log(`money: ${this.getResourceAmount(inventory, InventoryResourceType.Money)}`);
 

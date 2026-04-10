@@ -6,6 +6,8 @@ export const ShopUIType = {
     RETURN_BUTTON: "return_button",
     MONEY_TEXT: "money_text",
     UPGRADE_TAB_BUTTON: "upgrade_tab_button",
+    UPGRADE_TAB_NAV_LEFT_BUTTON: "upgrade_tab_nav_left_button",
+    UPGRADE_TAB_NAV_RIGHT_BUTTON: "upgrade_tab_nav_right_button",
     UPGRADE_ITEM: "upgrade_item",
 } as const;
 

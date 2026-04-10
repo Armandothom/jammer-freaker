@@ -21,4 +21,5 @@ export enum SpriteSheetName {
   BUTTONS = "buttons",
   WORLD_BACKGROUND = "world_background",
   SHADOWS = "shadows",
+  BUTTON_ARROWS = "button_arrows",
 }

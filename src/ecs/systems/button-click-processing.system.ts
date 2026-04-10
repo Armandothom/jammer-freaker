@@ -85,6 +85,30 @@ export class ButtonClickProcessingSystem implements ISystem {
                 continue;
             }
 
+            if (uiType === ShopUIType.UPGRADE_TAB_NAV_LEFT_BUTTON) {
+                const activeTabChanged = this.shopManager.navigateUpgradeTabWindow(-1);
+                this.refreshUpgradeTabControls();
+
+                if (activeTabChanged) {
+                    this.refreshUpgradeItems();
+                }
+
+                this.buttonClickIntentComponentStore.remove(intent);
+                continue;
+            }
+
+            if (uiType === ShopUIType.UPGRADE_TAB_NAV_RIGHT_BUTTON) {
+                const activeTabChanged = this.shopManager.navigateUpgradeTabWindow(1);
+                this.refreshUpgradeTabControls();
+
+                if (activeTabChanged) {
+                    this.refreshUpgradeItems();
+                }
+
+                this.buttonClickIntentComponentStore.remove(intent);
+                continue;
+            }
+
             if (uiType === ShopUIType.RETURN_BUTTON) {
                 this.setButtonState(intent, ShopButtonType.RETURN, ShopButtonState.SELECTED);
                 this.buttonClickIntentComponentStore.remove(intent);
@@ -151,13 +175,7 @@ export class ButtonClickProcessingSystem implements ISystem {
 
     private changeShopTab(activeTab: ShopTabType, newTab: ShopTabType) {
         const shopItemEntitiesToDestroy = new Set<number>();
-        const upgradeTabButtonEntitiesToDestroy = this.shopUIComponentStore
-            .getAllEntities()
-            .filter((entityId) => this.shopUIComponentStore.get(entityId).shopUiType === ShopUIType.UPGRADE_TAB_BUTTON);
-
-        for (const upgradeTabButtonEntityId of upgradeTabButtonEntitiesToDestroy) {
-            this.shopEntityFactory.destroyUpgradeTabButtonAndAssociates(upgradeTabButtonEntityId);
-        }
+        this.destroyUpgradeTabControls();
 
         for (const button of this.shopButtonComponentStore.getAllEntities()) {
             const buttonTabSource = this.shopButtonComponentStore.get(button).shopTabType;
@@ -290,6 +308,33 @@ export class ButtonClickProcessingSystem implements ISystem {
         }
 
         this.shopManager.createUpgrades();
+    }
+
+    private refreshUpgradeTabControls(): void {
+        this.destroyUpgradeTabControls();
+        this.shopManager.createUpgradeTabButtons();
+    }
+
+    private destroyUpgradeTabControls(): void {
+        const upgradeTabControlEntityIds = this.shopUIComponentStore
+            .getAllEntities()
+            .filter((entityId) => {
+                const uiType = this.shopUIComponentStore.get(entityId).shopUiType;
+                return uiType === ShopUIType.UPGRADE_TAB_BUTTON
+                    || uiType === ShopUIType.UPGRADE_TAB_NAV_LEFT_BUTTON
+                    || uiType === ShopUIType.UPGRADE_TAB_NAV_RIGHT_BUTTON;
+            });
+
+        for (const entityId of upgradeTabControlEntityIds) {
+            const uiType = this.shopUIComponentStore.get(entityId).shopUiType;
+
+            if (uiType === ShopUIType.UPGRADE_TAB_BUTTON) {
+                this.shopEntityFactory.destroyUpgradeTabButtonAndAssociates(entityId);
+                continue;
+            }
+
+            this.shopEntityFactory.destroyStandaloneButton(entityId);
+        }
     }
 
     private randomRoll(threshold: number): boolean {

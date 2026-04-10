@@ -26,6 +26,11 @@ export const ItemDropRateTable: Record<InventoryResourceType, DropEntry> = {
         quantity: 1,
     },
 
+    [InventoryResourceType.ShotgunShellBox]: {
+        chance: 0,
+        quantity: 1,
+    },
+
     [InventoryResourceType.Grenade]: {
         chance: 33,
         quantity: 1,

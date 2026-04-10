@@ -8,6 +8,7 @@ import { InventoryComponent } from "../components/inventory-component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { ScreenPositionComponent } from "../components/screen-position.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
+import { INVENTORY_RESOURCE_SPRITE_CONFIG } from "../components/types/game-ui-sprite-config.js";
 import { GAME_UI_TYPE_LAYOUT_PRESET } from "../components/types/game-ui-type-layout-preset.js";
 import { GameUIEntryType, GameUIType } from "../components/types/game-ui-type.js";
 import { InventoryResourceType } from "../components/types/inventory-resource-type.js";
@@ -73,6 +74,8 @@ export class GameUIUpdateSystem implements ISystem {
         const magsAvaliable = this.inventoryManager.getResourceAmount(inventory, magUsed);
         const grenadeAvaliable = this.inventoryManager.getResourceAmount(inventory, InventoryResourceType.Grenade);
         const magSprite = this.resolveInventoryResourceSprite(magUsed);
+        const resourceSpriteConfig = INVENTORY_RESOURCE_SPRITE_CONFIG;
+        const resourceSpriteInfo = resourceSpriteConfig[magUsed];
         const actualMoney = this.inventoryManager.getResourceAmount(inventory, InventoryResourceType.Money);
 
         this.entityFactory.createHUDItem(
@@ -163,8 +166,8 @@ export class GameUIUpdateSystem implements ISystem {
             preset.mag_icon.offsetY,
             magSprite,
             SpriteSheetName.RESOURCES_ICON,
-            12,
-            20,
+            resourceSpriteInfo.width,
+            resourceSpriteInfo.height,
         );
         this.entityFactory.createHUDItemText(
             GameUIEntryType.HUD,
@@ -290,6 +293,9 @@ export class GameUIUpdateSystem implements ISystem {
             case WeaponType.SHIELD:
                 return SpriteName.SHIELD;
 
+            case WeaponType.SHOTGUN:
+                return SpriteName.SHOTGUN;
+
             case WeaponType.GRENADE:
                 throw new Error("WeaponType.GRENADE não possui sprite mapeado em WEAPON spritesheet.");
 
@@ -316,6 +322,9 @@ export class GameUIUpdateSystem implements ISystem {
 
             case InventoryResourceType.Money:
                 throw new Error("InventoryResourceType.Money ainda não possui sprite mapeado em RESOURCES_ICON spritesheet.");
+
+            case InventoryResourceType.ShotgunShellBox:
+                return SpriteName.SHOTGUN_SHELL_BOX_ICON;
 
             default: {
                 const exhaustiveCheck: never = resourceType;
@@ -554,8 +563,13 @@ export class GameUIUpdateSystem implements ISystem {
             if (equippedWeaponType === null) return;
             const magUsed = this.inventoryManager.getAmmoResourceTypeForWeapon(equippedWeaponType);
             const newSpriteName = this.resolveInventoryResourceSprite(magUsed);
-            this.spriteComponentStore.get(gameUiEntity).spriteName = newSpriteName;
-            // Spritesheet is the same (Resources);
+            const sprite = this.spriteComponentStore.get(gameUiEntity);
+            const spriteSize = INVENTORY_RESOURCE_SPRITE_CONFIG[magUsed];
+
+            sprite.spriteName = newSpriteName;
+            sprite.spriteSheetName = SpriteSheetName.RESOURCES_ICON;
+            sprite.width = spriteSize.width;
+            sprite.height = spriteSize.height;
         },
         [GameUIType.MAG_QUANTITY]: (gameUiEntity: number, playerEntity: number) => {
             const inventory = this.inventoryComponentStore.get(playerEntity);

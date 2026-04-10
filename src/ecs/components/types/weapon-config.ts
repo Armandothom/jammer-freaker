@@ -11,6 +11,7 @@ export enum WeaponType {
     KNIFE = "knife",
     GRENADE = "grenade",
     SHIELD = "shield",
+    SHOTGUN = "shotgun",
 }
 
 export interface WeaponConfig {
@@ -23,6 +24,9 @@ export interface WeaponConfig {
     spriteName: SpriteName;
     pivotPointSprite: number;
     fireRate: number;
+    spreadAngle: number | null;
+    projectilesFired: number | null;
+    projectileVelocity: number | null; // px/s
     maxedOut: boolean;
 }
 
@@ -36,6 +40,9 @@ const SHIELD_CONFIG: WeaponConfig = {
     spriteName: SpriteName.SHIELD,
     pivotPointSprite: 0,
     fireRate: 0,
+    spreadAngle: null,
+    projectilesFired: null,
+    projectileVelocity: null,
     maxedOut: false,
 };
 
@@ -50,6 +57,9 @@ export const WeaponConfig: Record<WeaponType, WeaponConfig> = {
         spriteName: SpriteName.PISTOL,
         pivotPointSprite: 3,
         fireRate: 100,
+        spreadAngle: null,
+        projectilesFired: 1,
+        projectileVelocity: 720,
         maxedOut: false,
     },
     [WeaponType.SMG]: {
@@ -62,6 +72,9 @@ export const WeaponConfig: Record<WeaponType, WeaponConfig> = {
         spriteName: SpriteName.SMG,
         pivotPointSprite: 6,
         fireRate: 100,
+        spreadAngle: null,
+        projectilesFired: 1,
+        projectileVelocity: 720,
         maxedOut: false,
     },
     [WeaponType.RIFLE]: {
@@ -74,6 +87,9 @@ export const WeaponConfig: Record<WeaponType, WeaponConfig> = {
         spriteName: SpriteName.RIFLE,
         pivotPointSprite: 6,
         fireRate: 100,
+        spreadAngle: null,
+        projectilesFired: 1,
+        projectileVelocity: 720,
         maxedOut: false,
     },
     [WeaponType.SNIPER]: {
@@ -86,9 +102,27 @@ export const WeaponConfig: Record<WeaponType, WeaponConfig> = {
         spriteName: SpriteName.SNIPER,
         pivotPointSprite: 6,
         fireRate: 100,
+        spreadAngle: null,
+        projectilesFired: 1,
+        projectileVelocity: 720,
         maxedOut: false,
     },
     [WeaponType.KNIFE]: KNIFE_CONFIG,
     [WeaponType.GRENADE]: GRENADE_CONFIG,
     [WeaponType.SHIELD]: SHIELD_CONFIG,
+    [WeaponType.SHOTGUN]: {
+        damage: 100,
+        maxBullets: 5,
+        reloadTime: 3,
+        explosionRadius: 0,
+        fuseTimer: 0,
+        animation: AnimationName.WEAPON_SHOTGUN,
+        spriteName: SpriteName.SHOTGUN,
+        pivotPointSprite: 6,
+        fireRate: 100,
+        spreadAngle: 25 * Math.PI / 180,
+        projectilesFired: 9,
+        projectileVelocity: 640,
+        maxedOut: false,
+    },
 };

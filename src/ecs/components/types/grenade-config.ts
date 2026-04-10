@@ -12,5 +12,8 @@ export const GRENADE_CONFIG: WeaponConfig = {
     spriteName: SpriteName.GRENADE_1,
     pivotPointSprite: 0,
     fireRate: 100,
+    spreadAngle: null,
+    projectilesFired: null,
+    projectileVelocity: null,
     maxedOut: false,
 };

@@ -1,16 +1,25 @@
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
+import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { getBitmapTextSize } from "../../utils/get-bitmap-text-size.js";
 import { BitmapTextComponent } from "../components/bitmap-text.component.js";
 import { ShopInventoryState } from "../components/states/shop-inventory-state.js";
 import { ShopTabState } from "../components/states/shop-tab-state.js";
 import { ShopUpgradeTabState } from "../components/states/shop-upgrade-tab-state.js";
-import { ShopButtonState, ShopButtonType } from "../components/types/shop-button-config.js";
+import {
+    SHOP_BUTTON_CONFIG,
+    ShopButtonState,
+    ShopButtonType,
+} from "../components/types/shop-button-config.js";
 import { ShopDialogEvent } from "../components/types/shop-dialog-event.enum.js";
 import { SHOP_RESOURCE_ITEM_CONFIG, SHOP_RESOURCE_ITEMS_ORDER } from "../components/types/shop-resource-item-config.js";
 import { SHOP_TAB_CONFIG, SHOP_TABS_ORDER, ShopTabType } from "../components/types/shop-tab-config.js";
 import { SHOP_UI_TYPE_LAYOUT_PRESET, ShopUITypeLayoutPreset } from "../components/types/shop-ui-type-layout-preset.js";
 import { ShopUIEntryType, ShopUIType } from "../components/types/shop-ui-type.js";
-import { SHOP_UPGRADE_TAB_CONFIG, SHOP_UPGRADE_TABS_ORDER } from "../components/types/shop-upgrade-tab-config.js";
+import {
+    SHOP_UPGRADE_TAB_CONFIG,
+    SHOP_UPGRADE_TABS_ORDER,
+    type ShopUpgradeTabType,
+} from "../components/types/shop-upgrade-tab-config.js";
 import { SHOP_WEAPON_ITEM_CONFIG, SHOP_WEAPON_ITEMS_ORDER } from "../components/types/shop-weapon-item-config.js";
 import {
     getUpgradeValueIncrease,
@@ -26,9 +35,24 @@ import { UIManager } from "./ui-manager.js";
 const STEP_Y_WEAPON = 54;
 const STEP_X_TAB = 108;
 const STEP_Y_UPGRADE_ITEM = 56;
-const STEP_X_UPGRADE_TAB = 72;
 const SHOP_HIGH_MONEY_THRESHOLD = 2000;
 const SHOP_MEDIUM_MONEY_THRESHOLD = 750;
+const UPGRADE_TAB_TRACK_WIDTH = 302;
+const UPGRADE_TAB_TRACK_GAP = 8;
+const UPGRADE_TAB_NAV_WIDTH = 32;
+const UPGRADE_TAB_NAV_HEIGHT = 32;
+
+type UpgradeTabViewModel = {
+    activeTabType: ShopUpgradeTabType;
+    canNavigateLeft: boolean;
+    canNavigateRight: boolean;
+    leftNavOffsetX: number | null;
+    offsetY: number;
+    rightNavOffsetX: number | null;
+    tabOffsets: number[];
+    visibleTabs: ShopUpgradeTabType[];
+    uiAnchor: ShopUITypeLayoutPreset["anchor"];
+};
 
 export class ShopManager {
     private moneyTextEntityId: number | null = null;
@@ -177,41 +201,65 @@ export class ShopManager {
     }
 
     public createUpgradeTabButtons(): void {
-        const activeUpgradeTabType = this.shopUpgradeTabState.getActiveTabType();
-        const visibleUpgradeTabs = SHOP_UPGRADE_TABS_ORDER.filter((upgradeTabType) => {
-            const config = SHOP_UPGRADE_TAB_CONFIG[upgradeTabType];
-            return this.shopInventoryState.isWeaponOwned(config.weaponType);
-        });
-        const leftAlignedStartIndex = SHOP_UPGRADE_TABS_ORDER.length - visibleUpgradeTabs.length;
+        const viewModel = this.resolveUpgradeTabViewModel();
+        if (viewModel == null) {
+            return;
+        }
 
-        for (let index = 0; index < visibleUpgradeTabs.length; index++) {
-            const upgradeTabType = visibleUpgradeTabs[index];
-            const config = SHOP_UPGRADE_TAB_CONFIG[upgradeTabType];
-            const layout = this.resolveLayout(
-                ShopUIType.UPGRADE_TAB_BUTTON,
-                leftAlignedStartIndex + index,
+        if (viewModel.canNavigateLeft && viewModel.leftNavOffsetX != null) {
+            this.shopEntityFactory.createUpgradeTabNavigationButton(
+                ShopUIEntryType.BUTTON,
+                ShopUIType.UPGRADE_TAB_NAV_LEFT_BUTTON,
+                viewModel.uiAnchor,
+                viewModel.leftNavOffsetX,
+                viewModel.offsetY,
+                SpriteName.BUTTON_ARROW_LEFT,
+                UPGRADE_TAB_NAV_WIDTH,
+                UPGRADE_TAB_NAV_HEIGHT,
             );
-            const buttonState = upgradeTabType === activeUpgradeTabType
+        }
+
+        for (let index = 0; index < viewModel.visibleTabs.length; index++) {
+            const upgradeTabType = viewModel.visibleTabs[index];
+            const config = SHOP_UPGRADE_TAB_CONFIG[upgradeTabType];
+            const buttonState = upgradeTabType === viewModel.activeTabType
                 ? ShopButtonState.SELECTED
                 : ShopButtonState.NORMAL;
+
             this.shopEntityFactory.createUpgradeTabButton(
                 upgradeTabType,
                 ShopUIEntryType.BUTTON,
                 ShopUIType.UPGRADE_TAB_BUTTON,
-                layout.anchor,
-                layout.offsetX,
-                layout.offsetY,
+                viewModel.uiAnchor,
+                viewModel.tabOffsets[index],
+                viewModel.offsetY,
                 buttonState,
                 SpriteSheetName.BUTTONS,
                 config.weaponSprite,
             )
+        }
 
+        if (viewModel.canNavigateRight && viewModel.rightNavOffsetX != null) {
+            this.shopEntityFactory.createUpgradeTabNavigationButton(
+                ShopUIEntryType.BUTTON,
+                ShopUIType.UPGRADE_TAB_NAV_RIGHT_BUTTON,
+                viewModel.uiAnchor,
+                viewModel.rightNavOffsetX,
+                viewModel.offsetY,
+                SpriteName.BUTTON_ARROW_RIGHT,
+                UPGRADE_TAB_NAV_WIDTH,
+                UPGRADE_TAB_NAV_HEIGHT,
+            );
         }
     }
 
     public createUpgrades(): void {
-        const activeUpgradeTabType = this.shopUpgradeTabState.getActiveTabType();
-        const upgradedWeapon = SHOP_UPGRADE_TAB_CONFIG[activeUpgradeTabType].weaponType;
+        const viewModel = this.resolveUpgradeTabViewModel();
+        if (viewModel == null) {
+            return;
+        }
+
+        const upgradedWeapon = SHOP_UPGRADE_TAB_CONFIG[viewModel.activeTabType].weaponType;
         const shouldShowMaxedOutUpgrade = this.shopInventoryState.shouldShowWeaponMaxedOutUpgrade(upgradedWeapon);
         let visibleUpgradeIndex = 0;
 
@@ -238,7 +286,7 @@ export class ShopManager {
 
             this.shopEntityFactory.createUpgradeItem(
                 upgradeType,
-                activeUpgradeTabType,
+                viewModel.activeTabType,
                 upgradeLabel,
                 upgradeInfo,
                 buttonText,
@@ -250,6 +298,32 @@ export class ShopManager {
 
             visibleUpgradeIndex += 1;
         }
+    }
+
+    public navigateUpgradeTabWindow(direction: -1 | 1): boolean {
+        const displayTabs = this.getOwnedUpgradeTabsInDisplayOrder();
+        if (displayTabs.length === 0) {
+            return false;
+        }
+
+        const visibleCapacity = this.getVisibleUpgradeTabCapacity(displayTabs.length);
+        this.syncUpgradeTabState(displayTabs, visibleCapacity);
+
+        const didMove = this.shopUpgradeTabState.shiftVisibleWindow(
+            direction * visibleCapacity,
+            displayTabs.length,
+            visibleCapacity,
+        );
+
+        if (!didMove) {
+            return false;
+        }
+
+        return this.syncActiveUpgradeTabAfterWindowShift(
+            displayTabs,
+            visibleCapacity,
+            direction,
+        );
     }
 
     public createMoneyText(): void {
@@ -282,6 +356,176 @@ export class ShopManager {
         this.moneyTextEntityId = null;
     }
 
+    private resolveUpgradeTabViewModel(): UpgradeTabViewModel | null {
+        const displayTabs = this.getOwnedUpgradeTabsInDisplayOrder();
+        if (displayTabs.length === 0) {
+            return null;
+        }
+
+        const visibleCapacity = this.getVisibleUpgradeTabCapacity(displayTabs.length);
+        this.syncUpgradeTabState(displayTabs, visibleCapacity);
+
+        const windowStart = this.shopUpgradeTabState.getVisibleWindowStartIndex();
+        const visibleTabs = displayTabs.slice(windowStart, windowStart + visibleCapacity);
+        const canNavigateLeft = windowStart > 0;
+        const canNavigateRight = windowStart + visibleCapacity < displayTabs.length;
+        const tabLayout = this.buildUpgradeTabTrackLayout(
+            visibleTabs.length,
+            canNavigateLeft,
+            canNavigateRight,
+        );
+
+        return {
+            activeTabType: this.shopUpgradeTabState.getActiveTabType(),
+            canNavigateLeft,
+            canNavigateRight,
+            leftNavOffsetX: tabLayout.leftNavOffsetX,
+            offsetY: tabLayout.offsetY,
+            rightNavOffsetX: tabLayout.rightNavOffsetX,
+            tabOffsets: tabLayout.tabOffsets,
+            uiAnchor: tabLayout.uiAnchor,
+            visibleTabs,
+        };
+    }
+
+    private getOwnedUpgradeTabsInDisplayOrder(): ShopUpgradeTabType[] {
+        return SHOP_UPGRADE_TABS_ORDER
+            .filter((upgradeTabType) => {
+                const config = SHOP_UPGRADE_TAB_CONFIG[upgradeTabType];
+                return this.shopInventoryState.isWeaponOwned(config.weaponType);
+            })
+            .reverse();
+    }
+
+    private syncUpgradeTabState(
+        displayTabs: ShopUpgradeTabType[],
+        visibleCapacity: number,
+    ): void {
+        const activeTabType = this.shopUpgradeTabState.getActiveTabType();
+
+        if (displayTabs.indexOf(activeTabType) === -1) {
+            this.shopUpgradeTabState.setActiveTabType(displayTabs[0]);
+        }
+
+        this.shopUpgradeTabState.clampVisibleWindowStartIndex(displayTabs.length, visibleCapacity);
+
+        const activeIndex = displayTabs.indexOf(this.shopUpgradeTabState.getActiveTabType());
+        if (activeIndex >= 0) {
+            this.shopUpgradeTabState.ensureIndexVisible(
+                activeIndex,
+                displayTabs.length,
+                visibleCapacity,
+            );
+        }
+    }
+
+    private syncActiveUpgradeTabAfterWindowShift(
+        displayTabs: ShopUpgradeTabType[],
+        visibleCapacity: number,
+        direction: -1 | 1,
+    ): boolean {
+        const windowStart = this.shopUpgradeTabState.getVisibleWindowStartIndex();
+        const visibleTabs = displayTabs.slice(windowStart, windowStart + visibleCapacity);
+        const activeTabType = this.shopUpgradeTabState.getActiveTabType();
+
+        if (visibleTabs.indexOf(activeTabType) !== -1) {
+            return false;
+        }
+
+        const nextActiveTab = direction > 0
+            ? visibleTabs[0]
+            : visibleTabs[visibleTabs.length - 1];
+
+        if (nextActiveTab == null || nextActiveTab === activeTabType) {
+            return false;
+        }
+
+        this.shopUpgradeTabState.setActiveTabType(nextActiveTab);
+        return true;
+    }
+
+    private getVisibleUpgradeTabCapacity(totalTabs: number): number {
+        const capacityWithoutNavigation = this.calculateUpgradeTabCapacity(false);
+        if (totalTabs <= capacityWithoutNavigation) {
+            return capacityWithoutNavigation;
+        }
+
+        return this.calculateUpgradeTabCapacity(true);
+    }
+
+    private calculateUpgradeTabCapacity(useNavigation: boolean): number {
+        const tabWidth = SHOP_BUTTON_CONFIG[ShopButtonType.UPGRADE_TAB].width;
+        const reservedNavigationWidth = useNavigation
+            ? (UPGRADE_TAB_NAV_WIDTH * 2) + (UPGRADE_TAB_TRACK_GAP * 2)
+            : 0;
+        const availableWidth = UPGRADE_TAB_TRACK_WIDTH - reservedNavigationWidth;
+
+        return Math.max(
+            1,
+            Math.floor((availableWidth + UPGRADE_TAB_TRACK_GAP) / (tabWidth + UPGRADE_TAB_TRACK_GAP)),
+        );
+    }
+
+    private buildUpgradeTabTrackLayout(
+        visibleTabCount: number,
+        showLeftNavigation: boolean,
+        showRightNavigation: boolean,
+    ): Pick<
+        UpgradeTabViewModel,
+        "leftNavOffsetX" | "offsetY" | "rightNavOffsetX" | "tabOffsets" | "uiAnchor"
+    > {
+        const baseLayout = SHOP_UI_TYPE_LAYOUT_PRESET[ShopUIType.UPGRADE_TAB_BUTTON];
+        const tabWidth = SHOP_BUTTON_CONFIG[ShopButtonType.UPGRADE_TAB].width;
+        const trackRightInset = baseLayout.offsetX - tabWidth;
+        const elementTypes: Array<"left_nav" | "tab" | "right_nav"> = [];
+
+        if (showLeftNavigation) {
+            elementTypes.push("left_nav");
+        }
+
+        for (let index = 0; index < visibleTabCount; index++) {
+            elementTypes.push("tab");
+        }
+
+        if (showRightNavigation) {
+            elementTypes.push("right_nav");
+        }
+
+        const totalWidth = elementTypes.reduce((sum, elementType) => {
+            return sum + (elementType === "tab" ? tabWidth : UPGRADE_TAB_NAV_WIDTH);
+        }, 0) + Math.max(0, elementTypes.length - 1) * UPGRADE_TAB_TRACK_GAP;
+        const startPosition = Math.max(0, UPGRADE_TAB_TRACK_WIDTH - totalWidth);
+
+        let position = startPosition;
+        let leftNavOffsetX: number | null = null;
+        let rightNavOffsetX: number | null = null;
+        const tabOffsets: number[] = [];
+
+        for (let index = 0; index < elementTypes.length; index++) {
+            const elementType = elementTypes[index];
+            const offsetX = trackRightInset + UPGRADE_TAB_TRACK_WIDTH - position;
+
+            if (elementType === "left_nav") {
+                leftNavOffsetX = offsetX;
+            } else if (elementType === "right_nav") {
+                rightNavOffsetX = offsetX;
+            } else {
+                tabOffsets.push(offsetX);
+            }
+
+            position += (elementType === "tab" ? tabWidth : UPGRADE_TAB_NAV_WIDTH)
+                + UPGRADE_TAB_TRACK_GAP;
+        }
+
+        return {
+            leftNavOffsetX,
+            offsetY: baseLayout.offsetY,
+            rightNavOffsetX,
+            tabOffsets,
+            uiAnchor: baseLayout.anchor,
+        };
+    }
+
     private resolveLayout(
         type: ShopUIType,
         index?: number,
@@ -308,14 +552,6 @@ export class ShopManager {
             return {
                 anchor: base.anchor,
                 offsetX: base.offsetX,
-                offsetY: base.offsetY,
-            };
-        }
-
-        if (type === ShopUIType.UPGRADE_TAB_BUTTON && index !== undefined) {
-            return {
-                anchor: base.anchor,
-                offsetX: base.offsetX + STEP_X_UPGRADE_TAB * index,
                 offsetY: base.offsetY,
             };
         }

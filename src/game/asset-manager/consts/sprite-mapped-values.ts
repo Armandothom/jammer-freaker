@@ -35,7 +35,7 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
     SpriteSheetName.WEAPON,
     {
       rows: 1,
-      columns: 6,
+      columns: 7,
       eachSpriteCellSizeHeight: 16,
       eachSpriteCellSizeWidth: 32,
       srcImagePath: 'src/assets/images/weapons.png',
@@ -81,6 +81,13 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
           originalRenderSpriteHeight: 20,
           originalRenderSpriteWidth: 42,
           spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 16 }
+        }],
+        [SpriteName.SHOTGUN, {
+          row: 1,
+          column: 7,
+          originalRenderSpriteHeight: 16,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 1, width: 32, height: 16 }
         }],
       ])
     },
@@ -777,7 +784,7 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
     SpriteSheetName.RESOURCES_ICON,
     {
       rows: 1,
-      columns: 4,
+      columns: 6,
       eachSpriteCellSizeHeight: 32,
       eachSpriteCellSizeWidth: 32,
       srcImagePath: 'src/assets/images/resources_spritesheet.png',
@@ -809,6 +816,20 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
           originalRenderSpriteHeight: 32,
           originalRenderSpriteWidth: 32,
           spriteCellOffset: { offsetX: 2, offsetY: 0, width: 28, height: 32 }
+        }],
+        [SpriteName.SHOTGUN_SHELL_BOX_ICON, {
+          row: 1,
+          column: 5,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 31,
+          spriteCellOffset: { offsetX: 1, offsetY: 0, width: 31, height: 32 }
+        }],
+        [SpriteName.SHOTGUN_SHELL_ICON, {
+          row: 1,
+          column: 6,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 12,
+          spriteCellOffset: { offsetX: 9, offsetY: 0, width: 12, height: 32 }
         }],
       ])
     }
@@ -1041,6 +1062,33 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
           originalRenderSpriteHeight: 16,
           originalRenderSpriteWidth: 32,
           spriteCellOffset: { offsetX: 0, offsetY: 6, width: 32, height: 10 }
+        }],
+      ])
+    }
+  ],
+
+  [
+    SpriteSheetName.BUTTON_ARROWS,
+    {
+      rows: 1,
+      columns: 2,
+      eachSpriteCellSizeHeight: 32,
+      eachSpriteCellSizeWidth: 32,
+      srcImagePath: 'src/assets/images/buttons_arrow.png',
+      sprites: new Map([
+        [SpriteName.BUTTON_ARROW_RIGHT, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 17,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 17, height: 32 }
+        }],
+        [SpriteName.BUTTON_ARROW_LEFT, {
+          row: 1,
+          column: 2,
+          originalRenderSpriteHeight: 17,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 17, height: 32 }
         }],
       ])
     }
