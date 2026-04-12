@@ -1130,17 +1130,24 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
   ],
 
   [
-    SpriteSheetName.DEATH_PROMPT,
+    SpriteSheetName.END_LEVEL_PROMPTS,
     {
       rows: 1,
-      columns: 1,
+      columns: 2,
       eachSpriteCellSizeHeight: 150,
       eachSpriteCellSizeWidth: 200,
-      srcImagePath: 'src/assets/images/death-prompt.png',
+      srcImagePath: 'src/assets/images/end-level-prompt_spritesheet.png',
       sprites: new Map([
         [SpriteName.DEATH_PROMPT_1, {
           row: 1,
           column: 1,
+          originalRenderSpriteHeight: 150,
+          originalRenderSpriteWidth: 200,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 200, height: 150 }
+        }],
+        [SpriteName.VICTORY_PROMPT_1, {
+          row: 1,
+          column: 2,
           originalRenderSpriteHeight: 150,
           originalRenderSpriteWidth: 200,
           spriteCellOffset: { offsetX: 0, offsetY: 0, width: 200, height: 150 }

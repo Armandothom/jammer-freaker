@@ -1,7 +1,7 @@
 import { UINodeBinder } from "../../ui/binding/ui-node-binder.js";
 import { DeathPresenter } from "../../ui/presenters/death.presenter.js";
 import { UIRuntime } from "../../ui/runtime/ui-runtime.js";
-import { DEATH_SCREEN_NODE_IDS } from "../../ui/screens/death-screen-node-ids.js";
+import { DEATH_SCREEN_NODE_IDS } from "../../ui/screens/node-ids/death-screen-node-ids.js";
 import { UI_BUTTON_CONFIG, UIButtonState, UIButtonVariant } from "../../ui/style/ui-button-config.js";
 import { ISystem } from "./system.interface.js";
 
@@ -22,7 +22,7 @@ export class DeathRuntimeSystem implements ISystem {
         if (!viewModel.overlayVisible) {
             this.uiRuntime.popOverlay(this.screenId);
             return;
-        }
+        } // removes the overlay if the level didn't end by playerDeath
 
         this.uiRuntime.pushOverlay(this.screenId);
 

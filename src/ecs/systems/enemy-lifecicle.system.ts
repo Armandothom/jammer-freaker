@@ -77,17 +77,17 @@ export class EnemyLifecicleSystem implements ISystem {
     }
 
     async levelUpdate(enemySpawnTable: { name: string; quantity: number }[], currentLevel: number): Promise<void> {
-            if (currentLevel >= this.expectedLevel || this.expectedLevel === 1) {
-                if (currentLevel == 1) {
-                    this.initialEnemiesSpawn(enemySpawnTable);
-                } else {
-                    this.spawnDisabled = true;
-                    await this.killAllEnemies();
-                    this.spawnDisabled = false;
-                    this.initialEnemiesSpawn(enemySpawnTable);
-                }
-                this.expectedLevel = currentLevel + 1;
+        if (currentLevel >= this.expectedLevel || this.expectedLevel === 1) {
+            if (currentLevel == 1) {
+                this.initialEnemiesSpawn(enemySpawnTable);
+            } else {
+                this.spawnDisabled = true;
+                await this.killAllEnemies();
+                this.spawnDisabled = false;
+                this.initialEnemiesSpawn(enemySpawnTable);
             }
+            this.expectedLevel = currentLevel + 1;
+        }
     }
 
     spawnEnemy() {
@@ -194,7 +194,6 @@ export class EnemyLifecicleSystem implements ISystem {
         });
 
         const livingEnemyEntities = exclusiveA.concat(exclusiveB);
-        this.soundManager.playSound("A10_BARRAGE");
 
         await sleep(2);
         for (const livingEnemyEntity of livingEnemyEntities) {

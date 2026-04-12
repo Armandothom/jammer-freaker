@@ -1,5 +1,3 @@
-import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
-import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import {
   SHOP_RESOURCE_ITEM_CONFIG,
   SHOP_RESOURCE_ITEMS_ORDER,
@@ -14,6 +12,8 @@ import {
   SHOP_WEAPON_ITEMS_ORDER,
 } from "../../ecs/components/types/shop-weapon-item-config.js";
 import { WEAPON_UPGRADE_TYPES_ORDER } from "../../ecs/components/types/weapon-upgrade-config.js";
+import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
+import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import {
   createBuyResourceAction,
   createBuyUpgradeAction,
@@ -25,14 +25,14 @@ import {
 } from "../input/shop-ui-actions.js";
 import { createUINode } from "../runtime/ui-node.js";
 import type { UIScreen } from "../runtime/ui-screen.js";
-import { SHOP_NODE_IDS } from "./shop-node-ids.js";
 import { SHOP_SKIN_MAP } from "../style/shop-skin-map.js";
 import { UIButtonState, UIButtonVariant } from "../style/ui-button-config.js";
 import { createButtonWidget } from "../widgets/button.widget.js";
+import { createLegacyPointLayout, resolveLegacyAnchorLayout } from "../widgets/legacy-layout.js";
 import { createShopItemRowWidget } from "../widgets/shop-item-row.widget.js";
 import { createUpgradeItemRowWidget } from "../widgets/upgrade-item-row.widget.js";
 import { createUpgradeTabButtonWidget } from "../widgets/upgrade-tab-button.widget.js";
-import { createLegacyPointLayout, resolveLegacyAnchorLayout } from "../widgets/legacy-layout.js";
+import { SHOP_NODE_IDS } from "./node-ids/shop-node-ids.js";
 
 const MONEY_FORMATTER = new Intl.NumberFormat("en-US");
 

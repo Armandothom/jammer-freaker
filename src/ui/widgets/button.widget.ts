@@ -21,17 +21,21 @@ type ButtonWidgetProps = {
   offsetY: number;
   onClickAction?: UIAction;
   text: string;
+  width?: number;
+  height?: number;
 };
 
 export function createButtonWidget(props: ButtonWidgetProps): UINode {
   const buttonConfig = UI_BUTTON_CONFIG[props.buttonVariant];
+  const buttonWidth = props.width ?? buttonConfig.width;
+  const buttonHeight = props.height ?? buttonConfig.height;
   const layout = props.legacyAnchor
     ? resolveLegacyAnchorLayout(
       props.anchor,
       props.offsetX,
       props.offsetY,
-      buttonConfig.width,
-      buttonConfig.height,
+      buttonWidth,
+      buttonHeight,
     )
     : {
       anchor: props.anchor,
@@ -56,15 +60,15 @@ export function createButtonWidget(props: ButtonWidgetProps): UINode {
     },
     visual: {
       sprite: {
-        height: buttonConfig.height,
+        height: buttonHeight,
         spriteName: buttonConfig.states[props.buttonState].spriteName,
         spriteSheetName: SpriteSheetName.BUTTONS,
-        width: buttonConfig.width,
+        width: buttonWidth,
       },
       text: {
         autoWrap: false,
         horizontalAlign: "center",
-        maxWidth: buttonConfig.width,
+        maxWidth: buttonWidth,
         text: props.text,
       },
     },

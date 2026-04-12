@@ -18,21 +18,31 @@ import { UIManager } from "./ui-manager.js";
 
 export enum LevelEndReason {
     PlayerDeath = "player_death",
-    Success = "success",
+    Victory = "victory",
     Abort = "abort",
     Reset = "reset"
+}
+
+export type LevelStats = {
+    time: string,
+    enemiesKilled: number,
+    currentMoney: number,
+    extraMoney: number,
 }
 
 export class LevelManager {
     public previousLevel = 0;
     public levelNumber: number;
+    public levelBuildId = 0;
     public levelUpdatePending = false;
+    public levelStats: LevelStats;
     private currentLevelEndReason: LevelEndReason | null = null;
     private currentLevelInitialInventorySnapshot: InventorySnapshot | null = null;
     private pressedKeys = new Set<string>();
     private previousPressedKeys = new Set<string>();
     private gameManager: GameManager | null = null;
     private nextPlayerInventorySnapshot: InventorySnapshot | null = null;
+    private stateTransitionRequested = false;
 
     constructor(
         private enemyLifecicleSystem: EnemyLifecicleSystem,
@@ -49,6 +59,12 @@ export class LevelManager {
         private uiManager: UIManager,
     ) {
         this.levelNumber = this.previousLevel;
+        this.levelStats = {
+            time: "",
+            enemiesKilled: 0,
+            currentMoney: 0,
+            extraMoney: 0,
+        };
         window.addEventListener("keydown", this.onKeyDown);
         window.addEventListener("keyup", this.onKeyUp);
     }
@@ -64,6 +80,20 @@ export class LevelManager {
         this.advanceToNextLevel();
     }
 
+    public startNextLevelWithCurrentInventory(): void {
+        this.startNextLevelWithInventorySnapshot(this.captureCurrentPlayerInventorySnapshot());
+    }
+
+    public requestShopState(): boolean {
+        if (!this.gameManager) {
+            return false;
+        }
+
+        this.gameManager.requestShopState();
+        this.stateTransitionRequested = true;
+        return true;
+    }
+
     public retryCurrentLevel(): void {
         this.nextPlayerInventorySnapshot = this.cloneInventorySnapshot(this.currentLevelInitialInventorySnapshot);
         this.rebuildLevel();
@@ -75,6 +105,15 @@ export class LevelManager {
 
     private rebuildLevel(): void {
         this.endCurrentLevel(LevelEndReason.Reset);
+        this.levelBuildId += 1;
+        this.levelUpdatePending = false;
+        this.tilemapManager.clearLevelGeometry();
+        this.levelStats = {
+            time: "",
+            enemiesKilled: 0,
+            currentMoney: 0,
+            extraMoney: 0,
+        };
 
         const levelResult = this.zoneFactory.generateLevel({
             levelNumber: this.levelNumber,
@@ -100,7 +139,7 @@ export class LevelManager {
                 // defeat logic
                 break;
 
-            case LevelEndReason.Success:
+            case LevelEndReason.Victory:
                 // victory logic
                 break;
             case LevelEndReason.Reset:
@@ -117,16 +156,17 @@ export class LevelManager {
     }
 
     public updateStateTransitions(): boolean {
-        const shouldEnterShopState = this.wasKeyPressedThisFrame("Digit0");
+        const shouldCompleteLevel = this.wasKeyPressedThisFrame("Digit0");
+        const shouldShortCircuitFrame = this.stateTransitionRequested;
+        this.stateTransitionRequested = false;
 
         this.syncInputFrame();
 
-        if (!shouldEnterShopState || !this.gameManager) {
-            return false;
+        if (shouldCompleteLevel) {
+            this.levelUpdatePending = true;
         }
 
-        this.gameManager.requestShopState();
-        return true;
+        return shouldShortCircuitFrame;
     }
 
     private spawnPlayer(levelResult: WorldLevelResult): void {

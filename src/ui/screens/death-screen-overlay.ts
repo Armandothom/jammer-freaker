@@ -7,7 +7,7 @@ import {
     UIButtonVariant,
 } from "../style/ui-button-config.js";
 import { createButtonWidget } from "../widgets/button.widget.js";
-import { DEATH_SCREEN_NODE_IDS } from "./death-screen-node-ids.js";
+import { DEATH_SCREEN_NODE_IDS } from "./node-ids/death-screen-node-ids.js";
 
 export class DeathScreenOverlay implements UIScreen {
     public readonly id = "death_screen";

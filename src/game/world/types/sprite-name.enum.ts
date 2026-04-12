@@ -115,4 +115,5 @@ export enum SpriteName {
   ENEMY_DEAD_1 = "enemy_dead_1",
   COLOR_DIM_BLACK = "color_dim_black",
   DEATH_PROMPT_1 = "DEATH_PROMPT_1",
+  VICTORY_PROMPT_1 = "VICTORY_PROMPT_1",
 }

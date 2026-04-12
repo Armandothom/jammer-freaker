@@ -10,7 +10,7 @@ export class DeathPresenter {
     }
 
     public buildViewModel(): DeathViewModel {
-        const overlayVisible = this.levelManager.getCurrentLevelEndReason() === LevelEndReason.PlayerDeath;
+        const overlayVisible = this.levelManager.getCurrentLevelEndReason() === LevelEndReason.PlayerDeath; // checks every frame if the level should end by this reason.
         const promptText = DEATH_SCREEN_SKIN_MAP.deathPrompt.text;
 
         return {

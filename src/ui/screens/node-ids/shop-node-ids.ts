@@ -1,8 +1,8 @@
-import type { ShopResourceItemType } from "../../ecs/components/types/shop-resource-item-config.js";
-import type { ShopTabType } from "../../ecs/components/types/shop-tab-config.js";
-import type { ShopUpgradeTabType } from "../../ecs/components/types/shop-upgrade-tab-config.js";
-import type { ShopWeaponItemType } from "../../ecs/components/types/shop-weapon-item-config.js";
-import type { WeaponUpgradeType } from "../../ecs/components/types/weapon-upgrade-config.js";
+import type { ShopResourceItemType } from "../../../ecs/components/types/shop-resource-item-config.js";
+import type { ShopTabType } from "../../../ecs/components/types/shop-tab-config.js";
+import type { ShopUpgradeTabType } from "../../../ecs/components/types/shop-upgrade-tab-config.js";
+import type { ShopWeaponItemType } from "../../../ecs/components/types/shop-weapon-item-config.js";
+import type { WeaponUpgradeType } from "../../../ecs/components/types/weapon-upgrade-config.js";
 
 function createItemNodeIds(prefix: string) {
   return {

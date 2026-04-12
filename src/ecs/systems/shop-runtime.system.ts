@@ -1,12 +1,12 @@
 import { UINodeBinder } from "../../ui/binding/ui-node-binder.js";
 import { ShopPresenter } from "../../ui/presenters/shop.presenter.js";
 import { UIRuntime } from "../../ui/runtime/ui-runtime.js";
+import { SHOP_NODE_IDS } from "../../ui/screens/node-ids/shop-node-ids.js";
 import {
   UI_BUTTON_CONFIG,
   UIButtonState,
   UIButtonVariant,
 } from "../../ui/style/ui-button-config.js";
-import { SHOP_NODE_IDS } from "../../ui/screens/shop-node-ids.js";
 import { ShopTabType } from "../components/types/shop-tab-config.js";
 import { ISystem } from "./system.interface.js";
 

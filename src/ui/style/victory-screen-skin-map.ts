@@ -2,7 +2,7 @@ import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-nam
 import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { UIAnchor } from "../layout/ui-layout-types.js";
 
-export const DEATH_SCREEN_SKIN_MAP = {
+export const VICTORY_SCREEN_SKIN_MAP = {
   background: {
     anchor: "top-left" as UIAnchor,
     height: "fill",
@@ -12,27 +12,38 @@ export const DEATH_SCREEN_SKIN_MAP = {
     spriteSheetName: SpriteSheetName.COLOR_PALLETE,
     width: "fill",
   },
-  deathPrompt: {
+  victoryPrompt: {
     anchor: "center" as UIAnchor,
-    height: 150,
+    height: 225,
     offsetX: 0,
     offsetY: 0,
-    spriteName: SpriteName.DEATH_PROMPT_1,
+    spriteName: SpriteName.VICTORY_PROMPT_1,
     spriteSheetName: SpriteSheetName.END_LEVEL_PROMPTS,
-    text: "Mission Failed",
+    text: "Mission Sucess",
     textOffsetY: 36,
-    width: 200,
+    width: 250,
   },
-  retryButton: {
+  missionStats: {
+    anchor: "center" as UIAnchor,
+    offsetX: 0,
+    offsetY: 0,
+    width: 220,
+    text: "Time: 00:00\nKills: 0\nMoney: $0",
+    horizontalAlign: "center" as const,
+    autoWrap: false,
+  },
+
+  nextMissionButton: {
     anchor: "bottom-left" as UIAnchor,
-    offsetX: 18,
+    offsetX: 24,
     offsetY: 20,
-    text: "Retry",
+    text: "Next Mission",
+    width: 120,
   },
-  quitButton: {
+  goToShopButton: {
     anchor: "bottom-right" as UIAnchor,
     offsetX: 18,
     offsetY: 20,
-    text: "Quit",
+    text: "Shop",
   },
 } as const;

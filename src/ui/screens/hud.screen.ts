@@ -1,10 +1,10 @@
 import { createUINode } from "../runtime/ui-node.js";
 import type { UIScreen } from "../runtime/ui-screen.js";
 import { HUD_SKIN_MAP } from "../style/hud-skin-map.js";
-import { HUD_NODE_IDS } from "./hud-node-ids.js";
 import { createProgressBarWidget } from "../widgets/progress-bar.widget.js";
 import { createResourceCounterWidget } from "../widgets/resource-counter.widget.js";
 import { createWeaponPanelWidget } from "../widgets/weapon-panel.widget.js";
+import { HUD_NODE_IDS } from "./node-ids/hud-node-ids.js";
 
 export class HudScreen implements UIScreen {
   public readonly id = "hud";

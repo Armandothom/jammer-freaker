@@ -1,8 +1,8 @@
 import { UINodeBinder } from "../../ui/binding/ui-node-binder.js";
-import { HUD_NODE_IDS } from "../../ui/screens/hud-node-ids.js";
-import { HUD_SKIN_MAP } from "../../ui/style/hud-skin-map.js";
-import { UIRuntime } from "../../ui/runtime/ui-runtime.js";
 import { HudPresenter } from "../../ui/presenters/hud.presenter.js";
+import { UIRuntime } from "../../ui/runtime/ui-runtime.js";
+import { HUD_NODE_IDS } from "../../ui/screens/node-ids/hud-node-ids.js";
+import { HUD_SKIN_MAP } from "../../ui/style/hud-skin-map.js";
 import { ISystem } from "./system.interface.js";
 
 export class HudRuntimeSystem implements ISystem {

@@ -1,4 +1,6 @@
-import { SoundManager } from "../../game/asset-manager/sound-manager.js";
+
+import { SOUND_KEYS } from "../../game/asset-manager/consts/sound-mapped.values.js";
+import { SoundEventBus } from "../../game/audio/sound-event-bus.js";
 import { InventoryComponent } from "../components/inventory-component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { ReloadIntentComponent } from "../components/reload-intent.component.js";
@@ -12,10 +14,9 @@ const keys: Record<string, boolean> = {};
 
 export class ReloadSystem implements ISystem {
     private reloadElapsedTime = 0;
-    private soundFlag = false
 
     constructor(
-        private soundManager: SoundManager,
+        private soundEventBus: SoundEventBus,
         private inventoryManager: InventoryManager,
         private reloadIntentComponentStore: ComponentStore<ReloadIntentComponent>,
         private playerComponentStore: ComponentStore<PlayerComponent>,
@@ -29,6 +30,7 @@ export class ReloadSystem implements ISystem {
         const inventory = this.inventoryComponentStore.get(playerEntity);
 
         if (!this.reloadIntentComponentStore.has(playerEntity)) {
+            this.resetReloadTimer();
             this.getInputForReload();
         }
 
@@ -37,14 +39,19 @@ export class ReloadSystem implements ISystem {
             const magConsumed = this.inventoryManager.getAmmoResourceTypeForWeapon(reloadedWeapon);
             if (this.inventoryManager.getResourceAmount(inventory, magConsumed) == 0) {
                 console.log("No more mags for this weapon");
+                this.reloadIntentComponentStore.remove(playerEntity);
+                this.resetReloadTimer();
                 return;
             }
 
-            if (!this.soundFlag) {
-                this.soundFlag = true;
-                this.soundManager.playSound("RIFLE_RELOAD");
-            }
             const endReloadTime = this.reloadIntentComponentStore.get(playerEntity).endReloadTime;
+            this.soundEventBus.emitSound({
+                key: SOUND_KEYS.RIFLE_RELOAD,
+                requestId: `reload:${playerEntity}`,
+                mode: "cooldown",
+                cooldownMs: endReloadTime * 1000,
+            });
+
             this.reloadElapsedTime += deltaTime;
             const previousTime = this.reloadElapsedTime - deltaTime
             if (previousTime < endReloadTime && this.reloadElapsedTime >= endReloadTime) {
@@ -55,8 +62,7 @@ export class ReloadSystem implements ISystem {
                     : WeaponConfig[reloadedWeapon].maxBullets;
                 const roundsToAdd = maxBullets - this.inventoryManager.getRoundsInMag(inventory, reloadedWeapon);
                 this.inventoryManager.addRoundsInMag(inventory, reloadedWeapon, roundsToAdd);
-                this.reloadElapsedTime = 0;
-                this.soundFlag = false;
+                this.resetReloadTimer();
             }
         }
     }
@@ -71,6 +77,10 @@ export class ReloadSystem implements ISystem {
         if (keys["r"] || keys["R"]) {
             this.reloadIntentComponentStore.add(playerEntity, new ReloadIntentComponent(reloadTime, weaponWielded));
         }
+    }
+
+    private resetReloadTimer(): void {
+        this.reloadElapsedTime = 0;
     }
 }
 

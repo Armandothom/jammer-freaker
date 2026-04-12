@@ -1,7 +1,8 @@
-import { SoundManager } from "../../game/asset-manager/sound-manager.js";
+import { SOUND_KEYS, SOUND_VOLUME } from "../../game/asset-manager/consts/sound-mapped.values.js";
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
+import { SoundEventBus } from "../../game/audio/sound-event-bus.js";
 import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { BulletFiredComponent } from "../components/bullet-fired.component.js";
 import { DamageDealtComponent } from "../components/damage-dealt.component.js";
@@ -21,7 +22,7 @@ import { ISystem } from "./system.interface.js";
 export class ProjectileSpawnSystem implements ISystem {
     constructor(
         private spriteManager: SpriteManager,
-        private soundManager: SoundManager,
+        private soundEventBus: SoundEventBus,
         private positionComponentStore: ComponentStore<PositionComponent>,
         private attachedSpriteComponent: ComponentStore<WeaponSpriteAttachmentComponent>,
         private entityFactory: EntityFactory,
@@ -78,11 +79,19 @@ export class ProjectileSpawnSystem implements ISystem {
                         0.05, // hardcoded minimum angle step
                         angle,
                     );
+                    this.soundEventBus.emitSound({
+                        key: SOUND_KEYS.SHOTGUN_FIRE,
+                        volume: SOUND_VOLUME.SHOTGUN_FIRE,
+                    });
                     for (const projectile of projectileAnglesResult) {
                         const projectileVelocity = this.randomizeProjectileVelocity(weaponStats.projectileVelocity!, 10);
                         this.spawnProjectile(projectile.dir, attachedWeapon, damage, projectileVelocity, true);
                     }
                 } else {
+                    this.soundEventBus.emitSound({
+                        key: SOUND_KEYS.SMG_FIRE,
+                        volume: SOUND_VOLUME.SMG_FIRE
+                    });
                     this.spawnProjectile(dir, attachedWeapon, damage, weaponStats.projectileVelocity!, true); // last variable: fired by player, check if it is used
                 }
                 this.bulletFiredComponentStore.add(playerEntity, new BulletFiredComponent());
@@ -133,7 +142,6 @@ export class ProjectileSpawnSystem implements ISystem {
         firedByPlayer: boolean,
 
     ): void {
-        this.soundManager.playSound("SMG_FIRE");
         const bulletSpriteProperties = this.spriteManager.getSpriteProperties(SpriteName.BULLET_1, SpriteSheetName.PROJECTILE)!;
         const bulletWidth = bulletSpriteProperties.sprite.originalRenderSpriteWidth;
         const bulletHeight = bulletSpriteProperties.sprite.originalRenderSpriteHeight;
