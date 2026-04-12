@@ -40,28 +40,37 @@ export class AiMovementBehaviorSystem implements ISystem {
             const dx = pathTarget.x - position.x;
             const dy = pathTarget.y - position.y;
             const magnitudeOriginToTarget = this.getMagnitudeBetweenPoints(dx, dy);
-            const xNewPosition = position.x + ((dx / magnitudeOriginToTarget) * velocity.currentVelocityX);
-            const yNewPosition = position.y + ((dy / magnitudeOriginToTarget) * velocity.currentVelocityY);
-            if(this.collisionLastFrameComponent.has(entityId)) {
+            let xIntentPosition = position.x + ((dx / magnitudeOriginToTarget) * velocity.currentVelocityX);
+            let yIntentPosition = position.y + ((dy / magnitudeOriginToTarget) * velocity.currentVelocityY);
+            const collisionLastFrame = this.collisionLastFrameComponent.getOrNull(entityId);
+            if(this.hasSurroundingEntityObstacles(value, entityId) || (collisionLastFrame && collisionLastFrame.entityCollision)) {
                 console.log("had collision")
                 const finalPathTarget = value.pathList[value.pathList.length - 1];
-                const surroundingObstacles = this.getSurroundingEntityObstacles(xNewPosition, yNewPosition, entityId);
+                const surroundingObstacles = this.getSurroundingEntityObstacles(xIntentPosition, yIntentPosition, entityId);
                 const newPathList = this.pathFindingManager.computePath(position.x, position.y, finalPathTarget.x, finalPathTarget.y, surroundingObstacles);
                 if(newPathList) {
                     this.aiMovementOrderComponent.add(entityId, new AIMovementOrderComponent(newPathList));
                 }
                 continue;
             }
-            const dxNewPos = position.x - xNewPosition;
-            const dYNewPos = position.y - yNewPosition;
-            const magnitudeOriginToNewPos = this.getMagnitudeBetweenPoints(dxNewPos, dYNewPos);
-            if(magnitudeOriginToNewPos > magnitudeOriginToTarget) {
+            const remainingPathDxPos = position.x - pathTarget.x;
+            const remainingPathDyPos = position.y - pathTarget.y;
+            const dxIntentPosition = position.x - xIntentPosition;
+            const dyIntentPosition = position.y - yIntentPosition;
+            if(Math.abs(remainingPathDxPos) < Math.abs(dxIntentPosition)) {
+                xIntentPosition = pathTarget.x;
+            }
+            if(Math.abs(remainingPathDyPos) < Math.abs(dyIntentPosition)) {
+                yIntentPosition = pathTarget.y;
+            }
+            const magnitudeOriginToNewPos = this.getMagnitudeBetweenPoints(dxIntentPosition, dyIntentPosition);
+            if(magnitudeOriginToNewPos >= magnitudeOriginToTarget) {
                 value.pathList.shift();
                 if(value.pathList.length == 0) {
                     this.aiMovementOrderComponent.remove(entityId);
                 }
             }
-            this.movementIntentComponent.add(entityId, new MovementIntentComponent(xNewPosition, yNewPosition));
+            this.movementIntentComponent.add(entityId, new MovementIntentComponent(xIntentPosition, yIntentPosition));
             this.paintAiPath(value);
         };
     }

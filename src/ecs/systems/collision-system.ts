@@ -66,14 +66,14 @@ export class CollisionSystem implements ISystem {
                 if (this.grenadeComponentStore.has(entity)) {
                     this.stopGrenade(entity);
                 } else {
-                    this.collisionLastFrameComponentStore.add(entity, new CollisionLastFrameComponent(CoreManager.timeGlobalSinceStart));
+                    this.collisionLastFrameComponentStore.add(entity, new CollisionLastFrameComponent(CoreManager.timeGlobalSinceStart, true));
                     this.movementIntentComponentStore.remove(entity);
                 }
                 continue;
             }
 
             if (this.wouldCollideWithWall(intendedRect)) {
-                this.collisionLastFrameComponentStore.add(entity, new CollisionLastFrameComponent(CoreManager.timeGlobalSinceStart));
+                this.collisionLastFrameComponentStore.add(entity, new CollisionLastFrameComponent(CoreManager.timeGlobalSinceStart, false));
                 this.handleWallCollision(entity);
             }
         }
