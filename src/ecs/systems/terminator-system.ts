@@ -1,4 +1,5 @@
 
+import { CollisionLastFrameComponent } from "../components/collision-last-frame.component.js";
 import { EnemyDeadComponent } from "../components/enemy-dead.component.js";
 import { GrenadeCooldownComponent } from "../components/grenade-cooldown.component.js";
 import { IntentClickComponent } from "../components/intent-click.component.js";
@@ -23,6 +24,7 @@ export class TerminatorSystem implements ISystem {
         private entityFactory: EntityFactory,
         private clickIntentComponentStore: ComponentStore<IntentClickComponent>,
         private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
+        private collisionLastFrameComponentStore: ComponentStore<CollisionLastFrameComponent>,
         private shootingCooldownComponentStore: ComponentStore<ShootingCooldownComponent>,
         private intentShotComponentStore: ComponentStore<IntentShotComponent>,
         private wallHitComponentStore: ComponentStore<WallHitComponent>,
@@ -80,6 +82,14 @@ export class TerminatorSystem implements ISystem {
             }
         }
 
+        const collisionLastFrameEntities = this.collisionLastFrameComponentStore.getAllEntities();
+        for (const collisonLastFrameEntity of collisionLastFrameEntities) {
+            const collisionLastFrame = this.collisionLastFrameComponentStore.get(collisonLastFrameEntity);
+            if (collisionLastFrame.registeredTime < CoreManager.timeGlobalSinceStart) {
+                this.collisionLastFrameComponentStore.remove(collisonLastFrameEntity);
+            }
+        }
+
         // const projectileCompletedAnimEntities = this.wallHitComponentStore.getAllEntities();
         // for (const projectileCompletedAnimEntity of projectileCompletedAnimEntities) {
         //     this.wallHitComponentStore.get(projectileCompletedAnimEntity).animEndTime -= deltaTime;
@@ -96,5 +106,6 @@ export class TerminatorSystem implements ISystem {
                 this.entityFactory.destroyCollisionShape(shape);
             }
         }
+
     }
 }

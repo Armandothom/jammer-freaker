@@ -336,6 +336,22 @@ export class WorldTilemapManager {
     return `${x}_${y}`;
   }
 
+  public getTileFromKey(key : string): { tileX: number; tileY: number } | null {
+    const splitted = key.split("_");
+    if(splitted.length != 2) {
+      return null;
+    }
+    const tileX = Number(splitted[0]);
+    const tileY = Number(splitted[1]);
+    if(isNaN(tileX) || isNaN(tileY)) {
+      return null;
+    }
+    return {
+      tileX : Number(splitted[0]),
+      tileY : Number(splitted[1])
+    }
+  }
+
   private resetTilemapToGround(): void {
     for (const tile of this._tilemap.values()) {
       tile.spriteName = SpriteName.METAL_1;

@@ -1,5 +1,6 @@
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
+import { CollisionLastFrameComponent } from "../components/collision-last-frame.component.js";
 import { CollisionBoxComponent } from "../components/collision-box-component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
 import { GrenadeComponent } from "../components/grenade-component.js";
@@ -13,6 +14,7 @@ import { VelocityComponent } from "../components/velocity-component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityFactory } from "../entities/entity-factory.js";
 import { ISystem } from "./system.interface.js";
+import { CoreManager } from "../core/core-manager.js";
 
 type Rect = {
     left: number;
@@ -27,6 +29,7 @@ export class CollisionSystem implements ISystem {
         private positionComponentStore: ComponentStore<PositionComponent>,
         private collisionBoxComponentStore: ComponentStore<CollisionBoxComponent>,
         private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
+        private collisionLastFrameComponentStore: ComponentStore<CollisionLastFrameComponent>,
         private projectileComponentStore: ComponentStore<ProjectileComponent>,
         private grenadeComponentStore: ComponentStore<GrenadeComponent>,
         private velocityComponentStore: ComponentStore<VelocityComponent>,
@@ -38,7 +41,7 @@ export class CollisionSystem implements ISystem {
         private entityFactory: EntityFactory,
     ) { }
 
-    update(_: number): void {
+    update(frameMs: number): void {
         for (const entity of this.movementIntentComponentStore.getAllEntities()) {
             const intent = this.movementIntentComponentStore.getOrNull(entity);
             if (!intent) continue;
@@ -63,12 +66,14 @@ export class CollisionSystem implements ISystem {
                 if (this.grenadeComponentStore.has(entity)) {
                     this.stopGrenade(entity);
                 } else {
+                    this.collisionLastFrameComponentStore.add(entity, new CollisionLastFrameComponent(CoreManager.timeGlobalSinceStart));
                     this.movementIntentComponentStore.remove(entity);
                 }
                 continue;
             }
 
             if (this.wouldCollideWithWall(intendedRect)) {
+                this.collisionLastFrameComponentStore.add(entity, new CollisionLastFrameComponent(CoreManager.timeGlobalSinceStart));
                 this.handleWallCollision(entity);
             }
         }

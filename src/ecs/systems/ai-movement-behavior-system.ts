@@ -3,6 +3,7 @@ import { CollisionManager } from "../../game/world/collision-manager.js";
 import { PathFindingManager } from "../../game/world/pathfinding-manager.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { AIMovementOrderComponent } from "../components/ai-movement-order.component.js";
+import { CollisionLastFrameComponent } from "../components/collision-last-frame.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PathFindingObstacleComponent } from "../components/pathfinding-obstacle.component.js";
 import { PositionComponent } from "../components/position.component.js";
@@ -23,6 +24,7 @@ export class AiMovementBehaviorSystem implements ISystem {
         private velocityComponent: ComponentStore<VelocityComponent>,
         private aiMovementOrderComponent: ComponentStore<AIMovementOrderComponent>,
         private movementIntentComponent: ComponentStore<MovementIntentComponent>,
+        private collisionLastFrameComponent: ComponentStore<CollisionLastFrameComponent>,
         private debugAiInput : DebugManager,
         private worldTilemapManager : WorldTilemapManager,
         private pathFindingManager : PathFindingManager,
@@ -40,7 +42,8 @@ export class AiMovementBehaviorSystem implements ISystem {
             const magnitudeOriginToTarget = this.getMagnitudeBetweenPoints(dx, dy);
             const xNewPosition = position.x + ((dx / magnitudeOriginToTarget) * velocity.currentVelocityX);
             const yNewPosition = position.y + ((dy / magnitudeOriginToTarget) * velocity.currentVelocityY);
-            if(this.hasSurroundingEntityObstacles(xNewPosition, yNewPosition, value, entityId)) {
+            if(this.collisionLastFrameComponent.has(entityId)) {
+                console.log("had collision")
                 const finalPathTarget = value.pathList[value.pathList.length - 1];
                 const surroundingObstacles = this.getSurroundingEntityObstacles(xNewPosition, yNewPosition, entityId);
                 const newPathList = this.pathFindingManager.computePath(position.x, position.y, finalPathTarget.x, finalPathTarget.y, surroundingObstacles);
@@ -63,7 +66,7 @@ export class AiMovementBehaviorSystem implements ISystem {
         };
     }
 
-    private hasSurroundingEntityObstacles(x : number, y : number, aiMovementOrder : AIMovementOrderComponent, entityTargetId : number) : boolean {
+    private hasSurroundingEntityObstacles(aiMovementOrder : AIMovementOrderComponent, entityTargetId : number) : boolean {
         const nextPathTile = this.worldTilemapManager.worldToTile(aiMovementOrder.pathList[0].x, aiMovementOrder.pathList[0].y)
         const nextPathKey = this.worldTilemapManager.setTilemapKey(nextPathTile.tileX, nextPathTile.tileY);
         for (const [entityId, entityObstacles] of this._mappedEntityObstaclesCoordinates) {
@@ -79,33 +82,39 @@ export class AiMovementBehaviorSystem implements ISystem {
     }
 
 
-    private getSurroundingEntityObstacles(x : number, y : number, entityTargetId : number) : Set<string> {
+    private getSurroundingEntityObstacles(x: number, y: number, entityTargetId: number): Set<string> {
         const obstacles = new Set<string>();
         for (const [entityId, entityObstacles] of this._mappedEntityObstaclesCoordinates) {
-            if(entityId == entityTargetId) {
+            if (entityId == entityTargetId) {
                 continue;
             }
             for (const obstacle of Array.from(entityObstacles.values())) {
                 obstacles.add(obstacle);
             }
         }
-        const positionTile = this.worldTilemapManager.worldToTile(x, y);
-        const tileX = positionTile.tileX;
-        const tileY = positionTile.tileY;
-        const surroundingTiles = new Set<string>([
-            this.worldTilemapManager.setTilemapKey(tileX + 0, tileY + -1), // top
-            this.worldTilemapManager.setTilemapKey(tileX + 1, tileY + 0),  // right
-            this.worldTilemapManager.setTilemapKey(tileX + 0, tileY + 1),  // bottom
-            this.worldTilemapManager.setTilemapKey(tileX + -1, tileY + 0), // left
-            this.worldTilemapManager.setTilemapKey(tileX + 1, tileY + -1), // diagonal top-right
-            this.worldTilemapManager.setTilemapKey(tileX + 1, tileY + 1),  // diagonal bottom-right
-            this.worldTilemapManager.setTilemapKey(tileX + -1, tileY + 1), // diagonal bottom-left
-            this.worldTilemapManager.setTilemapKey(tileX + -1, tileY + -1) // diagonal top-left
-        ]);
+        const movingEntityOccupyingTiles = this.collisionManager.detectEntityOccupiedTiles(entityTargetId);
         const surroundingObstacles = new Set<string>();
-        for (const surroundingTile of Array.from(surroundingTiles.values())) {
-            if(obstacles.has(surroundingTile)) {
-                surroundingObstacles.add(surroundingTile);
+        for (const movingEntityOccupyingTileKey of movingEntityOccupyingTiles) {
+            const tile = this.worldTilemapManager.getTileFromKey(movingEntityOccupyingTileKey);
+            if (!tile) {
+                continue;
+            }
+            const { tileX, tileY } = tile;
+            const surroundingTiles = new Set<string>([
+                this.worldTilemapManager.setTilemapKey(tileX, tileY), //own position
+                this.worldTilemapManager.setTilemapKey(tileX + 0, tileY + -1), // top
+                this.worldTilemapManager.setTilemapKey(tileX + 1, tileY + 0),  // right
+                this.worldTilemapManager.setTilemapKey(tileX + 0, tileY + 1),  // bottom
+                this.worldTilemapManager.setTilemapKey(tileX + -1, tileY + 0), // left
+                this.worldTilemapManager.setTilemapKey(tileX + 1, tileY + -1), // diagonal top-right
+                this.worldTilemapManager.setTilemapKey(tileX + 1, tileY + 1),  // diagonal bottom-right
+                this.worldTilemapManager.setTilemapKey(tileX + -1, tileY + 1), // diagonal bottom-left
+                this.worldTilemapManager.setTilemapKey(tileX + -1, tileY + -1) // diagonal top-left
+            ]);
+            for (const surroundingTile of Array.from(surroundingTiles.values())) {
+                if (obstacles.has(surroundingTile)) {
+                    surroundingObstacles.add(surroundingTile);
+                }
             }
         }
         return surroundingObstacles;

@@ -11,7 +11,8 @@ export class PathFindingManager {
   //Using A* algorithm, we transform the coords from world to tile, and then after from tile to world
   computePath(xWorldOrigin: number, yWorldOrigin: number, xWorldTarget: number, yWorldTarget: number, additionalObstacles? : Set<string>) {
     const tilemapInfo = this.worldTilemapManager.getTilemapPathInformation();
-    const tileOrigin = this.worldTilemapManager.worldToTile(xWorldOrigin, yWorldOrigin);
+    const offsetCenterTile = this.worldTilemapManager.tileSize / 2;
+    const tileOrigin = this.worldTilemapManager.worldToTile(xWorldOrigin + offsetCenterTile, yWorldOrigin + offsetCenterTile);
     const tileTarget = this.worldTilemapManager.worldToTile(xWorldTarget, yWorldTarget);
     const supportQueue = new PriorityQueue<PathfindingNode>();
     let hasFinishedSearching = false;
@@ -125,6 +126,30 @@ export class PathFindingManager {
   }
 
   private getNeighborTiles(x: number, y: number, tilemapInfo: TilemapPathInformation, additionalObstacles?: Set<string>) {
+    const neighborCoordinates = this.getNeighborTileCoordinates(x, y);
+    return neighborCoordinates.filter((coord) => {
+      const isInBounds = (coord.x >= 0 && coord.y >= 0) && (coord.x < tilemapInfo.maxTilesX && coord.y < tilemapInfo.maxTilesY);
+      const isNotOnImpassableTiles = (this.isImpassableTile(coord.x,coord.y, tilemapInfo.impassableTiles, additionalObstacles) == false);
+      const isNotOrtogonallyForbidden = (coord.isDiagonal == false || (coord.isDiagonal && !this.isDiagonalOrtogonalNeighborsImpassable(x, y, coord.x, coord.y, tilemapInfo.impassableTiles, additionalObstacles)));
+      if (isInBounds && isNotOnImpassableTiles && isNotOrtogonallyForbidden) {
+        return true;
+      }
+      return false;
+    })
+  }
+
+  private isImpassableTile(x : number, y : number, impassableTiles : Set<string>, additionalObstacles? : Set<string>) {
+    const keyTile = this.worldTilemapManager.setTilemapKey(x, y);
+    if(impassableTiles.has(keyTile)) {
+      return true;
+    }
+    if(additionalObstacles && additionalObstacles.has(keyTile)) {
+      return true;
+    }
+    return false;
+  }
+
+  private getNeighborTileCoordinates(x : number, y : number) {
     return [
       { x: x + 0, y: y + -1, isDiagonal: false }, // top
       { x: x + 1, y: y + 0, isDiagonal: false },  // right
@@ -134,25 +159,16 @@ export class PathFindingManager {
       { x: x + 1, y: y + 1, isDiagonal: true },  // diagonal bottom-right
       { x: x + -1, y: y + 1, isDiagonal: true }, // diagonal bottom-left
       { x: x + -1, y: y + -1, isDiagonal: true } // diagonal top-left
-    ].filter((coord) => {
-      const isInBounds = (coord.x >= 0 && coord.y >= 0) && (coord.x < tilemapInfo.maxTilesX && coord.y < tilemapInfo.maxTilesY);
-      const isNotOnAdditionalObstacles = (!additionalObstacles || additionalObstacles.has(this.worldTilemapManager.setTilemapKey(coord.x, coord.y)) == false);
-      const isNotOnImpassableTiles = (tilemapInfo.impassableTiles.has(this.worldTilemapManager.setTilemapKey(coord.x, coord.y)) == false);
-      const isNotDiagonallyForbidden = (coord.isDiagonal == false || (coord.isDiagonal && !this.isDiagonalOrtogonalNeighborsImpassable(x, y, coord.x, coord.y, tilemapInfo.impassableTiles)));
-      if (isInBounds && isNotOnAdditionalObstacles && isNotOnImpassableTiles && isNotDiagonallyForbidden) {
-        return true;
-      }
-      return false;
-    })
+    ]
   }
-
-  private isDiagonalOrtogonalNeighborsImpassable(xOrigin : number, yOrigin : number, xDiagonal : number, yDiagonal : number, impassableTiles : Set<string>) {
+  //If impassable tiles are ortogonally placed, block the path of open tiles between them
+  private isDiagonalOrtogonalNeighborsImpassable(xOrigin : number, yOrigin : number, xDiagonal : number, yDiagonal : number, impassableTiles : Set<string> , additionalObstacles? : Set<string>) {
     const deltaX = xDiagonal - xOrigin;
     const deltaY = yDiagonal - yOrigin;
-    if(impassableTiles.has(this.worldTilemapManager.setTilemapKey(xOrigin + deltaX, yOrigin))) {
+    if(this.isImpassableTile(xOrigin + deltaX, yOrigin, impassableTiles, additionalObstacles)) {
       return true;
     }
-    if(impassableTiles.has(this.worldTilemapManager.setTilemapKey(xOrigin, yOrigin + deltaY))) {
+    if(this.isImpassableTile(xOrigin, yOrigin + deltaY, impassableTiles, additionalObstacles)) {
       return true;
     }
     return false;
