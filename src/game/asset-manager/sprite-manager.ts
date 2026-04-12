@@ -41,7 +41,52 @@ export class SpriteManager {
    */
   public getUvCoordinates(spriteName: SpriteName, spriteSheetName: SpriteSheetName, mirroredX = false, mirroredY = false) {
     const spriteProperties = this.getSpriteProperties(spriteName, spriteSheetName);
+    return this.buildUvCoordinates(
+      spriteProperties,
+      spriteProperties.sprite.spriteCellOffset.offsetX,
+      spriteProperties.sprite.spriteCellOffset.offsetY,
+      spriteProperties.sprite.spriteCellOffset.width,
+      spriteProperties.sprite.spriteCellOffset.height,
+      mirroredX,
+      mirroredY,
+    );
+  }
+
+  public getClippedUvCoordinates(
+    spriteName: SpriteName,
+    spriteSheetName: SpriteSheetName,
+    clip: {
+      sourceOffsetX: number;
+      sourceOffsetY: number;
+      sourceWidth: number;
+      sourceHeight: number;
+    },
+    mirroredX = false,
+    mirroredY = false,
+  ) {
+    const spriteProperties = this.getSpriteProperties(spriteName, spriteSheetName);
     const spriteCellOffset = spriteProperties.sprite.spriteCellOffset;
+
+    return this.buildUvCoordinates(
+      spriteProperties,
+      spriteCellOffset.offsetX + clip.sourceOffsetX,
+      spriteCellOffset.offsetY + clip.sourceOffsetY,
+      clip.sourceWidth,
+      clip.sourceHeight,
+      mirroredX,
+      mirroredY,
+    );
+  }
+
+  private buildUvCoordinates(
+    spriteProperties: ReturnType<SpriteManager["getSpriteProperties"]>,
+    sourceOffsetX: number,
+    sourceOffsetY: number,
+    sourceWidth: number,
+    sourceHeight: number,
+    mirroredX = false,
+    mirroredY = false,
+  ) {
     const spriteSheetWidth = spriteProperties.spriteSheet.width;
     const spriteSheetHeight = spriteProperties.spriteSheet.height;
     const tileColumn = spriteProperties.sprite.column;
@@ -54,10 +99,10 @@ export class SpriteManager {
     let cellY = (tileRow - 1) * spriteCellSizeHeight;
 
     // We define the offset of the sprite, on left,right,top,bottom inside the cell
-    let xLeft = cellX + spriteCellOffset.offsetX;
-    let xRight = xLeft + spriteCellOffset.width;
-    let yTop = cellY + spriteCellOffset.offsetY;
-    let yBottom = yTop + spriteCellOffset.height;
+    let xLeft = cellX + sourceOffsetX;
+    let xRight = xLeft + sourceWidth;
+    let yTop = cellY + sourceOffsetY;
+    let yBottom = yTop + sourceHeight;
 
     //We normalize to between 0 and 1
     const xLeftNormalized = xLeft / spriteSheetWidth;

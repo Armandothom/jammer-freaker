@@ -1,5 +1,7 @@
 import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
+import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { AwaitingAnimationEndComponent } from "../components/awaiting-animation-end.component.js";
+import { CorpseComponent } from "../components/corpse.component.js";
 import { DeathIntentComponent } from "../components/death-intent.component.js";
 import { EnemyDeadComponent } from "../components/enemy-dead.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
@@ -21,6 +23,7 @@ export class DeathProcessingSystem implements ISystem {
         private enemyComponentStore: ComponentStore<EnemyComponent>,
         private enemyDeadComponentStore: ComponentStore<EnemyDeadComponent>,
         private itemBoxComponentStore: ComponentStore<ItemBoxComponent>,
+        private corpseComponentStore: ComponentStore<CorpseComponent>,
         private awaitingAnimationEndComponentStore: ComponentStore<AwaitingAnimationEndComponent>,
         private itemDropIntentComponentStore: ComponentStore<ItemDropIntentComponent>,
         private positionComponentStore: ComponentStore<PositionComponent>,
@@ -32,13 +35,17 @@ export class DeathProcessingSystem implements ISystem {
             const isPlayer = this.playerComponentStore.has(entity)
             const isEnemy = this.enemyComponentStore.has(entity)
             const isItemBox = this.itemBoxComponentStore.has(entity)
+            const isCorpse = this.corpseComponentStore.has(entity)
 
             if (isPlayer) {
                 this.levelManager.endCurrentLevel(LevelEndReason.PlayerDeath);
+                this.deathIntentComponentStore.remove(entity);
             }
             if (isEnemy) {
                 this.enemyDeadComponentStore.add(entity, new EnemyDeadComponent());
+                const position = this.positionComponentStore.get(entity);
                 this.entityFactory.destroyEnemy(entity);
+                this.entityFactory.createEnemyCorpse(SpriteName.ENEMY_DEAD_1, position.x, position.y);
                 // more logic towards score, money
                 this.deathIntentComponentStore.remove(entity);
             }
@@ -54,6 +61,10 @@ export class DeathProcessingSystem implements ISystem {
                     this.deathIntentComponentStore.remove(entity);
                     this.entityFactory.destroyItemBox(entity);
                 }
+            }
+            if (isCorpse) {
+                this.deathIntentComponentStore.remove(entity);
+                this.entityFactory.destroyEnemyCorpse(entity);
             }
         }
     }

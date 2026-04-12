@@ -4,7 +4,7 @@ import { ShopDialogIntentComponent } from "../components/shop-dialog-intent.comp
 import { ShopDialogEvent } from "../components/types/shop-dialog-event.enum.js";
 import { ComponentStore } from "../core/component-store.js";
 import { DialogManager } from "../core/dialog-manager.js";
-import { ShopEntityFactory } from "../entities/shop-entity-factory.js";
+import { DialogEntityFactory } from "../entities/dialog-entity-factory.js";
 import { ISystem } from "./system.interface.js";
 
 const MIN_DIALOG_DURATION_SECONDS = 1.8;
@@ -14,7 +14,7 @@ const SHOP_DIALOG_SCREEN_Y = 200;
 
 export class ShopInteractionDialogSystem implements ISystem {
     constructor(
-        private shopEntityFactory: ShopEntityFactory,
+        private dialogEntityFactory: DialogEntityFactory,
         private dialogManager: DialogManager,
         private shopDialogIntentComponentStore: ComponentStore<ShopDialogIntentComponent>,
         private dialogComponentStore: ComponentStore<DialogComponent>,
@@ -37,13 +37,10 @@ export class ShopInteractionDialogSystem implements ISystem {
             }
 
             this.destroyDialogsFromSource(sourceEntityId);
-            this.shopEntityFactory.createDialog(
+            this.dialogEntityFactory.createScreenSpaceDialog(
                 sourceEntityId,
                 dialogText,
                 this.calculateDialogDuration(dialogText),
-                "speech",
-                false,
-                true,
                 SHOP_DIALOG_SCREEN_X,
                 SHOP_DIALOG_SCREEN_Y,
             );
@@ -58,7 +55,7 @@ export class ShopInteractionDialogSystem implements ISystem {
                 continue;
             }
 
-            this.shopEntityFactory.destroyDialog(dialogEntityId);
+            this.dialogEntityFactory.destroyDialog(dialogEntityId);
         }
     }
 
@@ -68,7 +65,7 @@ export class ShopInteractionDialogSystem implements ISystem {
                 continue;
             }
 
-            this.shopEntityFactory.destroyDialog(dialogEntityId);
+            this.dialogEntityFactory.destroyDialog(dialogEntityId);
         }
     }
 

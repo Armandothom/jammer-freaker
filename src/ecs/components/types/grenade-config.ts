@@ -3,7 +3,7 @@ import { SpriteName } from "../../../game/world/types/sprite-name.enum.js";
 import type { WeaponConfig } from "./weapon-config.js";
 
 export const GRENADE_CONFIG: WeaponConfig = {
-    damage: 150,
+    damage: 50,
     maxBullets: 3,
     reloadTime: 0,
     explosionRadius: 192,

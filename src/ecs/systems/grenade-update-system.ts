@@ -1,15 +1,12 @@
-import { AnimationComponent } from "../components/animation.component.js";
-import { DamageTakenIntentComponent } from "../components/damage-taken-intent.component.js";
-import { DelayedDestructionComponent } from "../components/delayed-destruction.component.js";
-import { DirectionComponent } from "../components/direction-component.js";
-import { EnemyDeadComponent } from "../components/enemy-dead.component.js";
-import { EnemyComponent } from "../components/enemy.component.js";
+import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
+import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
+import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+import { AwaitingAnimationEndComponent } from "../components/awaiting-animation-end.component.js";
 import { FuseTimerComponent } from "../components/fuse-timer.component.js";
 import { GrenadeComponent } from "../components/grenade-component.js";
-import { GrenadeExplosionComponent } from "../components/grenade-explosion.component.js";
+import { GrenadeExplosionHitBoxComponent } from "../components/grenade-explosion-hitbox.component.js";
 import { GrenadeTravelComponent } from "../components/grenade-travel.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
-import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ShotOriginComponent } from "../components/shot-origin.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
@@ -17,12 +14,6 @@ import { VelocityComponent } from "../components/velocity-component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityFactory } from "../entities/entity-factory.js";
 import { ISystem } from "./system.interface.js";
-
-type ExplosionProfile = {
-    damage: number;
-    radius: number;
-    targetEntities: number[];
-};
 
 const GRENADE_FALL_RENDER_SPEED = 240;
 
@@ -33,16 +24,10 @@ export class GrenadeUpdateSystem implements ISystem {
         private grenadeComponentStore: ComponentStore<GrenadeComponent>,
         private velocityComponentStore: ComponentStore<VelocityComponent>,
         private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
-        private directionComponentStore: ComponentStore<DirectionComponent>,
         private fuseTimerComponentStore: ComponentStore<FuseTimerComponent>,
         private shotOriginComponentStore: ComponentStore<ShotOriginComponent>,
-        private playerComponentStore: ComponentStore<PlayerComponent>,
-        private enemyComponentStore: ComponentStore<EnemyComponent>,
-        private damageTakenIntentComponentStore: ComponentStore<DamageTakenIntentComponent>,
-        private grenadeExplosionComponentStore: ComponentStore<GrenadeExplosionComponent>,
-        private delayedDestructionComponentStore: ComponentStore<DelayedDestructionComponent>,
-        private animationComponentStore: ComponentStore<AnimationComponent>,
-        private enemyDeadComponentStore: ComponentStore<EnemyDeadComponent>,
+        private grenadeExplosionHitBoxComponentStore: ComponentStore<GrenadeExplosionHitBoxComponent>,
+        private awaitingAnimationEndComponentStore: ComponentStore<AwaitingAnimationEndComponent>,
         private grenadeTravelComponent: ComponentStore<GrenadeTravelComponent>,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
     ) {
@@ -50,14 +35,11 @@ export class GrenadeUpdateSystem implements ISystem {
 
     update(deltaTime: number): void {
         for (const grenadeEntity of this.grenadeComponentStore.getAllEntities()) {
-            if (this.grenadeExplosionComponentStore.has(grenadeEntity)) {
-                this.updateExplosionLifetime(deltaTime, grenadeEntity);
-                continue;
-            }
-
             this.updateGrenadeMovement(deltaTime, grenadeEntity);
             this.updateGrenadeFuse(deltaTime, grenadeEntity);
         }
+
+        this.updateExplosionHitBoxes();
     }
 
     private updateGrenadeMovement(deltaTime: number, grenadeEntity: number): void {
@@ -93,7 +75,6 @@ export class GrenadeUpdateSystem implements ISystem {
         }
 
         const progress = grenadeTravel.travelTime / grenadeTravel.totalTravelTime;
-
         const groundX = grenadeTravel.originX + (grenadeTravel.targetX - grenadeTravel.originX) * progress;
         const groundY = grenadeTravel.originY + (grenadeTravel.targetY - grenadeTravel.originY) * progress;
         grenadeTravel.currentRenderOffsetY = this.calculateRenderOffsetY(grenadeTravel);
@@ -117,76 +98,51 @@ export class GrenadeUpdateSystem implements ISystem {
     }
 
     private triggerExplosion(grenadeEntity: number): void {
-        if (this.grenadeExplosionComponentStore.has(grenadeEntity)) {
-            return;
-        }
-
         this.projectGrenadeToVisiblePosition(grenadeEntity);
-        this.entityFactory.destroyShadow(grenadeEntity);
-        this.grenadeExplosionComponentStore.add(grenadeEntity, new GrenadeExplosionComponent());
-        this.delayedDestructionComponentStore.add(grenadeEntity, new DelayedDestructionComponent(0.6));
-        this.movementIntentComponentStore.remove(grenadeEntity);
 
-        const shooterId = this.shotOriginComponentStore.getOrNull(grenadeEntity)?.shooterEntity;
+        const grenade = this.grenadeComponentStore.getOrNull(grenadeEntity);
         const grenadePosition = this.positionComponentStore.getOrNull(grenadeEntity);
+        const grenadeSprite = this.spriteComponentStore.getOrNull(grenadeEntity);
+        const shooterId = this.shotOriginComponentStore.getOrNull(grenadeEntity)?.shooterEntity;
 
-        if (shooterId == null || !grenadePosition) {
+        if (!grenade || !grenadePosition || !grenadeSprite || shooterId == null) {
+            this.entityFactory.destroyGrenade(grenadeEntity);
             return;
         }
 
-        const explosionProfile = this.getExplosionProfile(grenadeEntity);
+        const explosionX = grenadePosition.x + (grenadeSprite.width - grenade.explosionRadius) / 2;
+        const explosionY = grenadePosition.y + (grenadeSprite.height - grenade.explosionRadius) / 2;
 
-        for (const targetEntity of explosionProfile.targetEntities) {
-            const targetPosition = this.positionComponentStore.getOrNull(targetEntity);
-            if (!targetPosition) continue;
+        this.entityFactory.createHitBox(
+            explosionX,
+            explosionY,
+            grenade.explosionRadius,
+            grenade.explosionRadius,
+            {
+                animationName: AnimationName.GRENADE_EXPLOSION,
+                spriteName: SpriteName.GRENADE_EXPLOSION_1,
+                spriteSheetName: SpriteSheetName.GRENADE_EXPLOSION,
+                shooterEntityId: shooterId,
+                damage: grenade.damage,
+                zLayer: 4,
+                loop: false,
+                awaitAnimationEnd: AnimationName.GRENADE_EXPLOSION,
+                trackHits: true,
+                markAsGrenadeExplosion: true,
+            },
+        );
 
-            const distance = Math.hypot(grenadePosition.x - targetPosition.x, grenadePosition.y - targetPosition.y);
-            if (distance > explosionProfile.radius) continue;
-
-            const damage =
-                explosionProfile.damage -
-                (explosionProfile.damage / explosionProfile.radius) * distance;
-
-            this.damageTakenIntentComponentStore.add(
-                targetEntity,
-                new DamageTakenIntentComponent(shooterId, damage),
-            );
-        }
-    }
-
-    private getExplosionProfile(grenadeEntity: number): ExplosionProfile {
-        const grenade = this.grenadeComponentStore.get(grenadeEntity);
-        return {
-            damage: grenade.damage,
-            radius: grenade.explosionRadius,
-            targetEntities: grenade.firedByPlayer
-                ? this.enemyComponentStore
-                    .getAllEntities()
-                    .filter((enemyEntity) => !this.enemyDeadComponentStore.has(enemyEntity))
-                : this.playerComponentStore.getAllEntities(),
-        };
-    }
-
-    private updateExplosionLifetime(deltaTime: number, grenadeEntity: number): void {
-        const delayedDestruction = this.delayedDestructionComponentStore.getOrNull(grenadeEntity);
-        if (!delayedDestruction) {
-            return;
-        }
-
-        delayedDestruction.destructionTime += deltaTime;
-        const previousTime = delayedDestruction.destructionTime - deltaTime;
-        const destroyCondition =
-            previousTime < delayedDestruction.totalDestructionTimer &&
-            delayedDestruction.destructionTime >= delayedDestruction.totalDestructionTimer;
-
-        if (!destroyCondition) {
-            return;
-        }
-
-        this.animationComponentStore.remove(grenadeEntity);
-        this.grenadeExplosionComponentStore.remove(grenadeEntity);
-        this.delayedDestructionComponentStore.remove(grenadeEntity);
         this.entityFactory.destroyGrenade(grenadeEntity);
+    }
+
+    private updateExplosionHitBoxes(): void {
+        for (const explosionHitBoxEntity of this.grenadeExplosionHitBoxComponentStore.getAllEntities()) {
+            const awaitingAnimation = this.awaitingAnimationEndComponentStore.getOrNull(explosionHitBoxEntity);
+
+            if (!awaitingAnimation || awaitingAnimation.resolved) {
+                this.entityFactory.destroyHitBox(explosionHitBoxEntity);
+            }
+        }
     }
 
     private toSpriteTopLeft(grenadeEntity: number, centerX: number, centerY: number): { x: number; y: number } {

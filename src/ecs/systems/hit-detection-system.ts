@@ -1,15 +1,18 @@
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { AimRotationShootingComponent } from "../components/aim-rotation-shooting.component.js";
+import { CorpseComponent } from "../components/corpse.component.js";
 import { DamageDealtComponent } from "../components/damage-dealt.component.js";
 import { DamageTakenIntentComponent } from "../components/damage-taken-intent.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
 import { GrenadeComponent } from "../components/grenade-component.js";
+import { GrenadeExplosionHitBoxComponent } from "../components/grenade-explosion-hitbox.component.js";
 import { HitBoxComponent } from "../components/hit-box-component.js";
 import { ItemBoxComponent } from "../components/item-box.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ProjectileComponent } from "../components/projectile-component.js";
+import { ShapeHitMemoryComponent } from "../components/shape-hitmemory-component.js";
 import { ShotOriginComponent } from "../components/shot-origin.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { ComponentStore } from "../core/component-store.js";
@@ -34,7 +37,9 @@ export class HitDetectionSystem implements ISystem {
         private enemyComponentStore: ComponentStore<EnemyComponent>,
         private damageTakenIntentComponentStore: ComponentStore<DamageTakenIntentComponent>,
         private itemBoxComponentStore: ComponentStore<ItemBoxComponent>,
-
+        private corpseComponentStore: ComponentStore<CorpseComponent>,
+        private grenadeExplosionHitBoxComponentStore: ComponentStore<GrenadeExplosionHitBoxComponent>,
+        private shapeHitMemoryComponentStore: ComponentStore<ShapeHitMemoryComponent>,
     ) { }
     update(deltaTime: number): void {
         for (const entity of this.movementIntentComponentStore.getAllEntities()) {
@@ -49,13 +54,13 @@ export class HitDetectionSystem implements ISystem {
             }
 
             const intendedRect = this.buildEntityRectFromIntent(entity, intent);
-            const hitEntity = this.getHittingEntity(entity, intendedRect);
+            const hitEntities = this.getHittingEntities(entity, intendedRect);
 
-            if (hitEntity != null) {
-                if (this.handleEntityHit(entity, hitEntity)) {
-                    continue;
-                }
+            if (hitEntities.length === 0) {
+                continue;
             }
+
+            this.handleEntityHits(entity, hitEntities);
         }
     }
 
@@ -134,13 +139,14 @@ export class HitDetectionSystem implements ISystem {
         );
     }
 
-    private getHittingEntity(self: number, intendedRect: Rect): number | null {
+    private getHittingEntities(self: number, intendedRect: Rect): number[] {
         const isProjectile = this.projectileComponentStore.has(self);
         const isGrenade = this.grenadeComponentStore.has(self);
         const shooterId = this.shotOriginComponentStore.getOrNull(self)?.shooterEntity ?? null;
+        const hitEntities: number[] = [];
 
         if (isGrenade) {
-            return null;
+            return hitEntities;
         }
 
         for (const other of this.hitBoxComponentStore.getAllEntities()) {
@@ -161,7 +167,8 @@ export class HitDetectionSystem implements ISystem {
             const otherIsPlayer = this.playerComponentStore.has(other);
             const otherIsEnemy = this.enemyComponentStore.has(other);
             const otherIsItemBox = this.itemBoxComponentStore.has(other);
-            if (!otherIsPlayer && !otherIsEnemy && !otherIsItemBox) continue;
+            const otherIsCorpse = this.corpseComponentStore.has(other);
+            if (!otherIsPlayer && !otherIsEnemy && !otherIsItemBox && !otherIsCorpse) continue;
             if (!this.isValidDamageTarget(self, other)) continue;
 
             const otherCollision = this.hitBoxComponentStore.get(other);
@@ -170,16 +177,18 @@ export class HitDetectionSystem implements ISystem {
             const otherRect = this.buildEntityRectFromPosition(other);
 
             if (this.intersects(intendedRect, otherRect)) {
-                return other;
+                hitEntities.push(other);
             }
         }
 
-        return null;
+        return hitEntities;
     }
 
-    private handleEntityHit(entity: number, hitEntity: number): boolean {
+    private handleEntityHits(entity: number, hitEntities: number[]): boolean {
         const shooterId = this.shotOriginComponentStore.getOrNull(entity)?.shooterEntity;
+
         if (this.projectileComponentStore.has(entity)) {
+            const hitEntity = hitEntities[0];
             if (shooterId !== undefined) {
                 const projectile = this.projectileComponentStore.get(entity);
                 const projectileDamage = projectile.damage;
@@ -197,13 +206,33 @@ export class HitDetectionSystem implements ISystem {
             return false;
         }
 
-        if (!this.isValidDamageTarget(entity, hitEntity)) {
-            return false;
+        const damage = this.damageDealtComponentStore.get(entity).damage;
+        const canHitMultipleTargets = this.grenadeExplosionHitBoxComponentStore.has(entity);
+        const hitMemory = this.shapeHitMemoryComponentStore.getOrNull(entity);
+        let appliedDamage = false;
+
+        for (const hitEntity of hitEntities) {
+            if (!this.isValidDamageTarget(entity, hitEntity)) {
+                continue;
+            }
+
+            if (hitMemory?.alreadyHit.has(hitEntity)) {
+                continue;
+            }
+
+            if (!this.damageTakenIntentComponentStore.has(hitEntity)) {
+                this.damageTakenIntentComponentStore.add(hitEntity, new DamageTakenIntentComponent(shooterId, damage));
+                hitMemory?.alreadyHit.add(hitEntity);
+                appliedDamage = true;
+            }
+
+            if (!canHitMultipleTargets) {
+                break;
+            }
         }
 
-        const damage = this.damageDealtComponentStore.get(entity).damage;
-        if (!this.damageTakenIntentComponentStore.has(hitEntity)) {
-            this.damageTakenIntentComponentStore.add(hitEntity, new DamageTakenIntentComponent(shooterId, damage));
+        if (!appliedDamage || canHitMultipleTargets) {
+            return appliedDamage;
         }
 
         const hitbox = this.hitBoxComponentStore.get(entity);
@@ -215,6 +244,11 @@ export class HitDetectionSystem implements ISystem {
         const targetIsPlayer = this.playerComponentStore.has(targetEntity);
         const targetIsEnemy = this.enemyComponentStore.has(targetEntity);
         const targetIsItemBox = this.itemBoxComponentStore.has(targetEntity);
+        const targetIsCorpse = this.corpseComponentStore.has(targetEntity);
+
+        if (this.grenadeExplosionHitBoxComponentStore.has(entity)) {
+            return targetIsPlayer || targetIsEnemy || targetIsItemBox || targetIsCorpse;
+        }
 
         if (this.projectileComponentStore.has(entity)) {
             const projectile = this.projectileComponentStore.get(entity);

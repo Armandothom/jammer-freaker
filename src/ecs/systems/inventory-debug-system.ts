@@ -1,3 +1,4 @@
+import { DamageTakenIntentComponent } from "../components/damage-taken-intent.component.js";
 import { HealthComponent } from "../components/health.component.js";
 import { InventoryComponent } from "../components/inventory-component.js";
 import { PlayerComponent } from "../components/player.component.js";
@@ -23,6 +24,7 @@ export class InventoryDebugSystem implements ISystem {
         private inventoryComponentStore: ComponentStore<InventoryComponent>,
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private healthComponentStore: ComponentStore<HealthComponent>,
+        private damageTakenIntentComponentStore: ComponentStore<DamageTakenIntentComponent>,
     ) {
         window.addEventListener("keydown", this.onKeyDown);
         window.addEventListener("keyup", this.onKeyUp);
@@ -97,8 +99,11 @@ export class InventoryDebugSystem implements ISystem {
         if (this.wasKeyPressedThisFrame("KeyK")) {
             const health = this.healthComponentStore.getOrNull(playerEntity);
             if (health) {
-                health.takeDamage(20);
-                console.log(`[InventoryDebug] Player took 20 damage. HP: ${health.hp}/${health.maxHp}`);
+                this.damageTakenIntentComponentStore.add(
+                    playerEntity,
+                    new DamageTakenIntentComponent(playerEntity, 20),
+                );
+                console.log(`[InventoryDebug] Queued 20 damage for player. HP: ${health.hp}/${health.maxHp}`);
             }
         }
 

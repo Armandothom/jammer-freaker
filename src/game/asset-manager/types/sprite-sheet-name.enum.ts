@@ -22,4 +22,6 @@ export enum SpriteSheetName {
   WORLD_BACKGROUND = "world_background",
   SHADOWS = "shadows",
   BUTTON_ARROWS = "button_arrows",
+  COLOR_PALLETE = "collor_pallete",
+  DEATH_PROMPT = "death_prompt",
 }

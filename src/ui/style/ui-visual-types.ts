@@ -1,0 +1,34 @@
+import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
+import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+
+export type UITextHorizontalAlign = "left" | "center" | "right";
+
+export type UISpriteClip = {
+  sourceOffsetX: number;
+  sourceOffsetY: number;
+  sourceWidth: number;
+  sourceHeight: number;
+  trimRenderedSize?: boolean;
+};
+
+export type UISpriteVisual = {
+  spriteName: SpriteName;
+  spriteSheetName: SpriteSheetName;
+  width?: number;
+  height?: number;
+  clip?: UISpriteClip;
+};
+
+export type UITextVisual = {
+  text: string;
+  fontId?: string;
+  scale?: number;
+  maxWidth?: number | null;
+  autoWrap?: boolean;
+  horizontalAlign?: UITextHorizontalAlign;
+};
+
+export type UIVisual = {
+  sprite?: UISpriteVisual;
+  text?: UITextVisual;
+};

@@ -27,6 +27,8 @@ export class LevelManager {
     public previousLevel = 0;
     public levelNumber: number;
     public levelUpdatePending = false;
+    private currentLevelEndReason: LevelEndReason | null = null;
+    private currentLevelInitialInventorySnapshot: InventorySnapshot | null = null;
     private pressedKeys = new Set<string>();
     private previousPressedKeys = new Set<string>();
     private gameManager: GameManager | null = null;
@@ -58,8 +60,17 @@ export class LevelManager {
     public startNextLevelWithInventorySnapshot(
         inventorySnapshot: InventorySnapshot | null,
     ): void {
-        this.nextPlayerInventorySnapshot = inventorySnapshot;
+        this.nextPlayerInventorySnapshot = this.cloneInventorySnapshot(inventorySnapshot);
         this.advanceToNextLevel();
+    }
+
+    public retryCurrentLevel(): void {
+        this.nextPlayerInventorySnapshot = this.cloneInventorySnapshot(this.currentLevelInitialInventorySnapshot);
+        this.rebuildLevel();
+    }
+
+    public getCurrentLevelEndReason(): LevelEndReason | null {
+        return this.currentLevelEndReason;
     }
 
     private rebuildLevel(): void {
@@ -81,7 +92,8 @@ export class LevelManager {
     }
 
     public endCurrentLevel(reason: LevelEndReason): void {
-        this.tilemapManager.clearLevelGeometry();
+        this.currentLevelEndReason = reason;
+        //this.tilemapManager.clearLevelGeometry();
 
         switch (reason) {
             case LevelEndReason.PlayerDeath:
@@ -97,6 +109,7 @@ export class LevelManager {
     }
 
     private finalizeLevelBuild(): void {
+        this.currentLevelEndReason = null;
     }
 
     public bindGameManager(gameManager: GameManager): void {
@@ -171,6 +184,7 @@ export class LevelManager {
             }
         }
 
+        this.currentLevelInitialInventorySnapshot = this.captureCurrentPlayerInventorySnapshot();
         this.nextPlayerInventorySnapshot = null;
         this.cameraManager.follow(worldX, worldY);
     }
@@ -179,6 +193,24 @@ export class LevelManager {
         this.previousLevel = this.levelNumber;
         this.levelNumber = this.previousLevel + 1;
         this.rebuildLevel();
+    }
+
+    private captureCurrentPlayerInventorySnapshot(): InventorySnapshot | null {
+        const playerEntityId = this.playerComponentStore.getAllEntities()[0];
+        if (playerEntityId == null) {
+            return null;
+        }
+
+        const inventory = this.inventoryComponentStore.getOrNull(playerEntityId);
+        return inventory?.toSnapshot() ?? null;
+    }
+
+    private cloneInventorySnapshot(snapshot: InventorySnapshot | null): InventorySnapshot | null {
+        if (!snapshot) {
+            return null;
+        }
+
+        return InventoryComponent.fromSnapshot(snapshot).toSnapshot();
     }
 
     private wasKeyPressedThisFrame(code: string): boolean {

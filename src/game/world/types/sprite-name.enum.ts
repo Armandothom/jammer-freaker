@@ -109,6 +109,10 @@ export enum SpriteName {
   BUTTON_4_DISABLED = "button_4_disabled",
   WORLD_BACKGROUND = "world_background",
   SHADOW_1 = "shadow_1",
+  SHADOW_2 = "shadow_2",
   BUTTON_ARROW_RIGHT = "button_arrow_right",
   BUTTON_ARROW_LEFT = "button_arrow_left",
+  ENEMY_DEAD_1 = "enemy_dead_1",
+  COLOR_DIM_BLACK = "color_dim_black",
+  DEATH_PROMPT_1 = "DEATH_PROMPT_1",
 }

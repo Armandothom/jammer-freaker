@@ -82,3 +82,7 @@ export const SHOP_UPGRADE_TABS_ORDER: ShopUpgradeTabType[] = (
 ).sort((a, b) => {
     return SHOP_UPGRADE_TAB_CONFIG[a].order - SHOP_UPGRADE_TAB_CONFIG[b].order;
 });
+
+export function isShopUpgradeTabType(value: string): value is ShopUpgradeTabType {
+    return Object.prototype.hasOwnProperty.call(SHOP_UPGRADE_TAB_CONFIG, value);
+}

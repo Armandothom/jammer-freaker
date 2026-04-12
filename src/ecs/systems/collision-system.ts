@@ -133,6 +133,13 @@ export class CollisionSystem implements ISystem {
     private getCollidingEntity(self: number, intendedRect: Rect): number | null {
         const isProjectile = this.projectileComponentStore.has(self);
         const isGrenade = this.grenadeComponentStore.has(self);
+
+        // Projectile hits are resolved by HitDetectionSystem so bullets do not get
+        // blocked by entity collision boxes before damage is applied.
+        if (isProjectile) {
+            return null;
+        }
+
         const shooterId = (isProjectile || isGrenade)
             ? this.shotOriginComponentStore.getOrNull(self)?.shooterEntity ?? null
             : null;

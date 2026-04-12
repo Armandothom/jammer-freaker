@@ -54,3 +54,7 @@ export const SHOP_TABS_ORDER: ShopTabType[] = (
 ).sort((a, b) => {
     return SHOP_TAB_CONFIG[a].order - SHOP_TAB_CONFIG[b].order;
 });
+
+export function isShopTabType(value: string): value is ShopTabType {
+    return Object.prototype.hasOwnProperty.call(SHOP_TAB_CONFIG, value);
+}

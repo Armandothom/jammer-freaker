@@ -20,7 +20,9 @@ import { GrenadeTravelComponent } from "../components/grenade-travel.component.j
 import { PositionComponent } from "../components/position.component.js";
 import { RenderableComponent } from "../components/renderable-component.js";
 import { ScreenPositionComponent } from "../components/screen-position.component.js";
+import { SpriteClipComponent } from "../components/sprite-clip.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
+import { UIRuntimeElementComponent } from "../components/ui-runtime-element.component.js";
 import { AnimDirection } from "../components/types/anim-direction.js";
 import { ZLayerComponent } from "../components/z-layer.component.js";
 import { ComponentStore } from "../core/component-store.js";
@@ -46,6 +48,8 @@ interface BitmapTextBounds {
   height: number;
 }
 
+const SCREEN_SPACE_DIALOG_Z_OFFSET = 1000;
+
 export class RenderSystem implements ISystem {
   private readonly layerMultiplicator: Record<string, number> = {
     "1": 1,
@@ -61,6 +65,8 @@ export class RenderSystem implements ISystem {
     private positionComponentStore: ComponentStore<PositionComponent>,
     private screenPositionComponentStore: ComponentStore<ScreenPositionComponent>,
     private spriteComponentStore: ComponentStore<SpriteComponent>,
+    private spriteClipComponentStore: ComponentStore<SpriteClipComponent>,
+    private uiRuntimeElementComponentStore: ComponentStore<UIRuntimeElementComponent>,
     private cameraManager: CameraManager,
     private tilemapManager: WorldTilemapManager,
     private rendererEngine: RendererEngine,
@@ -271,6 +277,7 @@ export class RenderSystem implements ISystem {
       const dialogBubble = this.dialogBubbleSpriteComponentStore.getOrNull(entity);
       const bitmapText = this.bitmapTextComponentStore.getOrNull(entity);
       const isScreenSpace = !!screenPosition;
+      const uiRuntimeElement = this.uiRuntimeElementComponentStore.getOrNull(entity);
 
       if ((!position && !screenPosition) || !layerComponent) {
         continue;
@@ -297,10 +304,11 @@ export class RenderSystem implements ISystem {
           sprite.spriteName,
           sprite.spriteSheetName
         );
+        const spriteClip = this.spriteClipComponentStore.getOrNull(entity);
 
-        const spriteWidth =
+        let spriteWidth =
           sprite.width ?? spriteProperties.sprite.originalRenderSpriteWidth;
-        const spriteHeight =
+        let spriteHeight =
           sprite.height ?? spriteProperties.sprite.originalRenderSpriteHeight;
         const layerMultiplier = this.layerMultiplicator[layerComponent.layer] ?? 1;
 
@@ -312,10 +320,43 @@ export class RenderSystem implements ISystem {
         let screenX = 0;
         let screenY = 0;
         let zLevel = this.getGameUiDepthLevel(layerMultiplier);
+        let uvCoordinates = spriteClip
+          ? this.spriteManager.getClippedUvCoordinates(
+            sprite.spriteName,
+            sprite.spriteSheetName,
+            {
+              sourceHeight: spriteClip.sourceHeight,
+              sourceOffsetX: spriteClip.sourceOffsetX,
+              sourceOffsetY: spriteClip.sourceOffsetY,
+              sourceWidth: spriteClip.sourceWidth,
+            },
+            mirrorSpriteX,
+            mirrorSpriteY,
+          )
+          : this.spriteManager.getUvCoordinates(
+            sprite.spriteName,
+            sprite.spriteSheetName,
+            mirrorSpriteX,
+            mirrorSpriteY,
+          );
+
+        if (spriteClip?.trimRenderedSize) {
+          const originalSourceWidth = spriteProperties.sprite.spriteCellOffset.width;
+          const originalSourceHeight = spriteProperties.sprite.spriteCellOffset.height;
+
+          if (originalSourceWidth > 0) {
+            spriteWidth = spriteWidth * (spriteClip.sourceWidth / originalSourceWidth);
+          }
+
+          if (originalSourceHeight > 0) {
+            spriteHeight = spriteHeight * (spriteClip.sourceHeight / originalSourceHeight);
+          }
+        }
 
         if (isScreenSpace) {
           screenX = screenPosition.x;
           screenY = screenPosition.y;
+          zLevel += this.getUiRenderOrderOffset(uiRuntimeElement);
         } else {
           const worldPosition = position!;
           const worldLeft = worldPosition.x;
@@ -355,12 +396,7 @@ export class RenderSystem implements ISystem {
           xWorldPosition: screenX,
           yWorldPosition: screenY,
           spriteSheetTexture: spriteProperties.spriteSheet.texture,
-          uvCoordinates: this.spriteManager.getUvCoordinates(
-            sprite.spriteName,
-            sprite.spriteSheetName,
-            mirrorSpriteX,
-            mirrorSpriteY
-          ),
+          uvCoordinates,
           height: spriteHeight,
           width: spriteWidth,
           angleRotation: aimComponent?.aimAngle || null,
@@ -372,6 +408,7 @@ export class RenderSystem implements ISystem {
       if (bitmapText) {
         renderObjects.push(
           ...this.getBitmapTextRenderObjects(
+            entity,
             viewport,
             position,
             screenPosition,
@@ -457,7 +494,7 @@ export class RenderSystem implements ISystem {
 
     const layerMultiplier = this.layerMultiplicator[layerComponent.layer] ?? 1;
     const baseZLevel = isScreenSpace
-      ? this.getGameUiDepthLevel(layerMultiplier)
+      ? this.getGameUiDepthLevel(layerMultiplier) + SCREEN_SPACE_DIALOG_Z_OFFSET
       : this.getDepthLevel(position!.y, layerMultiplier);
     const bubbleScreenX = Math.round(isScreenSpace ? left : left - viewport.left);
     const bubbleScreenY = Math.round(isScreenSpace ? top : top - viewport.top);
@@ -521,6 +558,7 @@ export class RenderSystem implements ISystem {
   }
 
   private getBitmapTextRenderObjects(
+    entity: number,
     viewport: CameraViewport,
     position: PositionComponent | null,
     screenPosition: ScreenPositionComponent | null,
@@ -567,8 +605,9 @@ export class RenderSystem implements ISystem {
     }
 
     const layerMultiplier = this.layerMultiplicator[layerComponent.layer] ?? 1;
+    const uiRuntimeElement = this.uiRuntimeElementComponentStore.getOrNull(entity);
     const baseZLevel = isScreenSpace
-      ? this.getGameUiDepthLevel(layerMultiplier)
+      ? this.getGameUiDepthLevel(layerMultiplier) + this.getUiRenderOrderOffset(uiRuntimeElement)
       : this.getDepthLevel(position!.y, layerMultiplier);
     const textLeft = containerSprite
       ? baseX + Math.round(((containerSprite.width - glyphBounds.width) / 2) - glyphBounds.left)
@@ -783,6 +822,14 @@ export class RenderSystem implements ISystem {
 
   private getGameUiDepthLevel(layerMultiplier: number): number {
     return this.maxDepthLevel + layerMultiplier + 1;
+  }
+
+  private getUiRenderOrderOffset(uiRuntimeElement: UIRuntimeElementComponent | null): number {
+    if (!uiRuntimeElement) {
+      return 0;
+    }
+
+    return uiRuntimeElement.renderOrder * 0.1;
   }
 
   private getPossibleRenderOffsetY(entity: number): number {

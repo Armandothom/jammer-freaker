@@ -151,7 +151,7 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
   [
     SpriteSheetName.ENEMY,
     {
-      rows: 1,
+      rows: 2,
       columns: 6,
       eachSpriteCellSizeWidth: 32,
       eachSpriteCellSizeHeight: 32,
@@ -198,7 +198,14 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
           originalRenderSpriteHeight: 32,
           originalRenderSpriteWidth: 32,
           spriteCellOffset: { offsetX: 5, offsetY: 2, width: 25, height: 28 }
-        }]
+        }],
+        [SpriteName.ENEMY_DEAD_1, {
+          row: 2,
+          column: 1,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 3, offsetY: 5, width: 24, height: 24 }
+        }],
       ])
     }
   ],
@@ -1048,10 +1055,30 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
   ],
 
   [
-    SpriteSheetName.SHADOWS,
+    SpriteSheetName.COLOR_PALLETE,
     {
       rows: 1,
       columns: 1,
+      eachSpriteCellSizeHeight: 32,
+      eachSpriteCellSizeWidth: 32,
+      srcImagePath: 'src/assets/images/color_pallete.png',
+      sprites: new Map([
+        [SpriteName.COLOR_DIM_BLACK, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+      ])
+    }
+  ],
+
+  [
+    SpriteSheetName.SHADOWS,
+    {
+      rows: 1,
+      columns: 2,
       eachSpriteCellSizeHeight: 16,
       eachSpriteCellSizeWidth: 32,
       srcImagePath: 'src/assets/images/shadows.png',
@@ -1059,6 +1086,14 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
         [SpriteName.SHADOW_1, {
           row: 1,
           column: 1,
+          originalRenderSpriteHeight: 16,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 6, width: 32, height: 10 }
+        }],
+
+        [SpriteName.SHADOW_2, {
+          row: 1,
+          column: 2,
           originalRenderSpriteHeight: 16,
           originalRenderSpriteWidth: 32,
           spriteCellOffset: { offsetX: 0, offsetY: 6, width: 32, height: 10 }
@@ -1089,6 +1124,26 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
           originalRenderSpriteHeight: 17,
           originalRenderSpriteWidth: 32,
           spriteCellOffset: { offsetX: 0, offsetY: 0, width: 17, height: 32 }
+        }],
+      ])
+    }
+  ],
+
+  [
+    SpriteSheetName.DEATH_PROMPT,
+    {
+      rows: 1,
+      columns: 1,
+      eachSpriteCellSizeHeight: 150,
+      eachSpriteCellSizeWidth: 200,
+      srcImagePath: 'src/assets/images/death-prompt.png',
+      sprites: new Map([
+        [SpriteName.DEATH_PROMPT_1, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 150,
+          originalRenderSpriteWidth: 200,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 200, height: 150 }
         }],
       ])
     }
