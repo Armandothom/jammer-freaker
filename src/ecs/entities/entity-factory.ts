@@ -24,13 +24,13 @@ import { FuseTimerComponent } from "../components/fuse-timer.component.js";
 import { GameUIAnchorComponent } from "../components/game-ui-anchor.component.js";
 import { GameUIComponent } from "../components/game-ui-component.js";
 import { GrenadeComponent } from "../components/grenade-component.js";
+import { GrenadeExplosionHitBoxComponent } from "../components/grenade-explosion-hitbox.component.js";
 import { GrenadeTravelComponent } from "../components/grenade-travel.component.js";
 import { HealthComponent } from "../components/health.component.js";
 import { HitBoxComponent } from "../components/hit-box-component.js";
 import { InventoryComponent } from "../components/inventory-component.js";
 import { ItemBoxComponent } from "../components/item-box.component.js";
 import { ItemDroppedComponent } from "../components/item-dropped.component.js";
-import { GrenadeExplosionHitBoxComponent } from "../components/grenade-explosion-hitbox.component.js";
 import { MeleeIntentProcessedComponent } from "../components/melee-intent-processed.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { ParentEntityComponent } from "../components/parent-entity-component.js";
@@ -217,7 +217,7 @@ export class EntityFactory {
     this.directionComponentStore.add(entityId, new DirectionComponent(dirX, dirY));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity));
     this.hitboxComponentStore.add(entityId, new HitBoxComponent());
-    this.shotOriginComponentStore.add(entityId, new ShotOriginComponent(entityShooterId))
+    this.shotOriginComponentStore.add(entityId, new ShotOriginComponent(entityShooterId, startX, startY));
     this.collisionBoxComponentStore.add(entityId, new CollisionBoxComponent({ widthFactor: 1, heightFactor: 1, offsetX: 0, offsetY: 0 }));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
     return entityId;
@@ -261,7 +261,7 @@ export class EntityFactory {
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.GRENADE_FIRED));
     this.directionComponentStore.add(entityId, new DirectionComponent(dirX, dirY));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity));
-    this.shotOriginComponentStore.add(entityId, new ShotOriginComponent(entityShooterId))
+    this.shotOriginComponentStore.add(entityId, new ShotOriginComponent(entityShooterId, originX, originY))
     this.collisionBoxComponentStore.add(entityId, new CollisionBoxComponent({ widthFactor: 1, heightFactor: 1, offsetX: 0, offsetY: 0 })); //manipulate this
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
     this.fuseTimerComponentStore.add(entityId, new FuseTimerComponent(WeaponConfig[WeaponType.GRENADE].fuseTimer));
@@ -438,7 +438,7 @@ export class EntityFactory {
     this.animationComponentStore.add(entityId, new AnimationComponent(options.animationName, options.loop ?? false));
 
     if (options.shooterEntityId != null) {
-      this.shotOriginComponentStore.add(entityId, new ShotOriginComponent(options.shooterEntityId));
+      this.shotOriginComponentStore.add(entityId, new ShotOriginComponent(options.shooterEntityId, startX, startY));
     }
 
     if (typeof options.damage === "number") {

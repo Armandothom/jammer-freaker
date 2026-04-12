@@ -4,14 +4,21 @@ import { RenderObject } from "./types/render-objects.js";
 
 export type TrajectoryType = 0 | 1; // 0 = linear, 1 = parabólico
 export type RGB = [number, number, number]; // 0..255
+export type ParticleType = 0 | 1 | 2 | 3; // 0 = generic, 1 = blood, 2 = dust, 3 = spark
+
+export const PARTICLE_TYPE_GENERIC: ParticleType = 0;
+export const PARTICLE_TYPE_BLOOD: ParticleType = 1;
+export const PARTICLE_TYPE_DUST: ParticleType = 2;
+export const PARTICLE_TYPE_SPARK: ParticleType = 3;
 
 export type SpawnEvent = {
-  position: { x: number; y: number };   // pixels no mesmo espaço do worldToState01
+  position: { x: number; y: number };   // world-space pixels
   velocity: { x: number; y: number };   // unidades/seg (interpretação fica no renderer)
   life: number;                          // em segundos (ex.: 1.0)
   size: number;                          // em pixels (ex.: 20)
   color: RGB;                            // [R,G,B] 0..255
   trajectoryType: TrajectoryType;        // 0 linear, 1 parabólico
+  particleType?: ParticleType;
 };
 
 export class RendererEngine {
@@ -56,6 +63,7 @@ export class RendererEngine {
   private static readonly TEX_UNIT_SPAWN_KIN = 2;
   private static readonly TEX_UNIT_SPAWN_STYLE = 3;
   private static readonly TEX_UNIT_SPAWN_COLOR = 4;
+  private static readonly TEX_UNIT_SPAWN_POSITION = 5;
 
   // TEXTURE0 = TERRAIN AND OBJECTS
   // TEXTURE1 = PARTICLE STATE READ
@@ -66,6 +74,10 @@ export class RendererEngine {
   private _spawnHead: number = 0;
   private _pendingSpawns: SpawnEvent[] = [];
   private _lastSpawnRects: { x: number, y: number, width: number, height: number }[] = [];
+  private _particleViewportLeft: number = 0;
+  private _particleViewportTop: number = 0;
+  private _particleWorldWidth: number = 1;
+  private _particleWorldHeight: number = 1;
 
   private _vmax = 1;
   private _maxLife = 6;
@@ -154,26 +166,37 @@ export class RendererEngine {
     const VMAX = this._vmax;
     const MAX_LIFE = this._maxLife;
     const MAX_SIZE = this._maxSize;
+    const WORLD_WIDTH = Math.max(this._particleWorldWidth, 1);
+    const WORLD_HEIGHT = Math.max(this._particleWorldHeight, 1);
 
     const enc8 = (v: number) => Math.min(255, Math.max(0, Math.floor(v)));
     const clamp01s = (x: number) => {
       const eps = 1.0 / 1024.0;
       return Math.min(1.0 - eps, Math.max(eps, x));
     };
+    const packUnorm16 = (value01: number): [number, number] => {
+      const clamped = Math.min(1.0, Math.max(0.0, value01));
+      const quantized = Math.min(65535, Math.max(0, Math.round(clamped * 65535.0)));
+      return [
+        (quantized >> 8) & 255,
+        quantized & 255,
+      ];
+    };
     const encVel01 = (v: number) => (v / VMAX) * 0.5 + 0.5; // [-VMAX,VMAX] -> [0..1]
 
-    const kinPacked: number[] = []; // RGBA: s0.x, s0.y, v0.x(enc), v0.y(enc)
+    const posPacked: number[] = []; // RGBA: worldX hi/lo, worldY hi/lo
+    const kinPacked: number[] = []; // RGBA: v0.x(enc), v0.y(enc), free, free
     const styPacked: number[] = []; // RGBA: lifeNorm, sizeNorm, type(0/1), livre
-    const colPacked: number[] = []; // R, G, B, 255
+    const colPacked: number[] = []; // R, G, B, particleType
 
     for (const ev of this._pendingSpawns) {
-      let [x01, y01] = this.worldToState01(ev.position.x, ev.position.y);
-      if (x01 <= 0 || x01 >= 1 || y01 <= 0 || y01 >= 1) continue; // fora da tela? ignora
-      x01 = clamp01s(x01);
-      y01 = clamp01s(y01);
+      const x01 = Math.min(1.0, Math.max(0.0, ev.position.x / WORLD_WIDTH));
+      const y01 = Math.min(1.0, Math.max(0.0, ev.position.y / WORLD_HEIGHT));
+      const [xHi, xLo] = packUnorm16(x01);
+      const [yHi, yLo] = packUnorm16(y01);
 
-      const vxNorm = ev.velocity.x / this._canvas.width;   // px/s -> (0..1)/s
-      const vyNorm = ev.velocity.y / this._canvas.height;  // px/s -> (0..1)/s
+      const vxNorm = ev.velocity.x / this._canvas.width;    // px/s -> (0..1)/s
+      const vyNorm = ev.velocity.y / this._canvas.height;   // world Y down
 
       const vx01 = clamp01s(encVel01(vxNorm));
       const vy01 = clamp01s(encVel01(vyNorm));
@@ -181,13 +204,27 @@ export class RendererEngine {
       const lifeNorm = Math.min(1, Math.max(0, ev.life / MAX_LIFE));
       const sizeNorm = Math.min(1, Math.max(0, ev.size / MAX_SIZE));
       const typeByte = ev.trajectoryType === 1 ? 255 : 0;
+      const particleTypeByte = ev.particleType === PARTICLE_TYPE_SPARK
+        ? 255
+        : ev.particleType === PARTICLE_TYPE_DUST
+          ? 170
+          : ev.particleType === PARTICLE_TYPE_BLOOD
+            ? 85
+            : 0;
+
+      posPacked.push(
+        xHi,
+        xLo,
+        yHi,
+        yLo
+      );
 
       // spawnKinematic
       kinPacked.push(
-        enc8(x01 * 255),
-        enc8(y01 * 255),
         enc8(vx01 * 255),
-        enc8(vy01 * 255)
+        enc8(vy01 * 255),
+        0,
+        0
       );
 
       // spawnStyle
@@ -202,13 +239,24 @@ export class RendererEngine {
         ev.color[0],
         ev.color[1],
         ev.color[2],
-        255
+        particleTypeByte
       );
     }
 
-    const count = kinPacked.length / 4;
+    let count = posPacked.length / 4;
     if (count === 0) { this._pendingSpawns.length = 0; return; }
 
+    // Keeps the freshest spawns when a single frame produces more particles than the ring can hold.
+    if (count > this._particleMaxCapacity) {
+      const keepFrom = (count - this._particleMaxCapacity) * 4;
+      posPacked.splice(0, keepFrom);
+      kinPacked.splice(0, keepFrom);
+      styPacked.splice(0, keepFrom);
+      colPacked.splice(0, keepFrom);
+      count = this._particleMaxCapacity;
+    }
+
+    const pos = new Uint8Array(posPacked);
     const kin = new Uint8Array(kinPacked);
     const sty = new Uint8Array(styPacked);
     const col = new Uint8Array(colPacked);
@@ -216,62 +264,80 @@ export class RendererEngine {
     const width = this._particleTextureWidth;
     const startId = this._spawnHead;
 
-    const writeRange = (data: Uint8Array, tex: WebGLTexture, start: number, len: number, srcOffsetBytes: number) => {
+    const writeRange = (
+      data: Uint8Array,
+      tex: WebGLTexture,
+      start: number,
+      len: number,
+      srcOffsetBytes: number,
+      trackClearRect: boolean,
+    ) => {
       gl.bindTexture(gl.TEXTURE_2D, tex);
-      const sx = start % width;
-      const sy = Math.floor(start / width);
-      const run = Math.min(len, width - sx);
+      let remaining = len;
+      let cursor = start;
+      let byteOffset = srcOffsetBytes;
 
-      gl.texSubImage2D(gl.TEXTURE_2D, 0, sx, sy, run, 1, gl.RGBA, gl.UNSIGNED_BYTE, data, srcOffsetBytes);
-      this._lastSpawnRects.push({ x: sx, y: sy, width: run, height: 1 });
+      while (remaining > 0) {
+        const sx = cursor % width;
+        const sy = Math.floor(cursor / width);
+        const run = Math.min(remaining, width - sx);
+        const slice = data.subarray(byteOffset, byteOffset + (run * 4));
 
-      const remain = len - run;
-      if (remain > 0) {
-        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, sy + 1, remain, 1, gl.RGBA, gl.UNSIGNED_BYTE, data, srcOffsetBytes + run * 4);
-        this._lastSpawnRects.push({ x: 0, y: sy + 1, width: remain, height: 1 });
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, sx, sy, run, 1, gl.RGBA, gl.UNSIGNED_BYTE, slice);
+        if (trackClearRect) {
+          this._lastSpawnRects.push({ x: sx, y: sy, width: run, height: 1 });
+        }
+
+        remaining -= run;
+        cursor += run;
+        byteOffset += run * 4;
       }
     };
 
-    // 2) subir spawnKinematic
-    gl.activeTexture(gl.TEXTURE0 + RendererEngine.TEX_UNIT_SPAWN_KIN);
-    gl.bindTexture(gl.TEXTURE_2D, this._spawnKinematic);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+    gl.activeTexture(gl.TEXTURE0 + RendererEngine.TEX_UNIT_SPAWN_POSITION);
+    gl.bindTexture(gl.TEXTURE_2D, this._spawnTexture);
 
     if (startId + count <= this._particleMaxCapacity) {
-      writeRange(kin, this._spawnKinematic, startId, count, 0);
+      writeRange(pos, this._spawnTexture, startId, count, 0, false);
     } else {
       const first = this._particleMaxCapacity - startId;
-      writeRange(kin, this._spawnKinematic, startId, first, 0);
-      writeRange(kin, this._spawnKinematic, 0, count - first, first * 4);
+      writeRange(pos, this._spawnTexture, startId, first, 0, false);
+      writeRange(pos, this._spawnTexture, 0, count - first, first * 4, false);
+    }
+
+    gl.activeTexture(gl.TEXTURE0 + RendererEngine.TEX_UNIT_SPAWN_KIN);
+    gl.bindTexture(gl.TEXTURE_2D, this._spawnKinematic);
+
+    if (startId + count <= this._particleMaxCapacity) {
+      writeRange(kin, this._spawnKinematic, startId, count, 0, false);
+    } else {
+      const first = this._particleMaxCapacity - startId;
+      writeRange(kin, this._spawnKinematic, startId, first, 0, false);
+      writeRange(kin, this._spawnKinematic, 0, count - first, first * 4, false);
     }
 
     // 3) subir spawnStyle (mesmo mapeamento de IDs)
     gl.activeTexture(gl.TEXTURE0 + RendererEngine.TEX_UNIT_SPAWN_STYLE);
     gl.bindTexture(gl.TEXTURE_2D, this._spawnStyle);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
 
     if (startId + count <= this._particleMaxCapacity) {
-      writeRange(sty, this._spawnStyle, startId, count, 0);
+      writeRange(sty, this._spawnStyle, startId, count, 0, true);
     } else {
       const first = this._particleMaxCapacity - startId;
-      writeRange(sty, this._spawnStyle, startId, first, 0);
-      writeRange(sty, this._spawnStyle, 0, count - first, first * 4);
+      writeRange(sty, this._spawnStyle, startId, first, 0, true);
+      writeRange(sty, this._spawnStyle, 0, count - first, first * 4, true);
     }
 
     // 4) subir spawnColor
     gl.activeTexture(gl.TEXTURE0 + RendererEngine.TEX_UNIT_SPAWN_COLOR);
     gl.bindTexture(gl.TEXTURE_2D, this._spawnColor);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
 
     if (startId + count <= this._particleMaxCapacity) {
-      writeRange(col, this._spawnColor, startId, count, 0);
+      writeRange(col, this._spawnColor, startId, count, 0, false);
     } else {
       const first = this._particleMaxCapacity - startId;
-      writeRange(col, this._spawnColor, startId, first, 0);
-      writeRange(col, this._spawnColor, 0, count - first, first * 4);
+      writeRange(col, this._spawnColor, startId, first, 0, false);
+      writeRange(col, this._spawnColor, 0, count - first, first * 4, false);
     }
 
     // 4) avança o ring
@@ -515,17 +581,24 @@ export class RendererEngine {
       attribute float a_particleID;
 
       uniform sampler2D u_stateRead;      // RGBA: lifeRem, lifeInitLatched, type, sizeNorm
-      uniform sampler2D u_spawnKinematic; // RGBA: s0.x, s0.y, v0.x(enc), v0.y(enc)
+      uniform sampler2D u_spawnPosition;  // RGBA: worldX hi/lo, worldY hi/lo
+      uniform sampler2D u_spawnKinematic; // RGBA: v0.x(enc), v0.y(enc), free, free
+      uniform sampler2D u_spawnColor;     // RGBA: color.rgb, particleType
       uniform vec2 u_texSize;
 
       uniform float u_maxLife;   // s
       uniform float u_vmax;      // telas/seg correspondente ao encode
-      uniform vec2  u_gravity;   // telas/seg^2
+      uniform vec2  u_gravity;   // world px/seg^2
+      uniform vec2  u_worldSize;
+      uniform vec2  u_viewportOrigin;
+      uniform vec2  u_viewportSize;
       uniform float u_maxSizePx; // pixels
 
       varying float v_alive;
       varying float v_alpha;
-      varying vec2  v_uv; // UV para o FS pegar a cor
+      varying vec3  v_color;
+      varying float v_particleType;
+      varying float v_seed;
 
       vec2 idToUV(float id){
         float x = mod(id, u_texSize.x);
@@ -537,58 +610,161 @@ export class RendererEngine {
         return (x01 * 2.0 - 1.0) * vmax;
       }
 
+      float decodeUnorm16(vec2 packedBytes) {
+        vec2 bytes = floor((packedBytes * 255.0) + 0.5);
+        return ((bytes.x * 256.0) + bytes.y) / 65535.0;
+      }
+
+      float saturate(float value) {
+        return clamp(value, 0.0, 1.0);
+      }
+
+      float decodeParticleType(float packedValue) {
+        float byteValue = floor((packedValue * 255.0) + 0.5);
+        if (byteValue < 42.5) return 0.0;
+        if (byteValue < 127.5) return 1.0;
+        if (byteValue < 212.5) return 2.0;
+        return 3.0;
+      }
+
+      float hash12(vec2 p) {
+        return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+      }
+
+      float computeFade(float life01, float particleType) {
+        if (particleType < 0.5) {
+          return smoothstep(0.0, 0.08, life01) * (1.0 - smoothstep(0.72, 1.0, life01));
+        }
+        if (particleType < 1.5) {
+          return smoothstep(0.0, 0.05, life01) * (1.0 - smoothstep(0.48, 1.0, life01));
+        }
+        if (particleType < 2.5) {
+          return smoothstep(0.0, 0.18, life01) * (1.0 - smoothstep(0.30, 1.0, life01));
+        }
+        return smoothstep(0.0, 0.02, life01) * (1.0 - smoothstep(0.10, 1.0, life01));
+      }
+
+      float computeSizeScale(float life01, float particleType, float seed) {
+        if (particleType < 0.5) {
+          return mix(1.0 + (seed * 0.12), 0.82, smoothstep(0.0, 1.0, life01));
+        }
+        if (particleType < 1.5) {
+          return mix(0.95 + (seed * 0.22), 0.54, smoothstep(0.18, 1.0, life01));
+        }
+        if (particleType < 2.5) {
+          return mix(0.72 + (seed * 0.20), 1.42 + (seed * 0.18), smoothstep(0.0, 1.0, life01));
+        }
+        return mix(0.90 + (seed * 0.26), 0.18, smoothstep(0.0, 1.0, life01));
+      }
+
+      vec3 computeColor(vec3 baseColor, float life01, float particleType) {
+        if (particleType < 0.5) {
+          return mix(baseColor, baseColor * 0.70, smoothstep(0.35, 1.0, life01));
+        }
+        if (particleType < 1.5) {
+          return mix(baseColor * 1.05, baseColor * 0.62, smoothstep(0.16, 1.0, life01));
+        }
+        if (particleType < 2.5) {
+          return mix(baseColor * 0.92, baseColor * 0.52, smoothstep(0.0, 1.0, life01));
+        }
+        return mix(vec3(1.0, 0.98, 0.86), baseColor * 0.76, smoothstep(0.0, 0.55, life01));
+      }
+
       void main(){
         vec2 uv = idToUV(a_particleID);
-        v_uv = uv;
-
         vec4 st = texture2D(u_stateRead, uv);      // lifeRem, lifeInitL, type, sizeNorm
-        vec4 sk = texture2D(u_spawnKinematic, uv); // s0.xy, v0.xy(enc)
+        vec4 sp = texture2D(u_spawnPosition, uv);  // world start packed in 16 bits
+        vec4 sk = texture2D(u_spawnKinematic, uv); // v0.xy(enc)
+        vec4 sc = texture2D(u_spawnColor, uv);     // color.rgb, particleType
 
         float lifeRem   = st.r;
         float lifeInitL = st.g;
         float type      = st.b;
         float sizeNorm  = st.a;
+        float particleType = decodeParticleType(sc.a);
+        float actualLifetime = max(lifeInitL * u_maxLife, 1e-5);
+        float lifeFrac = saturate(lifeRem / max(lifeInitL, 1e-5));
+        float life01 = 1.0 - lifeFrac;
+        float age = life01 * actualLifetime;
 
-        v_alive = step(0.001, lifeRem);
+        v_alive = step(0.001, lifeRem) * step(0.001, lifeInitL);
 
-        // idade em segundos: (lifeInit - lifeRem) * maxLife
-        float t = (lifeInitL - lifeRem) * u_maxLife;
-
-        vec2 s0 = sk.xy;
-        vec2 v0 = vec2(decodeSigned(sk.z, u_vmax),
-                      decodeSigned(sk.w, u_vmax));
+        vec2 world0 = vec2(
+          decodeUnorm16(sp.rg) * u_worldSize.x,
+          decodeUnorm16(sp.ba) * u_worldSize.y
+        );
+        vec2 v0 = vec2(
+          decodeSigned(sk.r, u_vmax) * u_viewportSize.x,
+          decodeSigned(sk.g, u_vmax) * u_viewportSize.y
+        );
 
         // trajetórias
-        vec2 s_lin = s0 + v0 * t;
-        vec2 s_par = s_lin + 0.5 * u_gravity * (t*t);
+        vec2 accel = mix(vec2(0.0), u_gravity, step(0.5, type));
+        vec2 s_lin = world0 + v0 * age;
+        vec2 s_par = world0 + v0 * age + 0.5 * accel * (age * age);
         vec2 s = mix(s_lin, s_par, step(0.5, type)); // 0=linear,1=parabólico
 
-        vec2 posClip = s * 2.0 - 1.0;
+        vec2 screenPos = s - u_viewportOrigin;
+        vec2 posClip = vec2(
+          (screenPos.x / u_viewportSize.x) * 2.0 - 1.0,
+          1.0 - (screenPos.y / u_viewportSize.y) * 2.0
+        );
         posClip = mix(vec2(2.0, 2.0), posClip, v_alive); // empurra mortos p/ fora
 
-        float eps = 1e-5;
-        v_alpha = v_alive * clamp(lifeRem / max(eps, lifeInitL), 0.0, 1.0);
+        float seed = hash12((uv * u_texSize) + (sc.rb * 255.0));
+        float fade = computeFade(life01, particleType);
+        float sizeScale = computeSizeScale(life01, particleType, seed);
+
+        v_alpha = v_alive * fade;
+        v_color = computeColor(sc.rgb, life01, particleType);
+        v_particleType = particleType;
+        v_seed = seed;
 
         gl_Position = vec4(posClip, 0.0, 1.0);
-        gl_PointSize = sizeNorm * u_maxSizePx * v_alive;
+        gl_PointSize = max(1.0, sizeNorm * u_maxSizePx * sizeScale * v_alive);
       }
     `;
     const fragmentShader = `
       precision mediump float;
 
-      uniform sampler2D u_spawnColor; // RGBA: R,G,B,_ (0..1)
-
       varying float v_alive;
       varying float v_alpha;
-      varying vec2  v_uv;
+      varying vec3  v_color;
+      varying float v_particleType;
+      varying float v_seed;
+
+      float particleMask(vec2 point, float particleType, float seed) {
+        float radial = length(point);
+        float angle = atan(point.y, point.x);
+
+        if (particleType < 0.5) {
+          return 1.0 - smoothstep(0.55, 1.0, radial);
+        }
+
+        if (particleType < 1.5) {
+          float wobble = 0.08 * sin((angle * 5.0) + (seed * 6.2831853));
+          return 1.0 - smoothstep(0.62 + wobble, 1.0 + wobble, radial);
+        }
+
+        if (particleType < 2.5) {
+          vec2 dustPoint = point * vec2(0.82, 1.12);
+          float dustRadial = length(dustPoint);
+          return 1.0 - smoothstep(0.28, 1.0, dustRadial);
+        }
+
+        float core = 1.0 - smoothstep(0.12, 0.48, radial);
+        float glow = 1.0 - smoothstep(0.24, 1.0, radial);
+        return max(core, glow * 0.55);
+      }
 
       void main(){
         if (v_alive < 0.5) discard;
+        vec2 point = (gl_PointCoord * 2.0) - 1.0;
+        float mask = particleMask(point, v_particleType, v_seed);
+        float alpha = v_alpha * mask;
+        if (alpha <= 0.001) discard;
 
-        vec3 rgb = texture2D(u_spawnColor, v_uv).rgb;
-        float a  = v_alpha;
-
-        gl_FragColor = vec4(rgb * a, a); // premultiplied
+        gl_FragColor = vec4(v_color * alpha, alpha); // premultiplied
       }
     `;
 
@@ -674,6 +850,10 @@ export class RendererEngine {
     gl.uniform1i(gl.getUniformLocation(this._particleRenderProgram!, "u_stateRead"), RendererEngine.TEX_UNIT_STATE_READ);
     gl.uniform2f(gl.getUniformLocation(this._particleRenderProgram!, "u_texSize"), this._particleTextureWidth, this._particleTextureHeight);
 
+    gl.activeTexture(gl.TEXTURE0 + RendererEngine.TEX_UNIT_SPAWN_POSITION);
+    gl.bindTexture(gl.TEXTURE_2D, this._spawnTexture);
+    gl.uniform1i(gl.getUniformLocation(this._particleRenderProgram!, "u_spawnPosition"), RendererEngine.TEX_UNIT_SPAWN_POSITION);
+
     gl.activeTexture(gl.TEXTURE0 + RendererEngine.TEX_UNIT_SPAWN_KIN);
     gl.bindTexture(gl.TEXTURE_2D, this._spawnKinematic);
     gl.uniform1i(gl.getUniformLocation(this._particleRenderProgram!, "u_spawnKinematic"), RendererEngine.TEX_UNIT_SPAWN_KIN);
@@ -688,8 +868,10 @@ export class RendererEngine {
 
     gl.uniform1f(gl.getUniformLocation(this._particleRenderProgram!, "u_maxLife"), this._maxLife);
     gl.uniform1f(gl.getUniformLocation(this._particleRenderProgram!, "u_vmax"), this._vmax);
-    const gNormY = this._yGravity / this._canvas.height;
-    gl.uniform2f(gl.getUniformLocation(this._particleRenderProgram!, "u_gravity"), 0.0, gNormY);
+    gl.uniform2f(gl.getUniformLocation(this._particleRenderProgram!, "u_gravity"), 0.0, -this._yGravity);
+    gl.uniform2f(gl.getUniformLocation(this._particleRenderProgram!, "u_worldSize"), this._particleWorldWidth, this._particleWorldHeight);
+    gl.uniform2f(gl.getUniformLocation(this._particleRenderProgram!, "u_viewportOrigin"), this._particleViewportLeft, this._particleViewportTop);
+    gl.uniform2f(gl.getUniformLocation(this._particleRenderProgram!, "u_viewportSize"), this._canvas.width, this._canvas.height);
     gl.uniform1f(gl.getUniformLocation(this._particleRenderProgram!, "u_maxSizePx"), this._maxSize);
   }
 
@@ -1060,15 +1242,14 @@ export class RendererEngine {
     this._gl.clear(this._gl.COLOR_BUFFER_BIT | this._gl.DEPTH_BUFFER_BIT);
   }
 
-  private worldToState01(xWorld: number, yWorld: number): [number, number] {
-    const [cx, cy] = this.worldToClipXY(xWorld, yWorld);
-    // clip (-1..1) -> (0..1)
-    return [(cx * 0.5) + 0.5, (cy * 0.5) + 0.5];
+  public setParticleViewport(left: number, top: number) {
+    this._particleViewportLeft = left;
+    this._particleViewportTop = top;
   }
 
-  private worldToClipXY(xWorld: number, yWorld: number): [number, number] {
-    const [cx, cy] = this.toClipSpace(xWorld, yWorld, 0, this._canvas);
-    return [cx, cy];
+  public setParticleWorldBounds(width: number, height: number) {
+    this._particleWorldWidth = Math.max(width, 1);
+    this._particleWorldHeight = Math.max(height, 1);
   }
   
   public toggleDebugBorderSprite(status : boolean) {

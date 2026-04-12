@@ -1,9 +1,11 @@
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
+import { PARTICLE_TYPE_SPARK } from "../../game/renderer/renderer-engine.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { CollisionBoxComponent } from "../components/collision-box-component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
 import { GrenadeComponent } from "../components/grenade-component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
+import { ParticlesComponent } from "../components/particles.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ProjectileComponent } from "../components/projectile-component.js";
@@ -33,6 +35,7 @@ export class CollisionSystem implements ISystem {
         private shotOriginComponentStore: ComponentStore<ShotOriginComponent>,
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private enemyComponentStore: ComponentStore<EnemyComponent>,
+        private particlesComponentStore: ComponentStore<ParticlesComponent>,
         private spriteManager: SpriteManager,
         private worldTilemapManager: WorldTilemapManager,
         private entityFactory: EntityFactory,
@@ -244,6 +247,8 @@ export class CollisionSystem implements ISystem {
             return;
         }
 
+        this.projectileDestructionParticleEmit(entity);
+
         this.entityFactory.destroyProjectile(entity);
         // projectile destroyed at wall anim
     }
@@ -270,5 +275,22 @@ export class CollisionSystem implements ISystem {
         if (this.collisionBoxComponentStore.has(entity)) {
             this.collisionBoxComponentStore.get(entity).collides = false;
         }
+    }
+
+    private projectileDestructionParticleEmit(entity: number) {
+        const projectileLastPosition = this.positionComponentStore.get(entity);
+        const projectileOrigin = this.shotOriginComponentStore.get(entity);
+
+        const directionX = projectileOrigin.shotStartX - projectileLastPosition.x;
+        const directionY = projectileOrigin.shotStartY - projectileLastPosition.y;
+        const directionMagnitude = Math.hypot(directionX, directionY);
+        const emissionDirection = directionMagnitude > 0.0001
+            ? {
+                x: directionX / directionMagnitude,
+                y: directionY / directionMagnitude,
+            }
+            : { x: 1, y: 0 };
+
+        this.particlesComponentStore.add(entity, new ParticlesComponent(projectileLastPosition.x, projectileLastPosition.y, emissionDirection, PARTICLE_TYPE_SPARK, 9));
     }
 }

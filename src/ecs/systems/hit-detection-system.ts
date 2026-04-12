@@ -1,4 +1,5 @@
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
+import { PARTICLE_TYPE_BLOOD, PARTICLE_TYPE_DUST } from "../../game/renderer/renderer-engine.js";
 import { AimRotationShootingComponent } from "../components/aim-rotation-shooting.component.js";
 import { CorpseComponent } from "../components/corpse.component.js";
 import { DamageDealtComponent } from "../components/damage-dealt.component.js";
@@ -9,6 +10,7 @@ import { GrenadeExplosionHitBoxComponent } from "../components/grenade-explosion
 import { HitBoxComponent } from "../components/hit-box-component.js";
 import { ItemBoxComponent } from "../components/item-box.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
+import { ParticlesComponent } from "../components/particles.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ProjectileComponent } from "../components/projectile-component.js";
@@ -40,7 +42,22 @@ export class HitDetectionSystem implements ISystem {
         private corpseComponentStore: ComponentStore<CorpseComponent>,
         private grenadeExplosionHitBoxComponentStore: ComponentStore<GrenadeExplosionHitBoxComponent>,
         private shapeHitMemoryComponentStore: ComponentStore<ShapeHitMemoryComponent>,
+        private particlesComponentStore: ComponentStore<ParticlesComponent>,
     ) { }
+
+    private queueDamageTakenIntent(targetEntity: number, damageSource: number, damage: number) {
+        const existingDamageIntent = this.damageTakenIntentComponentStore.getOrNull(targetEntity);
+        if (existingDamageIntent) {
+            existingDamageIntent.accumulate(damageSource, damage);
+            return;
+        }
+
+        this.damageTakenIntentComponentStore.add(
+            targetEntity,
+            new DamageTakenIntentComponent(damageSource, damage),
+        );
+    }
+
     update(deltaTime: number): void {
         for (const entity of this.movementIntentComponentStore.getAllEntities()) {
             const intent = this.movementIntentComponentStore.getOrNull(entity);
@@ -192,10 +209,40 @@ export class HitDetectionSystem implements ISystem {
             if (shooterId !== undefined) {
                 const projectile = this.projectileComponentStore.get(entity);
                 const projectileDamage = projectile.damage;
+                this.queueDamageTakenIntent(hitEntity, shooterId, projectileDamage);
+            }
+            const isEnemy = this.enemyComponentStore.has(hitEntity);
+            const isPlayer = this.playerComponentStore.has(hitEntity);
+            const isBox = this.itemBoxComponentStore.has(hitEntity);
+            if (isEnemy || isPlayer) {
+                const projectileLastPosition = this.positionComponentStore.get(entity);
+                const projectileOrigin = this.shotOriginComponentStore.get(entity);
+                const directionX = projectileOrigin.shotStartX - projectileLastPosition.x;
+                const directionY = projectileOrigin.shotStartY - projectileLastPosition.y;
+                const directionMagnitude = Math.hypot(directionX, directionY);
+                const emissionDirection = directionMagnitude > 0.0001
+                    ? {
+                        x: directionX / directionMagnitude,
+                        y: directionY / directionMagnitude,
+                    }
+                    : { x: 1, y: 0 };
 
-                if (!this.damageTakenIntentComponentStore.has(hitEntity)) {
-                    this.damageTakenIntentComponentStore.add(hitEntity, new DamageTakenIntentComponent(shooterId, projectileDamage));
-                }
+                this.particlesComponentStore.add(entity, new ParticlesComponent(projectileLastPosition.x, projectileLastPosition.y, emissionDirection, PARTICLE_TYPE_BLOOD, 9));
+            }
+            if (isBox) {
+                const projectileLastPosition = this.positionComponentStore.get(entity);
+                const projectileOrigin = this.shotOriginComponentStore.get(entity);
+                const directionX = projectileOrigin.shotStartX - projectileLastPosition.x;
+                const directionY = projectileOrigin.shotStartY - projectileLastPosition.y;
+                const directionMagnitude = Math.hypot(directionX, directionY);
+                const emissionDirection = directionMagnitude > 0.0001
+                    ? {
+                        x: directionX / directionMagnitude,
+                        y: directionY / directionMagnitude,
+                    }
+                    : { x: 1, y: 0 };
+
+                this.particlesComponentStore.add(entity, new ParticlesComponent(projectileLastPosition.x, projectileLastPosition.y, emissionDirection, PARTICLE_TYPE_DUST, 9));
             }
 
             this.entityFactory.destroyProjectile(entity);
@@ -212,6 +259,7 @@ export class HitDetectionSystem implements ISystem {
         let appliedDamage = false;
 
         for (const hitEntity of hitEntities) {
+
             if (!this.isValidDamageTarget(entity, hitEntity)) {
                 continue;
             }
@@ -220,11 +268,9 @@ export class HitDetectionSystem implements ISystem {
                 continue;
             }
 
-            if (!this.damageTakenIntentComponentStore.has(hitEntity)) {
-                this.damageTakenIntentComponentStore.add(hitEntity, new DamageTakenIntentComponent(shooterId, damage));
-                hitMemory?.alreadyHit.add(hitEntity);
-                appliedDamage = true;
-            }
+            this.queueDamageTakenIntent(hitEntity, shooterId, damage);
+            hitMemory?.alreadyHit.add(hitEntity);
+            appliedDamage = true;
 
             if (!canHitMultipleTargets) {
                 break;

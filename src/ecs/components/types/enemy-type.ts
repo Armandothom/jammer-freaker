@@ -20,7 +20,7 @@ export interface PropertiesTable {
 export const EnemyConfig: Record<EnemyType, PropertiesTable> = {
     [EnemyType.SOLDIER]: {
         spawnFrequency: 0.4,
-        hp: 100,
+        hp: 10000,
         damage: 10,
         attackCooldownInSeconds: 2,
         attackRange: 640,

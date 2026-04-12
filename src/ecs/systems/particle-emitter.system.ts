@@ -1,132 +1,93 @@
-import { BloodParticlesComponent } from "../components/blood-particles.component.js";
-import { DustParticlesComponent } from "../components/dust-particles.component.js";
-import { SparkParticlesComponent } from "../components/spark-particles.component.js";
+import {
+    ParticleType,
+    RendererEngine
+} from "../../game/renderer/renderer-engine.js";
+import { ParticlesComponent } from "../components/particles.component.js";
+import { PARTICLE_PRESETS } from "../components/types/particle-preset.js";
 import { ComponentStore } from "../core/component-store.js";
 import { ISystem } from "./system.interface.js";
-import { RendererEngine } from "../../game/renderer/renderer-engine.js";
 
 export type TrajectoryType = 0 | 1; // 0 = linear, 1 = parabólico
 export type RGB = [number, number, number]; // 0..255
 
 export type SpawnEvent = {
-    position: { x: number; y: number };   // pixels no mesmo espaço do worldToState01
-    velocity: { x: number; y: number };   // unidades/seg (interpretação fica no renderer)
-    life: number;                          // em segundos (ex.: 1.0)
-    size: number;                          // em pixels (ex.: 20)
-    color: RGB;                            // [R,G,B] 0..255
-    trajectoryType: TrajectoryType;        // 0 linear, 1 parabólico
+    position: { x: number; y: number };
+    velocity: { x: number; y: number };
+    life: number;
+    size: number;
+    color: RGB;
+    trajectoryType: TrajectoryType;
+    particleType?: ParticleType;
 };
+
 
 export class ParticleEmitterSystem implements ISystem {
     constructor(
         private rendererEngine: RendererEngine,
-        private bloodParticlesComponentStore: ComponentStore<BloodParticlesComponent>,
-        private dustParticlesComponentStore: ComponentStore<DustParticlesComponent>,
-        private sparkParticlesComponentStore: ComponentStore<SparkParticlesComponent>,
+        private particlesComponentStore: ComponentStore<ParticlesComponent>,
     ) {
     }
 
-    update(deltaTime: number): void {
-
-        const bloodParticleSets = this.bloodParticlesComponentStore.getAllEntities();
-        const dustParticleSets = this.dustParticlesComponentStore.getAllEntities();
-        const sparkParticleSets = this.sparkParticlesComponentStore.getAllEntities();
+    update(_: number): void {
+        const particleEntities = this.particlesComponentStore.getAllEntities();
+        if (particleEntities.length === 0) {
+            return;
+        }
 
         const spawns: SpawnEvent[] = [];
 
-        //velX, velY -> px/s;
-        //life -> s
-
-        if (bloodParticleSets.length !== 0) {
-            for (const bloodParticleSet of bloodParticleSets) {
-                const particleSetProperties = this.bloodParticlesComponentStore.get(bloodParticleSet);
-                const maxParticlesEmitted = particleSetProperties.maxParticlesEmitted;
-                const emissionOrigin = { x: particleSetProperties.particleOriginX, y: particleSetProperties.particleOriginY };
-                const emissionDirection = { x: particleSetProperties.originDirection.x * -1, y: particleSetProperties.originDirection.y * -1 };
-                const emissionLeft = emissionDirection.x < -1 ? true : false;
-                const emissionAngle = Math.atan2(emissionDirection.y, emissionDirection.x);
-                const velX = 60;
-                const velY = -30;
-
-                for (let i = 0; i < maxParticlesEmitted; i++) {
-                    const splatterAngle = Math.PI / 4;
-                    const progress = i / maxParticlesEmitted;
-                    const angleOffset = (progress - 0.5) * splatterAngle;
-                    const finalAngle = emissionAngle + (emissionLeft ? -angleOffset : angleOffset);
-                    spawns.push({
-                        position: { x: emissionOrigin.x, y: emissionOrigin.y },
-                        velocity: { x: Math.cos(finalAngle) * velX, y: Math.sin(finalAngle) * velY },
-                        life: 1,
-                        color: [145, 24, 32],
-                        size: 5,
-                        trajectoryType: 1,
-                    })
-                }
-                this.bloodParticlesComponentStore.remove(bloodParticleSet);
+        for (const entity of particleEntities) {
+            const particleSet = this.particlesComponentStore.get(entity);
+            const preset = PARTICLE_PRESETS[particleSet.particleType];
+            if (!preset) {
+                this.particlesComponentStore.remove(entity);
+                continue;
             }
-        }
 
-        if (dustParticleSets.length !== 0) {
-            for (const dustParticleSet of dustParticleSets) {
-                const particleSetProperties = this.dustParticlesComponentStore.get(dustParticleSet);
-                const maxParticlesEmitted = particleSetProperties.maxParticlesEmitted;
-                const emissionOrigin = { x: particleSetProperties.particleOriginX, y: particleSetProperties.particleOriginY };
-                const emissionDirection = { x: particleSetProperties.originDirection.x * -1, y: particleSetProperties.originDirection.y * -1 };
-                const emissionLeft = emissionDirection.x < -1 ? true : false;
-                const emissionAngle = Math.atan2(emissionDirection.y, emissionDirection.x);
-                const velX = 60;
-                const velY = -30;
-
-                for (let i = 0; i < maxParticlesEmitted; i++) {
-                    const splatterAngle = Math.PI / 4;
-                    const progress = i / maxParticlesEmitted;
-                    const angleOffset = (progress - 0.5) * splatterAngle;
-                    const finalAngle = emissionAngle + (emissionLeft ? -angleOffset : angleOffset);
-                    spawns.push({
-                        position: { x: emissionOrigin.x, y: emissionOrigin.y },
-                        velocity: { x: Math.cos(finalAngle) * velX, y: Math.sin(finalAngle) * velY },
-                        life: 1,
-                        color: [170, 170, 170],
-                        size: 5,
-                        trajectoryType: 0,
-                    })
+            const emissionOrigin = {
+                x: particleSet.particleOriginX,
+                y: particleSet.particleOriginY,
+            };
+            const emissionDirectionMagnitude = Math.hypot(
+                particleSet.originDirection.x,
+                particleSet.originDirection.y,
+            );
+            const emissionDirection = emissionDirectionMagnitude > 0.0001
+                ? {
+                    x: particleSet.originDirection.x / emissionDirectionMagnitude,
+                    y: particleSet.originDirection.y / emissionDirectionMagnitude,
                 }
-                this.dustParticlesComponentStore.remove(dustParticleSet);
-            }
-        }
+                : { x: 1, y: 0 };
+            const emissionAngle = Math.atan2(emissionDirection.y, emissionDirection.x);
+            const maxParticlesEmitted = Math.max(1, particleSet.maxParticlesEmitted);
 
-        if (sparkParticleSets.length !== 0) {
-            for (const sparkParticleSet of sparkParticleSets) {
-                const particleSetProperties = this.sparkParticlesComponentStore.get(sparkParticleSet);
-                const maxParticlesEmitted = particleSetProperties.maxParticlesEmitted;
-                const emissionOrigin = { x: particleSetProperties.particleOriginX, y: particleSetProperties.particleOriginY };
-                const emissionDirection = { x: particleSetProperties.originDirection.x * -1, y: particleSetProperties.originDirection.y * -1 };
-                const emissionLeft = emissionDirection.x < -1 ? true : false;
-                const emissionAngle = Math.atan2(emissionDirection.y, emissionDirection.x);
-                const velX = 60;
-                const velY = -30;
+            for (let i = 0; i < maxParticlesEmitted; i++) {
+                const angleJitter = ((Math.random() * 2) - 1) * (preset.spreadAngle * 0.5);
+                const finalAngle = emissionAngle + angleJitter;
+                const spreadDirection = {
+                    x: Math.cos(finalAngle),
+                    y: Math.sin(finalAngle),
+                };
 
-                for (let i = 0; i < maxParticlesEmitted; i++) {
-                    const splatterAngle = Math.PI / 4;
-                    const progress = i / maxParticlesEmitted;
-                    const angleOffset = (progress - 0.5) * splatterAngle;
-                    const finalAngle = emissionAngle + (emissionLeft ? -angleOffset : angleOffset);
-                    spawns.push({
-                        position: { x: emissionOrigin.x, y: emissionOrigin.y },
-                        velocity: { x: Math.cos(finalAngle) * velX, y: Math.sin(finalAngle) * velY },
-                        life: 1,
-                        color: [255, 214, 72],
-                        size: 5,
-                        trajectoryType: 0,
-                    })
-                }
-                this.sparkParticlesComponentStore.remove(sparkParticleSet);
+                spawns.push({
+                    position: { x: emissionOrigin.x, y: emissionOrigin.y },
+                    velocity: {
+                        x: spreadDirection.x * preset.speed,
+                        y: spreadDirection.y * preset.speed,
+                    },
+                    life: preset.life,
+                    color: preset.color,
+                    size: preset.size,
+                    trajectoryType: preset.trajectoryType,
+                    particleType: preset.particleType,
+                });
             }
+
+            this.particlesComponentStore.remove(entity);
         }
 
         if (spawns.length !== 0) {
-            this.rendererEngine.enqueueSpawns(spawns)
+            this.rendererEngine.enqueueSpawns(spawns);
         }
-
     }
 }

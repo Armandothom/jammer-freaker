@@ -1,20 +1,20 @@
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
+import { PARTICLE_TYPE_BLOOD, PARTICLE_TYPE_DUST, PARTICLE_TYPE_SPARK } from "../../game/renderer/renderer-engine.js";
 import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { AnimTimerComponent } from "../components/anim-timer.component.js";
 import { AnimationComponent } from "../components/animation.component.js";
-import { BloodParticlesComponent } from "../components/blood-particles.component.js";
 import { CollisionBoxComponent } from "../components/collision-box-component.js";
 import { DamageTakenComponent } from "../components/damage-taken-intent.component.js";
 import { DirectionComponent } from "../components/direction-component.js";
-import { DustParticlesComponent } from "../components/dust-particles.component.js";
 import { EnemiesKilledComponent } from "../components/enemies-killed.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
 import { GrenadeComponent } from "../components/grenade-component.js";
 import { HealthComponent } from "../components/health.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
+import { ParticlesComponent } from "../components/particles.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ProjectileComponent } from "../components/projectile-component.js";
@@ -24,7 +24,6 @@ import { ShapeHitMemoryComponent } from "../components/shape-hitmemory-component
 import { ShapePositionComponent } from "../components/shape-position.component.js";
 import { ShooterComponent } from "../components/shooter-cooldown-component.js";
 import { ShotOriginComponent } from "../components/shot-origin.component.js";
-import { SparkParticlesComponent } from "../components/spark-particles.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { VelocityComponent } from "../components/velocity-component.js";
 import { WallHitComponent } from "../components/wall-hit.component.js";
@@ -60,9 +59,7 @@ export class CollisionSystem implements ISystem {
         private shapeDimensionComponent: ComponentStore<ShapeDimensionComponent>,
         private grenadeComponentStore: ComponentStore<GrenadeComponent>,
         private shapeHitMemoryComponentStore: ComponentStore<ShapeHitMemoryComponent>,
-        private dustParticlesComponentStore: ComponentStore<DustParticlesComponent>,
-        private bloodParticlesComponentStore: ComponentStore<BloodParticlesComponent>,
-        private sparkParticlesComponentStore: ComponentStore<SparkParticlesComponent>,
+        private particlesComponentStore: ComponentStore<ParticlesComponent>,
         private directionComponentStore: ComponentStore<DirectionComponent>,
     ) {
 
@@ -173,14 +170,20 @@ export class CollisionSystem implements ISystem {
 
 
                     if (validTarget && !isGrenade) {
-                        this.bloodParticlesComponentStore.add(target, new BloodParticlesComponent(projectilePos.x, projectilePos.y, dir))
+                        this.particlesComponentStore.add(
+                            target,
+                            new ParticlesComponent(projectilePos.x, projectilePos.y, dir, PARTICLE_TYPE_BLOOD),
+                        );
                         this.damageTakenComponentStore.add(target, new DamageTakenComponent(shooterId, 0));
                     }
 
                     if (!isGrenade) {
                         this.movementIntentComponentStore.remove(entity);
                         if (this.projectileComponentStore.has(wouldCollideCheckEntity.collidingEntity)) {
-                            this.sparkParticlesComponentStore.add(entity, new SparkParticlesComponent(projectilePos.x, projectilePos.y, dir));
+                            this.particlesComponentStore.add(
+                                entity,
+                                new ParticlesComponent(projectilePos.x, projectilePos.y, dir, PARTICLE_TYPE_SPARK),
+                            );
                         }
                         this.entityFactory.destroyProjectile(entity);
                         continue;
@@ -202,7 +205,10 @@ export class CollisionSystem implements ISystem {
                     const projectileDir = this.directionComponentStore.get(entity);
                     const dir = { x: projectileDir.dirX, y: projectileDir.dirY };
                     if (!this.wallHitComponentStore.has(entity)) {
-                        this.dustParticlesComponentStore.add(entity, new DustParticlesComponent(projectilePos.x, projectilePos.y, dir));
+                        this.particlesComponentStore.add(
+                            entity,
+                            new ParticlesComponent(projectilePos.x, projectilePos.y, dir, PARTICLE_TYPE_DUST),
+                        );
                         this.animTimerComponentStore.add(entity, new AnimTimerComponent(AnimationName.BULLET_WALL_HIT, 0.8))
                         this.wallHitComponentStore.add(entity, new WallHitComponent());
                         const velocity = this.velocityComponentStore.get(entity);

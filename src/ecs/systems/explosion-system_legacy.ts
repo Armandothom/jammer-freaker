@@ -35,6 +35,19 @@ export class ExplosionSystemLegacy implements ISystem {
     ) {
     }
 
+    private queueDamageTakenIntent(targetEntity: number, damageSource: number, damage: number) {
+        const existingDamageIntent = this.damageTakenIntentComponentStore.getOrNull(targetEntity);
+        if (existingDamageIntent) {
+            existingDamageIntent.accumulate(damageSource, damage);
+            return;
+        }
+
+        this.damageTakenIntentComponentStore.add(
+            targetEntity,
+            new DamageTakenIntentComponent(damageSource, damage),
+        );
+    }
+
     update(deltaTime: number): void {
 
         for (const shooter of this.shooterComponentStore.getAllEntities()) {
@@ -67,7 +80,7 @@ export class ExplosionSystemLegacy implements ISystem {
 
                 if (hypot <= EnemyConfig[EnemyType.BOMBER].attackExplosionRadius) {
                     const damage = EnemyConfig[EnemyType.BOMBER].damage - (EnemyConfig[EnemyType.BOMBER].damage / EnemyConfig[EnemyType.BOMBER].attackExplosionRadius) * hypot
-                    this.damageTakenIntentComponentStore.add(playerId, new DamageTakenIntentComponent(damageSourceId, damage))
+                    this.queueDamageTakenIntent(playerId, damageSourceId, damage);
                 }
                 this.delayedDestructionComponentStore.add(grenadeEntity, new DelayedDestructionComponent(0.6));
             }
@@ -115,7 +128,7 @@ export class ExplosionSystemLegacy implements ISystem {
 
                         if (hypot <= WeaponConfig[WeaponType.GRENADE].explosionRadius) {
                             const damage = WeaponConfig[WeaponType.GRENADE].damage - (WeaponConfig[WeaponType.GRENADE].damage / WeaponConfig[WeaponType.GRENADE].explosionRadius) * hypot
-                            this.damageTakenIntentComponentStore.add(enemy, new DamageTakenIntentComponent(damageSourceId, damage))
+                            this.queueDamageTakenIntent(enemy, damageSourceId, damage);
                         }
                     }
                 }

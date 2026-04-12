@@ -109,6 +109,8 @@ export class RenderSystem implements ISystem {
     ];
     this.rendererEngine.toggleDebugBorderSprite(this.debugManager.getDebugSetting(DebugSettingKey.SPRITE_BOUNDS));
     this.rendererEngine.renderSprites(renderObjects);
+    this.rendererEngine.setParticleViewport(viewport.left, viewport.top);
+    this.rendererEngine.setParticleWorldBounds(this.tilemapManager.worldWidth, this.tilemapManager.worldHeight);
     this.rendererEngine.uploadSpawnBatch();
     this.rendererEngine.updateParticles(deltaTime);
     this.rendererEngine.disarmSpawnStyleRects();
