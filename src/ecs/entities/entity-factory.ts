@@ -56,6 +56,7 @@ import { EnemyConfig, EnemyType } from "../components/types/enemy-type.js";
 import { GameUIEntryType, GameUIType } from "../components/types/game-ui-type.js";
 import { InventoryResourceType } from "../components/types/inventory-resource-type.js";
 import { UIAnchor } from "../components/types/ui-anchor.js";
+import { VFXType } from "../components/types/vfx-type.js";
 import { WeaponConfig, WeaponType } from "../components/types/weapon-config.js";
 import { VelocityComponent } from "../components/velocity-component.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
@@ -73,6 +74,7 @@ import { InventoryManager } from "../core/inventory-manager.js";
 import { resolveShadowPosition } from "../core/shadow-position-resolver.js";
 import { UIManager } from "../core/ui-manager.js";
 import { resolveEffectiveWeaponConfigFromInventory } from "../core/weapon-stats-resolver.js";
+import { VFXComponent } from "../systems/vfx-component.js";
 
 const GRENADE_SPRITE_WIDTH = 14;
 const GRENADE_SPRITE_HEIGHT = 16;
@@ -166,6 +168,7 @@ export class EntityFactory {
     private shadowComponentStore: ComponentStore<ShadowComponent>,
     private parentEntityComponentStore: ComponentStore<ParentEntityComponent>,
     private grenadeTravelComponentStore: ComponentStore<GrenadeTravelComponent>,
+    private vfxComponentStore: ComponentStore<VFXComponent>,
   ) {
   }
 
@@ -742,6 +745,30 @@ export class EntityFactory {
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
     const spriteInfo = this.spriteComponentStore.get(entityId);
     this.createShadow(entityId, startX, startY, spriteInfo.width, spriteInfo.height, SpriteName.SHADOW_2);
+    return entityId;
+  }
+
+  createMuzzleFlash(
+    parentEntityId: number,
+    spriteName: SpriteName,
+    spriteSheetName: SpriteSheetName,
+    animationName: AnimationName,
+    vfxType: VFXType,
+    startX: number,
+    startY: number,
+    aimAngle: number,
+    pivotPointSprite: number,
+  ) {
+    const entityId = this.entityManager.registerEntity();
+    this.renderableComponentStore.add(entityId, new RenderableComponent());
+    this.parentEntityComponentStore.add(entityId, new ParentEntityComponent(parentEntityId));
+    this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
+    this.spriteComponentStore.add(entityId, new SpriteComponent(spriteName, spriteSheetName));
+    this.aimShootingComponentStore.add(entityId, new AimRotationShootingComponent(aimAngle, pivotPointSprite));
+    this.animationComponentStore.add(entityId, new AnimationComponent(animationName, false));
+    this.vfxComponentStore.add(entityId, new VFXComponent(vfxType));
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
+    return entityId;
   }
 
   destroyProjectile(entityId: number): void {
@@ -927,4 +954,14 @@ export class EntityFactory {
     this.zLayerComponentStore.remove(entityId);
   }
 
+  destroyMuzzleFlash(entityId: number) {
+    this.renderableComponentStore.remove(entityId);
+    this.parentEntityComponentStore.remove(entityId);
+    this.positionComponentStore.remove(entityId);
+    this.spriteComponentStore.remove(entityId);
+    this.aimShootingComponentStore.remove(entityId);
+    this.animationComponentStore.remove(entityId);
+    this.vfxComponentStore.remove(entityId);
+    this.zLayerComponentStore.remove(entityId);
+  }
 }

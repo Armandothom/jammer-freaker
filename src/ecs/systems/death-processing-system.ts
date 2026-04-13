@@ -3,12 +3,14 @@ import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { AwaitingAnimationEndComponent } from "../components/awaiting-animation-end.component.js";
 import { CorpseComponent } from "../components/corpse.component.js";
 import { DeathIntentComponent } from "../components/death-intent.component.js";
+import { DeathParticlesIntentComponent } from "../components/death-particles-intent.component.js";
 import { EnemyDeadComponent } from "../components/enemy-dead.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
 import { ItemBoxComponent } from "../components/item-box.component.js";
 import { ItemDropIntentComponent } from "../components/item-drop-intent.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
+import { SpriteComponent } from "../components/sprite.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { LevelEndReason, LevelManager } from "../core/level-manager.js";
 import { EntityFactory } from "../entities/entity-factory.js";
@@ -27,6 +29,8 @@ export class DeathProcessingSystem implements ISystem {
         private awaitingAnimationEndComponentStore: ComponentStore<AwaitingAnimationEndComponent>,
         private itemDropIntentComponentStore: ComponentStore<ItemDropIntentComponent>,
         private positionComponentStore: ComponentStore<PositionComponent>,
+        private spriteComponentStore: ComponentStore<SpriteComponent>,
+        private deathParticlesIntentComponentStore: ComponentStore<DeathParticlesIntentComponent>,
     ) {
 
     }
@@ -45,8 +49,9 @@ export class DeathProcessingSystem implements ISystem {
                 this.enemyDeadComponentStore.add(entity, new EnemyDeadComponent());
                 const position = this.positionComponentStore.get(entity);
                 this.entityFactory.destroyEnemy(entity);
-                this.entityFactory.createEnemyCorpse(SpriteName.ENEMY_DEAD_1, position.x, position.y);
-                // more logic towards score, money
+                const corpseEntityId = this.entityFactory.createEnemyCorpse(SpriteName.ENEMY_DEAD_1, position.x, position.y);
+                const corpseSprite = this.spriteComponentStore.get(corpseEntityId)
+                this.deathParticlesIntentComponentStore.add(corpseEntityId, new DeathParticlesIntentComponent(position.x + corpseSprite.width / 2, position.y + corpseSprite.height / 2))
                 this.deathIntentComponentStore.remove(entity);
             }
             if (isItemBox) {

@@ -24,6 +24,8 @@ export enum AnimationName {
   SMG_MAG_DROPPED = "smg_mag_dropped",
   GRENADE_DROPPED = "grenade_dropped",
   MELEE_ATTACK = "melee_attack",
+  MUZZLE_FLASH_PISTOL = "muzzle_flash_pistol",
+  MUZZLE_FLASH_SHOTGUN = "muzzle_flash_shotgun",
 }
 
 

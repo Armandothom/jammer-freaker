@@ -116,4 +116,6 @@ export enum SpriteName {
   COLOR_DIM_BLACK = "color_dim_black",
   DEATH_PROMPT_1 = "DEATH_PROMPT_1",
   VICTORY_PROMPT_1 = "VICTORY_PROMPT_1",
+  MUZZLE_FLASH_PISTOL = "muzzle_flash_pistol",
+  MUZZLE_FLASH_SHOTGUN = "muzzle_flash_shotgun",
 }

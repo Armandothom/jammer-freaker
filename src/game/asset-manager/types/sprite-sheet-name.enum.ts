@@ -24,4 +24,5 @@ export enum SpriteSheetName {
   BUTTON_ARROWS = "button_arrows",
   COLOR_PALLETE = "collor_pallete",
   END_LEVEL_PROMPTS = "end_level_prompt",
+  MUZZLE_FLASH = "muzzle_flash",
 }

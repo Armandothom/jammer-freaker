@@ -71,8 +71,8 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
         [SpriteName.PISTOL, {
           row: 1,
           column: 5,
-          originalRenderSpriteHeight: 10,
-          originalRenderSpriteWidth: 18,
+          originalRenderSpriteHeight: 16,
+          originalRenderSpriteWidth: 22,
           spriteCellOffset: { offsetX: 0, offsetY: 0, width: 22, height: 16 }
         }],
         [SpriteName.SNIPER, {
@@ -1151,6 +1151,34 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
           originalRenderSpriteHeight: 150,
           originalRenderSpriteWidth: 200,
           spriteCellOffset: { offsetX: 0, offsetY: 0, width: 200, height: 150 }
+        }],
+      ])
+    }
+  ],
+
+  [
+    SpriteSheetName.MUZZLE_FLASH,
+    {
+      rows: 1,
+      columns: 2,
+      eachSpriteCellSizeHeight: 16,
+      eachSpriteCellSizeWidth: 16,
+      srcImagePath: 'src/assets/images/muzzle_flash.png',
+      sprites: new Map([
+        [SpriteName.MUZZLE_FLASH_PISTOL, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 16,
+          originalRenderSpriteWidth: 16,
+          spriteCellOffset: { offsetX: 8, offsetY: 7, width: 8, height: 9 }
+        }],
+
+        [SpriteName.MUZZLE_FLASH_SHOTGUN, {
+          row: 1,
+          column: 2,
+          originalRenderSpriteHeight: 16,
+          originalRenderSpriteWidth: 16,
+          spriteCellOffset: { offsetX: 6, offsetY: 7, width: 10, height: 9 }
         }],
       ])
     }

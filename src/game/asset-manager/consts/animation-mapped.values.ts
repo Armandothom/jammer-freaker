@@ -639,6 +639,29 @@ export const ANIMATION_MAPPED: Map<AnimationName, Map<SpriteName, AnimationKeyMa
     ])
   ],
 
+  [
+    AnimationName.MUZZLE_FLASH_PISTOL,
+    new Map<SpriteName, AnimationKeyMap>([
+      [SpriteName.MUZZLE_FLASH_PISTOL, {
+        spriteName: SpriteName.MUZZLE_FLASH_PISTOL,
+        spriteSheetName: SpriteSheetName.MUZZLE_FLASH,
+        order: 1,
+        durationKeyFrame: 0.1
+      }]
+    ])
+  ],
+
+  [
+    AnimationName.MUZZLE_FLASH_SHOTGUN,
+    new Map<SpriteName, AnimationKeyMap>([
+      [SpriteName.MUZZLE_FLASH_SHOTGUN, {
+        spriteName: SpriteName.MUZZLE_FLASH_SHOTGUN,
+        spriteSheetName: SpriteSheetName.MUZZLE_FLASH,
+        order: 1,
+        durationKeyFrame: 0.1
+      }]
+    ])
+  ],
 
   // next map
 ]);
