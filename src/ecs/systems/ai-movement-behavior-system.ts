@@ -2,27 +2,30 @@
 import { CollisionManager } from "../../game/world/collision-manager.js";
 import { PathFindingManager } from "../../game/world/pathfinding-manager.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
+import { AiMovementRetryBackoff } from "../components/ai-movement-retry-backoff.component.js";
 import { AIMovementOrderComponent } from "../components/ai-movement-order.component.js";
 import { CollisionLastFrameComponent } from "../components/collision-last-frame.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PathFindingObstacleComponent } from "../components/pathfinding-obstacle.component.js";
 import { PositionComponent } from "../components/position.component.js";
-import { SpriteComponent } from "../components/sprite.component.js";
 import { VelocityComponent } from "../components/velocity-component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { DebugManager } from "../core/debug-manager.js";
 import { DebugSettingKey } from "../core/types/debug-manager-settings.js";
 import { OrderDebuggerOrchestrator } from "../debugger-orders/order-debugger-orchestrator.js";
 import { ISystem } from "./system.interface.js";
+import { CoreManager } from "../core/core-manager.js";
 
 
 export class AiMovementBehaviorSystem implements ISystem {
     private _mappedEntityObstaclesCoordinates = new Map<number, Set<string>>();
+    private _secondsMultiplier = 0.3;
     constructor(
         private positionComponent: ComponentStore<PositionComponent>,
         private pathFindingObstacleComponent : ComponentStore<PathFindingObstacleComponent>,
         private velocityComponent: ComponentStore<VelocityComponent>,
         private aiMovementOrderComponent: ComponentStore<AIMovementOrderComponent>,
+        private aiMovementRetryBackoffComponent: ComponentStore<AiMovementRetryBackoff>,
         private movementIntentComponent: ComponentStore<MovementIntentComponent>,
         private collisionLastFrameComponent: ComponentStore<CollisionLastFrameComponent>,
         private debugAiInput : DebugManager,
@@ -34,6 +37,9 @@ export class AiMovementBehaviorSystem implements ISystem {
     update(deltaTime: number): void {
         this.mapEntityObstacleCoordinates();
         for (const [entityId, value] of this.aiMovementOrderComponent.getValuesAndEntityId()) {
+            if(this.isMovementPaused(entityId)) {
+                continue;
+            }
             const position = this.positionComponent.get(entityId);
             const pathTarget = value.pathList[0];
             const velocity = this.velocityComponent.get(entityId);
@@ -44,13 +50,18 @@ export class AiMovementBehaviorSystem implements ISystem {
             let yIntentPosition = position.y + ((dy / magnitudeOriginToTarget) * velocity.currentVelocityY);
             const collisionLastFrame = this.collisionLastFrameComponent.getOrNull(entityId);
             if(this.hasSurroundingEntityObstacles(value, entityId) || (collisionLastFrame && collisionLastFrame.entityCollision)) {
-                console.log("had collision")
+                if(this.isMovementPauseExpired(entityId)) {
+                    this.aiMovementOrderComponent.remove(entityId);
+                    this.aiMovementRetryBackoffComponent.remove(entityId);
+                    continue;
+                }
                 const finalPathTarget = value.pathList[value.pathList.length - 1];
                 const surroundingObstacles = this.getSurroundingEntityObstacles(xIntentPosition, yIntentPosition, entityId);
                 const newPathList = this.pathFindingManager.computePath(position.x, position.y, finalPathTarget.x, finalPathTarget.y, surroundingObstacles);
                 if(newPathList) {
                     this.aiMovementOrderComponent.add(entityId, new AIMovementOrderComponent(newPathList));
                 }
+                this.upsertMovementPause(entityId)
                 continue;
             }
             const remainingPathDxPos = position.x - pathTarget.x;
@@ -71,6 +82,7 @@ export class AiMovementBehaviorSystem implements ISystem {
                 }
             }
             this.movementIntentComponent.add(entityId, new MovementIntentComponent(xIntentPosition, yIntentPosition));
+            this.aiMovementRetryBackoffComponent.remove(entityId);
             this.paintAiPath(value);
         };
     }
@@ -88,6 +100,33 @@ export class AiMovementBehaviorSystem implements ISystem {
 
         }
         return false;
+    }
+
+    private isMovementPaused(entityId : number) {
+        const pauseMovement = this.aiMovementRetryBackoffComponent.getOrNull(entityId);
+        if(pauseMovement && pauseMovement.retryAfterTimestamp > CoreManager.timeGlobalSinceStart) {
+            return true;
+        }
+        return false;
+    }
+
+    private isMovementPauseExpired(entityId : number) {
+        const pauseMovement = this.aiMovementRetryBackoffComponent.getOrNull(entityId);
+        if(pauseMovement && pauseMovement.backoffStep > 3) {
+            return true;
+        }
+        return false;
+    }
+
+    private upsertMovementPause(entityId : number) {
+        let pauseMovement = this.aiMovementRetryBackoffComponent.getOrNull(entityId);
+        if(!pauseMovement) {
+            this.aiMovementRetryBackoffComponent.add(entityId, new AiMovementRetryBackoff());
+        } else {
+            pauseMovement.backoffStep = pauseMovement.backoffStep + 1;
+            console.log({backoffStep : pauseMovement.backoffStep})
+            pauseMovement.retryAfterTimestamp = CoreManager.timeGlobalSinceStart + (this._secondsMultiplier * pauseMovement.backoffStep);
+        }
     }
 
 

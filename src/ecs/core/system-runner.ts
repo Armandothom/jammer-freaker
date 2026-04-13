@@ -9,6 +9,7 @@ import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { AIAttackOrderComponent } from "../components/ai-attack-order.component.js";
 import { AiAttackRangeComponent } from "../components/ai-attack-range.component.js";
 import { AIMovementOrderComponent } from "../components/ai-movement-order.component.js";
+import { AiMovementRetryBackoff } from "../components/ai-movement-retry-backoff.component.js";
 import { AIComponent } from "../components/ai.component.js";
 import { AimRotationShootingComponent } from "../components/aim-rotation-shooting.component.js";
 import { AnimTimerComponent } from "../components/anim-timer.component.js";
@@ -152,6 +153,7 @@ export class SystemRunner {
   private shooterComponentStore: ComponentStore<ShooterComponent> = new ComponentStore("ShooterComponent");
   private aiComponentStore: ComponentStore<AIComponent> = new ComponentStore("AIComponent");
   private aiMovementOrderComponentStore: ComponentStore<AIMovementOrderComponent> = new ComponentStore("AIMovementOrderComponent");
+  private aiMovementRetryBackoffComponentStore: ComponentStore<AiMovementRetryBackoff> = new ComponentStore("AiMovementRetryBackoff");
   private movementIntentComponentStore: ComponentStore<MovementIntentComponent> = new ComponentStore("MovementIntentComponent");
   private collisionLastFrameComponentStore: ComponentStore<CollisionLastFrameComponent> = new ComponentStore("CollisionLastFrameComponent");
   private healthComponentStore: ComponentStore<HealthComponent> = new ComponentStore("HealthComponent");
@@ -286,7 +288,7 @@ export class SystemRunner {
     this.animationSetterSystem = new AnimationSetterSystem(this.spriteManager, this.movementIntentComponentStore, this.positionComponentStore, this.directionAnimComponentStore, this.animationComponentStore, this.aiComponentStore, this.playerComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.wallHitComponentStore, this.projectileComponentStore, this.spriteComponentStore, this.offsetAppliedComponentStore, this.grenadeComponentStore, this.grenadeExplosionComponentStore);
     this.terminatorSystem = new TerminatorSystem(this.entityFactory, this.intentClickComponentStore, this.movementIntentComponentStore, this.collisionLastFrameComponentStore, this.shootingCooldownComponentStore, this.intentShotComponentStore, this.wallHitComponentStore, this.grenadeCooldownComponentStore, this.intentGrenadeComponentStore, this.intentMeleeComponentStore, this.meleeIntentProcessedComponentStore, this.enemyDeadComponentStore, this.shapeComponentStore, this.projectileComponentStore);
     this.animationSpriteSystem = new AnimationSpriteSystem(this.animationComponentStore, this.spriteComponentStore);
-    this.aiMovementBehaviorSystem = new AiMovementBehaviorSystem(this.positionComponentStore, this.pathFindingObstacleComponent, this.velocityComponentStore, this.aiMovementOrderComponentStore, this.movementIntentComponentStore, this.collisionLastFrameComponentStore, this.debugManager, this.worldTilemapManager, this.pathFindingManager, this.collisionManager);
+    this.aiMovementBehaviorSystem = new AiMovementBehaviorSystem(this.positionComponentStore, this.pathFindingObstacleComponent, this.velocityComponentStore, this.aiMovementOrderComponentStore, this.aiMovementRetryBackoffComponentStore, this.movementIntentComponentStore, this.collisionLastFrameComponentStore, this.debugManager, this.worldTilemapManager, this.pathFindingManager, this.collisionManager);
     this.aiIntentProcessorSystem = new AiIntentProcessorSystem(this.positionComponentStore, this.aiMovementOrderComponentStore, this.pathFindingManager)
     this.aiAttackBehaviorSystem = new AiAttackBehaviorSystem(this.positionComponentStore, this.intentShotComponentStore, this.aiComponentStore, this.aiAttackOrderComponentStore, this.playerComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.spriteComponentStore, this.enemyComponentStore, this.intentGrenadeComponentStore, this.intentMeleeComponentStore, this.disableAimComponentStore, this.weaponComponentStore);
     this.spriteLevelScaler = new SpriteLevelScalerSystem(this.spriteComponentStore, this.spriteManager, this.levelManager, this.worldTilemapManager, this.renderableComponentStore);
