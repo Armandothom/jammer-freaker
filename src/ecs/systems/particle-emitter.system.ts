@@ -112,6 +112,7 @@ export class ParticleEmitterSystem implements ISystem {
                 Math.PI * 18 / 180,
                 3,
                 9,
+                "random",
             );
 
             const burstPlan = this.buildBurstPlan(particleSet, 20);
@@ -195,7 +196,8 @@ export class ParticleEmitterSystem implements ISystem {
         endAngle: number,
         step: number,
         minParticles: number,
-        maxParticles: number
+        maxParticles: number,
+        trajectoryMode: TrajectoryType | "random"
     ): ParticleStepConfig[] {
         if (step <= 0) {
             throw new Error("step must be greater than 0");
@@ -208,7 +210,10 @@ export class ParticleEmitterSystem implements ISystem {
         const result: ParticleStepConfig[] = [];
 
         for (let angle = startAngle; angle <= endAngle; angle += step) {
-            const trajectoryType: TrajectoryType = Math.random() < 0.5 ? 0 : 1;
+            const trajectoryType: TrajectoryType =
+                trajectoryMode === "random"
+                    ? (Math.random() < 0.5 ? 0 : 1)
+                    : trajectoryMode;
 
             const particleCount =
                 Math.floor(Math.random() * (maxParticles - minParticles + 1)) + minParticles;
