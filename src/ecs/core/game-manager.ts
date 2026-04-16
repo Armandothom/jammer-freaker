@@ -2,6 +2,7 @@ import { SoundManager } from "../../game/asset-manager/sound-manager.js";
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { RendererEngine } from "../../game/renderer/renderer-engine.js";
 import { TextManager } from "../../game/text/text-manager.js";
+import { WeatherManager } from "../../game/weather/weather-manager.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import type { InventorySnapshot } from "../components/snapshots/inventory-snapshot.js";
 import { GameplaySystemRunner } from "./gameplay-system-runner.js";
@@ -13,6 +14,7 @@ import { GameState } from "./types/game-state.enum.js";
 export class GameManager {
     private readonly gameplaySystemRunner: GameplaySystemRunner;
     private readonly shopSystemRunner: ShopSystemRunner;
+    private readonly weatherManager: WeatherManager;
     private activeState: GameState = GameState.GameplayState;
     private inventorySnapshot: InventorySnapshot | null = null;
 
@@ -25,6 +27,7 @@ export class GameManager {
         private rendererEngine: RendererEngine,
         private debugManager: DebugManager,
     ) {
+        this.weatherManager = new WeatherManager();
         this.gameplaySystemRunner = new GameplaySystemRunner(
             this.worldTilemapManager,
             this.spriteManager,
@@ -33,6 +36,7 @@ export class GameManager {
             this.soundManager,
             this.rendererEngine,
             this.debugManager,
+            this.weatherManager,
         );
         this.shopSystemRunner = new ShopSystemRunner(
             this.spriteManager,
@@ -40,6 +44,7 @@ export class GameManager {
             this.rendererEngine,
             this.debugManager,
             this.entityManager,
+            this.weatherManager,
         );
         this.gameplaySystemRunner.bindGameManager(this);
         this.shopSystemRunner.bindGameManager(this);
@@ -97,5 +102,9 @@ export class GameManager {
 
     getCurrentState(): GameState {
         return this.activeState;
+    }
+
+    getWeatherManager(): WeatherManager {
+        return this.weatherManager;
     }
 }

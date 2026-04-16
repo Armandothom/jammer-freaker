@@ -6,6 +6,15 @@ import { InventoryResourceType } from "../components/types/inventory-resource-ty
 import { WeaponConfig, WeaponType } from "../components/types/weapon-config.js";
 
 export class InventoryManager {
+    private static readonly DEBUG_RESOURCE_BUNDLE_AMOUNTS: ReadonlyArray<[InventoryResourceType, number]> = [
+        [InventoryResourceType.PistolMag, 99],
+        [InventoryResourceType.SmgMag, 99],
+        [InventoryResourceType.RifleMag, 99],
+        [InventoryResourceType.ShotgunShellBox, 99],
+        [InventoryResourceType.Grenade, 99],
+        [InventoryResourceType.Money, 99999],
+    ];
+
     public createDefaultInventory(initialWeaponType: WeaponType): InventoryComponent {
         const inventory = new InventoryComponent();
 
@@ -215,5 +224,11 @@ export class InventoryManager {
 
     public createSnapshot(inventory: InventoryComponent): InventorySnapshot {
         return inventory.toSnapshot();
+    }
+
+    public addDebugResourceBundle(inventory: InventoryComponent): void {
+        for (const [resourceType, amount] of InventoryManager.DEBUG_RESOURCE_BUNDLE_AMOUNTS) {
+            this.addResource(inventory, resourceType, amount);
+        }
     }
 }

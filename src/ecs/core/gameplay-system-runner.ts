@@ -2,6 +2,7 @@ import { SoundManager } from "../../game/asset-manager/sound-manager.js";
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { RendererEngine } from "../../game/renderer/renderer-engine.js";
 import { TextManager } from "../../game/text/text-manager.js";
+import { WeatherManager } from "../../game/weather/weather-manager.js";
 import { VisibilityManager } from "../../game/visibility/visibility-manager.js";
 import { CameraManager } from "../../game/world/camera-manager.js";
 import { PathFindingManager } from "../../game/world/pathfinding-manager.js";
@@ -150,6 +151,7 @@ import { VisibilitySystem } from "../systems/visibility-system.js";
 import { VisualEffectsSystem } from "../systems/visual-effects.system.js";
 import { WeaponSpriteAttachmenPositiontSystem } from "../systems/weapon-attachment-position-system.js";
 import { WeaponSwitchSystem } from "../systems/weapon-switch-system.js";
+import { WeatherSystem } from "../systems/weather.system.js";
 import { SpriteLevelScalerSystem } from "../systems/zoom-level-scaler-system.js";
 import { StructureBaker } from "../zones/structure-baker.js";
 import { ZoneFactory } from "../zones/zone-factory.js";
@@ -311,6 +313,7 @@ export class GameplaySystemRunner {
   private victoryRuntimeSystem: VictoryRuntimeSystem;
   private audioSystem: AudioSystem;
   private visualEffectsSystem: VisualEffectsSystem;
+  private weatherSystem: WeatherSystem;
 
   constructor(
     private worldTilemapManager: WorldTilemapManager,
@@ -320,6 +323,7 @@ export class GameplaySystemRunner {
     private soundManager: SoundManager,
     private rendererEngine: RendererEngine,
     private debugManager: DebugManager,
+    private weatherManager: WeatherManager,
   ) {
     this.pathFindingManager = new PathFindingManager(this.worldTilemapManager);
     this.cameraManager = new CameraManager(this.worldTilemapManager);
@@ -343,7 +347,7 @@ export class GameplaySystemRunner {
     this.enemyLifecicleSystem = new EnemyLifecicleSystem(this.positionComponentStore, this.playerComponentStore, this.enemyComponentStore, this.enemyDeadComponentStore, this.entityFactory, this.worldTilemapManager, this.spriteManager, this.soundManager, this.freezeManager, this.spriteComponentStore, this.worldTilemapManager);
     this.levelManager = new LevelManager(this.enemyLifecicleSystem, this.worldTilemapManager, this.cameraManager, this.zoneFactory, this.entityFactory, this.playerComponentStore, this.positionComponentStore, this.movementIntentComponentStore, this.inventoryComponentStore, this.healthComponentStore, this.playerInitialProperties, this.uiManager);
     this.levelUpdateSystem = new LevelUpdateSystem(this.levelManager, this.inventoryManager, this.playerComponentStore, this.enemyDeadComponentStore, this.inventoryComponentStore);
-    this.inventoryDebugSystem = new InventoryDebugSystem(this.inventoryManager, this.inventoryComponentStore, this.playerComponentStore, this.healthComponentStore, this.damageTakenIntentComponentStore);
+    this.inventoryDebugSystem = new InventoryDebugSystem(this.inventoryManager, this.inventoryComponentStore, this.playerComponentStore, this.healthComponentStore, this.damageTakenIntentComponentStore, this.weatherManager);
     this.inputMovementSystem = new InputMovementSystem(this.positionComponentStore, this.movementIntentComponentStore, this.playerComponentStore, this.velocityComponentStore);
     this.shootingSystem = new ShootingSystem(this.playerComponentStore, this.intentShotComponentStore, this.positionComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.intentGrenadeComponentStore, this.weaponComponentStore, this.intentMeleeComponentStore, this.disableAimComponentStore, this.inventoryComponentStore, this.reloadIntentComponentStore, this.shootingCooldownComponentStore, this.weaponStatsComponentStore, this.cameraManager, this.debugManager, this.inventoryManager);
     this.projectileSpawnSystem = new ProjectileSpawnSystem(this.spriteManager, this.soundEventBus, this.positionComponentStore, this.weaponSpriteAttachmentComponentStore, this.entityFactory, this.intentShotComponentStore, this.shootingCooldownComponentStore, this.bulletFiredComponentStore, this.damageDealtComponentStore, this.weaponStatsComponentStore, this.playerComponentStore, this.enemyComponentStore);
@@ -383,6 +387,7 @@ export class GameplaySystemRunner {
     this.weaponSwitchSystem = new WeaponSwitchSystem(this.inventoryManager, this.entityFactory, this.inventoryComponentStore, this.playerComponentStore);
     this.shadowPositionUpdateSystem = new ShadowPositionUpdateSystem(this.shadowComponentStore, this.parentEntityComponentStore, this.positionComponentStore, this.spriteComponentStore);
     this.visualEffectsSystem = new VisualEffectsSystem(this.entityFactory, this.intentShotComponentStore, this.animationComponentStore, this.weaponSpriteAttachmentComponentStore, this.parentEntityComponentStore, this.playerComponentStore, this.positionComponentStore, this.aimShootingComponent, this.spriteComponentStore, this.awaitingAnimationEndComponentStore, this.vfxComponentStore)
+    this.weatherSystem = new WeatherSystem(this.weatherManager, this.spriteManager, this.rendererEngine);
     this.audioSystem = new AudioSystem(this.soundManager, this.soundEventBus);
     this.logDebugKeybinds();
   }
@@ -440,6 +445,7 @@ export class GameplaySystemRunner {
     this.uiRuntime.updateViewport(viewportSize.width, viewportSize.height);
     this.uiRuntimeSyncSystem.update(CoreManager.timeSinceLastRender);
     this.spriteLevelScaler.update(CoreManager.timeSinceLastRender);
+    this.weatherSystem.update(CoreManager.timeSinceLastRender);
     this.renderSystem.update(CoreManager.timeSinceLastRender);
     this.terminatorSystem.update(CoreManager.timeSinceLastRender);
     this.levelUpdateSystem.update(CoreManager.timeSinceLastRender);
@@ -487,16 +493,9 @@ export class GameplaySystemRunner {
       'Press N to print the player inventory.',
       'Press Numpad+ or + to add 1000 money.',
       'Press Numpad* to add the debug weapon (SMG).',
-      'Press Numpad0 to add 1 pistol mag.',
-      'Press Numpad1 to add 1 SMG mag.',
-      'Press Numpad2 to add 1 rifle mag.',
-      'Press Numpad3 to add 1 grenade.',
-      'Press Numpad4 to add 1000 money.',
-      'Press Numpad5 to remove 1 pistol mag.',
-      'Press Numpad6 to remove 1 SMG mag.',
-      'Press Numpad7 to remove 1 rifle mag.',
-      'Press Numpad8 to remove 1 grenade.',
-      'Press Numpad9 to remove 1000 money.',
+      'Press Numpad0 to add +99 of all resources and +99999 money.',
+      'Press Numpad1 to cycle rain: low rain -> medium rain -> high rain -> disabled.',
+      'Press Numpad2 to toggle screen tint: no_screen_tint <-> screen_tint.',
       'Press K to damage the player by 20 HP.',
       'Press 0 to end the level as Victory.',
       'Use the debug panel to toggle sprite bounds, debug paint, and AI path.',

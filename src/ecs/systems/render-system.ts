@@ -86,9 +86,6 @@ export class RenderSystem implements ISystem {
 
   update(deltaTime: number): void {
     const viewport = this.cameraManager.getViewport();
-
-    this.rendererEngine.clear();
-
     const viewportBackgroundRenderObjects = this.getViewportBackgroundRenderObjects(viewport);
     const terrainRenderObjects = this.getTerrainRenderObjects(viewport);
     const wallRenderObjects = this.getWallRenderObjects(viewport);
@@ -101,61 +98,46 @@ export class RenderSystem implements ISystem {
     const gameUiRenderObjects = overTerrainRenderObjects.filter(
       (renderObject) => renderObject.zLevel > gameUiDepthThreshold,
     );
-    const renderObjects = [
+    const worldRenderObjects = [
       ...viewportBackgroundRenderObjects,
       ...terrainRenderObjects,
       ...wallRenderObjects,
       ...worldSpaceRenderObjects,
+      ...fogOverlayRenderObjects,
     ];
-    this.rendererEngine.toggleDebugBorderSprite(this.debugManager.getDebugSetting(DebugSettingKey.SPRITE_BOUNDS));
-    this.rendererEngine.renderSprites(renderObjects);
-    this.rendererEngine.setParticleViewport(viewport.left, viewport.top);
-    this.rendererEngine.setParticleWorldBounds(this.tilemapManager.worldWidth, this.tilemapManager.worldHeight);
-    this.rendererEngine.uploadSpawnBatch();
-    this.rendererEngine.updateParticles(deltaTime);
-    this.rendererEngine.disarmSpawnStyleRects();
-    this.rendererEngine.renderParticles();
-    if (fogOverlayRenderObjects.length > 0) {
-      this.rendererEngine.renderSprites(fogOverlayRenderObjects);
-    }
-    if (gameUiRenderObjects.length > 0) {
-      this.renderGameUiRenderObjects(gameUiRenderObjects);
-    }
-    if (this.debugManager.getDebugSetting(DebugSettingKey.DEBUG_PAINT)) {
-      this.renderDebugPaint(viewport);
-    }
+    const debugBorderSprites = this.debugManager.getDebugSetting(DebugSettingKey.SPRITE_BOUNDS);
+    const debugPaintOrders = this.debugManager.getDebugSetting(DebugSettingKey.DEBUG_PAINT)
+      ? this.getDebugPaintOrders(viewport)
+      : [];
+
+    this.rendererEngine.renderFrame({
+      deltaTime,
+      viewport,
+      worldWidth: this.tilemapManager.worldWidth,
+      worldHeight: this.tilemapManager.worldHeight,
+      worldRenderObjects,
+      uiRenderObjects: gameUiRenderObjects,
+      debugBorderSprites,
+      debugPaintOrders,
+    });
   }
 
-  private renderDebugPaint(viewport: CameraViewport) {
-    for (const order of OrderDebuggerOrchestrator.retrievePaintOrders()) {
-      switch (order.type) {
-        case 'circle':
-          order.centroidX = order.centroidX - viewport.left;
-          order.centroidY = order.centroidY - viewport.top;
-          break;
-        case 'fill':
-          order.x = order.x - viewport.left;
-          order.y = order.y - viewport.top;
-          break;
+  private getDebugPaintOrders(viewport: CameraViewport): DebuggerPaintOrder[] {
+    return OrderDebuggerOrchestrator.retrievePaintOrders().map((order) => {
+      if (order.type === "circle") {
+        return {
+          ...order,
+          centroidX: order.centroidX - viewport.left,
+          centroidY: order.centroidY - viewport.top,
+        };
       }
-      this.rendererEngine.renderDebugPaint(order);
-    }
-  }
 
-  private renderGameUiRenderObjects(renderObjects: Array<RenderObject>) {
-    const zLevels = [...new Set(renderObjects.map((renderObject) => renderObject.zLevel))]
-      .sort((left, right) => left - right);
-
-    for (const zLevel of zLevels) {
-      const renderBatch = renderObjects
-        .filter((renderObject) => renderObject.zLevel === zLevel)
-        .map((renderObject) => ({
-          ...renderObject,
-          zLevel: this.maxDepthLevel,
-        }));
-
-      this.rendererEngine.renderSprites(renderBatch);
-    }
+      return {
+        ...order,
+        x: order.x - viewport.left,
+        y: order.y - viewport.top,
+      };
+    });
   }
 
   private getTerrainRenderObjects(viewport: CameraViewport): Array<RenderObject> {

@@ -6,6 +6,7 @@ import { InventoryResourceType } from "../components/types/inventory-resource-ty
 import { WeaponConfig, WeaponType } from "../components/types/weapon-config.js";
 import { ComponentStore } from "../core/component-store.js";
 import { InventoryManager } from "../core/inventory-manager.js";
+import { WeatherManager } from "../../game/weather/weather-manager.js";
 import { ISystem } from "./system.interface.js";
 
 export class InventoryDebugSystem implements ISystem {
@@ -25,6 +26,7 @@ export class InventoryDebugSystem implements ISystem {
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private healthComponentStore: ComponentStore<HealthComponent>,
         private damageTakenIntentComponentStore: ComponentStore<DamageTakenIntentComponent>,
+        private weatherManager: WeatherManager,
     ) {
         window.addEventListener("keydown", this.onKeyDown);
         window.addEventListener("keyup", this.onKeyUp);
@@ -70,43 +72,16 @@ export class InventoryDebugSystem implements ISystem {
         }
 
         if (this.wasKeyPressedThisFrame("Numpad0")) {
-            this.inventoryManager.addResource(inventory, InventoryResourceType.PistolMag, 1);
+            this.inventoryManager.addDebugResourceBundle(inventory);
+            console.log("[InventoryDebug] Added debug resource bundle: +99 all resources, +99999 money.");
         }
 
         if (this.wasKeyPressedThisFrame("Numpad1")) {
-            this.inventoryManager.addResource(inventory, InventoryResourceType.SmgMag, 1);
+            this.weatherManager.cycleRainPreset();
         }
 
         if (this.wasKeyPressedThisFrame("Numpad2")) {
-            this.inventoryManager.addResource(inventory, InventoryResourceType.RifleMag, 1);
-        }
-
-        if (this.wasKeyPressedThisFrame("Numpad3")) {
-            this.inventoryManager.addResource(inventory, InventoryResourceType.Grenade, 1);
-        }
-
-        if (this.wasKeyPressedThisFrame("Numpad4")) {
-            this.inventoryManager.addResource(inventory, InventoryResourceType.Money, 1000);
-        }
-
-        if (this.wasKeyPressedThisFrame("Numpad5")) {
-            this.inventoryManager.removeResource(inventory, InventoryResourceType.PistolMag, 1);
-        }
-
-        if (this.wasKeyPressedThisFrame("Numpad6")) {
-            this.inventoryManager.removeResource(inventory, InventoryResourceType.SmgMag, 1);
-        }
-
-        if (this.wasKeyPressedThisFrame("Numpad7")) {
-            this.inventoryManager.removeResource(inventory, InventoryResourceType.RifleMag, 1);
-        }
-
-        if (this.wasKeyPressedThisFrame("Numpad8")) {
-            this.inventoryManager.removeResource(inventory, InventoryResourceType.Grenade, 1);
-        }
-
-        if (this.wasKeyPressedThisFrame("Numpad9")) {
-            this.inventoryManager.removeResource(inventory, InventoryResourceType.Money, 1000);
+            this.weatherManager.toggleScreenEffectTint();
         }
 
         if (this.wasKeyPressedThisFrame("KeyK")) {

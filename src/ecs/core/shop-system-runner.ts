@@ -1,6 +1,7 @@
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { RendererEngine } from "../../game/renderer/renderer-engine.js";
 import { TextManager } from "../../game/text/text-manager.js";
+import { WeatherManager } from "../../game/weather/weather-manager.js";
 import { VisibilityManager } from "../../game/visibility/visibility-manager.js";
 import { CameraManager } from "../../game/world/camera-manager.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
@@ -58,6 +59,7 @@ import { ShopInteractionDialogSystem } from "../systems/shop-interaction-dialog.
 import { ShopRuntimeSystem } from "../systems/shop-runtime.system.js";
 import { UIRuntimeInputSystem } from "../systems/ui-runtime-input.system.js";
 import { UIRuntimeSyncSystem } from "../systems/ui-runtime-sync.system.js";
+import { WeatherSystem } from "../systems/weather.system.js";
 import { DialogEntityFactory } from "../entities/dialog-entity-factory.js";
 import { UIRuntimeEntityFactory } from "../entities/ui-runtime-entity-factory.js";
 
@@ -109,6 +111,7 @@ export class ShopSystemRunner {
     private uiRuntime: UIRuntime;
     private uiRuntimeInputSystem: UIRuntimeInputSystem;
     private uiRuntimeSyncSystem: UIRuntimeSyncSystem;
+    private weatherSystem: WeatherSystem;
     private gameManager: GameManager | null = null;
 
     constructor(
@@ -117,6 +120,7 @@ export class ShopSystemRunner {
         private rendererEngine: RendererEngine,
         private debugManager: DebugManager,
         private entityManager: EntityManager,
+        private weatherManager: WeatherManager,
     ) {
         this.shopInventoryState = new ShopInventoryState();
         this.shopTabState = new ShopTabState();
@@ -231,6 +235,7 @@ export class ShopSystemRunner {
             new UIActionRouter([this.shopActionController]),
         );
         this.uiRuntimeSyncSystem = new UIRuntimeSyncSystem(this.uiRuntime, uiRuntimeEntityFactory);
+        this.weatherSystem = new WeatherSystem(this.weatherManager, this.spriteManager, this.rendererEngine);
     }
 
     initialize(): void {
@@ -252,6 +257,7 @@ export class ShopSystemRunner {
         const viewportSize = this.cameraManager.getViewportSize();
         this.uiRuntime.updateViewport(viewportSize.width, viewportSize.height);
         this.uiRuntimeSyncSystem.update(CoreManager.timeSinceLastRender);
+        this.weatherSystem.update(CoreManager.timeSinceLastRender);
         this.renderSystem.update(CoreManager.timeSinceLastRender);
     }
 
