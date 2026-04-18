@@ -300,10 +300,6 @@ export class WorldTilemapManager {
     return this.getTile(x, y).type;
   }
 
-  public get zones(): WorldZone[] {
-    return this._zones;
-  }
-
   public worldToTile(worldX: number, worldY: number): { tileX: number; tileY: number } {
     return {
       tileX: Math.floor(worldX / this.tileSize),
@@ -317,19 +313,6 @@ export class WorldTilemapManager {
       worldX: tileX * this.tileSize + (anchorPosition == "center" ? this.tileSize / 2 : 0),
       worldY: tileY * this.tileSize + (anchorPosition == "center" ? this.tileSize / 2 : 0),
     };
-  }
-
-  public get worldMaxBoundsTiles() {
-    return {
-      left: 0,
-      top: 0,
-      right: this._maxNumberTilesX,
-      bottom: this._maxNumberTilesY,
-    };
-  }
-
-  public get appliedSpriteSheetName() {
-    return this._tilemapSpritesheetName;
   }
 
   public setTilemapKey(x: number, y: number): string {
@@ -364,4 +347,36 @@ export class WorldTilemapManager {
       throw new Error(`Tile out of bounds: (${x}, ${y})`);
     }
   }
+
+
+  public get worldMaxBoundsTiles() {
+    return {
+      left: 0,
+      top: 0,
+      right: this._maxNumberTilesX,
+      bottom: this._maxNumberTilesY,
+    };
+  }
+
+  public get appliedSpriteSheetName() {
+    return this._tilemapSpritesheetName;
+  }
+
+  public get zones(): WorldZone[] {
+    return this._zones;
+  }
+
+  public get impassableWallTiles() {
+    return this._impassableWallTiles;
+  }
+
+  public get maxNumberTilesY() {
+    return this._maxNumberTilesY;
+  }
+
+  public get maxNumberTilesX() {
+    return this._maxNumberTilesX;
+  }
+
+
 }

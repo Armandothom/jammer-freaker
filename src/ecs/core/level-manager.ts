@@ -1,4 +1,5 @@
 import { CameraManager } from "../../game/world/camera-manager.js";
+import { WorldEdgeManager } from "../../game/world/world-edge-manager.js";
 import { WorldLevelResult } from "../../game/world/types/world-level-result.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
@@ -26,6 +27,7 @@ export class LevelManager {
     constructor(
         private enemyLifecicleSystem: EnemyLifecicleSystem,
         private tilemapManager: WorldTilemapManager,
+        private worldEdgeManager: WorldEdgeManager,
         private cameraManager: CameraManager,
         private zoneFactory: ZoneFactory,
         private entityFactory: EntityFactory,
@@ -55,6 +57,7 @@ export class LevelManager {
         this.applyLevelResult(levelResult);
 
         this.finalizeLevelBuild();
+        this.worldEdgeManager.setEdges();
     }
 
     private applyLevelResult(levelResult: WorldLevelResult): void {

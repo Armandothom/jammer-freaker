@@ -30,3 +30,11 @@ export abstract class TilemapPathInformation {
   impassableTiles!: Set<string>
   tileSize! : number;
 }
+
+
+export abstract class WorldMapCoordinates {
+  x! : number
+  y! : number
+}
+
+export type CoordinateStringfied = string; //x_y
