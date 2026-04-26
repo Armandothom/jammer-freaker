@@ -39,6 +39,25 @@ export class WorldEdgeChunkManager {
   public getEdgesFromCameraView() {
     const edges : Array<WorldMapCoordinates> = [];
     const viewPort = this.cameraManager.getViewport();
+    //We set the corners of the screen as edges also
+    edges.push(...[
+      {
+        x : viewPort.left,
+        y : viewPort.top
+      },
+      {
+        x : viewPort.left,
+        y : viewPort.bottom
+      },
+      {
+        x : viewPort.right,
+        y : viewPort.top
+      },
+      {
+        x : viewPort.right,
+        y : viewPort.bottom
+      },
+    ]);
     const indexStart = this.getChunkCoordinates({x : viewPort.left, y: viewPort.top});
     const indexEnd = this.getChunkCoordinates({x : viewPort.right, y: viewPort.bottom});
     for (let x = indexStart.xIndex; x <= indexEnd.xIndex; x++) {

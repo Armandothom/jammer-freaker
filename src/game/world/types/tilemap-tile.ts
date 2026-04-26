@@ -37,4 +37,9 @@ export abstract class WorldMapCoordinates {
   y! : number
 }
 
+export abstract class TilemapCoordinates {
+  tileX! : number
+  tileY! : number
+}
+
 export type CoordinateStringfied = string; //x_y

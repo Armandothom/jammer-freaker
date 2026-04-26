@@ -1,4 +1,5 @@
 import { CameraManager } from "../../game/world/camera-manager.js";
+import { WorldEdgeChunkManager } from "../../game/world/world-edge-chunk-manager.js";
 import { WorldEdgeManager } from "../../game/world/world-edge-manager.js";
 import { WorldLevelResult } from "../../game/world/types/world-level-result.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
@@ -28,6 +29,7 @@ export class LevelManager {
         private enemyLifecicleSystem: EnemyLifecicleSystem,
         private tilemapManager: WorldTilemapManager,
         private worldEdgeManager: WorldEdgeManager,
+        private worldEdgeChunkManager: WorldEdgeChunkManager,
         private cameraManager: CameraManager,
         private zoneFactory: ZoneFactory,
         private entityFactory: EntityFactory,
@@ -58,6 +60,7 @@ export class LevelManager {
 
         this.finalizeLevelBuild();
         this.worldEdgeManager.setEdges();
+        this.saveChunks();
     }
 
     private applyLevelResult(levelResult: WorldLevelResult): void {
@@ -118,5 +121,9 @@ export class LevelManager {
         }
 
         this.cameraManager.follow(worldX, worldY);
+    }
+
+    private saveChunks() {
+        this.worldEdgeChunkManager.generateChunks();
     }
 }

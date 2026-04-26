@@ -4,15 +4,15 @@ import { WorldTilemapManager } from "./world-tilemap-manager.js";
 export class CameraManager {
   private cameraX = 0;
   private cameraY = 0;
-
+  private _canvas : HTMLCanvasElement;
   private viewportWidth: number;
   private viewportHeight: number;
 
   constructor(private worldTilemapManager: WorldTilemapManager) {
-    const canvas = document.getElementById("gl-canvas") as HTMLCanvasElement;
+    this._canvas = document.getElementById("gl-canvas") as HTMLCanvasElement;
 
-    this.viewportWidth = canvas.width;
-    this.viewportHeight = canvas.height;
+    this.viewportWidth = this._canvas.width;
+    this.viewportHeight = this._canvas.height;
   }
 
   follow(worldX: number, worldY: number) {
@@ -54,5 +54,13 @@ export class CameraManager {
       x: viewport.left + normalizedX * this.viewportWidth,
       y: viewport.top + normalizedY * this.viewportHeight,
     };
+  }
+
+  worldToScreen(x : number, y : number) {
+        const rect = this._canvas.getBoundingClientRect();
+        return {
+          x : x - rect.left,
+          y : y - rect.top
+        }
   }
 }

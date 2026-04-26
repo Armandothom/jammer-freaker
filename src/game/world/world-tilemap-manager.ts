@@ -2,7 +2,7 @@ import { OrderDebuggerOrchestrator } from '../../ecs/debugger-orders/order-debug
 import { SpriteSheetName } from '../asset-manager/types/sprite-sheet-name.enum.js';
 import { CameraViewport } from './types/camera-viewport.js';
 import { SpriteName } from './types/sprite-name.enum.js';
-import { TilemapTile, WorldPoiTile, WorldPoiTileType, TilemapWallTile, TilemapPathInformation } from './types/tilemap-tile.js';
+import { TilemapTile, WorldPoiTile, WorldPoiTileType, TilemapWallTile, TilemapPathInformation, TilemapCoordinates } from './types/tilemap-tile.js';
 import { BakedWall, WorldLevelResult } from './types/world-level-result.js';
 import { WorldZone, ZoneType } from './types/zone-type.js';
 
@@ -28,8 +28,8 @@ export class WorldTilemapManager {
   private readonly _poiTiles: Map<WorldPoiTileType, Map<string, WorldPoiTile>> = new Map();
   private readonly _zones: WorldZone[] = [];
 
-  public readonly _maxNumberTilesX: number;
-  public readonly _maxNumberTilesY: number;
+  private readonly _maxNumberTilesX: number;
+  private readonly _maxNumberTilesY: number;
 
   constructor() {
     this._maxNumberTilesX = Math.floor(this.worldWidth / this.tileSize);
@@ -300,11 +300,16 @@ export class WorldTilemapManager {
     return this.getTile(x, y).type;
   }
 
-  public worldToTile(worldX: number, worldY: number): { tileX: number; tileY: number } {
+  public worldToTile(worldX: number, worldY: number): TilemapCoordinates {
     return {
       tileX: Math.floor(worldX / this.tileSize),
       tileY: Math.floor(worldY / this.tileSize),
     };
+  }
+
+
+  public tileIndexToWorld(tileCoord : number) : number {
+    return tileCoord * this.tileSize;
   }
 
   public tileToWorld(tileX: number, tileY: number, anchorPosition : "topLeft" | "center" = "topLeft"): { worldX: number; worldY: number } {
@@ -319,7 +324,7 @@ export class WorldTilemapManager {
     return `${x}_${y}`;
   }
 
-  public getTileFromKey(key : string): { tileX: number; tileY: number } | null {
+  public getTileFromKey(key : string): TilemapCoordinates | null {
     const splitted = key.split("_");
     if(splitted.length != 2) {
       return null;

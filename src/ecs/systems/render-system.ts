@@ -65,7 +65,6 @@ export class RenderSystem implements ISystem {
 
   update(deltaTime: number): void {
     const viewport = this.cameraManager.getViewport();
-
     this.rendererEngine.clear();
 
     const terrainRenderObjects = this.getTerrainRenderObjects(viewport);
