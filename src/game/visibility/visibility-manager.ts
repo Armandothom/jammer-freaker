@@ -100,6 +100,7 @@ export class VisibilityManager {
     return Math.atan2(dy, dx);
   }
 
+  //Clamp if camera goes "off-world"
   private clampMapCoordinates(target : WorldMapCoordinates) : WorldMapCoordinates {
     const viewport = this.cameraManager.getViewport();
     const xStartLimit = Math.max(viewport.left, 0);
