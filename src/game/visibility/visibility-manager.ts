@@ -10,6 +10,7 @@ import { VisibilityRay } from "./visibility.type.js";
 
 export class VisibilityManager {
   private _currentRays: Array<VisibilityRay> = [];
+  private readonly _radDiff = 0.0872664626; // 5 degrees, we compensate due the eye level of the sprite
   constructor(
     private edgeChunkManager: WorldEdgeChunkManager,
     private worldTilemapManager: WorldTilemapManager,
@@ -22,14 +23,33 @@ export class VisibilityManager {
   public setCurrentVisibilityRays(playerPosition: PositionComponent) {
     this._currentRays = [];
     let edges = this.edgeChunkManager.getEdgesFromCameraView();
-    // if (this.debugManager.selectedDebugIndex != -1) {
-    //   edges = edges.filter((edge, i) => this.debugManager.selectedDebugIndex == i);
-    // }
+    if (this.debugManager.selectedDebugIndex != -1) {
+      edges = edges.filter((edge, i) => this.debugManager.selectedDebugIndex == i);
+    }
     for (const edge of edges) {
       const campledEdge = this.clampMapCoordinates(edge);
       const angle = this.getAngle(campledEdge, playerPosition);
       const ray = this.setHit(playerPosition, angle);
-      this._currentRays.push(ray);
+      const adjacentRays = [this.setHit(playerPosition, angle + this._radDiff), this.setHit(playerPosition, angle - this._radDiff)]
+      this._currentRays.push(ray, ...adjacentRays);
+      OrderDebuggerOrchestrator.insertPaintOrder(adjacentRays.map((ray) => {
+        return {
+        type : "circle",
+        centroidX : ray.x,
+        centroidY : ray.y,
+        width : 10,
+        color: "#119008"
+      }
+      }));
+      OrderDebuggerOrchestrator.insertPaintOrder([
+        {
+        type : "circle",
+        centroidX : ray.x,
+        centroidY : ray.y,
+        width : 10,
+        color: "#900808"
+      }
+      ])
     }
     return this._currentRays;
   }
