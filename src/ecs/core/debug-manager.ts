@@ -8,6 +8,7 @@ import { DebugManagerSettings, DebugSettingKey } from "./types/debug-manager-set
 export class DebugManager {
     private _settings = new DebugManagerSettings();
     private _selectedEnemyEntity : number | null = null;
+    private _selectedDebugIndex : number = -1;
     private _isMoveOrderActive: boolean = false;
     private _spawnerState : {
         active : boolean
@@ -48,6 +49,11 @@ export class DebugManager {
 
     public toggleMoveOrderState(isActive : boolean) {
         this._isMoveOrderActive = isActive;
+    }
+
+    public shiftSelectedDebugIndex(direction : "left" | "right") {
+        const selectedIndexOffset = direction === "right" ? 1 : -1;
+        this._selectedDebugIndex = Math.max(-1, this._selectedDebugIndex + selectedIndexOffset);
     }
 
     public toggleHighlightedEnemy(arrowSelected : "left" | "right") {
@@ -96,5 +102,9 @@ export class DebugManager {
     
     get selectedEnemyEntity() {
         return this._selectedEnemyEntity;
+    }
+
+    get selectedDebugIndex() {
+        return this._selectedDebugIndex;
     }
 }

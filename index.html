@@ -209,7 +209,8 @@
       text-transform: uppercase;
     }
 
-    .enemy-entity-selector {
+    .enemy-entity-selector,
+    .debug-index-selector {
       display: grid;
       grid-template-columns: 38px minmax(0, 1fr) 38px;
       gap: 8px;
@@ -217,12 +218,14 @@
       margin-bottom: 10px;
     }
 
-    .enemy-entity-selector__nav {
+    .enemy-entity-selector__nav,
+    .debug-index-selector__nav {
       min-height: 38px;
       padding: 0;
     }
 
-    .enemy-entity-selector__value {
+    .enemy-entity-selector__value,
+    .debug-index-selector__value {
       display: flex;
       align-items: center;
       justify-content: center;
@@ -298,6 +301,27 @@
           <button type="button" id="spawnEnemyButton" name="spawnEnemyButton">
             Spawn Enemy
           </button>
+        </div>
+      </details>
+
+      <details class="debug-panel__group debug-panel__collapse">
+        <summary>Index Options</summary>
+        <div class="debug-panel__collapse-content">
+          <div class="debug-panel__microcopy">Selected Index</div>
+
+          <div class="debug-index-selector" role="group" aria-label="Debug index selector">
+            <button type="button" id="debugIndexPreviousButton" class="debug-index-selector__nav"
+              aria-label="Select previous debug index">
+              &lt;
+            </button>
+
+            <div class="debug-index-selector__value" id="debugIndexValue">0</div>
+
+            <button type="button" id="debugIndexNextButton" class="debug-index-selector__nav"
+              aria-label="Select next debug index">
+              &gt;
+            </button>
+          </div>
         </div>
       </details>
 

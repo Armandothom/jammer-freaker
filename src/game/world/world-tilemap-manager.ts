@@ -183,6 +183,20 @@ export class WorldTilemapManager {
     return this.getWall(x, y)?.solid ?? false;
   }
 
+  public isWithinTilemap(tile : TilemapCoordinates) {
+    if(tile.tileX > this._maxNumberTilesX || tile.tileY > this._maxNumberTilesY || tile.tileX < 0 || tile.tileY < 0) {
+      return false;
+    }
+      return true;
+  }
+
+  public clampCoordinates(tile : TilemapCoordinates) : TilemapCoordinates {
+    return {
+      tileX : Math.min(Math.max(tile.tileX, 0), this._maxNumberTilesX),
+      tileY : Math.min(Math.max(tile.tileY, 0), this._maxNumberTilesY),
+    } 
+  }
+
   private getTileLimitViewport(viewport : CameraViewport) {
     const renderPadding = this.tileSize * 2;
 

@@ -20,6 +20,9 @@ export class InputDebugSystem implements ISystem {
     private enemyEntityPreviousButton : HTMLElement | null;
     private enemyEntityNextButton : HTMLElement | null;
     private enemyEntityHighlightDiv : HTMLElement | null;
+    private debugIndexPreviousButton : HTMLElement | null;
+    private debugIndexNextButton : HTMLElement | null;
+    private debugIndexValueDiv : HTMLElement | null;
     private isInputPanelVisible = false;
 
     constructor(debugManager: DebugManager, cameraManager : CameraManager, private worldTilemapManager: WorldTilemapManager) {
@@ -36,9 +39,13 @@ export class InputDebugSystem implements ISystem {
         this.enemyEntityHighlightDiv = document.querySelector<HTMLElement>("#enemyEntityValue");
         this.enemyEntityPreviousButton = document.querySelector<HTMLButtonElement>("#enemyEntityPreviousButton");
         this.enemyEntityNextButton = document.querySelector<HTMLButtonElement>("#enemyEntityNextButton");
+        this.debugIndexValueDiv = document.querySelector<HTMLElement>("#debugIndexValue");
+        this.debugIndexPreviousButton = document.querySelector<HTMLButtonElement>("#debugIndexPreviousButton");
+        this.debugIndexNextButton = document.querySelector<HTMLButtonElement>("#debugIndexNextButton");
 
         this.initializePanelInputs();
         this.initializeSpawnerUi();
+        this.initializeDebugIndexOptionsUi();
         this.initializeEnemyEntityOptionsUi();
         this.initializeInspectTileUi();
         this.canvas?.addEventListener("mouseenter", this.handleCanvasMouseEnter);
@@ -145,6 +152,28 @@ export class InputDebugSystem implements ISystem {
     }
 
     //!--Spawner
+
+    //--Debug Index Options
+    private initializeDebugIndexOptionsUi() {
+        this.debugIndexNextButton?.addEventListener("click", (() => this.shiftSelectedDebugIndex("right")));
+        this.debugIndexPreviousButton?.addEventListener("click", (() => this.shiftSelectedDebugIndex("left")));
+        this.syncDebugIndexOptionsUi();
+    }
+
+    private shiftSelectedDebugIndex(direction : "left" | "right") {
+        this.debugManager.shiftSelectedDebugIndex(direction);
+        this.syncDebugIndexOptionsUi();
+    }
+
+    private syncDebugIndexOptionsUi() {
+        if(!this.debugIndexValueDiv) {
+            return;
+        }
+
+        this.debugIndexValueDiv.textContent = this.debugManager.selectedDebugIndex.toString();
+    }
+
+    //!--Debug Index Options
 
 
 

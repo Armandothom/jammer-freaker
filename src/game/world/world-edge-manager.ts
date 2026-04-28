@@ -44,20 +44,21 @@ export class WorldEdgeManager {
 
   private getEdgeWorldCoordinate(tileX : number, tileY : number, corner : "topright" | "topleft" | "bottomleft" | "bottomright") : WorldMapCoordinates {
     const worldCoordinates = this.worldTilemapManager.tileToWorld(tileX, tileY);
+    const tileBorderDistance = this.worldTilemapManager.tileSize - 1;
     let x = worldCoordinates.worldX;
     let y = worldCoordinates.worldY;
     switch (corner) {
       case "topleft":
         break;
       case "topright":
-        x += this.worldTilemapManager.tileSize;
+        x += tileBorderDistance;
         break;
       case "bottomleft":
-        y += this.worldTilemapManager.tileSize;
+        y += tileBorderDistance;
         break;
       case "bottomright":
-        x += this.worldTilemapManager.tileSize;
-        y += this.worldTilemapManager.tileSize;
+        x += tileBorderDistance;
+        y += tileBorderDistance;
         break;
     }
     return {x, y};

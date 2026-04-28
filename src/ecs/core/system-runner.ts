@@ -261,7 +261,7 @@ export class SystemRunner {
     this.worldEdgeManager = new WorldEdgeManager(this.worldTilemapManager);
     this.worldEdgeChunkManager = new WorldEdgeChunkManager(this.worldTilemapManager, this.cameraManager, this.worldEdgeManager);
     this.debugManager = new DebugManager(this.enemyComponentStore);
-    this.visibilityManager = new VisibilityManager(this.worldEdgeChunkManager, this.worldTilemapManager, this.cameraManager);
+    this.visibilityManager = new VisibilityManager(this.worldEdgeChunkManager, this.worldTilemapManager, this.cameraManager, this.debugManager);
     this.freezeManager = new FreezeManager();
     this.playerInitialProperties = new PlayerInitialProperties();
     this.structureBaker = new StructureBaker();
