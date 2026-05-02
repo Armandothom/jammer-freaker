@@ -10,7 +10,6 @@ import { VisibilityRay } from "./visibility.type.js";
 
 export class VisibilityManager {
   private _currentRays: Array<VisibilityRay> = [];
-  private readonly _radDiff = 0.0872664626; // 5 degrees, we compensate due the eye level of the sprite
   constructor(
     private edgeChunkManager: WorldEdgeChunkManager,
     private worldTilemapManager: WorldTilemapManager,
@@ -27,10 +26,16 @@ export class VisibilityManager {
       edges = edges.filter((edge, i) => this.debugManager.selectedDebugIndex == i);
     }
     for (const edge of edges) {
-      const campledEdge = this.clampMapCoordinates(edge);
-      const angle = this.getAngle(campledEdge, playerPosition);
+      const clampedEdge = this.clampMapCoordinates(edge);
+      const angle = this.getAngle(clampedEdge, playerPosition);
       const ray = this.setHit(playerPosition, angle);
-      const adjacentRays = [this.setHit(playerPosition, angle + this._radDiff), this.setHit(playerPosition, angle - this._radDiff)]
+      //We use the tangent approach to calculate the offset, and then atan2 to get the degree
+      const distance = Math.max(
+        1,
+        Math.hypot(clampedEdge.x - playerPosition.x, clampedEdge.y - playerPosition.y)
+      );
+      const angleEpsilon = Math.atan2(1, distance);
+      const adjacentRays = [this.setHit(playerPosition, angle + angleEpsilon), this.setHit(playerPosition, angle - angleEpsilon)]
       this._currentRays.push(ray, ...adjacentRays);
       OrderDebuggerOrchestrator.insertPaintOrder(adjacentRays.map((ray) => {
         return {
