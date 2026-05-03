@@ -1,5 +1,5 @@
-import { OrderDebuggerOrchestrator } from "../../ecs/debugger-orders/order-debugger-orchestrator.js";
 import { DebuggerPaintOrder } from "../../ecs/debugger-orders/types/debugger.js";
+import { VisibilityRayPoint } from "../visibility/visibility.type.js";
 import { RenderObject } from "./types/render-objects.js";
 
 export type TrajectoryType = 0 | 1; // 0 = linear, 1 = parabólico
@@ -24,6 +24,9 @@ export class RendererEngine {
   private _debugBuffer!: WebGLBuffer;
   private _debugVAO!: WebGLVertexArrayObject;
   private _simulationProgram: WebGLProgram | undefined;
+  private _stencilProgram: WebGLProgram | undefined;
+  private _stencilVAO!: WebGLVertexArrayObject;
+  private _stencilBuffer!: WebGLBuffer;
   private _spawnTexture!: WebGLTexture;
   private _spawnKinematic!: WebGLTexture;
   private _spawnStyle!: WebGLTexture;
@@ -70,7 +73,7 @@ export class RendererEngine {
 
   constructor() {
     this._canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
-    this._gl = this._canvas?.getContext("webgl2") as WebGL2RenderingContext;
+    this._gl = this._canvas?.getContext("webgl2", {stencil : true}) as WebGL2RenderingContext;
     if (!this._gl) {
       alert("WebGL is not available");
       return;
@@ -131,6 +134,39 @@ export class RendererEngine {
     this._gl.uniform1i(textureLocation, 0);
     this.initParticles();
     this.initDebugger();
+    this.initStencil();
+  }
+
+  private initStencil() {
+    const stencilVertexShaderSource = `
+      attribute vec3 a_position;
+
+      void main() {
+        gl_Position = vec4(a_position, 1.0);
+      }
+    `;
+    const stencilFragmentShaderSource = `
+      precision mediump float;
+
+      void main() {
+        gl_FragColor = vec4(1.0);
+      }
+    `;
+
+    const stencilVertexShader = this.createShader(this._gl.VERTEX_SHADER, stencilVertexShaderSource);
+    const stencilFragmentShader = this.createShader(this._gl.FRAGMENT_SHADER, stencilFragmentShaderSource);
+    this._stencilProgram = this.createProgramRet(stencilVertexShader, stencilFragmentShader);
+    this._stencilBuffer = this._gl.createBuffer();
+    this._stencilVAO = this._gl.createVertexArray()!;
+    this._gl.bindVertexArray(this._stencilVAO);
+    this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._stencilBuffer);
+
+    const positionLocation = this._gl.getAttribLocation(this._stencilProgram, "a_position");
+    this._gl.enableVertexAttribArray(positionLocation);
+    this._gl.vertexAttribPointer(positionLocation, 3, this._gl.FLOAT, false, 0, 0);
+
+    this._gl.bindVertexArray(null);
+    this._gl.bindBuffer(this._gl.ARRAY_BUFFER, null);
   }
 
   public enqueueSpawns(events: SpawnEvent[]) {
@@ -802,7 +838,13 @@ export class RendererEngine {
     gl.enable(gl.DEPTH_TEST);
   }
 
-  public renderSprites(renderObjects: Array<RenderObject>) {
+  public renderSprites(tileObjects: Array<RenderObject>, entityObjects: Array<RenderObject>, visibilityRays : Array<VisibilityRayPoint>) {
+    this.renderSprite(tileObjects);
+    this.setStencilMask(visibilityRays);
+    this.renderSprite(entityObjects);
+  }
+
+  private renderSprite(renderObjects: Array<RenderObject>) {
     this.restoreGLForObjects();
     this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
 
@@ -920,6 +962,7 @@ export class RendererEngine {
     return shader;
   }
 
+  //WebGL accepts an interval of 0 to -1, we make a little regra de 3 here
   private toClipSpace(px: number, py: number, zLevel: number, canvas: HTMLCanvasElement): [number, number, number] {
     const clipX = (px / canvas.width) * 2 - 1;
     const clipY = 1 - (py / canvas.height) * 2;
@@ -1013,6 +1056,41 @@ export class RendererEngine {
     return this._isLoaded;
   }
 
+  private setStencilMask(visibilityRays : VisibilityRayPoint[]) {
+    const stencilVertices = [];
+    const stencilProgram = this._stencilProgram!;
+    for (const visibilityRay of visibilityRays) {
+      const [cx, cy, cz] = this.toClipSpace(visibilityRay.x, visibilityRay.y, 0, this._canvas);
+      stencilVertices.push(cx, cy, cz);
+    }
+    const gl = this._gl;
+    gl.disable(gl.DEPTH_TEST);
+    gl.useProgram(stencilProgram);
+    gl.enable(gl.STENCIL_TEST);
+    //activate writing mode to stencil
+    gl.stencilMask(0xff);
+    //set the writing value to 1
+    gl.stencilFunc(gl.ALWAYS, 1, 0xff);
+    gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
+
+    // stop writing to r, g, b, a
+    //gl.colorMask(false, false, false, false);
+
+    gl.bindVertexArray(this._stencilVAO);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._stencilBuffer);
+    gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(stencilVertices), this._gl.DYNAMIC_DRAW)
+    gl.drawArrays(gl.TRIANGLES, 0, stencilVertices.length / 3);
+    gl.bindVertexArray(null);
+    // gets back to writing to r, g, b, a
+    gl.colorMask(true, true, true, true);
+    //deactivate writing mode to stencil (readonly), activate stencil pass check
+    gl.stencilMask(0x00);
+    //set the check, if it's equal to 1, then it should draw, if not, not draw
+    gl.stencilFunc(gl.EQUAL, 1, 0xff);
+    gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+    gl.enable(gl.DEPTH_TEST);
+  }
+
   private restoreGLForObjects() {
     const gl = this._gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -1037,7 +1115,10 @@ export class RendererEngine {
     this.restoreGLForObjects();
     this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
     this._gl.clearColor(0, 0, 0, 1);
-    this._gl.clear(this._gl.COLOR_BUFFER_BIT | this._gl.DEPTH_BUFFER_BIT);
+    this._gl.stencilMask(0xff);
+    this._gl.clearStencil(0);
+    this._gl.clear(this._gl.COLOR_BUFFER_BIT | this._gl.DEPTH_BUFFER_BIT | this._gl.STENCIL_BUFFER_BIT);
+    this._gl.disable(this._gl.STENCIL_TEST);
   }
 
   private worldToState01(xWorld: number, yWorld: number): [number, number] {
@@ -1050,8 +1131,8 @@ export class RendererEngine {
     const [cx, cy] = this.toClipSpace(xWorld, yWorld, 0, this._canvas);
     return [cx, cy];
   }
-  
-  public toggleDebugBorderSprite(status : boolean) {
+
+  public toggleDebugBorderSprite(status: boolean) {
     this._debugBorderSprites = status;
     this.init();
   }

@@ -6,10 +6,10 @@ import { CameraManager } from "../world/camera-manager.js";
 import { TilemapCoordinates, WorldMapCoordinates } from "../world/types/tilemap-tile.js";
 import { WorldEdgeChunkManager } from "../world/world-edge-chunk-manager.js";
 import { WorldTilemapManager } from "../world/world-tilemap-manager.js";
-import { VisibilityRay } from "./visibility.type.js";
+import { VisibilityRayPoint } from "./visibility.type.js";
 
 export class VisibilityManager {
-  private _currentRays: Array<VisibilityRay> = [];
+  private _currentRays: Array<VisibilityRayPoint> = [];
   constructor(
     private edgeChunkManager: WorldEdgeChunkManager,
     private worldTilemapManager: WorldTilemapManager,
@@ -19,8 +19,9 @@ export class VisibilityManager {
 
   }
 
-  public setCurrentVisibilityRays(playerPosition: PositionComponent) {
+  public setCurrentVisibilityRayPoints(playerPosition: PositionComponent) {
     this._currentRays = [];
+    const rays = [];
     let edges = this.edgeChunkManager.getEdgesFromCameraView();
     if (this.debugManager.selectedDebugIndex != -1) {
       edges = edges.filter((edge, i) => this.debugManager.selectedDebugIndex == i);
@@ -29,37 +30,50 @@ export class VisibilityManager {
       const clampedEdge = this.clampMapCoordinates(edge);
       const angle = this.getAngle(clampedEdge, playerPosition);
       const ray = this.setHit(playerPosition, angle);
-      //We use the tangent approach to calculate the offset, and then atan2 to get the degree
+      //We use the tangent approach to calculate the angular offset, and then atan2 to get the degree
       const distance = Math.max(
         1,
         Math.hypot(clampedEdge.x - playerPosition.x, clampedEdge.y - playerPosition.y)
       );
       const angleEpsilon = Math.atan2(1, distance);
       const adjacentRays = [this.setHit(playerPosition, angle + angleEpsilon), this.setHit(playerPosition, angle - angleEpsilon)]
-      this._currentRays.push(ray, ...adjacentRays);
-      OrderDebuggerOrchestrator.insertPaintOrder(adjacentRays.map((ray) => {
-        return {
-        type : "circle",
-        centroidX : ray.x,
-        centroidY : ray.y,
-        width : 10,
-        color: "#119008"
-      }
-      }));
-      OrderDebuggerOrchestrator.insertPaintOrder([
-        {
-        type : "circle",
-        centroidX : ray.x,
-        centroidY : ray.y,
-        width : 10,
-        color: "#900808"
-      }
-      ])
+      rays.push(ray, ...adjacentRays);
     }
+    this._currentRays = this.formRayPointMeshes(playerPosition, rays);
+    this.debugDrawPoints();
     return this._currentRays;
   }
 
-  private setHit(originPosition: PositionComponent, angle: number): VisibilityRay {
+  //We build ray meshes against the player position
+  private formRayPointMeshes(playerPosition: PositionComponent, rays : VisibilityRayPoint[]) {
+    const origin : VisibilityRayPoint = {
+      x : playerPosition.x,
+      y : playerPosition.y,
+      angle : 0
+    }
+    const sortedRays = rays.sort((a, b) => a.angle - b.angle);
+    const pointMeshes : VisibilityRayPoint[] = [];
+    for (let i = 0; i < sortedRays.length; i++) {
+      const current = sortedRays[i];
+      const next = sortedRays[(i + 1) % sortedRays.length];
+      pointMeshes.push(origin, current, next);
+    }
+    return pointMeshes;
+  }
+
+  private debugDrawPoints() {
+    OrderDebuggerOrchestrator.insertPaintOrder(this._currentRays.map((ray) => {
+      return {
+        type : "circle",
+        centroidX : ray.x,
+        centroidY : ray.y,
+        width: 5,
+        color: "#db2929"
+      }
+    }))
+  }
+
+  private setHit(originPosition: PositionComponent, angle: number): VisibilityRayPoint {
     let positionStep: WorldMapCoordinates = {
       x: originPosition.x,
       y: originPosition.y
@@ -169,7 +183,7 @@ export class VisibilityManager {
     return this.worldTilemapManager.impassableWallTiles.has(this.worldTilemapManager.setTilemapKey(tile.tileX, tile.tileY));
   }
 
-  get currentVisibilityRays() {
+  get currentVisibilityRayPoints() {
     return this._currentRays;
   }
 

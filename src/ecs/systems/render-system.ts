@@ -25,6 +25,7 @@ import { OrderDebuggerOrchestrator } from "../debugger-orders/order-debugger-orc
 import { DebugManager } from "../core/debug-manager.js";
 import { DebugSettingKey } from "../core/types/debug-manager-settings.js";
 import { DebuggerPaintOrder } from "../debugger-orders/types/debugger.js";
+import { VisibilityRayPoint } from "../../game/visibility/visibility.type.js";
 
 interface BitmapTextRenderContext {
   font: BitmapFontAsset;
@@ -69,14 +70,14 @@ export class RenderSystem implements ISystem {
 
     const terrainRenderObjects = this.getTerrainRenderObjects(viewport);
     const wallRenderObjects = this.getWallRenderObjects(viewport);
-    const overTerrainRenderObjects = this.getOverTerrainRenderObjects(viewport);
-    const renderObjects = [
+    const entityObjects = this.getOverTerrainRenderObjects(viewport);
+    const tileObjects = [
       ...terrainRenderObjects,
-      ...wallRenderObjects,
-      ...overTerrainRenderObjects,
+      ...wallRenderObjects
     ];
+    const visibilityRays = this.setVisibilityRaysPointToScreen();
     this.rendererEngine.toggleDebugBorderSprite(this.debugManager.getDebugSetting(DebugSettingKey.SPRITE_BOUNDS));
-    this.rendererEngine.renderSprites(renderObjects);
+    this.rendererEngine.renderSprites(tileObjects, entityObjects, visibilityRays);
     this.rendererEngine.uploadSpawnBatch();
     this.rendererEngine.updateParticles(deltaTime);
     this.rendererEngine.disarmSpawnStyleRects();
@@ -155,7 +156,7 @@ export class RenderSystem implements ISystem {
       const worldY = wallTile.y * tileSize;
       const screenX = worldX - viewport.left;
       const screenY = worldY - viewport.top;
-
+      //TODO @armando rename these screen -> world variables, confusing
       wallRenderObjects.push({
         xWorldPosition: screenX,
         yWorldPosition: screenY,
@@ -361,6 +362,17 @@ export class RenderSystem implements ISystem {
     }
 
     return renderObjects;
+  }
+
+  private setVisibilityRaysPointToScreen() {
+    let visibilityRayPointsRemapped : VisibilityRayPoint[] = [];
+    for (const visibilityRay of this.visibilityManager.currentVisibilityRayPoints) {
+      const {x, y} = this.cameraManager.worldToScreen(visibilityRay.x, visibilityRay.y);
+      visibilityRayPointsRemapped.push({
+        x, y, angle : visibilityRay.angle
+      })
+    }
+    return visibilityRayPointsRemapped;
   }
 
   private buildBitmapTextRenderContext(

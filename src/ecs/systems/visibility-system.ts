@@ -18,6 +18,6 @@ export class VisibilitySystem implements ISystem {
   update(_: number): void {
     const playerEntity = this.playerComponentStore.getAllEntities()[0];
     const playerPosition = this.positionComponentStore.get(playerEntity);
-    const visibilityRays = this.visibilityManager.setCurrentVisibilityRays(playerPosition);
+    this.visibilityManager.setCurrentVisibilityRayPoints(playerPosition);
   }
 }

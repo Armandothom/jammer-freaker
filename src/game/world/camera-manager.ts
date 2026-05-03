@@ -33,7 +33,7 @@ export class CameraManager {
   }
 
   isWithinViewport(xStart : number, xEnd : number, yStart : number, yEnd : number) {
-    const viewport= this.getViewport();
+    const viewport = this.getViewport();
     return xStart >= viewport.left &&
         xEnd <= viewport.right &&
         yStart >= viewport.top &&
@@ -56,11 +56,11 @@ export class CameraManager {
     };
   }
 
-  worldToScreen(x : number, y : number) {
-        const rect = this._canvas.getBoundingClientRect();
-        return {
-          x : x - rect.left,
-          y : y - rect.top
-        }
+  worldToScreen(x: number, y: number) {
+    const viewport = this.getViewport();
+    return {
+      x: Math.max(0, x - viewport.left),
+      y: Math.max(0, y - viewport.top)
+    }
   }
 }
