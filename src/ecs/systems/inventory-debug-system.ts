@@ -31,16 +31,16 @@ export class InventoryDebugSystem implements ISystem {
         window.addEventListener("keyup", this.onKeyUp);
     }
 
-    private queueDamageTakenIntent(targetEntity: number, damageSource: number, damage: number) {
+    private queueDamageTakenIntent(targetEntity: number, damagingEntity: number, damageSource: WeaponType, damage: number) {
         const existingDamageIntent = this.damageTakenIntentComponentStore.getOrNull(targetEntity);
         if (existingDamageIntent) {
-            existingDamageIntent.accumulate(damageSource, damage);
+            existingDamageIntent.accumulate(damagingEntity, damageSource, damage);
             return;
         }
 
         this.damageTakenIntentComponentStore.add(
             targetEntity,
-            new DamageTakenIntentComponent(damageSource, damage),
+            new DamageTakenIntentComponent(damagingEntity, damageSource, damage),
         );
     }
 
@@ -86,7 +86,7 @@ export class InventoryDebugSystem implements ISystem {
         if (this.wasKeyPressedThisFrame("KeyK")) {
             const health = this.healthComponentStore.getOrNull(playerEntity);
             if (health) {
-                this.queueDamageTakenIntent(playerEntity, playerEntity, 20);
+                this.queueDamageTakenIntent(playerEntity, playerEntity, WeaponType.PISTOL, 20);
                 console.log(`[InventoryDebug] Queued 20 damage for player. HP: ${health.hp}/${health.maxHp}`);
             }
         }

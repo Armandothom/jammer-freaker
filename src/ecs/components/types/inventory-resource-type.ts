@@ -6,6 +6,10 @@ export enum InventoryResourceType {
     ShotgunShell = "ShotgunShell",
     ShotgunShellBox = "shotgun_shell_box",
     Grenade = "grenade",
+    Epipen = "epipen",
+    CombatStim = "combat_stim",
+    Healpack = "healpack",
+    Bandage = "bandage",
     Money = "money",
 }
 

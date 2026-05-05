@@ -12,7 +12,7 @@ import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
-import { EnemyConfig } from "../components/types/enemy-type.js";
+import { EnemyConfig, type EnemyType } from "../components/types/enemy-type.js";
 import { WeaponConfig, WeaponType } from "../components/types/weapon-config.js";
 import { VisualRecoilComponent } from "../components/visual-recoil.component.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
@@ -90,12 +90,12 @@ export class ProjectileSpawnSystem implements ISystem {
                     this.emitShotFireSound(weaponWielded);
                     for (const projectile of projectileAnglesResult) {
                         const projectileVelocity = this.randomizeProjectileVelocity(weaponStats.projectileVelocity!, 10);
-                        this.spawnProjectile(projectile.dir, attachedWeapon, weaponSprite, projectile.angle, damage, projectileVelocity, true);
+                        this.spawnProjectile(projectile.dir, attachedWeapon, weaponSprite, projectile.angle, damage, weaponWielded, projectileVelocity, true);
                     }
                 } else {
                     this.emitShotFireSound(weaponWielded);
 
-                    this.spawnProjectile(dir, attachedWeapon, weaponSprite, angle, damage, weaponStats.projectileVelocity!, true); // last variable: fired by player, check if it is used
+                    this.spawnProjectile(dir, attachedWeapon, weaponSprite, angle, damage, weaponWielded, weaponStats.projectileVelocity!, true); // last variable: fired by player, check if it is used
                 }
                 this.bulletFiredComponentStore.add(playerEntity, new BulletFiredComponent());
                 this.shootingCooldownComponentStore.add(playerEntity, new ShootingCooldownComponent(fireCooldown));
@@ -167,7 +167,7 @@ export class ProjectileSpawnSystem implements ISystem {
             const shootingCooldown = this.shootingCooldownComponentStore.has(entity);
             if (!shootingCooldown) {
                 const damage = this.damageDealtComponentStore.get(entity).damage;
-                this.spawnProjectile(dir, attachedWeapon, weaponSprite, angle, damage, 720, false); // Projectile velocity hard coded 720 - add to the EnemyConfig later;
+                this.spawnProjectile(dir, attachedWeapon, weaponSprite, angle, damage, enemyType, 720, false); // Projectile velocity hard coded 720 - add to the EnemyConfig later;
                 this.shootingCooldownComponentStore.add(entity, new ShootingCooldownComponent(cooldownConfig));
             }
         }
@@ -179,6 +179,7 @@ export class ProjectileSpawnSystem implements ISystem {
         weaponSprite: SpriteComponent,
         aimAngle: number,
         damage: number,
+        damageSource: EnemyType | WeaponType,
         projectileVelocity: number,
         firedByPlayer: boolean,
 
@@ -206,6 +207,7 @@ export class ProjectileSpawnSystem implements ISystem {
             startY,
             shootingWeapon.parentEntityId,
             damage,
+            damageSource,
             firedByPlayer,
             dir.x,
             dir.y,

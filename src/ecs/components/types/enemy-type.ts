@@ -15,6 +15,7 @@ export interface PropertiesTable {
     movementRadius: number, // used to adjust movement Behavior -- distance from the player
     velocity: number,
     attackExplosionRadius: number,
+    bleedChance: number,
 }
 
 export const EnemyConfig: Record<EnemyType, PropertiesTable> = {
@@ -27,6 +28,7 @@ export const EnemyConfig: Record<EnemyType, PropertiesTable> = {
         movementRadius: 320,
         velocity: 8 * 32 / 60,
         attackExplosionRadius: 0,
+        bleedChance: 0.1,
     },
     [EnemyType.SNIPER]: {
         spawnFrequency: 0.1,
@@ -37,6 +39,7 @@ export const EnemyConfig: Record<EnemyType, PropertiesTable> = {
         movementRadius: 320,
         velocity: 8 * 32 / 60,
         attackExplosionRadius: 0,
+        bleedChance: 0.25,
     },
     [EnemyType.KAMIKAZE]: {
         spawnFrequency: 0.1,
@@ -47,6 +50,7 @@ export const EnemyConfig: Record<EnemyType, PropertiesTable> = {
         movementRadius: 320,
         velocity: 8 * 32 / 60,
         attackExplosionRadius: 0,
+        bleedChance: 1,
     },
     [EnemyType.JUGG]: {
         spawnFrequency: 0.2,
@@ -57,6 +61,7 @@ export const EnemyConfig: Record<EnemyType, PropertiesTable> = {
         movementRadius: 320,
         velocity: 8 * 32 / 60,
         attackExplosionRadius: 0,
+        bleedChance: 0,
     },
     [EnemyType.BOMBER]: {
         spawnFrequency: 0.2,
@@ -67,6 +72,7 @@ export const EnemyConfig: Record<EnemyType, PropertiesTable> = {
         movementRadius: 320,
         velocity: 8 * 32 / 60,
         attackExplosionRadius: 128,
+        bleedChance: 0.75,
     },
     // Spawn frequency has to sum up to 1, adjust the values when we implement the attack behavior
 }

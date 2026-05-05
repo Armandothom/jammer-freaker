@@ -17,10 +17,14 @@ import { ProjectileComponent } from "../components/projectile-component.js";
 import { ShapeHitMemoryComponent } from "../components/shape-hitmemory-component.js";
 import { ShotOriginComponent } from "../components/shot-origin.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
+import type { EnemyType } from "../components/types/enemy-type.js";
+import { WeaponType } from "../components/types/weapon-config.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityFactory } from "../entities/entity-factory.js";
 import { ISystem } from "./system.interface.js";
 import { Rect } from "./types/rect.type.js";
+
+type DamageSource = EnemyType | WeaponType;
 
 export class HitDetectionSystem implements ISystem {
     constructor(
@@ -45,17 +49,27 @@ export class HitDetectionSystem implements ISystem {
         private particlesComponentStore: ComponentStore<ParticlesComponent>,
     ) { }
 
-    private queueDamageTakenIntent(targetEntity: number, damageSource: number, damage: number) {
+    private queueDamageTakenIntent(targetEntity: number, damagingEntity: number, damageSource: DamageSource, damage: number) {
         const existingDamageIntent = this.damageTakenIntentComponentStore.getOrNull(targetEntity);
         if (existingDamageIntent) {
-            existingDamageIntent.accumulate(damageSource, damage);
+            existingDamageIntent.accumulate(damagingEntity, damageSource, damage);
             return;
         }
 
         this.damageTakenIntentComponentStore.add(
             targetEntity,
-            new DamageTakenIntentComponent(damageSource, damage),
+            new DamageTakenIntentComponent(damagingEntity, damageSource, damage),
         );
+    }
+
+    private resolveDamageSource(damagingEntity: number, fallback: DamageSource = WeaponType.PISTOL): DamageSource {
+        const enemy = this.enemyComponentStore.getOrNull(damagingEntity);
+
+        if (enemy) {
+            return enemy.enemyType;
+        }
+
+        return fallback;
     }
 
     update(deltaTime: number): void {
@@ -202,14 +216,16 @@ export class HitDetectionSystem implements ISystem {
     }
 
     private handleEntityHits(entity: number, hitEntities: number[]): boolean {
-        const shooterId = this.shotOriginComponentStore.getOrNull(entity)?.shooterEntity;
+        const shotOrigin = this.shotOriginComponentStore.getOrNull(entity);
+        const shooterId = shotOrigin?.shooterEntity;
 
         if (this.projectileComponentStore.has(entity)) {
             const hitEntity = hitEntities[0];
             if (shooterId !== undefined) {
                 const projectile = this.projectileComponentStore.get(entity);
                 const projectileDamage = projectile.damage;
-                this.queueDamageTakenIntent(hitEntity, shooterId, projectileDamage);
+                const damageSource = shotOrigin?.damageSource ?? this.resolveDamageSource(shooterId);
+                this.queueDamageTakenIntent(hitEntity, shooterId, damageSource, projectileDamage);
             }
             const isEnemy = this.enemyComponentStore.has(hitEntity);
             const isPlayer = this.playerComponentStore.has(hitEntity);
@@ -254,6 +270,7 @@ export class HitDetectionSystem implements ISystem {
         }
 
         const damage = this.damageDealtComponentStore.get(entity).damage;
+        const damageSource = shotOrigin?.damageSource ?? this.resolveDamageSource(shooterId);
         const canHitMultipleTargets = this.grenadeExplosionHitBoxComponentStore.has(entity);
         const hitMemory = this.shapeHitMemoryComponentStore.getOrNull(entity);
         let appliedDamage = false;
@@ -268,7 +285,7 @@ export class HitDetectionSystem implements ISystem {
                 continue;
             }
 
-            this.queueDamageTakenIntent(hitEntity, shooterId, damage);
+            this.queueDamageTakenIntent(hitEntity, shooterId, damageSource, damage);
             hitMemory?.alreadyHit.add(hitEntity);
             appliedDamage = true;
 

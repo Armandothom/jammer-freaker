@@ -99,6 +99,7 @@ type CreateHitBoxOptions = {
   spriteName: SpriteName;
   spriteSheetName: SpriteSheetName;
   shooterEntityId?: number;
+  damageSource?: EnemyType | WeaponType;
   damage?: number;
   aimAngle?: number;
   pivotPointSprite?: number;
@@ -204,6 +205,7 @@ export class EntityFactory {
     startY: number,
     entityShooterId: number,
     damage: number,
+    damageSource: EnemyType | WeaponType,
     firedByPlayer: boolean,
     dirX: number, dirY: number,
     velocity: number,
@@ -220,7 +222,7 @@ export class EntityFactory {
     this.directionComponentStore.add(entityId, new DirectionComponent(dirX, dirY));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity));
     this.hitboxComponentStore.add(entityId, new HitBoxComponent());
-    this.shotOriginComponentStore.add(entityId, new ShotOriginComponent(entityShooterId, startX, startY));
+    this.shotOriginComponentStore.add(entityId, new ShotOriginComponent(entityShooterId, startX, startY, damageSource));
     this.collisionBoxComponentStore.add(entityId, new CollisionBoxComponent({ widthFactor: 1, heightFactor: 1, offsetX: 0, offsetY: 0 }));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
     return entityId;
@@ -242,6 +244,9 @@ export class EntityFactory {
       : enemyType === EnemyType.BOMBER
         ? EnemyConfig[EnemyType.BOMBER].damage
         : WeaponConfig[WeaponType.GRENADE].damage;
+    const grenadeDamageSource = firedByPlayer
+      ? WeaponType.GRENADE
+      : enemyType ?? WeaponType.GRENADE;
     const grenadeExplosionRadius = firedByPlayer
       ? WeaponConfig[WeaponType.GRENADE].explosionRadius
       : enemyType === EnemyType.BOMBER
@@ -264,7 +269,7 @@ export class EntityFactory {
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.GRENADE_FIRED));
     this.directionComponentStore.add(entityId, new DirectionComponent(dirX, dirY));
     this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity));
-    this.shotOriginComponentStore.add(entityId, new ShotOriginComponent(entityShooterId, originX, originY))
+    this.shotOriginComponentStore.add(entityId, new ShotOriginComponent(entityShooterId, originX, originY, grenadeDamageSource))
     this.collisionBoxComponentStore.add(entityId, new CollisionBoxComponent({ widthFactor: 1, heightFactor: 1, offsetX: 0, offsetY: 0 })); //manipulate this
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(4));
     this.fuseTimerComponentStore.add(entityId, new FuseTimerComponent(WeaponConfig[WeaponType.GRENADE].fuseTimer));
@@ -407,6 +412,7 @@ export class EntityFactory {
         spriteName: SpriteName.MELEE_ATTACK_1,
         spriteSheetName: SpriteSheetName.MELEE_ATTACK,
         shooterEntityId: parentEntityId,
+        damageSource: WeaponType.KNIFE,
         damage: parentDamage,
         aimAngle,
         pivotPointSprite,
@@ -441,7 +447,12 @@ export class EntityFactory {
     this.animationComponentStore.add(entityId, new AnimationComponent(options.animationName, options.loop ?? false));
 
     if (options.shooterEntityId != null) {
-      this.shotOriginComponentStore.add(entityId, new ShotOriginComponent(options.shooterEntityId, startX, startY));
+      this.shotOriginComponentStore.add(entityId, new ShotOriginComponent(
+        options.shooterEntityId,
+        startX,
+        startY,
+        options.damageSource,
+      ));
     }
 
     if (typeof options.damage === "number") {

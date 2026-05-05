@@ -12,6 +12,8 @@ import { MovementIntentComponent } from "../components/movement-intent.component
 import { PositionComponent } from "../components/position.component.js";
 import { ShotOriginComponent } from "../components/shot-origin.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
+import { EnemyType } from "../components/types/enemy-type.js";
+import { WeaponType } from "../components/types/weapon-config.js";
 import { VelocityComponent } from "../components/velocity-component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityFactory } from "../entities/entity-factory.js";
@@ -106,7 +108,8 @@ export class GrenadeUpdateSystem implements ISystem {
         const grenade = this.grenadeComponentStore.getOrNull(grenadeEntity);
         const grenadePosition = this.positionComponentStore.getOrNull(grenadeEntity);
         const grenadeSprite = this.spriteComponentStore.getOrNull(grenadeEntity);
-        const shooterId = this.shotOriginComponentStore.getOrNull(grenadeEntity)?.shooterEntity;
+        const shotOrigin = this.shotOriginComponentStore.getOrNull(grenadeEntity);
+        const shooterId = shotOrigin?.shooterEntity;
 
         if (!grenade || !grenadePosition || !grenadeSprite || shooterId == null) {
             this.entityFactory.destroyGrenade(grenadeEntity);
@@ -130,6 +133,7 @@ export class GrenadeUpdateSystem implements ISystem {
                 spriteName: SpriteName.GRENADE_EXPLOSION_1,
                 spriteSheetName: SpriteSheetName.GRENADE_EXPLOSION,
                 shooterEntityId: shooterId,
+                damageSource: shotOrigin?.damageSource ?? (grenade.firedByPlayer ? WeaponType.GRENADE : EnemyType.BOMBER),
                 damage: grenade.damage,
                 zLayer: 4,
                 loop: false,
