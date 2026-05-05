@@ -1,3 +1,4 @@
+import { WeatherManager } from "../../game/weather/weather-manager.js";
 import { DamageTakenIntentComponent } from "../components/damage-taken-intent.component.js";
 import { HealthComponent } from "../components/health.component.js";
 import { InventoryComponent } from "../components/inventory-component.js";
@@ -6,7 +7,6 @@ import { InventoryResourceType } from "../components/types/inventory-resource-ty
 import { WeaponConfig, WeaponType } from "../components/types/weapon-config.js";
 import { ComponentStore } from "../core/component-store.js";
 import { InventoryManager } from "../core/inventory-manager.js";
-import { WeatherManager } from "../../game/weather/weather-manager.js";
 import { ISystem } from "./system.interface.js";
 
 export class InventoryDebugSystem implements ISystem {
@@ -16,8 +16,7 @@ export class InventoryDebugSystem implements ISystem {
     private pressedKeys = new Set<string>();
     private previousPressedKeys = new Set<string>();
 
-    // decide aqui qual arma o "*" do numpad adiciona
-    private readonly debugWeaponToAdd: WeaponType = WeaponType.SHOTGUN;
+    private readonly debugWeaponToAdd: WeaponType = WeaponType.RIFLE;
     private readonly debugMoneyToAdd = 1000;
 
     constructor(
@@ -67,20 +66,20 @@ export class InventoryDebugSystem implements ISystem {
             console.log(`[InventoryDebug] Money added: ${this.debugMoneyToAdd}`);
         }
 
-        if (this.wasKeyPressedThisFrame("NumpadMultiply")) {
+        if (this.wasKeyPressedThisFrame("KeyJ")) {
             this.addWeapon(inventory, this.debugWeaponToAdd);
         }
 
-        if (this.wasKeyPressedThisFrame("Numpad0")) {
+        if (this.wasKeyPressedThisFrame("KeyI")) {
             this.inventoryManager.addDebugResourceBundle(inventory);
             console.log("[InventoryDebug] Added debug resource bundle: +99 all resources, +99999 money.");
         }
 
-        if (this.wasKeyPressedThisFrame("Numpad1")) {
+        if (this.wasKeyPressedThisFrame("KeyU")) {
             this.weatherManager.cycleRainPreset();
         }
 
-        if (this.wasKeyPressedThisFrame("Numpad2")) {
+        if (this.wasKeyPressedThisFrame("KeyY")) {
             this.weatherManager.toggleScreenEffectTint();
         }
 

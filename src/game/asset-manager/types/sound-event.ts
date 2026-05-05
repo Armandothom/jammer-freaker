@@ -7,6 +7,7 @@ export type EmitSoundEvent = {
     key: SoundKey;
     loop?: boolean;
     volume?: number;
+    playbackRate?: number;
     requestId?: string;
     mode?: SoundEmitMode;
     cooldownMs?: number;

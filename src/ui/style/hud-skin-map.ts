@@ -13,16 +13,17 @@ export const HUD_SKIN_MAP = {
     anchor: "top-left" as UIAnchor,
     icon: {
       height: 16,
-      offsetX: 12,
+      offsetX: 24,
       offsetY: 0,
       spriteName: SpriteName.GRENADE_1,
       spriteSheetName: SpriteSheetName.PROJECTILE,
       width: 14,
     },
-    offsetX: 116,
+    offsetX: 120,
     offsetY: 70,
     textOffsetX: 0,
     textOffsetY: 2,
+    textWidth: 20,
   },
   healthBar: {
     anchor: "top-left" as UIAnchor,
@@ -41,7 +42,7 @@ export const HUD_SKIN_MAP = {
     anchor: "top-left" as UIAnchor,
     icon: {
       height: 16,
-      offsetX: 12,
+      offsetX: 24,
       offsetY: 0,
       spriteName: SpriteName.PISTOL_MAG_ICON,
       spriteSheetName: SpriteSheetName.RESOURCES_ICON,
@@ -51,6 +52,7 @@ export const HUD_SKIN_MAP = {
     offsetY: 70,
     textOffsetX: 0,
     textOffsetY: 2,
+    textWidth: 20,
   },
   money: {
     anchor: "top-left" as UIAnchor,
@@ -61,7 +63,7 @@ export const HUD_SKIN_MAP = {
     anchor: "top-left" as UIAnchor,
     icon: {
       height: 16,
-      offsetX: 22,
+      offsetX: 24,
       offsetY: 0,
       spriteName: SpriteName.BULLET_ICON,
       spriteSheetName: SpriteSheetName.RESOURCES_ICON,
@@ -71,6 +73,7 @@ export const HUD_SKIN_MAP = {
     offsetY: 70,
     textOffsetX: 0,
     textOffsetY: 2,
+    textWidth: 20,
   },
   weaponPanel: {
     anchor: "top-left" as UIAnchor,

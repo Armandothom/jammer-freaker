@@ -16,6 +16,7 @@ export type UISpriteVisual = {
   spriteSheetName: SpriteSheetName;
   width?: number;
   height?: number;
+  rotationOffset?: number;
   clip?: UISpriteClip;
 };
 

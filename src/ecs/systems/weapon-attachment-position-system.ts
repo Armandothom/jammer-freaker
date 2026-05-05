@@ -6,7 +6,7 @@ import { SpriteComponent } from "../components/sprite.component.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
 import { ZLayerComponent } from "../components/z-layer.component.js";
 import { ComponentStore } from "../core/component-store.js";
-import { OrderDebuggerOrchestrator } from "../debugger-orders/order-debugger-orchestrator.js";
+import { resolveWeaponAttachmentBaseAnchor, resolveWeaponAttachmentPose } from "../core/weapon-attachment-pose-resolver.js";
 import { ISystem } from "./system.interface.js";
 
 export class WeaponSpriteAttachmenPositiontSystem implements ISystem {
@@ -21,7 +21,7 @@ export class WeaponSpriteAttachmenPositiontSystem implements ISystem {
     }
 
     update(deltaTime: number): void {
-        const attachedEntityIds = this.weaponSpriteAttachmentComponentStore.getAllEntities(); 
+        const attachedEntityIds = this.weaponSpriteAttachmentComponentStore.getAllEntities();
         for (const attachedEntityId of attachedEntityIds) {
             if (this.disableAttachmentComponentStore.has(attachedEntityId)) continue;
             const weaponSprite = this.spriteComponentStore.get(attachedEntityId);
@@ -33,13 +33,17 @@ export class WeaponSpriteAttachmenPositiontSystem implements ISystem {
             const aimAngle = aimShooting.aimAngle;
             const cos = Math.cos(aimAngle);
             const sin = Math.sin(aimAngle);
-            const isAimingUp = sin < 0.45 ? true : false;
-            const attachedWeaponOffsetX = attachedWeapon.offsetXAim;
-            const attachedWeaponOffsetY = attachedWeapon.offsetYAim;
-            attachedWeaponPosition.x = parentEntityPosition.x + attachedWeaponOffsetX * parentEntitySprite.width / 32;
-            attachedWeaponPosition.y = parentEntityPosition.y + attachedWeaponOffsetY * parentEntitySprite.height / 32;
-            attachedWeapon.barrelX = attachedWeaponPosition.x + (weaponSprite.width * (cos));
-            attachedWeapon.barrelY = attachedWeaponPosition.y + (weaponSprite.width * (sin));
+            const isAimingUp = sin < -0.2 ? true : false;
+            const baseAnchor = resolveWeaponAttachmentBaseAnchor(
+                parentEntityPosition,
+                parentEntitySprite,
+                attachedWeapon,
+            );
+            const attachmentPose = resolveWeaponAttachmentPose(baseAnchor, weaponSprite, aimAngle);
+            attachedWeaponPosition.x = attachmentPose.x;
+            attachedWeaponPosition.y = attachmentPose.y;
+            attachedWeapon.barrelX = attachmentPose.barrelX;
+            attachedWeapon.barrelY = attachmentPose.barrelY;
             if (weaponSprite.spriteName === SpriteName.SHIELD) {
                 this.zLayerComponentStore.add(attachedEntityId, new ZLayerComponent(4));
             } else {

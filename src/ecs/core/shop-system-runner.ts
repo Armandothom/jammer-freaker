@@ -35,6 +35,7 @@ import { ScreenPositionComponent } from "../components/screen-position.component
 import { SpriteClipComponent } from "../components/sprite-clip.component.js";
 import type { InventorySnapshot } from "../components/snapshots/inventory-snapshot.js";
 import { SpriteComponent } from "../components/sprite.component.js";
+import { TransformComponent } from "../components/transform-component.js";
 import { ShopDialogIntentComponent } from "../components/shop-dialog-intent.component.js";
 import { ShopInventoryState } from "../components/states/shop-inventory-state.js";
 import { ShopTabState } from "../components/states/shop-tab-state.js";
@@ -74,6 +75,7 @@ export class ShopSystemRunner {
     private screenPositionComponentStore: ComponentStore<ScreenPositionComponent> = new ComponentStore("ScreenPositionComponent");
     private spriteClipComponentStore: ComponentStore<SpriteClipComponent> = new ComponentStore("SpriteClipComponent");
     private spriteComponentStore: ComponentStore<SpriteComponent> = new ComponentStore("SpriteComponent");
+    private transformComponentStore: ComponentStore<TransformComponent> = new ComponentStore("TransformComponent");
     private directionAnimComponentStore: ComponentStore<DirectionAnimComponent> = new ComponentStore("DirectionAnimComponent");
     private animationComponentStore: ComponentStore<AnimationComponent> = new ComponentStore("AnimationComponent");
     private awaitingAnimationEndComponentStore: ComponentStore<AwaitingAnimationEndComponent> = new ComponentStore("AwaitingAnimationEndComponent");
@@ -142,6 +144,7 @@ export class ShopSystemRunner {
             this.zLayerComponentStore,
             this.uiRuntimeElementComponentStore,
             this.spriteClipComponentStore,
+            this.transformComponentStore,
         );
 
         this.dialogEntityFactory = new DialogEntityFactory(
@@ -172,6 +175,7 @@ export class ShopSystemRunner {
             this.spriteManager,
             this.directionAnimComponentStore,
             this.aimShootingComponentStore,
+            this.transformComponentStore,
             this.zLayerComponentStore,
             this.visibilityManager,
             this.debugManager,
@@ -239,11 +243,13 @@ export class ShopSystemRunner {
     }
 
     initialize(): void {
+        this.rendererEngine.setCanvasCursor("default");
         this.cameraManager.follow(this.worldTilemapManager.worldWidth / 2, this.worldTilemapManager.worldHeight / 2);
         this.shopActionController.initialize();
     }
 
     update(): void {
+        this.rendererEngine.setCanvasCursor("default");
         this.uiRuntimeInputSystem.update(CoreManager.timeSinceLastRender);
 
         if (this.gameManager?.getCurrentState() !== GameState.ShopState) {
@@ -281,6 +287,7 @@ export class ShopSystemRunner {
         this.screenPositionComponentStore.clear();
         this.spriteClipComponentStore.clear();
         this.spriteComponentStore.clear();
+        this.transformComponentStore.clear();
         this.directionAnimComponentStore.clear();
         this.animationComponentStore.clear();
         this.awaitingAnimationEndComponentStore.clear();

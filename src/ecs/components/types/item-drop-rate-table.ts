@@ -12,16 +12,26 @@ export type DropEntry = {
 
 export const ItemDropRateTable: Record<InventoryResourceType, DropEntry> = {
     [InventoryResourceType.PistolMag]: {
-        chance: 33,
+        chance: 0,
         quantity: 1,
     },
 
     [InventoryResourceType.SmgMag]: {
-        chance: 33,
+        chance: 0,
         quantity: 1,
     },
 
     [InventoryResourceType.RifleMag]: {
+        chance: 100,
+        quantity: 1,
+    },
+
+    [InventoryResourceType.SniperMag]: {
+        chance: 0,
+        quantity: 1,
+    },
+
+    [InventoryResourceType.ShotgunShell]: {
         chance: 0,
         quantity: 1,
     },
@@ -32,7 +42,7 @@ export const ItemDropRateTable: Record<InventoryResourceType, DropEntry> = {
     },
 
     [InventoryResourceType.Grenade]: {
-        chance: 33,
+        chance: 0,
         quantity: 1,
     },
 

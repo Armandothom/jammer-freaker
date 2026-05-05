@@ -1,4 +1,6 @@
+import { SOUND_KEYS, SOUND_VOLUME } from "../../game/asset-manager/consts/sound-mapped.values.js";
 import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
+import { SoundEventBus } from "../../game/audio/sound-event-bus.js";
 import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { AwaitingAnimationEndComponent } from "../components/awaiting-animation-end.component.js";
 import { CorpseComponent } from "../components/corpse.component.js";
@@ -31,6 +33,7 @@ export class DeathProcessingSystem implements ISystem {
         private positionComponentStore: ComponentStore<PositionComponent>,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
         private deathParticlesIntentComponentStore: ComponentStore<DeathParticlesIntentComponent>,
+        private soundEventBus: SoundEventBus,
     ) {
 
     }
@@ -60,6 +63,10 @@ export class DeathProcessingSystem implements ISystem {
                     continue;
                 }
                 if (this.awaitingAnimationEndComponentStore.get(entity).resolved === true) {
+                    this.soundEventBus.emitSound({
+                        key: SOUND_KEYS.BOX_BREAK,
+                        volume: SOUND_VOLUME.BOX_BREAK,
+                    })
                     const deathPos = this.positionComponentStore.get(entity);
                     this.itemDropIntentComponentStore.add(entity, new ItemDropIntentComponent(deathPos.x, deathPos.y, 8));
                     this.awaitingAnimationEndComponentStore.remove(entity);

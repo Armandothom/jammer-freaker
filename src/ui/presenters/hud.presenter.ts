@@ -1,5 +1,3 @@
-import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
-import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { HealthComponent } from "../../ecs/components/health.component.js";
 import { InventoryComponent } from "../../ecs/components/inventory-component.js";
 import { PlayerComponent } from "../../ecs/components/player.component.js";
@@ -9,6 +7,8 @@ import { PlayerInitialProperties } from "../../ecs/components/types/player-prope
 import { WeaponType } from "../../ecs/components/types/weapon-config.js";
 import { ComponentStore } from "../../ecs/core/component-store.js";
 import { InventoryManager } from "../../ecs/core/inventory-manager.js";
+import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
+import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import type { HudViewModel } from "../view-models/hud.view-model.js";
 
 type HudAmmoIcon = {
@@ -52,14 +52,14 @@ export class HudPresenter {
 
     return {
       grenades: {
-        countText: `${grenadeCount}`,
+        countText: this.formatHudCounter(grenadeCount),
       },
       health: {
         fillRatio,
         text: `${health.hp}/${this.playerInitialProperties.hp}`,
       },
       mags: {
-        countText: `${magCount}`,
+        countText: this.formatHudCounter(magCount),
         iconHeight: ammoIcon.height,
         iconSpriteName: ammoIcon.spriteName,
         iconSpriteSheetName: ammoIcon.spriteSheetName,
@@ -72,9 +72,16 @@ export class HudPresenter {
         iconSpriteName: this.resolveWeaponSprite(weaponType),
       },
       weaponAmmo: {
-        roundsInMagText: `${roundsInMag}`,
+        roundsInMagText: this.formatHudCounter(roundsInMag),
       },
     };
+  }
+
+  private formatHudCounter(value: number): string {
+    const normalizedValue = Math.max(0, value);
+    return normalizedValue < 10
+      ? `0${normalizedValue}`
+      : `${normalizedValue}`;
   }
 
   private formatMoney(value: number): string {
@@ -94,9 +101,10 @@ export class HudPresenter {
         return this.buildResourceIcon(SpriteName.SMG_MAG_ICON, InventoryResourceType.RifleMag);
 
       case WeaponType.SHOTGUN:
-        return this.buildResourceIcon(SpriteName.SHOTGUN_SHELL_BOX_ICON, InventoryResourceType.ShotgunShellBox);
+        return this.buildResourceIcon(SpriteName.SHOTGUN_SHELL_BOX_ICON, InventoryResourceType.ShotgunShell);
 
       case WeaponType.SNIPER:
+        return this.buildResourceIcon(SpriteName.SNIPER_MAG_ICON, InventoryResourceType.SniperMag);
       case WeaponType.KNIFE:
       case WeaponType.SHIELD:
       case WeaponType.GRENADE:

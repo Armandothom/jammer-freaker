@@ -119,7 +119,7 @@ export class ShopInventoryState {
         this.inventoryManager.addResource(
             inventory,
             itemConfig.resourceType,
-            1,
+            itemConfig.resourceAmount,
         );
 
         return true;

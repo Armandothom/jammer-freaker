@@ -41,6 +41,7 @@ export class SoundManager {
         loop: boolean = false,
         volume: number = 1,
         onEnded?: (soundId: string) => void,
+        playbackRate: number = 1,
     ): string | null {
         const buffer = this.buffers.get(key);
         if (!buffer) {
@@ -53,6 +54,7 @@ export class SoundManager {
 
         source.buffer = buffer;
         source.loop = loop;
+        source.playbackRate.value = Math.max(0.01, playbackRate);
         gainNode.gain.value = volume;
 
         source.connect(gainNode);

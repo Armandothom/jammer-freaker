@@ -1,30 +1,40 @@
-import { createProgram } from "./renderer-shared.js";
 import {
   PARTICLE_TYPE_BLOOD,
   PARTICLE_TYPE_DUST,
   PARTICLE_TYPE_SPARK,
   type SpawnEvent,
 } from "./particle-renderer.types.js";
+import { createProgram } from "./renderer-shared.js";
+
+type TrackedBloodStain = {
+  admittedAt: number;
+  position: { x: number; y: number };
+  expiresAt: number;
+  slotId: number;
+};
 
 export class ParticleRenderer {
   private static readonly TEX_UNIT_STATE_READ = 1;
   private static readonly TEX_UNIT_SPAWN_KIN = 2;
-  private static readonly TEX_UNIT_SPAWN_STYLE = 3;
+  private static readonly TEX_UNIT_SPAWN_TRIGGER = 3;
   private static readonly TEX_UNIT_SPAWN_COLOR = 4;
   private static readonly TEX_UNIT_SPAWN_POSITION = 5;
+  private static readonly TEX_UNIT_PARTICLE_LIFE = 6;
+  private static readonly TEX_UNIT_PARTICLE_STAIN = 7;
 
   private readonly simulationProgram: WebGLProgram;
   private readonly particleRenderProgram: WebGLProgram;
   private readonly simulationFBO: WebGLFramebuffer;
-  private readonly fboStateRead: WebGLFramebuffer;
   private readonly simulationVAO: WebGLVertexArrayObject;
   private readonly simulationVBO: WebGLBuffer;
   private readonly particleRenderVAO: WebGLVertexArrayObject;
   private readonly particleRenderVBO: WebGLBuffer;
-  private readonly spawnTexture: WebGLTexture;
+  private readonly spawnPosition: WebGLTexture;
   private readonly spawnKinematic: WebGLTexture;
-  private readonly spawnStyle: WebGLTexture;
+  private readonly spawnTrigger: WebGLTexture;
   private readonly spawnColor: WebGLTexture;
+  private readonly particleLifeMeta: WebGLTexture;
+  private readonly particleStainMeta: WebGLTexture;
   private stateTextureA!: WebGLTexture;
   private stateTextureB!: WebGLTexture;
   private stateRead!: WebGLTexture;
@@ -40,9 +50,15 @@ export class ParticleRenderer {
   private particleWorldWidth = 1;
   private particleWorldHeight = 1;
   private readonly vmax = 1;
-  private readonly maxLife = 6;
+  private readonly maxFlightLife = 6;
+  private readonly maxStainLife = 600;
+  private readonly maxCombinedLife = this.maxFlightLife + this.maxStainLife;
   private readonly maxSize = 20;
   private readonly yGravity = -9.81;
+  private readonly maxWorldStains = 2048;
+  private readonly maxStainsInViewport = 512;
+  private readonly trackedBloodStains: TrackedBloodStain[] = [];
+  private stainClock = 0;
 
   constructor(
     private gl: WebGL2RenderingContext,
@@ -51,16 +67,14 @@ export class ParticleRenderer {
   ) {
     this.simulationProgram = this.compileSimulationProgram();
     const simulationFBO = gl.createFramebuffer();
-    const fboStateRead = gl.createFramebuffer();
     const simulationVAO = gl.createVertexArray();
     const simulationVBO = gl.createBuffer();
 
-    if (!simulationFBO || !fboStateRead || !simulationVAO || !simulationVBO) {
+    if (!simulationFBO || !simulationVAO || !simulationVBO) {
       throw new Error("Unable to allocate particle simulation resources.");
     }
 
     this.simulationFBO = simulationFBO;
-    this.fboStateRead = fboStateRead;
     this.simulationVAO = simulationVAO;
     this.simulationVBO = simulationVBO;
 
@@ -79,16 +93,27 @@ export class ParticleRenderer {
     this.particleRenderVBO = particleRenderVBO;
     this.initParticleRender();
 
-    const spawnTexture = this.createStateTexture(this.particleTextureWidth, this.particleTextureHeight);
+    const spawnPosition = this.createStateTexture(this.particleTextureWidth, this.particleTextureHeight);
     const spawnKinematic = this.createStateTexture(this.particleTextureWidth, this.particleTextureHeight);
-    const spawnStyle = this.createStateTexture(this.particleTextureWidth, this.particleTextureHeight);
+    const spawnTrigger = this.createStateTexture(this.particleTextureWidth, this.particleTextureHeight);
     const spawnColor = this.createStateTexture(this.particleTextureWidth, this.particleTextureHeight);
+    const particleLifeMeta = this.createStateTexture(this.particleTextureWidth, this.particleTextureHeight);
+    const particleStainMeta = this.createStateTexture(this.particleTextureWidth, this.particleTextureHeight);
 
-    this.spawnTexture = spawnTexture;
+    this.spawnPosition = spawnPosition;
     this.spawnKinematic = spawnKinematic;
-    this.spawnStyle = spawnStyle;
+    this.spawnTrigger = spawnTrigger;
     this.spawnColor = spawnColor;
-    this.clearTextures([this.spawnTexture, this.spawnKinematic, this.spawnStyle, this.spawnColor]);
+    this.particleLifeMeta = particleLifeMeta;
+    this.particleStainMeta = particleStainMeta;
+    this.clearTextures([
+      this.spawnPosition,
+      this.spawnKinematic,
+      this.spawnTrigger,
+      this.spawnColor,
+      this.particleLifeMeta,
+      this.particleStainMeta,
+    ]);
   }
 
   enqueueSpawns(events: SpawnEvent[]): void {
@@ -111,7 +136,13 @@ export class ParticleRenderer {
       return;
     }
 
+    this.pruneExpiredTrackedStains();
+
     const gl = this.gl;
+    const spawnEvents = this.pendingSpawns.length > this.particleMaxCapacity
+      ? this.pendingSpawns.slice(-this.particleMaxCapacity)
+      : this.pendingSpawns;
+    const startId = this.spawnHead;
     const enc8 = (value: number) => Math.min(255, Math.max(0, Math.floor(value)));
     const clamp01s = (value: number) => {
       const epsilon = 1.0 / 1024.0;
@@ -123,15 +154,39 @@ export class ParticleRenderer {
       return [(quantized >> 8) & 255, quantized & 255];
     };
     const encVel01 = (value: number) => (value / this.vmax) * 0.5 + 0.5;
+    const encodeFlagsByte = (trajectoryType: number, isStained: boolean) => {
+      if (isStained) {
+        return trajectoryType === 1 ? 255 : 170;
+      }
+
+      return trajectoryType === 1 ? 85 : 0;
+    };
 
     const worldWidth = Math.max(this.particleWorldWidth, 1);
     const worldHeight = Math.max(this.particleWorldHeight, 1);
     const positionPacked: number[] = [];
     const kinematicPacked: number[] = [];
-    const stylePacked: number[] = [];
+    const triggerPacked: number[] = [];
     const colorPacked: number[] = [];
+    const particleLifePacked: number[] = [];
+    const particleStainPacked: number[] = [];
 
-    for (const spawnEvent of this.pendingSpawns) {
+    for (let spawnIndex = 0; spawnIndex < spawnEvents.length; spawnIndex += 1) {
+      const spawnEvent = spawnEvents[spawnIndex];
+      const slotId = (startId + spawnIndex) % this.particleMaxCapacity;
+      const flightLife = Math.min(this.maxFlightLife, Math.max(0, spawnEvent.flightLife));
+      const isStained = this.tryTrackBloodStain(spawnEvent, flightLife, slotId);
+      const stainLife = isStained
+        ? Math.min(this.maxStainLife, Math.max(0, spawnEvent.stainLife))
+        : 0;
+      const totalLife = Math.min(this.maxCombinedLife, Math.max(0, flightLife + stainLife));
+      const stainSize = isStained
+        ? (spawnEvent.stainConfig?.size ?? spawnEvent.size)
+        : 0;
+      const stainColor = isStained
+        ? (spawnEvent.stainConfig?.color ?? spawnEvent.color)
+        : [0, 0, 0] as const;
+
       const x01 = Math.min(1.0, Math.max(0.0, spawnEvent.position.x / worldWidth));
       const y01 = Math.min(1.0, Math.max(0.0, spawnEvent.position.y / worldHeight));
       const [xHi, xLo] = packUnorm16(x01);
@@ -139,9 +194,10 @@ export class ParticleRenderer {
 
       const velocityX01 = clamp01s(encVel01(spawnEvent.velocity.x / this.canvas.width));
       const velocityY01 = clamp01s(encVel01(spawnEvent.velocity.y / this.canvas.height));
-      const lifeNorm = Math.min(1, Math.max(0, spawnEvent.life / this.maxLife));
+      const [totalLifeHi, totalLifeLo] = packUnorm16(totalLife / this.maxCombinedLife);
+      const flightLifeNorm = Math.min(1, Math.max(0, flightLife / this.maxFlightLife));
       const sizeNorm = Math.min(1, Math.max(0, spawnEvent.size / this.maxSize));
-      const trajectoryTypeByte = spawnEvent.trajectoryType === 1 ? 255 : 0;
+      const stainSizeNorm = Math.min(1, Math.max(0, stainSize / this.maxSize));
       const particleTypeByte = spawnEvent.particleType === PARTICLE_TYPE_SPARK
         ? 255
         : spawnEvent.particleType === PARTICLE_TYPE_DUST
@@ -151,36 +207,40 @@ export class ParticleRenderer {
             : 0;
 
       positionPacked.push(xHi, xLo, yHi, yLo);
-      kinematicPacked.push(enc8(velocityX01 * 255), enc8(velocityY01 * 255), 0, 0);
-      stylePacked.push(enc8(lifeNorm * 255), enc8(sizeNorm * 255), trajectoryTypeByte, 0);
+      kinematicPacked.push(
+        enc8(velocityX01 * 255),
+        enc8(velocityY01 * 255),
+        enc8(sizeNorm * 255),
+        encodeFlagsByte(spawnEvent.trajectoryType, isStained),
+      );
+      triggerPacked.push(255, 0, 0, 0);
       colorPacked.push(
         spawnEvent.color[0],
         spawnEvent.color[1],
         spawnEvent.color[2],
         particleTypeByte,
       );
+      particleLifePacked.push(totalLifeHi, totalLifeLo, enc8(flightLifeNorm * 255), 0);
+      particleStainPacked.push(
+        stainColor[0],
+        stainColor[1],
+        stainColor[2],
+        enc8(stainSizeNorm * 255),
+      );
     }
 
-    let count = positionPacked.length / 4;
+    const count = positionPacked.length / 4;
     if (count === 0) {
       this.pendingSpawns.length = 0;
       return;
     }
 
-    if (count > this.particleMaxCapacity) {
-      const keepFrom = (count - this.particleMaxCapacity) * 4;
-      positionPacked.splice(0, keepFrom);
-      kinematicPacked.splice(0, keepFrom);
-      stylePacked.splice(0, keepFrom);
-      colorPacked.splice(0, keepFrom);
-      count = this.particleMaxCapacity;
-    }
-
     const positionData = new Uint8Array(positionPacked);
     const kinematicData = new Uint8Array(kinematicPacked);
-    const styleData = new Uint8Array(stylePacked);
+    const triggerData = new Uint8Array(triggerPacked);
     const colorData = new Uint8Array(colorPacked);
-    const startId = this.spawnHead;
+    const particleLifeData = new Uint8Array(particleLifePacked);
+    const particleStainData = new Uint8Array(particleStainPacked);
     const width = this.particleTextureWidth;
 
     const writeRange = (
@@ -215,23 +275,31 @@ export class ParticleRenderer {
     };
 
     if (startId + count <= this.particleMaxCapacity) {
-      writeRange(positionData, this.spawnTexture, startId, count, 0, false);
+      writeRange(positionData, this.spawnPosition, startId, count, 0, false);
       writeRange(kinematicData, this.spawnKinematic, startId, count, 0, false);
-      writeRange(styleData, this.spawnStyle, startId, count, 0, true);
+      writeRange(triggerData, this.spawnTrigger, startId, count, 0, true);
       writeRange(colorData, this.spawnColor, startId, count, 0, false);
+      writeRange(particleLifeData, this.particleLifeMeta, startId, count, 0, false);
+      writeRange(particleStainData, this.particleStainMeta, startId, count, 0, false);
     } else {
       const first = this.particleMaxCapacity - startId;
-      writeRange(positionData, this.spawnTexture, startId, first, 0, false);
-      writeRange(positionData, this.spawnTexture, 0, count - first, first * 4, false);
+      writeRange(positionData, this.spawnPosition, startId, first, 0, false);
+      writeRange(positionData, this.spawnPosition, 0, count - first, first * 4, false);
 
       writeRange(kinematicData, this.spawnKinematic, startId, first, 0, false);
       writeRange(kinematicData, this.spawnKinematic, 0, count - first, first * 4, false);
 
-      writeRange(styleData, this.spawnStyle, startId, first, 0, true);
-      writeRange(styleData, this.spawnStyle, 0, count - first, first * 4, true);
+      writeRange(triggerData, this.spawnTrigger, startId, first, 0, true);
+      writeRange(triggerData, this.spawnTrigger, 0, count - first, first * 4, true);
 
       writeRange(colorData, this.spawnColor, startId, first, 0, false);
       writeRange(colorData, this.spawnColor, 0, count - first, first * 4, false);
+
+      writeRange(particleLifeData, this.particleLifeMeta, startId, first, 0, false);
+      writeRange(particleLifeData, this.particleLifeMeta, 0, count - first, first * 4, false);
+
+      writeRange(particleStainData, this.particleStainMeta, startId, first, 0, false);
+      writeRange(particleStainData, this.particleStainMeta, 0, count - first, first * 4, false);
     }
 
     this.spawnHead = (startId + count) % this.particleMaxCapacity;
@@ -244,8 +312,8 @@ export class ParticleRenderer {
     }
 
     const gl = this.gl;
-    gl.activeTexture(gl.TEXTURE0 + ParticleRenderer.TEX_UNIT_SPAWN_STYLE);
-    gl.bindTexture(gl.TEXTURE_2D, this.spawnStyle);
+    gl.activeTexture(gl.TEXTURE0 + ParticleRenderer.TEX_UNIT_SPAWN_TRIGGER);
+    gl.bindTexture(gl.TEXTURE_2D, this.spawnTrigger);
 
     for (const rect of this.lastSpawnRects) {
       const zeros = new Uint8Array(rect.width * rect.height * 4);
@@ -266,6 +334,9 @@ export class ParticleRenderer {
   }
 
   update(deltaTime: number): void {
+    this.stainClock += deltaTime;
+    this.pruneExpiredTrackedStains();
+
     const gl = this.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.simulationFBO);
     this.attachStateWriteToFBO();
@@ -283,15 +354,22 @@ export class ParticleRenderer {
       ParticleRenderer.TEX_UNIT_STATE_READ,
     );
 
-    gl.activeTexture(gl.TEXTURE0 + ParticleRenderer.TEX_UNIT_SPAWN_STYLE);
-    gl.bindTexture(gl.TEXTURE_2D, this.spawnStyle);
+    gl.activeTexture(gl.TEXTURE0 + ParticleRenderer.TEX_UNIT_SPAWN_TRIGGER);
+    gl.bindTexture(gl.TEXTURE_2D, this.spawnTrigger);
     gl.uniform1i(
-      gl.getUniformLocation(this.simulationProgram, "u_spawnStyle"),
-      ParticleRenderer.TEX_UNIT_SPAWN_STYLE,
+      gl.getUniformLocation(this.simulationProgram, "u_spawnTrigger"),
+      ParticleRenderer.TEX_UNIT_SPAWN_TRIGGER,
+    );
+
+    gl.activeTexture(gl.TEXTURE0 + ParticleRenderer.TEX_UNIT_PARTICLE_LIFE);
+    gl.bindTexture(gl.TEXTURE_2D, this.particleLifeMeta);
+    gl.uniform1i(
+      gl.getUniformLocation(this.simulationProgram, "u_particleLife"),
+      ParticleRenderer.TEX_UNIT_PARTICLE_LIFE,
     );
 
     gl.uniform1f(gl.getUniformLocation(this.simulationProgram, "u_deltaTime"), deltaTime);
-    gl.uniform1f(gl.getUniformLocation(this.simulationProgram, "u_maxLife"), this.maxLife);
+    gl.uniform1f(gl.getUniformLocation(this.simulationProgram, "u_maxCombinedLife"), this.maxCombinedLife);
 
     gl.bindVertexArray(this.simulationVAO);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
@@ -323,7 +401,7 @@ export class ParticleRenderer {
     );
 
     gl.activeTexture(gl.TEXTURE0 + ParticleRenderer.TEX_UNIT_SPAWN_POSITION);
-    gl.bindTexture(gl.TEXTURE_2D, this.spawnTexture);
+    gl.bindTexture(gl.TEXTURE_2D, this.spawnPosition);
     gl.uniform1i(
       gl.getUniformLocation(this.particleRenderProgram, "u_spawnPosition"),
       ParticleRenderer.TEX_UNIT_SPAWN_POSITION,
@@ -336,13 +414,6 @@ export class ParticleRenderer {
       ParticleRenderer.TEX_UNIT_SPAWN_KIN,
     );
 
-    gl.activeTexture(gl.TEXTURE0 + ParticleRenderer.TEX_UNIT_SPAWN_STYLE);
-    gl.bindTexture(gl.TEXTURE_2D, this.spawnStyle);
-    gl.uniform1i(
-      gl.getUniformLocation(this.particleRenderProgram, "u_spawnStyle"),
-      ParticleRenderer.TEX_UNIT_SPAWN_STYLE,
-    );
-
     gl.activeTexture(gl.TEXTURE0 + ParticleRenderer.TEX_UNIT_SPAWN_COLOR);
     gl.bindTexture(gl.TEXTURE_2D, this.spawnColor);
     gl.uniform1i(
@@ -350,7 +421,22 @@ export class ParticleRenderer {
       ParticleRenderer.TEX_UNIT_SPAWN_COLOR,
     );
 
-    gl.uniform1f(gl.getUniformLocation(this.particleRenderProgram, "u_maxLife"), this.maxLife);
+    gl.activeTexture(gl.TEXTURE0 + ParticleRenderer.TEX_UNIT_PARTICLE_LIFE);
+    gl.bindTexture(gl.TEXTURE_2D, this.particleLifeMeta);
+    gl.uniform1i(
+      gl.getUniformLocation(this.particleRenderProgram, "u_particleLife"),
+      ParticleRenderer.TEX_UNIT_PARTICLE_LIFE,
+    );
+
+    gl.activeTexture(gl.TEXTURE0 + ParticleRenderer.TEX_UNIT_PARTICLE_STAIN);
+    gl.bindTexture(gl.TEXTURE_2D, this.particleStainMeta);
+    gl.uniform1i(
+      gl.getUniformLocation(this.particleRenderProgram, "u_particleStain"),
+      ParticleRenderer.TEX_UNIT_PARTICLE_STAIN,
+    );
+
+    gl.uniform1f(gl.getUniformLocation(this.particleRenderProgram, "u_maxCombinedLife"), this.maxCombinedLife);
+    gl.uniform1f(gl.getUniformLocation(this.particleRenderProgram, "u_maxFlightLife"), this.maxFlightLife);
     gl.uniform1f(gl.getUniformLocation(this.particleRenderProgram, "u_vmax"), this.vmax);
     gl.uniform2f(gl.getUniformLocation(this.particleRenderProgram, "u_gravity"), 0.0, -this.yGravity);
     gl.uniform2f(
@@ -376,12 +462,141 @@ export class ParticleRenderer {
     gl.depthMask(true);
   }
 
+  private tryTrackBloodStain(spawnEvent: SpawnEvent, flightLife: number, slotId: number): boolean {
+    if (spawnEvent.particleType !== PARTICLE_TYPE_BLOOD || !spawnEvent.isStained) {
+      return false;
+    }
+
+    const stainLife = Math.min(this.maxStainLife, Math.max(0, spawnEvent.stainLife));
+    if (stainLife <= 0) {
+      return false;
+    }
+
+    const landingPosition = this.computeProjectedPosition(
+      spawnEvent.position,
+      spawnEvent.velocity,
+      flightLife,
+      spawnEvent.trajectoryType,
+    );
+
+    if (this.trackedBloodStains.length >= this.maxWorldStains) {
+      this.evictOldestTrackedStain(false);
+    }
+
+    if (this.isWithinCurrentViewport(landingPosition) && this.countTrackedStainsInViewport() >= this.maxStainsInViewport) {
+      this.evictOldestTrackedStain(true);
+    }
+
+    this.trackedBloodStains.push({
+      admittedAt: this.stainClock,
+      position: landingPosition,
+      expiresAt: this.stainClock + flightLife + stainLife,
+      slotId,
+    });
+
+    return true;
+  }
+
+  private pruneExpiredTrackedStains(): void {
+    for (let index = this.trackedBloodStains.length - 1; index >= 0; index -= 1) {
+      if (this.trackedBloodStains[index].expiresAt <= this.stainClock) {
+        this.trackedBloodStains.splice(index, 1);
+      }
+    }
+  }
+
+  private countTrackedStainsInViewport(): number {
+    let count = 0;
+    for (const stain of this.trackedBloodStains) {
+      if (this.isWithinCurrentViewport(stain.position)) {
+        count += 1;
+      }
+    }
+
+    return count;
+  }
+
+  private evictOldestTrackedStain(onlyWithinViewport: boolean): void {
+    let oldestIndex = -1;
+    let oldestAdmittedAt = Number.POSITIVE_INFINITY;
+
+    for (let index = 0; index < this.trackedBloodStains.length; index += 1) {
+      const trackedStain = this.trackedBloodStains[index];
+      if (onlyWithinViewport && !this.isWithinCurrentViewport(trackedStain.position)) {
+        continue;
+      }
+
+      if (trackedStain.admittedAt >= oldestAdmittedAt) {
+        continue;
+      }
+
+      oldestAdmittedAt = trackedStain.admittedAt;
+      oldestIndex = index;
+    }
+
+    if (oldestIndex < 0) {
+      return;
+    }
+
+    const [evictedStain] = this.trackedBloodStains.splice(oldestIndex, 1);
+    this.clearParticleSlot(evictedStain.slotId);
+  }
+
+  private computeProjectedPosition(
+    position: SpawnEvent["position"],
+    velocity: SpawnEvent["velocity"],
+    flightLife: number,
+    trajectoryType: SpawnEvent["trajectoryType"],
+  ): { x: number; y: number } {
+    if (trajectoryType === 1) {
+      return {
+        x: position.x + (velocity.x * flightLife),
+        y: position.y + (velocity.y * flightLife) + (0.5 * (-this.yGravity) * (flightLife * flightLife)),
+      };
+    }
+
+    return {
+      x: position.x + (velocity.x * flightLife),
+      y: position.y + (velocity.y * flightLife),
+    };
+  }
+
+  private isWithinCurrentViewport(position: { x: number; y: number }): boolean {
+    return (
+      position.x >= this.particleViewportLeft &&
+      position.x <= this.particleViewportLeft + this.canvas.width &&
+      position.y >= this.particleViewportTop &&
+      position.y <= this.particleViewportTop + this.canvas.height
+    );
+  }
+
+  private clearParticleSlot(slotId: number): void {
+    const x = slotId % this.particleTextureWidth;
+    const y = Math.floor(slotId / this.particleTextureWidth);
+    const zero = new Uint8Array(4);
+
+    for (const texture of [this.stateRead, this.stateWrite]) {
+      this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+      this.gl.texSubImage2D(
+        this.gl.TEXTURE_2D,
+        0,
+        x,
+        y,
+        1,
+        1,
+        this.gl.RGBA,
+        this.gl.UNSIGNED_BYTE,
+        zero,
+      );
+    }
+  }
+
   private compileSimulationProgram(): WebGLProgram {
     const vertexShader = `
       attribute vec2 a_position;
       varying vec2 v_uv;
 
-      void main(){
+      void main() {
         v_uv = a_position * 0.5 + 0.5;
         gl_Position = vec4(a_position, 0.0, 1.0);
       }
@@ -392,26 +607,38 @@ export class ParticleRenderer {
       varying vec2 v_uv;
 
       uniform sampler2D u_stateRead;
-      uniform sampler2D u_spawnStyle;
+      uniform sampler2D u_spawnTrigger;
+      uniform sampler2D u_particleLife;
       uniform float u_deltaTime;
-      uniform float u_maxLife;
+      uniform float u_maxCombinedLife;
+
+      float decodeUnorm16(vec2 packedBytes) {
+        vec2 bytes = floor((packedBytes * 255.0) + 0.5);
+        return ((bytes.x * 256.0) + bytes.y) / 65535.0;
+      }
+
+      vec2 encodeUnorm16(float value01) {
+        float clamped = clamp(value01, 0.0, 1.0);
+        float quantized = floor((clamped * 65535.0) + 0.5);
+        float high = floor(quantized / 256.0);
+        float low = mod(quantized, 256.0);
+        return vec2(high, low) / 255.0;
+      }
 
       void main() {
         vec4 sr = texture2D(u_stateRead, v_uv);
-        vec4 ss = texture2D(u_spawnStyle, v_uv);
+        vec4 st = texture2D(u_spawnTrigger, v_uv);
+        vec4 lm = texture2D(u_particleLife, v_uv);
 
-        float lifeDec = max(sr.r - (u_deltaTime / u_maxLife), 0.0);
-        float wasAlive = step(0.001, sr.r);
-        float wasDead  = 1.0 - wasAlive;
-        float hasInit  = step(0.001, ss.r);
-        float doSpawn  = wasDead * hasInit;
+        float remainingLife = decodeUnorm16(sr.rg) * u_maxCombinedLife;
+        float totalLife = decodeUnorm16(lm.rg) * u_maxCombinedLife;
+        float nextRemainingLife = max(remainingLife - u_deltaTime, 0.0);
+        float wasAlive = step(0.0001, remainingLife);
+        float doSpawn = (1.0 - wasAlive) * step(0.001, st.r);
+        float lifeRem = mix(nextRemainingLife, totalLife, doSpawn);
+        vec2 packedLife = encodeUnorm16(lifeRem / u_maxCombinedLife);
 
-        float lifeRem   = mix(lifeDec, ss.r, doSpawn);
-        float lifeInitL = mix(sr.g, ss.r, doSpawn);
-        float type      = mix(sr.b, ss.b, doSpawn);
-        float sizeNorm  = mix(sr.a, ss.g, doSpawn);
-
-        gl_FragColor = vec4(lifeRem, lifeInitL, type, sizeNorm);
+        gl_FragColor = vec4(packedLife, 0.0, 0.0);
       }
     `;
 
@@ -426,9 +653,12 @@ export class ParticleRenderer {
       uniform sampler2D u_spawnPosition;
       uniform sampler2D u_spawnKinematic;
       uniform sampler2D u_spawnColor;
+      uniform sampler2D u_particleLife;
+      uniform sampler2D u_particleStain;
       uniform vec2 u_texSize;
 
-      uniform float u_maxLife;
+      uniform float u_maxCombinedLife;
+      uniform float u_maxFlightLife;
       uniform float u_vmax;
       uniform vec2  u_gravity;
       uniform vec2  u_worldSize;
@@ -441,14 +671,15 @@ export class ParticleRenderer {
       varying vec3  v_color;
       varying float v_particleType;
       varying float v_seed;
+      varying float v_stainPhase;
 
-      vec2 idToUV(float id){
+      vec2 idToUV(float id) {
         float x = mod(id, u_texSize.x);
         float y = floor(id / u_texSize.x);
-        return (vec2(x,y) + 0.5) / u_texSize;
+        return (vec2(x, y) + 0.5) / u_texSize;
       }
 
-      float decodeSigned(float x01, float vmax){
+      float decodeSigned(float x01, float vmax) {
         return (x01 * 2.0 - 1.0) * vmax;
       }
 
@@ -467,6 +698,19 @@ export class ParticleRenderer {
         if (byteValue < 127.5) return 1.0;
         if (byteValue < 212.5) return 2.0;
         return 3.0;
+      }
+
+      float decodeTrajectoryType(float packedFlags) {
+        float byteValue = floor((packedFlags * 255.0) + 0.5);
+        if (byteValue < 42.5) return 0.0;
+        if (byteValue < 127.5) return 1.0;
+        if (byteValue < 212.5) return 0.0;
+        return 1.0;
+      }
+
+      float decodeStainFlag(float packedFlags) {
+        float byteValue = floor((packedFlags * 255.0) + 0.5);
+        return step(127.5, byteValue);
       }
 
       float hash12(vec2 p) {
@@ -512,24 +756,32 @@ export class ParticleRenderer {
         return mix(vec3(1.0, 0.98, 0.86), baseColor * 0.76, smoothstep(0.0, 0.55, life01));
       }
 
-      void main(){
+      void main() {
         vec2 uv = idToUV(a_particleID);
         vec4 st = texture2D(u_stateRead, uv);
         vec4 sp = texture2D(u_spawnPosition, uv);
         vec4 sk = texture2D(u_spawnKinematic, uv);
         vec4 sc = texture2D(u_spawnColor, uv);
+        vec4 lm = texture2D(u_particleLife, uv);
+        vec4 sm = texture2D(u_particleStain, uv);
 
-        float lifeRem   = st.r;
-        float lifeInitL = st.g;
-        float type      = st.b;
-        float sizeNorm  = st.a;
+        float remainingLife = decodeUnorm16(st.rg) * u_maxCombinedLife;
+        float totalLife = decodeUnorm16(lm.rg) * u_maxCombinedLife;
+        float flightLife = max(lm.b * u_maxFlightLife, 1e-5);
+        float stainLife = max(totalLife - flightLife, 0.0);
+        float sizeNorm = sk.b;
+        float stainSizeNorm = sm.a;
+        float trajectoryType = decodeTrajectoryType(sk.a);
+        float isStained = decodeStainFlag(sk.a);
         float particleType = decodeParticleType(sc.a);
-        float actualLifetime = max(lifeInitL * u_maxLife, 1e-5);
-        float lifeFrac = saturate(lifeRem / max(lifeInitL, 1e-5));
-        float life01 = 1.0 - lifeFrac;
-        float age = life01 * actualLifetime;
+        float elapsed = max(totalLife - remainingLife, 0.0);
+        float flightAge = min(elapsed, flightLife);
+        float flight01 = saturate(flightAge / flightLife);
+        float stainAge = max(elapsed - flightLife, 0.0);
+        float stain01 = stainLife > 0.0 ? saturate(stainAge / stainLife) : 1.0;
 
-        v_alive = step(0.001, lifeRem) * step(0.001, lifeInitL);
+        v_alive = step(0.0001, remainingLife) * step(0.0001, totalLife);
+        v_stainPhase = v_alive * isStained * step(flightLife - 0.0001, elapsed);
 
         vec2 world0 = vec2(
           decodeUnorm16(sp.rg) * u_worldSize.x,
@@ -540,10 +792,10 @@ export class ParticleRenderer {
           decodeSigned(sk.g, u_vmax) * u_viewportSize.y
         );
 
-        vec2 accel = mix(vec2(0.0), u_gravity, step(0.5, type));
-        vec2 s_lin = world0 + v0 * age;
-        vec2 s_par = world0 + v0 * age + 0.5 * accel * (age * age);
-        vec2 s = mix(s_lin, s_par, step(0.5, type));
+        vec2 accel = mix(vec2(0.0), u_gravity, step(0.5, trajectoryType));
+        vec2 s_lin = world0 + v0 * flightAge;
+        vec2 s_par = world0 + v0 * flightAge + 0.5 * accel * (flightAge * flightAge);
+        vec2 s = mix(s_lin, s_par, step(0.5, trajectoryType));
 
         vec2 screenPos = s - u_viewportOrigin;
         vec2 posClip = vec2(
@@ -553,16 +805,28 @@ export class ParticleRenderer {
         posClip = mix(vec2(2.0, 2.0), posClip, v_alive);
 
         float seed = hash12((uv * u_texSize) + (sc.rb * 255.0));
-        float fade = computeFade(life01, particleType);
-        float sizeScale = computeSizeScale(life01, particleType, seed);
+        float fade = computeFade(flight01, particleType);
+        float sizeScale = computeSizeScale(flight01, particleType, seed);
+        float stainAlpha = 0.30 * (1.0 - smoothstep(0.82, 1.0, stain01));
+        float stainSize = stainSizeNorm * u_maxSizePx * (0.96 + (seed * 0.18));
 
-        v_alpha = v_alive * fade;
-        v_color = computeColor(sc.rgb, life01, particleType);
+        vec3 flightColor = computeColor(sc.rgb, flight01, particleType);
+        vec3 stainColor = mix(sm.rgb, sm.rgb * 0.72, smoothstep(0.0, 1.0, stain01));
+
+        v_alpha = mix(v_alive * fade, v_alive * stainAlpha, v_stainPhase);
+        v_color = mix(flightColor, stainColor, v_stainPhase);
         v_particleType = particleType;
         v_seed = seed;
 
         gl_Position = vec4(posClip, 0.0, 1.0);
-        gl_PointSize = max(1.0, sizeNorm * u_maxSizePx * sizeScale * v_alive);
+        gl_PointSize = max(
+          1.0,
+          mix(
+            sizeNorm * u_maxSizePx * sizeScale,
+            stainSize,
+            v_stainPhase
+          ) * v_alive
+        );
       }
     `;
 
@@ -574,6 +838,7 @@ export class ParticleRenderer {
       varying vec3  v_color;
       varying float v_particleType;
       varying float v_seed;
+      varying float v_stainPhase;
 
       float particleMask(vec2 point, float particleType, float seed) {
         float radial = length(point);
@@ -599,10 +864,27 @@ export class ParticleRenderer {
         return max(core, glow * 0.55);
       }
 
-      void main(){
+      float stainMask(vec2 point, float seed) {
+        vec2 warpedPoint = point * vec2(1.10, 0.86);
+        float radial = length(warpedPoint);
+        float angle = atan(point.y, point.x);
+        float wobble = 0.10 * sin((angle * 4.0) + (seed * 6.2831853));
+        wobble += 0.06 * cos((angle * 7.0) + (seed * 3.1415926));
+        float edge = 0.68 + wobble;
+        float core = 1.0 - smoothstep(edge, 1.02 + wobble, radial);
+        float fringe = 1.0 - smoothstep(0.20, 1.0, radial);
+        return max(core, fringe * 0.32);
+      }
+
+      void main() {
         if (v_alive < 0.5) discard;
         vec2 point = (gl_PointCoord * 2.0) - 1.0;
-        float mask = particleMask(point, v_particleType, v_seed);
+        float isStain = step(0.5, v_stainPhase);
+        float mask = mix(
+          particleMask(point, v_particleType, v_seed),
+          stainMask(point, v_seed),
+          isStain
+        );
         float alpha = v_alpha * mask;
         if (alpha <= 0.001) discard;
 
@@ -622,7 +904,6 @@ export class ParticleRenderer {
     this.stateRead = this.stateTextureA;
     this.stateWrite = this.stateTextureB;
     this.attachStateWriteToFBO();
-    this.attachStateReadToFBO();
     this.clearTextures([this.stateTextureA, this.stateTextureB]);
   }
 
@@ -702,16 +983,6 @@ export class ParticleRenderer {
     const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
     if (status !== gl.FRAMEBUFFER_COMPLETE) {
       throw new Error(`Particle FBO incomplete: 0x${status.toString(16)}`);
-    }
-  }
-
-  private attachStateReadToFBO(): void {
-    const gl = this.gl;
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this.fboStateRead);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.stateRead, 0);
-    const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
-    if (status !== gl.FRAMEBUFFER_COMPLETE) {
-      throw new Error(`Particle read FBO incomplete: 0x${status.toString(16)}`);
     }
   }
 

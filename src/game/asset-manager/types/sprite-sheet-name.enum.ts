@@ -11,6 +11,10 @@ export enum SpriteSheetName {
   GRENADE_DROP = "grenade_drop",
   PISTOL_MAG_DROP = "pistol_mag_drop",
   SMG_MAG_DROP = "smg_mag_drop",
+  RIFLE_MAG_DROP = "rifle_mag_drop",
+  SNIPER_MAG_DROP = "sniper_mag_drop",
+  SHOTGUN_SHELLBOX_DROP = "shotgun_shellbox_drop",
+  MONEY_DROP = "money_drop",
   WOODEN_BOX = "wooden_box",
   HEALTH_BAR = "health_bar",
   RESOURCES_ICON = "resources",
@@ -25,4 +29,5 @@ export enum SpriteSheetName {
   COLOR_PALLETE = "collor_pallete",
   END_LEVEL_PROMPTS = "end_level_prompt",
   MUZZLE_FLASH = "muzzle_flash",
+  CROSSHAIR = "crosshair",
 }

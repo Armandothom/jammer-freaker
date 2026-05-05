@@ -57,6 +57,10 @@ export class WeatherManager {
     return cloneRainConfig(this.rainConfig);
   }
 
+  isLowRainActive(): boolean {
+    return this.currentRainPreset === "low";
+  }
+
   cycleRainPreset(): RainDebugPreset {
     const currentPreset = this.currentRainPreset === "custom"
       ? "disabled"

@@ -15,5 +15,11 @@ export const KNIFE_CONFIG: WeaponConfig = {
     spreadAngle: null,
     projectilesFired: null,
     projectileVelocity: null,
+    spreadMinRadius: null,
+    spreadMaxRadius: null,
+    walkingRecoil: null,
+    shootingRecoil: null,
+    focusFireTime: null,
+    recoilRecoverVelocity: null,
     maxedOut: false,
 };

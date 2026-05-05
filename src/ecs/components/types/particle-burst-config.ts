@@ -4,6 +4,7 @@ export type ParticleStepConfig = {
     angle: number;
     trajectoryType: TrajectoryType;
     particleCount: number;
+    flightLife?: number;
 };
 
 export type ScheduledParticleStep = {

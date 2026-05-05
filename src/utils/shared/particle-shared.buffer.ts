@@ -1,7 +1,13 @@
 export type ParticleSpawnData = {
   position: { x: number, y: number },
   velocity: { x: number, y: number },
-  life: number,
+  flightLife: number,
+  stainLife: number,
+  isStained: boolean,
+  stainConfig: {
+    color: [number, number, number],
+    size: number,
+  } | null,
   color: [number, number, number],
   size: number,
   trajectoryType: number,

@@ -9,14 +9,18 @@ import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ReloadIntentComponent } from "../components/reload-intent.component.js";
 import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
+import { ShootingRecoilIntentComponent } from "../components/shooting-recoil-intent.component.js";
+import { SpreadRadiusComponent } from "../components/spread-radius.component.js";
+import { SpriteComponent } from "../components/sprite.component.js";
 import { InventoryResourceType } from "../components/types/inventory-resource-type.js";
-import { WeaponConfig } from "../components/types/weapon-config.js";
+import { WeaponConfig, WeaponType } from "../components/types/weapon-config.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
 import { WeaponStatsComponent } from "../components/weapon-stats.component.js";
 import { WeaponComponent } from "../components/weapon.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { DebugManager } from "../core/debug-manager.js";
 import { InventoryManager } from "../core/inventory-manager.js";
+import { resolveWeaponAttachmentBaseAnchor } from "../core/weapon-attachment-pose-resolver.js";
 import { ISystem } from "./system.interface.js";
 
 const keys: Record<string, boolean> = {};
@@ -32,6 +36,7 @@ export class ShootingSystem implements ISystem {
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private intentShotComponentStore: ComponentStore<IntentShotComponent>,
         private positionComponentStore: ComponentStore<PositionComponent>,
+        private spriteComponentStore: ComponentStore<SpriteComponent>,
         private aimShootingComponentStore: ComponentStore<AimRotationShootingComponent>,
         private weaponAttachmentComponentStore: ComponentStore<WeaponSpriteAttachmentComponent>,
         private intentGrenadeComponentStore: ComponentStore<IntentGrenadeComponent>,
@@ -42,6 +47,8 @@ export class ShootingSystem implements ISystem {
         private reloadIntentComponentStore: ComponentStore<ReloadIntentComponent>,
         private shootingCooldownComponentStore: ComponentStore<ShootingCooldownComponent>,
         private weaponStatsComponentStore: ComponentStore<WeaponStatsComponent>,
+        private shootingRecoilIntentComponentStore: ComponentStore<ShootingRecoilIntentComponent>,
+        private spreadRadiusComponentStore: ComponentStore<SpreadRadiusComponent>,
         private cameraManager: CameraManager,
         private debugManager: DebugManager,
         private inventoryManager: InventoryManager,
@@ -97,8 +104,15 @@ export class ShootingSystem implements ISystem {
     }
 
     private canAttemptShot(playerEntity: number) {
-        return !this.shootingCooldownComponentStore.has(playerEntity)
-            && !this.reloadIntentComponentStore.has(playerEntity);
+        if (this.shootingCooldownComponentStore.has(playerEntity)) {
+            return false;
+        }
+
+        if (!this.reloadIntentComponentStore.has(playerEntity)) {
+            return true;
+        }
+
+        return this.canCancelShotgunReload(playerEntity);
     }
 
     private updateMousePosition = (e: MouseEvent) => {
@@ -112,7 +126,11 @@ export class ShootingSystem implements ISystem {
         const weaponComponent = this.weaponComponentStore.get(playerId);
         const weaponAttachment = weaponAttachments.find((weaponAttachmentEntry) => weaponAttachmentEntry[1].parentEntityId == playerId)!;
         const weaponEntityId = weaponAttachment[0];
-        const weaponPosition = this.positionComponentStore.get(weaponEntityId);
+        const baseAnchor = resolveWeaponAttachmentBaseAnchor(
+            this.positionComponentStore.get(playerId),
+            this.spriteComponentStore.get(playerId),
+            weaponAttachment[1],
+        );
         const rect = this.canvas.getBoundingClientRect();
         const mousePosX = e.clientX - rect.left;
         const mousePosY = e.clientY - rect.top;
@@ -122,8 +140,8 @@ export class ShootingSystem implements ISystem {
             rect.width,
             rect.height,
         );
-        const dx = mouseWorldPosition.x - weaponPosition.x;
-        const dy = mouseWorldPosition.y - weaponPosition.y;
+        const dx = mouseWorldPosition.x - baseAnchor.x;
+        const dy = mouseWorldPosition.y - baseAnchor.y;
         const angle = Math.atan2(dy, dx);
         this.aimShootingComponentStore.add(weaponEntityId, new AimRotationShootingComponent(angle, weaponComponent.configuredPivotRotation));
         this.currentMousePos = {
@@ -137,6 +155,11 @@ export class ShootingSystem implements ISystem {
         const weaponWielded = this.inventoryComponentStore.get(playerEntity).equippedWeaponType;
         const inventory = this.inventoryComponentStore.get(playerEntity)
         if (weaponWielded == null) return;
+
+        if (this.canCancelShotgunReload(playerEntity)) {
+            this.reloadIntentComponentStore.remove(playerEntity);
+        }
+
         if (!this.inventoryManager.hasRoundsInMag(inventory, weaponWielded)) {
             if (this.reloadIntentComponentStore.has(playerEntity)) {
                 return;
@@ -159,13 +182,50 @@ export class ShootingSystem implements ISystem {
 
         //here
         if (!this.debugManager.isDebugPointerActive) {
+            const weaponConfig = WeaponConfig[weaponWielded]
+            this.shootingRecoilIntentComponentStore.add(playerEntity, new ShootingRecoilIntentComponent(weaponConfig.shootingRecoil!))
+            const spreadRadius = this.spreadRadiusComponentStore.get(playerEntity).spreadRadius;
+            let shotTarget = this.randomShotWithinSpread(spreadRadius);
+            if (weaponWielded === WeaponType.SHOTGUN) {
+                shotTarget = this.currentMousePos;
+            }
             this.intentShotComponentStore.add(playerEntity, new IntentShotComponent(
-                this.currentMousePos.x,
-                this.currentMousePos.y,
+                shotTarget.x,
+                shotTarget.y,
                 isHold,
                 weaponWielded,
-            ))
+            ));
         }
+    }
+
+    private randomShotWithinSpread(spreadRadius: number): { x: number; y: number } {
+        if (spreadRadius <= 8) {
+            return {
+                x: this.currentMousePos.x,
+                y: this.currentMousePos.y,
+            };
+        }
+
+        const angle = Math.random() * Math.PI * 2;
+        const radius = Math.sqrt(Math.random()) * spreadRadius;
+
+        return {
+            x: this.currentMousePos.x + Math.cos(angle) * radius,
+            y: this.currentMousePos.y + Math.sin(angle) * radius,
+        };
+    }
+
+    private canCancelShotgunReload(playerEntity: number): boolean {
+        if (!this.reloadIntentComponentStore.has(playerEntity)) {
+            return false;
+        }
+
+        const inventory = this.inventoryComponentStore.getOrNull(playerEntity);
+        if (!inventory || inventory.equippedWeaponType !== WeaponType.SHOTGUN) {
+            return false;
+        }
+
+        return this.inventoryManager.hasRoundsInMag(inventory, WeaponType.SHOTGUN);
     }
 
     private pushGrenadeIntent() {

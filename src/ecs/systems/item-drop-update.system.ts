@@ -1,9 +1,15 @@
+import { SOUND_KEYS, SOUND_VOLUME } from "../../game/asset-manager/consts/sound-mapped.values.js";
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
+import { SoundEventBus } from "../../game/audio/sound-event-bus.js";
 import { InventoryComponent } from "../components/inventory-component.js";
 import { ItemDroppedComponent } from "../components/item-dropped.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
+import {
+    InventoryResourceType,
+    SHOTGUN_SHELLS_PER_BOX,
+} from "../components/types/inventory-resource-type.js";
 import { ComponentStore } from "../core/component-store.js";
 import { InventoryManager } from "../core/inventory-manager.js";
 import { EntityFactory } from "../entities/entity-factory.js";
@@ -20,6 +26,7 @@ export class ItemDropUpdateSystem implements ISystem {
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
         private inventoryComponentStore: ComponentStore<InventoryComponent>,
+        private soundEventBus: SoundEventBus,
     ) {
 
     }
@@ -29,10 +36,36 @@ export class ItemDropUpdateSystem implements ISystem {
         for (const itemDropped of this.itemDroppedComponentStore.getAllEntities()) {
             const item = this.itemDroppedComponentStore.get(itemDropped);
             if (this.isPlayerOverlappingDroppedItem(itemDropped, playerEntity)) {
-                this.inventoryManager.addResource(inventory, item.type, item.amount);
+                const collectedResource = this.resolveCollectedResource(item);
+                this.soundEventBus.emitSound({
+                    key: SOUND_KEYS.ITEM_PICKUP,
+                    volume: SOUND_VOLUME.ITEM_PICKUP,
+                })
+                this.inventoryManager.addResource(
+                    inventory,
+                    collectedResource.type,
+                    collectedResource.amount,
+                );
                 this.entityFactory.destroyItemDrop(itemDropped);
             }
         }
+    }
+
+    private resolveCollectedResource(item: ItemDroppedComponent): {
+        type: InventoryResourceType;
+        amount: number;
+    } {
+        if (item.type === InventoryResourceType.ShotgunShellBox) {
+            return {
+                type: InventoryResourceType.ShotgunShell,
+                amount: item.amount * SHOTGUN_SHELLS_PER_BOX,
+            };
+        }
+
+        return {
+            type: item.type,
+            amount: item.amount,
+        };
     }
 
     private buildEntityRectFromPosition(entity: number): Rect {

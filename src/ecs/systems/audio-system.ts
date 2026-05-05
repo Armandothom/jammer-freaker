@@ -33,6 +33,7 @@ export class AudioSystem implements ISystem {
 
                         this.releaseFinishedRequestSound(requestId, finishedSoundId);
                     },
+                    event.playbackRate ?? 1,
                 );
 
                 if (soundId && requestId) {

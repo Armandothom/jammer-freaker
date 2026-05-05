@@ -29,9 +29,22 @@ export class ItemDropSpawnSystem implements ISystem {
             if (dropResult.type === InventoryResourceType.SmgMag) {
                 this.entityFactory.createItemDrop(whereX, whereY, dropResult.type, dropResult.amount, SpriteName.SMG_MAG_DROP_1, SpriteSheetName.SMG_MAG_DROP, AnimationName.SMG_MAG_DROPPED);
             }
+            if (dropResult.type === InventoryResourceType.RifleMag) {
+                this.entityFactory.createItemDrop(whereX, whereY, dropResult.type, dropResult.amount, SpriteName.RIFLE_MAG_DROP_1, SpriteSheetName.RIFLE_MAG_DROP, AnimationName.RIFLE_MAG_DROPPED);
+            }
+            if (dropResult.type === InventoryResourceType.SniperMag) {
+                this.entityFactory.createItemDrop(whereX, whereY, dropResult.type, dropResult.amount, SpriteName.SNIPER_MAG_DROP_1, SpriteSheetName.SNIPER_MAG_DROP, AnimationName.SNIPER_MAG_DROPPED);
+            }
+            if (dropResult.type === InventoryResourceType.ShotgunShellBox) {
+                this.entityFactory.createItemDrop(whereX, whereY, dropResult.type, dropResult.amount, SpriteName.SHOTGUN_SHELLBOX_DROP_1, SpriteSheetName.SHOTGUN_SHELLBOX_DROP, AnimationName.SHOTGUN_SHELLBOX_DROPPED);
+            }
             if (dropResult.type === InventoryResourceType.Grenade) {
                 this.entityFactory.createItemDrop(whereX, whereY, dropResult.type, dropResult.amount, SpriteName.GRENADE_DROP_1, SpriteSheetName.GRENADE_DROP, AnimationName.GRENADE_DROPPED);
             }
+            if (dropResult.type === InventoryResourceType.Money) {
+                this.entityFactory.createItemDrop(whereX, whereY, dropResult.type, dropResult.amount, SpriteName.MONEY_DROP_1, SpriteSheetName.MONEY_DROP, AnimationName.MONEY_DROPPED);
+            }
+
         }
     }
 

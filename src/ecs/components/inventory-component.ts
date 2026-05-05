@@ -3,7 +3,11 @@ import { InventorySnapshot } from "./snapshots/inventory-snapshot.js";
 import { WeaponSnapshot } from "./snapshots/weapon-snapshot.js";
 import { OwnedWeaponState } from "./states/owned-weapon-state.js";
 import { WeaponUpgradeState } from "./states/weapon-upgrade-state.js";
-import { InventoryResourceType } from "./types/inventory-resource-type.js";
+import {
+    clampInventoryResourceAmount,
+    InventoryResourceType,
+    SHOTGUN_SHELLS_PER_BOX,
+} from "./types/inventory-resource-type.js";
 import { WeaponType } from "./types/weapon-config.js";
 
 export class InventoryComponent {
@@ -73,7 +77,23 @@ export class InventoryComponent {
         const resources = new Map<InventoryResourceType, number>();
 
         for (const [resourceType, amount] of snapshot.resources.entries()) {
-            resources.set(resourceType, amount);
+            resources.set(
+                resourceType,
+                clampInventoryResourceAmount(resourceType, amount),
+            );
+        }
+
+        const legacyShotgunShellBoxes = resources.get(InventoryResourceType.ShotgunShellBox) ?? 0;
+        if (legacyShotgunShellBoxes > 0) {
+            const currentShotgunShells = resources.get(InventoryResourceType.ShotgunShell) ?? 0;
+            resources.set(
+                InventoryResourceType.ShotgunShell,
+                clampInventoryResourceAmount(
+                    InventoryResourceType.ShotgunShell,
+                    currentShotgunShells + legacyShotgunShellBoxes * SHOTGUN_SHELLS_PER_BOX,
+                ),
+            );
+            resources.delete(InventoryResourceType.ShotgunShellBox);
         }
 
         return new InventoryComponent(

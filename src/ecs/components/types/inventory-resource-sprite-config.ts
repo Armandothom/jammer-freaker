@@ -21,6 +21,14 @@ export const INVENTORY_RESOURCE_SPRITE_CONFIG: Record<
         width: 20,
         height: 16,
     },
+    [InventoryResourceType.SniperMag]: {
+        width: 20,
+        height: 16,
+    },
+    [InventoryResourceType.ShotgunShell]: {
+        width: 31,
+        height: 32,
+    },
     [InventoryResourceType.ShotgunShellBox]: {
         width: 31,
         height: 32,

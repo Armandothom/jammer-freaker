@@ -7,6 +7,7 @@ import {
   PARTICLE_TYPE_GENERIC,
   PARTICLE_TYPE_SPARK,
   type ParticleType,
+  type ParticleStainConfig,
   type RGB,
   type SpawnEvent,
   type TrajectoryType,
@@ -29,7 +30,7 @@ import {
   type ScreenEffectTint,
 } from "../weather/weather-types.js";
 
-export type { TrajectoryType, RGB, ParticleType, SpawnEvent };
+export type { TrajectoryType, RGB, ParticleType, ParticleStainConfig, SpawnEvent };
 export {
   PARTICLE_TYPE_GENERIC,
   PARTICLE_TYPE_BLOOD,
@@ -186,6 +187,14 @@ export class RendererEngine {
 
   toggleDebugBorderSprite(status: boolean): void {
     this.debugBorderSprites = status;
+  }
+
+  setCanvasCursor(cursor: string): void {
+    if (this.canvas.style.cursor === cursor) {
+      return;
+    }
+
+    this.canvas.style.cursor = cursor;
   }
 
   get isLoaded(): boolean {

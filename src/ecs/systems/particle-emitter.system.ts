@@ -13,7 +13,13 @@ export type RGB = [number, number, number]; // 0..255
 export type SpawnEvent = {
     position: { x: number; y: number };
     velocity: { x: number; y: number };
-    life: number;
+    flightLife: number;
+    stainLife: number;
+    isStained: boolean;
+    stainConfig: {
+        color: RGB;
+        size: number;
+    } | null;
     size: number;
     color: RGB;
     trajectoryType: TrajectoryType;
@@ -82,7 +88,10 @@ export class ParticleEmitterSystem implements ISystem {
                         x: spreadDirection.x * preset.speed,
                         y: spreadDirection.y * preset.speed,
                     },
-                    life: preset.life,
+                    flightLife: preset.flightLife,
+                    stainLife: preset.stainLife,
+                    isStained: particleSet.isStained ?? preset.isStained,
+                    stainConfig: preset.stainConfig,
                     color: preset.color,
                     size: preset.size,
                     trajectoryType: preset.trajectoryType,
@@ -170,8 +179,10 @@ export class ParticleEmitterSystem implements ISystem {
             const finalAngle = config.angle + angleJitter;
 
             const speed = this.randomBetween(40, 140);
-            const life = PARTICLE_PRESETS[PARTICLE_TYPE_BLOOD].life
-            const size = PARTICLE_PRESETS[PARTICLE_TYPE_BLOOD].size
+            const bloodPreset = PARTICLE_PRESETS[PARTICLE_TYPE_BLOOD];
+            const flightLife = config.flightLife ?? bloodPreset.flightLife;
+            const stainLife = bloodPreset.stainLife;
+            const size = bloodPreset.size;
 
             spawns.push({
                 position: {
@@ -182,9 +193,12 @@ export class ParticleEmitterSystem implements ISystem {
                     x: Math.cos(finalAngle) * speed,
                     y: Math.sin(finalAngle) * speed,
                 },
-                life,
+                flightLife,
+                stainLife,
+                isStained: bloodPreset.isStained,
+                stainConfig: bloodPreset.stainConfig,
                 size,
-                color: PARTICLE_PRESETS[PARTICLE_TYPE_BLOOD].color,
+                color: bloodPreset.color,
                 trajectoryType: config.trajectoryType,
                 particleType: PARTICLE_TYPE_BLOOD,
             });
@@ -241,6 +255,8 @@ export class ParticleEmitterSystem implements ISystem {
         // Interleaves the jets by wave so the burst expands together instead of sweeping angle by angle.
         for (let waveIndex = 0; waveIndex < maxParticlesPerJet; waveIndex++) {
             const delayMs = waveIndex * intervalMs;
+            const waveProgress = maxParticlesPerJet <= 1 ? 1 : waveIndex / (maxParticlesPerJet - 1);
+            const normalizedFlightLife = 0.2 + (waveProgress * 0.8);
 
             for (const config of configs) {
                 if (waveIndex >= config.particleCount) {
@@ -252,6 +268,7 @@ export class ParticleEmitterSystem implements ISystem {
                     config: {
                         ...config,
                         particleCount: 1,
+                        flightLife: normalizedFlightLife,
                     },
                 });
             }

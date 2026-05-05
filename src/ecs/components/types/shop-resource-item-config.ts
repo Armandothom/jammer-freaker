@@ -1,5 +1,8 @@
 import { SpriteName } from "../../../game/world/types/sprite-name.enum.js";
-import { InventoryResourceType } from "./inventory-resource-type.js";
+import {
+    InventoryResourceType,
+    SHOTGUN_SHELLS_PER_BOX,
+} from "./inventory-resource-type.js";
 
 export const ShopResourceItemType = {
     PISTOL_MAG: "pistol_mag",
@@ -17,6 +20,7 @@ export type ShopResourceItemConfig = {
     price: number;
     availableQuantity: number;
     resourceType: InventoryResourceType;
+    resourceAmount: number;
     spriteName: SpriteName;
     width: number;
     height: number;
@@ -32,6 +36,7 @@ export const SHOP_RESOURCE_ITEM_CONFIG: Record<
         price: 100,
         availableQuantity: 1,
         resourceType: InventoryResourceType.PistolMag,
+        resourceAmount: 1,
         spriteName: SpriteName.PISTOL_MAG_ICON,
         width: 24,
         height: 24,
@@ -42,6 +47,7 @@ export const SHOP_RESOURCE_ITEM_CONFIG: Record<
         price: 200,
         availableQuantity: 1,
         resourceType: InventoryResourceType.SmgMag,
+        resourceAmount: 1,
         spriteName: SpriteName.SMG_MAG_ICON,
         width: 24,
         height: 24,
@@ -52,6 +58,7 @@ export const SHOP_RESOURCE_ITEM_CONFIG: Record<
         price: 300,
         availableQuantity: 1,
         resourceType: InventoryResourceType.RifleMag,
+        resourceAmount: 1,
         spriteName: SpriteName.SMG_MAG_ICON,
         width: 24,
         height: 24,
@@ -61,7 +68,8 @@ export const SHOP_RESOURCE_ITEM_CONFIG: Record<
         name: "Shotgun Shells",
         price: 300,
         availableQuantity: 1,
-        resourceType: InventoryResourceType.ShotgunShellBox,
+        resourceType: InventoryResourceType.ShotgunShell,
+        resourceAmount: SHOTGUN_SHELLS_PER_BOX,
         spriteName: SpriteName.SHOTGUN_SHELL_BOX_ICON,
         width: 24,
         height: 24,
@@ -72,6 +80,7 @@ export const SHOP_RESOURCE_ITEM_CONFIG: Record<
         price: 500,
         availableQuantity: 1,
         resourceType: InventoryResourceType.Grenade,
+        resourceAmount: 1,
         spriteName: SpriteName.GRENADE_ICON,
         width: 24,
         height: 24,

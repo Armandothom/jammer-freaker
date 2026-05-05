@@ -16,6 +16,7 @@ type ResourceCounterWidgetArgs = {
   offsetX: number;
   offsetY: number;
   textNodeId: string;
+  textWidth?: number;
   textOffsetX: number;
   textOffsetY: number;
 };
@@ -29,13 +30,13 @@ export function createResourceCounterWidget(args: ResourceCounterWidgetArgs): UI
           height: "content",
           offsetX: args.textOffsetX,
           offsetY: args.textOffsetY,
-          width: "content",
+          width: args.textWidth ?? "content",
         },
         visual: {
           text: {
             autoWrap: false,
-            horizontalAlign: "left",
-            maxWidth: null,
+            horizontalAlign: args.textWidth != null ? "right" : "left",
+            maxWidth: args.textWidth ?? null,
             text: "",
           },
         },

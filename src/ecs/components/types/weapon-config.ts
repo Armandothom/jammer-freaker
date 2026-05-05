@@ -27,8 +27,18 @@ export interface WeaponConfig {
     spreadAngle: number | null;
     projectilesFired: number | null;
     projectileVelocity: number | null; // px/s
+    spreadMinRadius: number | null;
+    spreadMaxRadius: number | null;
+    walkingRecoil: number | null; // px/s
+    shootingRecoil: number | null; // px
+    //walking recoil and shooting recoil adds X px per second walking or shooting - caps at spreadMaxRadius
+    focusFireTime: number | null;
+    // time standing still to start recovering recoil
+    recoilRecoverVelocity: number | null; // px/s
+    // recover velocity  when focus fired mode
     maxedOut: boolean;
 }
+
 
 const SHIELD_CONFIG: WeaponConfig = {
     damage: 0,
@@ -43,6 +53,12 @@ const SHIELD_CONFIG: WeaponConfig = {
     spreadAngle: null,
     projectilesFired: null,
     projectileVelocity: null,
+    spreadMinRadius: null,
+    spreadMaxRadius: null,
+    walkingRecoil: null, // px/s
+    shootingRecoil: null, // px/s
+    focusFireTime: null,
+    recoilRecoverVelocity: null, // px/s
     maxedOut: false,
 };
 
@@ -50,7 +66,7 @@ export const WeaponConfig: Record<WeaponType, WeaponConfig> = {
     [WeaponType.PISTOL]: {
         damage: 20,
         maxBullets: 10,
-        reloadTime: 0.5,
+        reloadTime: 1,
         explosionRadius: 0,
         fuseTimer: 0,
         animation: AnimationName.WEAPON_PISTOL,
@@ -60,51 +76,75 @@ export const WeaponConfig: Record<WeaponType, WeaponConfig> = {
         spreadAngle: null,
         projectilesFired: 1,
         projectileVelocity: 720,
+        spreadMinRadius: 8,
+        spreadMaxRadius: 32,
+        walkingRecoil: 0.5, // px/s
+        shootingRecoil: 8, // px/s
+        focusFireTime: 1, // s
+        recoilRecoverVelocity: 24, // px/s
         maxedOut: false,
     },
     [WeaponType.SMG]: {
         damage: 20,
-        maxBullets: 30,
-        reloadTime: 1,
+        maxBullets: 35,
+        reloadTime: 1.25,
         explosionRadius: 0,
         fuseTimer: 0,
         animation: AnimationName.WEAPON_SMG,
         spriteName: SpriteName.SMG,
         pivotPointSprite: 6,
-        fireRate: 100,
+        fireRate: 800,
         spreadAngle: null,
         projectilesFired: 1,
         projectileVelocity: 720,
+        spreadMinRadius: 12,
+        spreadMaxRadius: 64,
+        walkingRecoil: 0.2, // px/s
+        shootingRecoil: 4, // px
+        focusFireTime: 2, // s
+        recoilRecoverVelocity: 12, // px/s
         maxedOut: false,
     },
     [WeaponType.RIFLE]: {
         damage: 34,
-        maxBullets: 10,
-        reloadTime: 2,
+        maxBullets: 30,
+        reloadTime: 2.5,
         explosionRadius: 0,
         fuseTimer: 0,
         animation: AnimationName.WEAPON_RIFLE,
         spriteName: SpriteName.RIFLE,
-        pivotPointSprite: 6,
-        fireRate: 100,
+        pivotPointSprite: 5,
+        fireRate: 600,
         spreadAngle: null,
         projectilesFired: 1,
         projectileVelocity: 720,
+        spreadMinRadius: 8,
+        spreadMaxRadius: 48,
+        walkingRecoil: 0.5, // px/s
+        shootingRecoil: 6, // px
+        focusFireTime: 1, // s
+        recoilRecoverVelocity: 32, // px/s
         maxedOut: false,
     },
     [WeaponType.SNIPER]: {
         damage: 100,
         maxBullets: 5,
-        reloadTime: 3,
+        reloadTime: 3.5,
         explosionRadius: 0,
         fuseTimer: 0,
         animation: AnimationName.WEAPON_SNIPER,
         spriteName: SpriteName.SNIPER,
-        pivotPointSprite: 6,
+        pivotPointSprite: 7,
         fireRate: 100,
         spreadAngle: null,
         projectilesFired: 1,
         projectileVelocity: 720,
+        spreadMinRadius: 6,
+        spreadMaxRadius: 64,
+        walkingRecoil: 2, // px/s
+        shootingRecoil: 64, // px
+        focusFireTime: 2, // s
+        recoilRecoverVelocity: 48, // px/s
         maxedOut: false,
     },
     [WeaponType.KNIFE]: KNIFE_CONFIG,
@@ -113,7 +153,7 @@ export const WeaponConfig: Record<WeaponType, WeaponConfig> = {
     [WeaponType.SHOTGUN]: {
         damage: 100,
         maxBullets: 5,
-        reloadTime: 3,
+        reloadTime: 0.56,
         explosionRadius: 0,
         fuseTimer: 0,
         animation: AnimationName.WEAPON_SHOTGUN,
@@ -123,6 +163,12 @@ export const WeaponConfig: Record<WeaponType, WeaponConfig> = {
         spreadAngle: 25 * Math.PI / 180,
         projectilesFired: 9,
         projectileVelocity: 640,
+        spreadMinRadius: 32,
+        spreadMaxRadius: 32,
+        walkingRecoil: 0, // px/s
+        shootingRecoil: 0, // px/s
+        focusFireTime: 0, // s
+        recoilRecoverVelocity: 0, // px/s
         maxedOut: false,
     },
 };

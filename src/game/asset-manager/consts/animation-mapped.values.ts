@@ -663,5 +663,225 @@ export const ANIMATION_MAPPED: Map<AnimationName, Map<SpriteName, AnimationKeyMa
     ])
   ],
 
+  [
+    AnimationName.RIFLE_MAG_DROPPED,
+    new Map<SpriteName, AnimationKeyMap>([
+      [SpriteName.RIFLE_MAG_DROP_1, {
+        spriteName: SpriteName.RIFLE_MAG_DROP_1,
+        spriteSheetName: SpriteSheetName.RIFLE_MAG_DROP,
+        order: 1,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.RIFLE_MAG_DROP_2, {
+        spriteName: SpriteName.RIFLE_MAG_DROP_2,
+        spriteSheetName: SpriteSheetName.RIFLE_MAG_DROP,
+        order: 2,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.RIFLE_MAG_DROP_3, {
+        spriteName: SpriteName.RIFLE_MAG_DROP_3,
+        spriteSheetName: SpriteSheetName.RIFLE_MAG_DROP,
+        order: 3,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.RIFLE_MAG_DROP_4, {
+        spriteName: SpriteName.RIFLE_MAG_DROP_4,
+        spriteSheetName: SpriteSheetName.RIFLE_MAG_DROP,
+        order: 4,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.RIFLE_MAG_DROP_5, {
+        spriteName: SpriteName.RIFLE_MAG_DROP_5,
+        spriteSheetName: SpriteSheetName.RIFLE_MAG_DROP,
+        order: 5,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.RIFLE_MAG_DROP_6, {
+        spriteName: SpriteName.RIFLE_MAG_DROP_6,
+        spriteSheetName: SpriteSheetName.RIFLE_MAG_DROP,
+        order: 6,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.RIFLE_MAG_DROP_7, {
+        spriteName: SpriteName.RIFLE_MAG_DROP_7,
+        spriteSheetName: SpriteSheetName.RIFLE_MAG_DROP,
+        order: 7,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.RIFLE_MAG_DROP_8, {
+        spriteName: SpriteName.RIFLE_MAG_DROP_8,
+        spriteSheetName: SpriteSheetName.RIFLE_MAG_DROP,
+        order: 8,
+        durationKeyFrame: 0.1
+      }],
+
+    ])
+  ],
+
+  [
+    AnimationName.SNIPER_MAG_DROPPED,
+    new Map<SpriteName, AnimationKeyMap>([
+      [SpriteName.SNIPER_MAG_DROP_1, {
+        spriteName: SpriteName.SNIPER_MAG_DROP_1,
+        spriteSheetName: SpriteSheetName.SNIPER_MAG_DROP,
+        order: 1,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.SNIPER_MAG_DROP_2, {
+        spriteName: SpriteName.SNIPER_MAG_DROP_2,
+        spriteSheetName: SpriteSheetName.SNIPER_MAG_DROP,
+        order: 2,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.SNIPER_MAG_DROP_3, {
+        spriteName: SpriteName.SNIPER_MAG_DROP_3,
+        spriteSheetName: SpriteSheetName.SNIPER_MAG_DROP,
+        order: 3,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.SNIPER_MAG_DROP_4, {
+        spriteName: SpriteName.SNIPER_MAG_DROP_4,
+        spriteSheetName: SpriteSheetName.SNIPER_MAG_DROP,
+        order: 4,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.SNIPER_MAG_DROP_5, {
+        spriteName: SpriteName.SNIPER_MAG_DROP_5,
+        spriteSheetName: SpriteSheetName.SNIPER_MAG_DROP,
+        order: 5,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.SNIPER_MAG_DROP_6, {
+        spriteName: SpriteName.SNIPER_MAG_DROP_6,
+        spriteSheetName: SpriteSheetName.SNIPER_MAG_DROP,
+        order: 6,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.SNIPER_MAG_DROP_7, {
+        spriteName: SpriteName.SNIPER_MAG_DROP_7,
+        spriteSheetName: SpriteSheetName.SNIPER_MAG_DROP,
+        order: 7,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.SNIPER_MAG_DROP_8, {
+        spriteName: SpriteName.SNIPER_MAG_DROP_8,
+        spriteSheetName: SpriteSheetName.SNIPER_MAG_DROP,
+        order: 8,
+        durationKeyFrame: 0.1
+      }],
+
+    ])
+  ],
+
+  [
+    AnimationName.SHOTGUN_SHELLBOX_DROPPED,
+    new Map<SpriteName, AnimationKeyMap>([
+      [SpriteName.SHOTGUN_SHELLBOX_DROP_1, {
+        spriteName: SpriteName.SHOTGUN_SHELLBOX_DROP_1,
+        spriteSheetName: SpriteSheetName.SHOTGUN_SHELLBOX_DROP,
+        order: 1,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.SHOTGUN_SHELLBOX_DROP_2, {
+        spriteName: SpriteName.SHOTGUN_SHELLBOX_DROP_2,
+        spriteSheetName: SpriteSheetName.SHOTGUN_SHELLBOX_DROP,
+        order: 2,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.SHOTGUN_SHELLBOX_DROP_3, {
+        spriteName: SpriteName.SHOTGUN_SHELLBOX_DROP_3,
+        spriteSheetName: SpriteSheetName.SHOTGUN_SHELLBOX_DROP,
+        order: 3,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.SHOTGUN_SHELLBOX_DROP_4, {
+        spriteName: SpriteName.SHOTGUN_SHELLBOX_DROP_4,
+        spriteSheetName: SpriteSheetName.SHOTGUN_SHELLBOX_DROP,
+        order: 4,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.SHOTGUN_SHELLBOX_DROP_5, {
+        spriteName: SpriteName.SHOTGUN_SHELLBOX_DROP_5,
+        spriteSheetName: SpriteSheetName.SHOTGUN_SHELLBOX_DROP,
+        order: 5,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.SHOTGUN_SHELLBOX_DROP_6, {
+        spriteName: SpriteName.SHOTGUN_SHELLBOX_DROP_6,
+        spriteSheetName: SpriteSheetName.SHOTGUN_SHELLBOX_DROP,
+        order: 6,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.SHOTGUN_SHELLBOX_DROP_7, {
+        spriteName: SpriteName.SHOTGUN_SHELLBOX_DROP_7,
+        spriteSheetName: SpriteSheetName.SHOTGUN_SHELLBOX_DROP,
+        order: 7,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.SHOTGUN_SHELLBOX_DROP_8, {
+        spriteName: SpriteName.SHOTGUN_SHELLBOX_DROP_8,
+        spriteSheetName: SpriteSheetName.SHOTGUN_SHELLBOX_DROP,
+        order: 8,
+        durationKeyFrame: 0.1
+      }],
+
+    ])
+  ],
+
+  [
+    AnimationName.MONEY_DROPPED,
+    new Map<SpriteName, AnimationKeyMap>([
+      [SpriteName.MONEY_DROP_1, {
+        spriteName: SpriteName.MONEY_DROP_1,
+        spriteSheetName: SpriteSheetName.MONEY_DROP,
+        order: 1,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.MONEY_DROP_2, {
+        spriteName: SpriteName.MONEY_DROP_2,
+        spriteSheetName: SpriteSheetName.MONEY_DROP,
+        order: 2,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.MONEY_DROP_3, {
+        spriteName: SpriteName.MONEY_DROP_3,
+        spriteSheetName: SpriteSheetName.MONEY_DROP,
+        order: 3,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.MONEY_DROP_4, {
+        spriteName: SpriteName.MONEY_DROP_4,
+        spriteSheetName: SpriteSheetName.MONEY_DROP,
+        order: 4,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.MONEY_DROP_5, {
+        spriteName: SpriteName.MONEY_DROP_5,
+        spriteSheetName: SpriteSheetName.MONEY_DROP,
+        order: 5,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.MONEY_DROP_6, {
+        spriteName: SpriteName.MONEY_DROP_6,
+        spriteSheetName: SpriteSheetName.MONEY_DROP,
+        order: 6,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.MONEY_DROP_7, {
+        spriteName: SpriteName.MONEY_DROP_7,
+        spriteSheetName: SpriteSheetName.MONEY_DROP,
+        order: 7,
+        durationKeyFrame: 0.1
+      }],
+      [SpriteName.MONEY_DROP_8, {
+        spriteName: SpriteName.MONEY_DROP_8,
+        spriteSheetName: SpriteSheetName.MONEY_DROP,
+        order: 8,
+        durationKeyFrame: 0.1
+      }],
+
+    ])
+  ],
+
   // next map
 ]);

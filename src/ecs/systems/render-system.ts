@@ -22,6 +22,7 @@ import { RenderableComponent } from "../components/renderable-component.js";
 import { ScreenPositionComponent } from "../components/screen-position.component.js";
 import { SpriteClipComponent } from "../components/sprite-clip.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
+import { TransformComponent } from "../components/transform-component.js";
 import { UIRuntimeElementComponent } from "../components/ui-runtime-element.component.js";
 import { AnimDirection } from "../components/types/anim-direction.js";
 import { ZLayerComponent } from "../components/z-layer.component.js";
@@ -73,6 +74,7 @@ export class RenderSystem implements ISystem {
     private spriteManager: SpriteManager,
     private directionAnimComponentStore: ComponentStore<DirectionAnimComponent>,
     private aimShootingComponentStore: ComponentStore<AimRotationShootingComponent>,
+    private transformComponentStore: ComponentStore<TransformComponent>,
     private zLayerComponentStore: ComponentStore<ZLayerComponent>,
     private visibilityManager: VisibilityManager,
     private debugManager: DebugManager,
@@ -297,6 +299,7 @@ export class RenderSystem implements ISystem {
         const layerMultiplier = this.layerMultiplicator[layerComponent.layer] ?? 1;
 
         const aimComponent = this.aimShootingComponentStore.getOrNull(entity);
+        const transformComponent = this.transformComponentStore.getOrNull(entity);
         const directionAnim = this.directionAnimComponentStore.getOrNull(entity);
 
         const mirrorSpriteX = directionAnim?.xDirection === AnimDirection.LEFT;
@@ -338,8 +341,8 @@ export class RenderSystem implements ISystem {
         }
 
         if (isScreenSpace) {
-          screenX = screenPosition.x;
-          screenY = screenPosition.y;
+          screenX = screenPosition.x + (transformComponent?.xOffset ?? 0);
+          screenY = screenPosition.y + (transformComponent?.yOffset ?? 0);
           zLevel += this.getUiRenderOrderOffset(uiRuntimeElement);
         } else {
           const worldPosition = position!;
@@ -371,10 +374,13 @@ export class RenderSystem implements ISystem {
             continue;
           }
 
-          screenX = worldPosition.x - viewport.left;
-          screenY = worldPosition.y - viewport.top - this.getPossibleRenderOffsetY(entity);
+          screenX = worldPosition.x + (transformComponent?.xOffset ?? 0) - viewport.left;
+          screenY = worldPosition.y + (transformComponent?.yOffset ?? 0) - viewport.top - this.getPossibleRenderOffsetY(entity);
           zLevel = this.getDepthLevel(worldPosition.y, layerMultiplier);
         }
+        const angleRotation = aimComponent || transformComponent?.rotationOffset
+          ? (aimComponent?.aimAngle ?? 0) + (transformComponent?.rotationOffset ?? 0)
+          : null;
 
         renderObjects.push({
           xWorldPosition: screenX,
@@ -383,7 +389,7 @@ export class RenderSystem implements ISystem {
           uvCoordinates,
           height: spriteHeight,
           width: spriteWidth,
-          angleRotation: aimComponent?.aimAngle || null,
+          angleRotation,
           offsetRotation: aimComponent?.pivotPointSprite || 0,
           zLevel,
         });

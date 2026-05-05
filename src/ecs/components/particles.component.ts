@@ -7,6 +7,7 @@ export class ParticlesComponent {
     public originDirection: { x: number; y: number },
     public particleType: ParticleType = PARTICLE_TYPE_GENERIC,
     public maxParticlesEmitted: number = 5,
+    public isStained: boolean | null = null,
   ) {
   }
 }

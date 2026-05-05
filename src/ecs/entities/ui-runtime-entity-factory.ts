@@ -3,6 +3,7 @@ import { RenderableComponent } from "../components/renderable-component.js";
 import { ScreenPositionComponent } from "../components/screen-position.component.js";
 import { SpriteClipComponent } from "../components/sprite-clip.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
+import { TransformComponent } from "../components/transform-component.js";
 import { UIRuntimeElementComponent } from "../components/ui-runtime-element.component.js";
 import { ZLayerComponent } from "../components/z-layer.component.js";
 import { ComponentStore } from "../core/component-store.js";
@@ -23,6 +24,7 @@ export class UIRuntimeEntityFactory {
     private zLayerComponentStore: ComponentStore<ZLayerComponent>,
     private uiRuntimeElementComponentStore: ComponentStore<UIRuntimeElementComponent>,
     private spriteClipComponentStore: ComponentStore<SpriteClipComponent>,
+    private transformComponentStore: ComponentStore<TransformComponent>,
   ) { }
 
   public createNodeEntity(node: UIRenderableNode): number {
@@ -51,6 +53,7 @@ export class UIRuntimeEntityFactory {
     this.zLayerComponentStore.remove(entityId);
     this.uiRuntimeElementComponentStore.remove(entityId);
     this.spriteClipComponentStore.remove(entityId);
+    this.transformComponentStore.remove(entityId);
   }
 
   public updateNodeEntity(entityId: number, node: UIRenderableNode): void {
@@ -127,6 +130,7 @@ export class UIRuntimeEntityFactory {
     if (!spriteVisual) {
       this.spriteComponentStore.remove(entityId);
       this.spriteClipComponentStore.remove(entityId);
+      this.transformComponentStore.remove(entityId);
       return;
     }
 
@@ -150,6 +154,8 @@ export class UIRuntimeEntityFactory {
         ),
       );
     }
+
+    this.syncSpriteTransform(entityId, spriteVisual.rotationOffset);
 
     if (!spriteVisual.clip) {
       this.spriteClipComponentStore.remove(entityId);
@@ -175,6 +181,26 @@ export class UIRuntimeEntityFactory {
         spriteVisual.clip.sourceHeight,
         spriteVisual.clip.trimRenderedSize ?? true,
       ),
+    );
+  }
+
+  private syncSpriteTransform(entityId: number, rotationOffset?: number): void {
+    if (rotationOffset == null) {
+      this.transformComponentStore.remove(entityId);
+      return;
+    }
+
+    const transform = this.transformComponentStore.getOrNull(entityId);
+    if (transform) {
+      transform.rotationOffset = rotationOffset;
+      transform.xOffset = 0;
+      transform.yOffset = 0;
+      return;
+    }
+
+    this.transformComponentStore.add(
+      entityId,
+      new TransformComponent(0, 0, rotationOffset),
     );
   }
 

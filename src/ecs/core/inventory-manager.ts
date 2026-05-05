@@ -2,7 +2,10 @@ import { InventoryComponent } from "../components/inventory-component.js";
 import { InventorySnapshot } from "../components/snapshots/inventory-snapshot.js";
 import { OwnedWeaponState } from "../components/states/owned-weapon-state.js";
 import { WeaponUpgradeState } from "../components/states/weapon-upgrade-state.js";
-import { InventoryResourceType } from "../components/types/inventory-resource-type.js";
+import {
+    clampInventoryResourceAmount,
+    InventoryResourceType,
+} from "../components/types/inventory-resource-type.js";
 import { WeaponConfig, WeaponType } from "../components/types/weapon-config.js";
 
 export class InventoryManager {
@@ -10,7 +13,8 @@ export class InventoryManager {
         [InventoryResourceType.PistolMag, 99],
         [InventoryResourceType.SmgMag, 99],
         [InventoryResourceType.RifleMag, 99],
-        [InventoryResourceType.ShotgunShellBox, 99],
+        [InventoryResourceType.ShotgunShell, 99],
+        [InventoryResourceType.SniperMag, 99],
         [InventoryResourceType.Grenade, 99],
         [InventoryResourceType.Money, 99999],
     ];
@@ -66,7 +70,10 @@ export class InventoryManager {
         resourceType: InventoryResourceType,
         amount: number
     ): void {
-        inventory.resources.set(resourceType, Math.max(0, amount));
+        inventory.resources.set(
+            resourceType,
+            clampInventoryResourceAmount(resourceType, amount),
+        );
     }
 
     public addResource(
@@ -79,7 +86,7 @@ export class InventoryManager {
         }
 
         const current = this.getResourceAmount(inventory, resourceType);
-        inventory.resources.set(resourceType, current + amount);
+        this.setResourceAmount(inventory, resourceType, current + amount);
     }
 
     public removeResource(
@@ -97,7 +104,7 @@ export class InventoryManager {
             return false;
         }
 
-        inventory.resources.set(resourceType, current - amount);
+        this.setResourceAmount(inventory, resourceType, current - amount);
         return true;
     }
 
@@ -192,7 +199,10 @@ export class InventoryManager {
                 return InventoryResourceType.RifleMag;
 
             case WeaponType.SHOTGUN:
-                return InventoryResourceType.ShotgunShellBox;
+                return InventoryResourceType.ShotgunShell;
+
+            case WeaponType.SNIPER:
+                return InventoryResourceType.SniperMag;
 
             default:
                 throw new Error(`Weapon ${weaponType} does not consume ammo`);
@@ -214,7 +224,7 @@ export class InventoryManager {
         console.log(`pistol_mag: ${this.getResourceAmount(inventory, InventoryResourceType.PistolMag)}`);
         console.log(`smg_mag: ${this.getResourceAmount(inventory, InventoryResourceType.SmgMag)}`);
         console.log(`rifle_mag: ${this.getResourceAmount(inventory, InventoryResourceType.RifleMag)}`);
-        console.log(`rifle_mag: ${this.getResourceAmount(inventory, InventoryResourceType.ShotgunShellBox)}`);
+        console.log(`shotgun_shell: ${this.getResourceAmount(inventory, InventoryResourceType.ShotgunShell)}`);
         console.log(`shotgun_shell_box: ${this.getResourceAmount(inventory, InventoryResourceType.ShotgunShellBox)}`);
         console.log(`grenade: ${this.getResourceAmount(inventory, InventoryResourceType.Grenade)}`);
         console.log(`money: ${this.getResourceAmount(inventory, InventoryResourceType.Money)}`);

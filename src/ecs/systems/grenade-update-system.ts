@@ -1,5 +1,7 @@
+import { SOUND_KEYS, SOUND_VOLUME } from "../../game/asset-manager/consts/sound-mapped.values.js";
 import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
+import { SoundEventBus } from "../../game/audio/sound-event-bus.js";
 import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { AwaitingAnimationEndComponent } from "../components/awaiting-animation-end.component.js";
 import { FuseTimerComponent } from "../components/fuse-timer.component.js";
@@ -30,6 +32,7 @@ export class GrenadeUpdateSystem implements ISystem {
         private awaitingAnimationEndComponentStore: ComponentStore<AwaitingAnimationEndComponent>,
         private grenadeTravelComponent: ComponentStore<GrenadeTravelComponent>,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
+        private soundEventBus: SoundEventBus,
     ) {
     }
 
@@ -113,6 +116,10 @@ export class GrenadeUpdateSystem implements ISystem {
         const explosionX = grenadePosition.x + (grenadeSprite.width - grenade.explosionRadius) / 2;
         const explosionY = grenadePosition.y + (grenadeSprite.height - grenade.explosionRadius) / 2;
 
+        this.soundEventBus.emitSound({
+            key: SOUND_KEYS.GRENADE_EXPLOSION,
+            volume: SOUND_VOLUME.GRENADE_EXPLOSION,
+        })
         this.entityFactory.createHitBox(
             explosionX,
             explosionY,
