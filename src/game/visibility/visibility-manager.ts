@@ -22,7 +22,9 @@ export class VisibilityManager {
   public setCurrentVisibilityRayPoints(originPosition: WorldMapCoordinates) {
     this._currentRays = [];
     const rays = [];
-    let edges = [...this.edgeChunkManager.getEdgesFromMemoryChunk(), ...this.getEdgePointsFromCornerTiles()];
+    const chunkEdges = this.edgeChunkManager.getEdgesFromMemoryChunk();
+    const borderEdges = this.getEdgePointsFromViewportBorderTiles();
+    let edges = [...chunkEdges, ...borderEdges];
     if (this.debugManager.selectedDebugIndex != -1) {
       edges = edges.filter((edge, i) => this.debugManager.selectedDebugIndex == i);
     }
@@ -39,20 +41,20 @@ export class VisibilityManager {
       const adjacentRays = [this.setHit(originPosition, angle + angleEpsilon), this.setHit(originPosition, angle - angleEpsilon)]
       rays.push(ray, ...adjacentRays);
     }
-    this._currentRays = this.formRayPointMeshes(originPosition, rays);
+    this._currentRays = this.formRayTriangleFan(originPosition, rays);
     this.debugDrawPoints();
     return this._currentRays;
   }
 
-  //We build ray meshes against the player position
-  private formRayPointMeshes(originPosition: PositionComponent, rays : VisibilityRayPoint[]) {
-    const origin : VisibilityRayPoint = {
-      x : originPosition.x,
-      y : originPosition.y,
-      angle : 0
+  //We build the triangle fan based on the ray points
+  private formRayTriangleFan(originPosition: PositionComponent, rays: VisibilityRayPoint[]) {
+    const origin: VisibilityRayPoint = {
+      x: originPosition.x,
+      y: originPosition.y,
+      angle: 0
     }
     const sortedRays = rays.sort((a, b) => a.angle - b.angle);
-    const pointMeshes : VisibilityRayPoint[] = [];
+    const pointMeshes: VisibilityRayPoint[] = [];
     for (let i = 0; i < sortedRays.length; i++) {
       const current = sortedRays[i];
       const next = sortedRays[(i + 1) % sortedRays.length];
@@ -67,9 +69,9 @@ export class VisibilityManager {
     }
     OrderDebuggerOrchestrator.insertPaintOrder(this._currentRays.map((ray) => {
       return {
-        type : "circle",
-        centroidX : ray.x,
-        centroidY : ray.y,
+        type: "circle",
+        centroidX: ray.x,
+        centroidY: ray.y,
         width: 4,
         color: "#db2929"
       }
@@ -187,8 +189,8 @@ export class VisibilityManager {
   }
 
 
-  private getEdgePointsFromCornerTiles() {
-    let edgePoints : WorldMapCoordinates[] = [];
+  private getEdgePointsFromViewportBorderTiles() {
+    let edgePoints: WorldMapCoordinates[] = [];
     const viewport = this.cameraManager.getViewport();
     const topLeftTile = this.worldTilemapManager.worldToTile(viewport.left, viewport.top);
     const bottomLeftTile = this.worldTilemapManager.worldToTile(viewport.left, viewport.bottom);
@@ -198,67 +200,44 @@ export class VisibilityManager {
     let topCornerSegment = topRightTile;
     let rightCornerSegment = bottomRightTile;
     let bottomCornerSegment = bottomLeftTile;
+    const groupedSegments = [leftCornerSegment, topCornerSegment, rightCornerSegment, bottomCornerSegment];
     let hasRunAllCornerTiles = false;
-    while(hasRunAllCornerTiles == false) {
+    while (hasRunAllCornerTiles == false) {
       hasRunAllCornerTiles = true;
-      const foundEdges = this.setEdgesFromTiles([leftCornerSegment, topCornerSegment, rightCornerSegment, bottomCornerSegment]);
-      if(leftCornerSegment.tileY < bottomLeftTile.tileY) {
+      this.appendEdgesFromTiles(groupedSegments, edgePoints);
+      if (leftCornerSegment.tileY < bottomLeftTile.tileY) {
         leftCornerSegment.tileY += 1;
         hasRunAllCornerTiles = false;
       }
-      if(rightCornerSegment.tileY > topRightTile.tileY) {
+      if (rightCornerSegment.tileY > topRightTile.tileY) {
         rightCornerSegment.tileY -= 1;
         hasRunAllCornerTiles = false;
       }
-      if(bottomCornerSegment.tileX < bottomRightTile.tileX) {
+      if (bottomCornerSegment.tileX < bottomRightTile.tileX) {
         bottomCornerSegment.tileX += 1;
         hasRunAllCornerTiles = false;
       }
-      if(topCornerSegment.tileX > topLeftTile.tileX) {
+      if (topCornerSegment.tileX > topLeftTile.tileX) {
         topCornerSegment.tileX -= 1;
         hasRunAllCornerTiles = false;
-      }
-      if(foundEdges.length > 0) {
-        edgePoints.push(...foundEdges);
       }
     }
     return edgePoints;
   }
 
-  private setEdgesFromTiles(groupedTiles : TilemapCoordinates[]) {
-    const edgePoints : WorldMapCoordinates[] = [];
-      for (const tile of groupedTiles) {
-        if(this.worldTilemapManager.impassableWallTiles.has(this.worldTilemapManager.setTilemapKey(tile.tileX, tile.tileY))) {
-          const worldCoord = this.worldTilemapManager.tileToWorld(tile.tileX, tile.tileY);
-          edgePoints.push(
-            this.clampMapCoordinates(
-              {
-                x : worldCoord.worldX,
-                y : worldCoord.worldY
-              }
-            ),
-            this.clampMapCoordinates(
-              {
-                x : worldCoord.worldX + this.worldTilemapManager.tileSize,
-                y : worldCoord.worldY
-              }
-            ),
-            this.clampMapCoordinates(
-              {
-                x : worldCoord.worldX,
-                y : worldCoord.worldY + this.worldTilemapManager.tileSize
-              }
-            ),
-            this.clampMapCoordinates(
-              {
-                x : worldCoord.worldX + this.worldTilemapManager.tileSize,
-                y : worldCoord.worldY + this.worldTilemapManager.tileSize
-              }
-            ),
-          )
-        }
+
+  private appendEdgesFromTiles(groupedTiles: TilemapCoordinates[], edgePoints: WorldMapCoordinates[]) {
+    for (const tile of groupedTiles) {
+      if (this.worldTilemapManager.impassableWallTiles.has(this.worldTilemapManager.setTilemapKey(tile.tileX, tile.tileY))) {
+        const worldCoord = this.worldTilemapManager.tileToWorld(tile.tileX, tile.tileY);
+        edgePoints.push(
+          this.clampMapCoordinates({ x: worldCoord.worldX, y: worldCoord.worldY }),
+          this.clampMapCoordinates({ x: worldCoord.worldX + this.worldTilemapManager.tileSize, y: worldCoord.worldY }),
+          this.clampMapCoordinates({ x: worldCoord.worldX, y: worldCoord.worldY + this.worldTilemapManager.tileSize }),
+          this.clampMapCoordinates({ x: worldCoord.worldX + this.worldTilemapManager.tileSize, y: worldCoord.worldY + this.worldTilemapManager.tileSize }),
+        );
       }
-      return edgePoints;
+    }
   }
 
   get currentVisibilityRayPoints() {
