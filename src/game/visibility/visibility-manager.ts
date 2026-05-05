@@ -35,7 +35,7 @@ export class VisibilityManager {
         1,
         Math.hypot(clampedEdge.x - playerPosition.x, clampedEdge.y - playerPosition.y)
       );
-      const angleEpsilon = Math.atan2(1, distance);
+      const angleEpsilon = Math.atan2(2, distance);
       const adjacentRays = [this.setHit(playerPosition, angle + angleEpsilon), this.setHit(playerPosition, angle - angleEpsilon)]
       rays.push(ray, ...adjacentRays);
     }
@@ -67,7 +67,7 @@ export class VisibilityManager {
         type : "circle",
         centroidX : ray.x,
         centroidY : ray.y,
-        width: 5,
+        width: 10,
         color: "#db2929"
       }
     }))
@@ -95,7 +95,7 @@ export class VisibilityManager {
       let stepToBoundaryX = nextTileBoundaryXWorldPos !== null ? ((nextTileBoundaryXWorldPos - positionStep.x) / dirX) : +Infinity;
       let stepToBoundaryY = nextTileBoundaryYWorldPos !== null ? ((nextTileBoundaryYWorldPos - positionStep.y) / dirY) : +Infinity;
       const boundaryDiff = Math.abs(stepToBoundaryX - stepToBoundaryY);
-      if (boundaryDiff < 1) {
+      if (stepToBoundaryY == stepToBoundaryX) {
         const ortogonalTiles: Array<TilemapCoordinates> = [
           {
             tileX: currentTile.tileX,
@@ -125,9 +125,9 @@ export class VisibilityManager {
       const isWithinViewport = this.isWithinMap(positionStep, currentTile);
       if (!isWithinViewport) {
         const rearrangedCoordinates = this.clampMapCoordinates(positionStep);
-        const rearrangedAngle = this.getAngle(rearrangedCoordinates, originPosition);
+        //const rearrangedAngle = this.getAngle(rearrangedCoordinates, originPosition);
         return {
-          angle: rearrangedAngle,
+          angle: angle,
           x: rearrangedCoordinates.x,
           y: rearrangedCoordinates.y
         }

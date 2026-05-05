@@ -156,7 +156,7 @@ export class RendererEngine {
     const stencilVertexShader = this.createShader(this._gl.VERTEX_SHADER, stencilVertexShaderSource);
     const stencilFragmentShader = this.createShader(this._gl.FRAGMENT_SHADER, stencilFragmentShaderSource);
     this._stencilProgram = this.createProgramRet(stencilVertexShader, stencilFragmentShader);
-    this._stencilBuffer = this._gl.createBuffer();
+    this._stencilBuffer = this._gl.createBuffer()!;
     this._stencilVAO = this._gl.createVertexArray()!;
     this._gl.bindVertexArray(this._stencilVAO);
     this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._stencilBuffer);
@@ -838,9 +838,13 @@ export class RendererEngine {
     gl.enable(gl.DEPTH_TEST);
   }
 
-  public renderSprites(tileObjects: Array<RenderObject>, entityObjects: Array<RenderObject>, visibilityRays : Array<VisibilityRayPoint>) {
+  public renderSprites(tileObjects: Array<RenderObject>, entityObjects: Array<RenderObject>, visibilityRays : Array<VisibilityRayPoint>, disableRaycasting = false) {
     this.renderSprite(tileObjects);
-    this.setStencilMask(visibilityRays);
+    if (disableRaycasting || visibilityRays.length === 0) {
+      this._gl.disable(this._gl.STENCIL_TEST);
+    } else {
+      this.setStencilMask(visibilityRays);
+    }
     this.renderSprite(entityObjects);
   }
 

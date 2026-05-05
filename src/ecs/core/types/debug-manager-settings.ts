@@ -3,6 +3,7 @@ export enum DebugSettingKey {
   DEBUG_PAINT = "debugPaint",
   AI_PATH = "aiPath",
   INSPECT_TILE = "inspectTile",
+  DISABLE_RAYCASTING = "disableRaycasting",
 }
 
 export class DebugManagerSettings {
@@ -10,11 +11,13 @@ export class DebugManagerSettings {
   showDebugPaint : boolean;
   showAiPath : boolean;
   showInspectTile : boolean;
+  disableRaycasting : boolean;
 
   constructor() {
     this.showSpriteBounds = false;
     this.showDebugPaint = false;
     this.showAiPath = false;
     this.showInspectTile = false;
+    this.disableRaycasting = false;
   } 
 }

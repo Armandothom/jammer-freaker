@@ -13,25 +13,46 @@ export class WorldEdgeManager {
     for (const wallEdgeTile of wallEdgeTiles) {
       const tile = this.worldTilemapManager.getTileFromKey(wallEdgeTile)!;
       const { tileX, tileY } = tile;
-      const topTile = this.hasNotWallTile(tileX, tileY - 1);
-      const bottomTile = this.hasNotWallTile(tileX, tileY + 1);
-      const leftTile = this.hasNotWallTile(tileX - 1, tileY);
-      const rightTile = this.hasNotWallTile(tileX + 1, tileY);
-      const topLeftDiagonal = this.hasNotWallTile(tileX - 1, tileY - 1);
-      const topRightDiagonal = this.hasNotWallTile(tileX + 1, tileY - 1);
-      const bottomLeftDiagonal = this.hasNotWallTile(tileX - 1, tileY + 1);
-      const bottomRightDiagonal = this.hasNotWallTile(tileX + 1, tileY + 1);
-      if(topTile && rightTile && topRightDiagonal) {
+      const isFreeTopTile = this.hasNotWallTile(tileX, tileY - 1);
+      const isFreeBottomTile = this.hasNotWallTile(tileX, tileY + 1);
+      const isFreeLeftTile = this.hasNotWallTile(tileX - 1, tileY);
+      const isFreeRightTile = this.hasNotWallTile(tileX + 1, tileY);
+      const isFreeTopLeftDiagonal = this.hasNotWallTile(tileX - 1, tileY - 1);
+      const isFreeTopRightDiagonal = this.hasNotWallTile(tileX + 1, tileY - 1);
+      const isFreeBottomLeftDiagonal = this.hasNotWallTile(tileX - 1, tileY + 1);
+      const isFreeBottomRightDiagonal = this.hasNotWallTile(tileX + 1, tileY + 1);
+      //Concave edges
+      if(isFreeTopTile && isFreeRightTile && isFreeTopRightDiagonal) {
         this._verticesPositionWallEdge.push(this.getEdgeWorldCoordinate(tileX, tileY, "topright"));
       }
-      if(topTile && leftTile && topLeftDiagonal) {
+      if(isFreeTopTile && isFreeLeftTile && isFreeTopLeftDiagonal) {
         this._verticesPositionWallEdge.push(this.getEdgeWorldCoordinate(tileX, tileY, "topleft"));
       }
-      if(bottomTile && rightTile && bottomRightDiagonal) {
+      if(isFreeBottomTile && isFreeRightTile && isFreeBottomRightDiagonal) {
         this._verticesPositionWallEdge.push(this.getEdgeWorldCoordinate(tileX, tileY, "bottomright"));
       }
-      if(bottomTile && leftTile && bottomLeftDiagonal) {
+      if(isFreeBottomTile && isFreeLeftTile && isFreeBottomLeftDiagonal) {
         this._verticesPositionWallEdge.push(this.getEdgeWorldCoordinate(tileX, tileY, "bottomleft"));
+      }
+      //Convex edges
+      if(!isFreeRightTile && !isFreeBottomTile && isFreeBottomRightDiagonal) {
+        this._verticesPositionWallEdge.push(this.getEdgeWorldCoordinate(tileX, tileY, "bottomright"));
+      }
+      if(!isFreeRightTile && !isFreeTopTile && isFreeTopRightDiagonal) {
+        this._verticesPositionWallEdge.push(this.getEdgeWorldCoordinate(tileX, tileY, "topright"));
+      }
+      if(!isFreeLeftTile && !isFreeBottomTile && isFreeBottomLeftDiagonal) {
+        this._verticesPositionWallEdge.push(this.getEdgeWorldCoordinate(tileX, tileY, "bottomleft"));
+      }
+      if(!isFreeLeftTile && !isFreeTopTile && isFreeTopLeftDiagonal) {
+        this._verticesPositionWallEdge.push(this.getEdgeWorldCoordinate(tileX, tileY, "topleft"));
+      }
+      //Diagonals with free adjacent tiles only, no need to cover bottoms since top is already covering the edge
+      if(!isFreeTopRightDiagonal && isFreeTopTile && isFreeRightTile) {
+        this._verticesPositionWallEdge.push(this.getEdgeWorldCoordinate(tileX, tileY, "topright"));
+      }
+      if(!isFreeTopLeftDiagonal && isFreeTopTile && isFreeLeftTile) {
+        this._verticesPositionWallEdge.push(this.getEdgeWorldCoordinate(tileX, tileY, "topleft"));
       }
     }
   }

@@ -58,6 +58,7 @@ export class WorldEdgeChunkManager {
         y : viewPort.bottom
       },
     ]);
+    //adicionar em toda viewport, grid eixo x/y aberta
     const indexStart = this.getChunkCoordinates({x : viewPort.left, y: viewPort.top});
     const indexEnd = this.getChunkCoordinates({x : viewPort.right, y: viewPort.bottom});
     for (let x = indexStart.xIndex; x <= indexEnd.xIndex; x++) {

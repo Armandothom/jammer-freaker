@@ -38,6 +38,9 @@ export class DebugManager {
             case DebugSettingKey.INSPECT_TILE:
                 this._settings.showInspectTile = !this._settings.showInspectTile;
                 break;
+            case DebugSettingKey.DISABLE_RAYCASTING:
+                this._settings.disableRaycasting = !this._settings.disableRaycasting;
+                break;
         }
     }
 
@@ -77,6 +80,8 @@ export class DebugManager {
                 return this._settings.showDebugPaint;
             case DebugSettingKey.INSPECT_TILE:
                 return this._settings.showInspectTile;
+            case DebugSettingKey.DISABLE_RAYCASTING:
+                return this._settings.disableRaycasting;
         }
     }
 

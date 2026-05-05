@@ -69,6 +69,7 @@ export class InputDebugSystem implements ISystem {
         this.bindDebugCheckbox(DebugSettingKey.SPRITE_BOUNDS);
         this.bindDebugCheckbox(DebugSettingKey.DEBUG_PAINT);
         this.bindDebugCheckbox(DebugSettingKey.AI_PATH);
+        this.bindDebugCheckbox(DebugSettingKey.DISABLE_RAYCASTING);
         this.syncPanelVisibility();
     }
 

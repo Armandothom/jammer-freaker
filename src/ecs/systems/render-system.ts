@@ -76,8 +76,9 @@ export class RenderSystem implements ISystem {
       ...wallRenderObjects
     ];
     const visibilityRays = this.setVisibilityRaysPointToScreen();
+    const disableRaycasting = this.debugManager.getDebugSetting(DebugSettingKey.DISABLE_RAYCASTING);
     this.rendererEngine.toggleDebugBorderSprite(this.debugManager.getDebugSetting(DebugSettingKey.SPRITE_BOUNDS));
-    this.rendererEngine.renderSprites(tileObjects, entityObjects, visibilityRays);
+    this.rendererEngine.renderSprites(tileObjects, entityObjects, visibilityRays, disableRaycasting);
     this.rendererEngine.uploadSpawnBatch();
     this.rendererEngine.updateParticles(deltaTime);
     this.rendererEngine.disarmSpawnStyleRects();
