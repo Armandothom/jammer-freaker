@@ -20,7 +20,7 @@ export class VisibilityManager {
 
   }
 
-  public setCurrentVisibilityRayPoints(playerPosition: PositionComponent) {
+  public setCurrentVisibilityRayPoints(originPosition: WorldMapCoordinates) {
     this._currentRays = [];
     const rays = [];
     let edges = this.edgeChunkManager.getEdgesFromCameraView();
@@ -29,27 +29,27 @@ export class VisibilityManager {
     }
     for (const edge of edges) {
       const clampedEdge = this.clampMapCoordinates(edge);
-      const angle = this.getAngle(clampedEdge, playerPosition);
-      const ray = this.setHit(playerPosition, angle);
+      const angle = this.getAngle(clampedEdge, originPosition);
+      const ray = this.setHit(originPosition, angle);
       //We use the tangent approach to calculate the angular offset, and then atan2 to get the degree
       const distance = Math.max(
         1,
-        Math.hypot(clampedEdge.x - playerPosition.x, clampedEdge.y - playerPosition.y)
+        Math.hypot(clampedEdge.x - originPosition.x, clampedEdge.y - originPosition.y)
       );
       const angleEpsilon = Math.atan2(2, distance);
-      const adjacentRays = [this.setHit(playerPosition, angle + angleEpsilon), this.setHit(playerPosition, angle - angleEpsilon)]
+      const adjacentRays = [this.setHit(originPosition, angle + angleEpsilon), this.setHit(originPosition, angle - angleEpsilon)]
       rays.push(ray, ...adjacentRays);
     }
-    this._currentRays = this.formRayPointMeshes(playerPosition, rays);
+    this._currentRays = this.formRayPointMeshes(originPosition, rays);
     this.debugDrawPoints();
     return this._currentRays;
   }
 
   //We build ray meshes against the player position
-  private formRayPointMeshes(playerPosition: PositionComponent, rays : VisibilityRayPoint[]) {
+  private formRayPointMeshes(originPosition: PositionComponent, rays : VisibilityRayPoint[]) {
     const origin : VisibilityRayPoint = {
-      x : playerPosition.x,
-      y : playerPosition.y,
+      x : originPosition.x,
+      y : originPosition.y,
       angle : 0
     }
     const sortedRays = rays.sort((a, b) => a.angle - b.angle);
@@ -71,7 +71,7 @@ export class VisibilityManager {
         type : "circle",
         centroidX : ray.x,
         centroidY : ray.y,
-        width: 10,
+        width: 4,
         color: "#db2929"
       }
     }))
