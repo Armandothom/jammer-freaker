@@ -83,13 +83,14 @@ export class RenderSystem implements ISystem {
     this.rendererEngine.updateParticles(deltaTime);
     this.rendererEngine.disarmSpawnStyleRects();
     this.rendererEngine.renderParticles();
+    const debugPaintOrders = OrderDebuggerOrchestrator.retrievePaintOrders();
     if (this.debugManager.getDebugSetting(DebugSettingKey.DEBUG_PAINT)) {
-      this.renderDebugPaint(viewport);
+      this.renderDebugPaint(viewport, debugPaintOrders);
     }
   }
 
-  private renderDebugPaint(viewport: CameraViewport) {
-    for (const order of OrderDebuggerOrchestrator.retrievePaintOrders()) {
+  private renderDebugPaint(viewport: CameraViewport, orders: DebuggerPaintOrder[]) {
+    for (const order of orders) {
       switch (order.type) {
         case 'circle':
           order.centroidX = order.centroidX - viewport.left;

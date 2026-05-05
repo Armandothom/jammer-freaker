@@ -1,5 +1,6 @@
 import { PositionComponent } from "../../ecs/components/position.component.js";
 import { DebugManager } from "../../ecs/core/debug-manager.js";
+import { DebugSettingKey } from "../../ecs/core/types/debug-manager-settings.js";
 import { OrderDebuggerOrchestrator } from "../../ecs/debugger-orders/order-debugger-orchestrator.js";
 import { MathUtils } from "../../utils/shared/math-utils.js";
 import { CameraManager } from "../world/camera-manager.js";
@@ -62,6 +63,9 @@ export class VisibilityManager {
   }
 
   private debugDrawPoints() {
+    if (!this.debugManager.getDebugSetting(DebugSettingKey.DEBUG_PAINT)) {
+      return;
+    }
     OrderDebuggerOrchestrator.insertPaintOrder(this._currentRays.map((ray) => {
       return {
         type : "circle",

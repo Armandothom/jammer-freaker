@@ -124,7 +124,6 @@ export class AiMovementBehaviorSystem implements ISystem {
             this.aiMovementRetryBackoffComponent.add(entityId, new AiMovementRetryBackoff());
         } else {
             pauseMovement.backoffStep = pauseMovement.backoffStep + 1;
-            console.log({backoffStep : pauseMovement.backoffStep})
             pauseMovement.retryAfterTimestamp = CoreManager.timeGlobalSinceStart + (this._secondsMultiplier * pauseMovement.backoffStep);
         }
     }
