@@ -36,7 +36,7 @@ export class WorldEdgeChunkManager {
     }
   }
 
-  public getEdgesFromCameraView() {
+  public getEdgesFromMemoryChunk() {
     const edges : Array<WorldMapCoordinates> = [];
     const viewPort = this.cameraManager.getViewport();
     //We set the corners of the screen as edges also

@@ -2,7 +2,6 @@ import { PositionComponent } from "../../ecs/components/position.component.js";
 import { DebugManager } from "../../ecs/core/debug-manager.js";
 import { DebugSettingKey } from "../../ecs/core/types/debug-manager-settings.js";
 import { OrderDebuggerOrchestrator } from "../../ecs/debugger-orders/order-debugger-orchestrator.js";
-import { MathUtils } from "../../utils/shared/math-utils.js";
 import { CameraManager } from "../world/camera-manager.js";
 import { TilemapCoordinates, WorldMapCoordinates } from "../world/types/tilemap-tile.js";
 import { WorldEdgeChunkManager } from "../world/world-edge-chunk-manager.js";
@@ -23,7 +22,7 @@ export class VisibilityManager {
   public setCurrentVisibilityRayPoints(originPosition: WorldMapCoordinates) {
     this._currentRays = [];
     const rays = [];
-    let edges = this.edgeChunkManager.getEdgesFromCameraView();
+    let edges = [...this.edgeChunkManager.getEdgesFromMemoryChunk(), ...this.getEdgePointsFromCornerTiles()];
     if (this.debugManager.selectedDebugIndex != -1) {
       edges = edges.filter((edge, i) => this.debugManager.selectedDebugIndex == i);
     }
@@ -185,6 +184,81 @@ export class VisibilityManager {
 
   private checkRayHitObstacle(tile: TilemapCoordinates) {
     return this.worldTilemapManager.impassableWallTiles.has(this.worldTilemapManager.setTilemapKey(tile.tileX, tile.tileY));
+  }
+
+
+  private getEdgePointsFromCornerTiles() {
+    let edgePoints : WorldMapCoordinates[] = [];
+    const viewport = this.cameraManager.getViewport();
+    const topLeftTile = this.worldTilemapManager.worldToTile(viewport.left, viewport.top);
+    const bottomLeftTile = this.worldTilemapManager.worldToTile(viewport.left, viewport.bottom);
+    const topRightTile = this.worldTilemapManager.worldToTile(viewport.right, viewport.top);
+    const bottomRightTile = this.worldTilemapManager.worldToTile(viewport.right, viewport.bottom);
+    let leftCornerSegment = topLeftTile;
+    let topCornerSegment = topRightTile;
+    let rightCornerSegment = bottomRightTile;
+    let bottomCornerSegment = bottomLeftTile;
+    let hasRunAllCornerTiles = false;
+    while(hasRunAllCornerTiles == false) {
+      hasRunAllCornerTiles = true;
+      const foundEdges = this.setEdgesFromTiles([leftCornerSegment, topCornerSegment, rightCornerSegment, bottomCornerSegment]);
+      if(leftCornerSegment.tileY < bottomLeftTile.tileY) {
+        leftCornerSegment.tileY += 1;
+        hasRunAllCornerTiles = false;
+      }
+      if(rightCornerSegment.tileY > topRightTile.tileY) {
+        rightCornerSegment.tileY -= 1;
+        hasRunAllCornerTiles = false;
+      }
+      if(bottomCornerSegment.tileX < bottomRightTile.tileX) {
+        bottomCornerSegment.tileX += 1;
+        hasRunAllCornerTiles = false;
+      }
+      if(topCornerSegment.tileX > topLeftTile.tileX) {
+        topCornerSegment.tileX -= 1;
+        hasRunAllCornerTiles = false;
+      }
+      if(foundEdges.length > 0) {
+        edgePoints.push(...foundEdges);
+      }
+    }
+    return edgePoints;
+  }
+
+  private setEdgesFromTiles(groupedTiles : TilemapCoordinates[]) {
+    const edgePoints : WorldMapCoordinates[] = [];
+      for (const tile of groupedTiles) {
+        if(this.worldTilemapManager.impassableWallTiles.has(this.worldTilemapManager.setTilemapKey(tile.tileX, tile.tileY))) {
+          const worldCoord = this.worldTilemapManager.tileToWorld(tile.tileX, tile.tileY);
+          edgePoints.push(
+            this.clampMapCoordinates(
+              {
+                x : worldCoord.worldX,
+                y : worldCoord.worldY
+              }
+            ),
+            this.clampMapCoordinates(
+              {
+                x : worldCoord.worldX + this.worldTilemapManager.tileSize,
+                y : worldCoord.worldY
+              }
+            ),
+            this.clampMapCoordinates(
+              {
+                x : worldCoord.worldX,
+                y : worldCoord.worldY + this.worldTilemapManager.tileSize
+              }
+            ),
+            this.clampMapCoordinates(
+              {
+                x : worldCoord.worldX + this.worldTilemapManager.tileSize,
+                y : worldCoord.worldY + this.worldTilemapManager.tileSize
+              }
+            ),
+          )
+        }
+      }
+      return edgePoints;
   }
 
   get currentVisibilityRayPoints() {
