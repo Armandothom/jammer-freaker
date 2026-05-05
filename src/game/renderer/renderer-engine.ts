@@ -23,10 +23,13 @@ export class RendererEngine {
   private _debugProgram: WebGLProgram | undefined;
   private _debugBuffer!: WebGLBuffer;
   private _debugVAO!: WebGLVertexArrayObject;
+  private _visibilityFogVAO!: WebGLVertexArrayObject;
   private _simulationProgram: WebGLProgram | undefined;
   private _stencilProgram: WebGLProgram | undefined;
+  private _visibilityFogProgram: WebGLProgram | undefined;
   private _stencilVAO!: WebGLVertexArrayObject;
   private _stencilBuffer!: WebGLBuffer;
+  private _visibilityFogBuffer!: WebGLBuffer;
   private _spawnTexture!: WebGLTexture;
   private _spawnKinematic!: WebGLTexture;
   private _spawnStyle!: WebGLTexture;
@@ -135,6 +138,7 @@ export class RendererEngine {
     this.initParticles();
     this.initDebugger();
     this.initStencil();
+    this.initVisibilityFog();
   }
 
   private initStencil() {
@@ -164,6 +168,38 @@ export class RendererEngine {
     const positionLocation = this._gl.getAttribLocation(this._stencilProgram, "a_position");
     this._gl.enableVertexAttribArray(positionLocation);
     this._gl.vertexAttribPointer(positionLocation, 3, this._gl.FLOAT, false, 0, 0);
+
+    this._gl.bindVertexArray(null);
+    this._gl.bindBuffer(this._gl.ARRAY_BUFFER, null);
+  }
+
+  private initVisibilityFog() {
+    const visibilityFogVertexShaderSource = `
+      attribute vec2 a_position;
+
+      void main() {
+        gl_Position = vec4(a_position, 1.0, 1.0);
+      }
+    `;
+    const visibilityFogFragmentShaderSource = `
+      precision mediump float;
+
+      void main() {
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 0.3);
+      }
+    `;
+
+    const visibilityFogVertexShader = this.createShader(this._gl.VERTEX_SHADER, visibilityFogVertexShaderSource);
+    const visibilityFogFragmentShader = this.createShader(this._gl.FRAGMENT_SHADER, visibilityFogFragmentShaderSource);
+    this._visibilityFogProgram = this.createProgramRet(visibilityFogVertexShader, visibilityFogFragmentShader);
+    this._visibilityFogBuffer = this._gl.createBuffer()!;
+    this._visibilityFogVAO = this._gl.createVertexArray()!;
+    this._gl.bindVertexArray(this._visibilityFogVAO);
+    this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._visibilityFogBuffer);
+
+    const positionLocation = this._gl.getAttribLocation(this._visibilityFogProgram, "a_position");
+    this._gl.enableVertexAttribArray(positionLocation);
+    this._gl.vertexAttribPointer(positionLocation, 2, this._gl.FLOAT, false, 0, 0);
 
     this._gl.bindVertexArray(null);
     this._gl.bindBuffer(this._gl.ARRAY_BUFFER, null);
@@ -844,8 +880,19 @@ export class RendererEngine {
       this._gl.disable(this._gl.STENCIL_TEST);
     } else {
       this.setStencilMask(visibilityRays);
+      this.toggleDrawVisibilityArea("outside");
+      this.setVisibilityFogMask();
+      this.toggleDrawVisibilityArea("inside");
     }
     this.renderSprite(entityObjects);
+  }
+
+  private toggleDrawVisibilityArea(drawType : "outside" | "inside") {
+    if(drawType === 'inside') {
+      this._gl.stencilFunc(this._gl.EQUAL, 1, 0xff);
+    } else if (drawType === 'outside') {
+      this._gl.stencilFunc(this._gl.EQUAL, 0, 0xff);
+    }
   }
 
   private renderSprite(renderObjects: Array<RenderObject>) {
@@ -1078,7 +1125,7 @@ export class RendererEngine {
     gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
 
     // stop writing to r, g, b, a
-    //gl.colorMask(false, false, false, false);
+    gl.colorMask(false, false, false, false);
 
     gl.bindVertexArray(this._stencilVAO);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._stencilBuffer);
@@ -1089,10 +1136,33 @@ export class RendererEngine {
     gl.colorMask(true, true, true, true);
     //deactivate writing mode to stencil (readonly), activate stencil pass check
     gl.stencilMask(0x00);
-    //set the check, if it's equal to 1, then it should draw, if not, not draw
-    gl.stencilFunc(gl.EQUAL, 1, 0xff);
     gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
     gl.enable(gl.DEPTH_TEST);
+  }
+
+  private setVisibilityFogMask() {
+    const visibilityFogVertices = [
+      -1, -1,
+      -1,  1,
+      1, -1,
+
+      1, -1,
+      -1,  1,
+      1,  1,
+    ];
+    const visibilityFogProgram = this._visibilityFogProgram!;
+    const gl = this._gl;
+    gl.disable(gl.DEPTH_TEST);
+    gl.depthMask(false);
+    gl.useProgram(visibilityFogProgram);
+    gl.bindVertexArray(this._visibilityFogVAO);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._visibilityFogBuffer);
+    gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(visibilityFogVertices), this._gl.STATIC_DRAW)
+    gl.drawArrays(gl.TRIANGLES, 0, visibilityFogVertices.length / 2);
+    gl.bindVertexArray(null);
+    gl.colorMask(true, true, true, true);
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthMask(true);
   }
 
   private restoreGLForObjects() {
