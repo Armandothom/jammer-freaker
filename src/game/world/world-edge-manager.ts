@@ -65,7 +65,7 @@ export class WorldEdgeManager {
 
   private getEdgeWorldCoordinate(tileX : number, tileY : number, corner : "topright" | "topleft" | "bottomleft" | "bottomright") : WorldMapCoordinates {
     const worldCoordinates = this.worldTilemapManager.tileToWorld(tileX, tileY);
-    const tileBorderDistance = this.worldTilemapManager.tileSize - 1;
+    const tileBorderDistance = this.worldTilemapManager.tileSize;
     let x = worldCoordinates.worldX;
     let y = worldCoordinates.worldY;
     switch (corner) {

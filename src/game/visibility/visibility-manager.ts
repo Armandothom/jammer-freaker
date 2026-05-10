@@ -37,7 +37,7 @@ export class VisibilityManager {
         1,
         Math.hypot(clampedEdge.x - originPosition.x, clampedEdge.y - originPosition.y)
       );
-      const angleEpsilon = Math.atan2(2, distance);
+      const angleEpsilon = Math.atan2(1, distance);
       const adjacentRays = [this.setHit(originPosition, angle + angleEpsilon), this.setHit(originPosition, angle - angleEpsilon)]
       rays.push(ray, ...adjacentRays);
     }
@@ -79,6 +79,7 @@ export class VisibilityManager {
   }
 
   private setHit(originPosition: PositionComponent, angle: number): VisibilityRayPoint {
+    const viewport = this.cameraManager.getViewport();
     let positionStep: WorldMapCoordinates = {
       x: originPosition.x,
       y: originPosition.y
@@ -100,7 +101,7 @@ export class VisibilityManager {
       let stepToBoundaryX = nextTileBoundaryXWorldPos !== null ? ((nextTileBoundaryXWorldPos - positionStep.x) / dirX) : +Infinity;
       let stepToBoundaryY = nextTileBoundaryYWorldPos !== null ? ((nextTileBoundaryYWorldPos - positionStep.y) / dirY) : +Infinity;
       const boundaryDiff = Math.abs(stepToBoundaryX - stepToBoundaryY);
-      if (stepToBoundaryY == stepToBoundaryX) {
+      if (boundaryDiff <= 0.005) {
         const ortogonalTiles: Array<TilemapCoordinates> = [
           {
             tileX: currentTile.tileX,
@@ -115,7 +116,7 @@ export class VisibilityManager {
         positionStep.y = nextTileBoundaryYWorldPos!;
         currentTile.tileX += 1 * Math.sign(dirX);
         currentTile.tileY += 1 * Math.sign(dirY);
-        isObstacleHit = this.checkRayHitObstacle(currentTile) || ortogonalTiles.some((tile) => this.checkRayHitObstacle(tile))
+        isObstacleHit = this.checkRayHitObstacle(currentTile) || ortogonalTiles.some((tile) => this.checkRayHitObstacle(tile));
       } else if (stepToBoundaryX < stepToBoundaryY) {
         positionStep.x = nextTileBoundaryXWorldPos!;
         positionStep.y += dirY * stepToBoundaryX;
@@ -127,17 +128,40 @@ export class VisibilityManager {
         currentTile.tileY += 1 * Math.sign(dirY);
         isObstacleHit = this.checkRayHitObstacle(currentTile);
       }
-      const isWithinViewport = this.isWithinMap(positionStep, currentTile);
+      const isWithinViewport = this.cameraManager.isWithinViewport(positionStep.x, positionStep.x, positionStep.y, positionStep.y);
+      const isWithinTilemap = this.worldTilemapManager.isWithinTilemap(currentTile);
+      const isWithinMap = isWithinTilemap && isWithinViewport;
       if (!isWithinViewport) {
-        const rearrangedCoordinates = this.clampMapCoordinates(positionStep);
-        //const rearrangedAngle = this.getAngle(rearrangedCoordinates, originPosition);
+        //We take the X or Y axis that is outside viewport, then we
+        //discover where the point should go based on the "last pixel on the viewport range" (t value)
+        //maybe shit way to do this, review later
+        const outsideSide = this.cameraManager.getSideOutsideViewport(positionStep);
+        let tYReachBorder = Infinity;
+        let tXReachBorder = Infinity;
+        let targetBoundaryX = 0;
+        let targetBoundaryY = 0;
+        if (outsideSide.yAxis) {
+          targetBoundaryY = outsideSide.yAxis == 'top' ? viewport.top : viewport.bottom;
+          tYReachBorder = (targetBoundaryY - originPosition.y) / dirY;
+        }
+        if(outsideSide.xAxis) {
+          targetBoundaryX = outsideSide.xAxis == 'left' ? viewport.left : viewport.right;
+          tXReachBorder = (targetBoundaryX - originPosition.x) / dirX;
+        }
+        if(Math.abs(tXReachBorder) < Math.abs(tYReachBorder)) {
+          positionStep.y = originPosition.y + tXReachBorder * dirY;
+          positionStep.x = targetBoundaryX;
+        } else {
+          positionStep.x = originPosition.x + tYReachBorder * dirX;
+          positionStep.y = targetBoundaryY;
+        }
         return {
-          angle: angle,
-          x: rearrangedCoordinates.x,
-          y: rearrangedCoordinates.y
+          angle,
+          x: positionStep.x,
+          y: positionStep.y
         }
       }
-      if (isObstacleHit || !isWithinViewport) {
+      if (isObstacleHit || !isWithinMap) {
         return {
           angle,
           x: positionStep.x,
@@ -164,12 +188,6 @@ export class VisibilityManager {
       x: Math.min(Math.max(target.x, xStartLimit), xEndLimit),
       y: Math.min(Math.max(target.y, yStartLimit), yEndLimit),
     }
-  }
-
-  private isWithinMap(positionStep: WorldMapCoordinates, tile: TilemapCoordinates) {
-    const isWithinViewport = this.cameraManager.isWithinViewport(positionStep.x, positionStep.x, positionStep.y, positionStep.y);
-    const isWithinTilemap = this.worldTilemapManager.isWithinTilemap(tile);
-    return isWithinViewport && isWithinTilemap;
   }
 
   private getNextTileBorderWorldPos(dirAxis: number, tileOrigin: number) {
