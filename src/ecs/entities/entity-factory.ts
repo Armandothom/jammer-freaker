@@ -49,6 +49,7 @@ import { ZLayerComponent } from "../components/z-layer.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityManager } from "../core/entity-manager.js";
 import { PathFindingObstacleComponent } from "../components/pathfinding-obstacle.component.js";
+import { PlayerFovComponent } from "../components/player-fov.component.js";
 
 const GRENADE_SPRITE_WIDTH = 14;
 const GRENADE_SPRITE_HEIGHT = 16;
@@ -108,6 +109,7 @@ export class EntityFactory {
     private bitmapTextComponentStore: ComponentStore<BitmapTextComponent>,
     private dialogAnimComponentStore: ComponentStore<DialogAnimComponent>,
     private pathFindingObstacleComponent: ComponentStore<PathFindingObstacleComponent>,
+    private playerFovComponentStore: ComponentStore<PlayerFovComponent>,
   ) {
   }
 
@@ -119,7 +121,8 @@ export class EntityFactory {
     this.cameraComponentStore.add(entityId, new CameraComponent(800, 600));
     this.animationComponentStore.add(entityId, new AnimationComponent(AnimationName.PLAYER_STILL));
     this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(AnimDirection.RIGHT));
-    this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity))
+    this.velocityComponentStore.add(entityId, new VelocityComponent(velocity, velocity, velocity, velocity));
+    this.playerFovComponentStore.add(entityId, new PlayerFovComponent(0));
     this.playerComponentStore.add(entityId, new PlayerComponent());
     this.movementIntentComponentStore.add(entityId, new MovementIntentComponent(startX, startY))
     this.collisionBoxComponentStore.add(entityId, new CollisionBoxComponent());

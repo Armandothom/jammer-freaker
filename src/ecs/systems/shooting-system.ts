@@ -17,6 +17,7 @@ import { WeaponComponent } from "../components/weapon.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { ISystem } from "./system.interface.js";
 import { DebugManager } from "../core/debug-manager.js";
+import { PlayerFovComponent } from "../components/player-fov.component.js";
 
 const keys: Record<string, boolean> = {};
 
@@ -41,6 +42,7 @@ export class ShootingSystem implements ISystem {
         private weaponComponentStore: ComponentStore<WeaponComponent>,
         private intentMeleeComponentStore: ComponentStore<IntentMeleeComponent>,
         private disableAimComponentStore: ComponentStore<DisableAimComponent>,
+        private playerFovComponentStore : ComponentStore<PlayerFovComponent>,
         private cameraManager: CameraManager,
         private debugManager : DebugManager
     ) {
@@ -108,6 +110,7 @@ export class ShootingSystem implements ISystem {
         const dy = mouseWorldPosition.y - weaponPosition.y;
         const angle = Math.atan2(dy, dx);
         this.aimShootingComponentStore.add(weaponEntityId, new AimRotationShootingComponent(angle, weaponComponent.configuredPivotRotation));
+        this.playerFovComponentStore.add(playerId, new PlayerFovComponent(angle));
         this.currentMousePos = {
             x: mouseWorldPosition.x,
             y: mouseWorldPosition.y,

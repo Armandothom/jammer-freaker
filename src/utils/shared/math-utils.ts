@@ -9,4 +9,12 @@ export class MathUtils {
     const mod = Math.pow(10, decimals);
     return Math.floor(number * mod) / mod;
   }
+
+  static radToDegreeNormalized(rad : number) {
+    return (((rad * (180/Math.PI)) % 360) + 360) % 360
+  }
+
+  static degreeToRad(deg: number) {
+    return deg * (Math.PI / 180);
+  }
 }

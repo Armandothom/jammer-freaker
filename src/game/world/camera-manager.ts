@@ -42,7 +42,7 @@ export class CameraManager {
         yEnd <= viewport.bottom;
   }
 
-  getSideOutsideViewport(position: WorldMapCoordinates): OutsideBondsSide {
+  isSideOutsideViewport(position: WorldMapCoordinates): OutsideBondsSide {
     const viewport = this.getViewport();
     let outsideBoundsCheck: OutsideBondsSide = {
       xAxis: null,

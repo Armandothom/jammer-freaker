@@ -1,7 +1,9 @@
 import { PositionComponent } from "../../ecs/components/position.component.js";
+import { AngleFovRange } from "../../ecs/components/types/player-fov.type.js";
 import { DebugManager } from "../../ecs/core/debug-manager.js";
 import { DebugSettingKey } from "../../ecs/core/types/debug-manager-settings.js";
 import { OrderDebuggerOrchestrator } from "../../ecs/debugger-orders/order-debugger-orchestrator.js";
+import { MathUtils } from "../../utils/shared/math-utils.js";
 import { CameraManager } from "../world/camera-manager.js";
 import { TilemapCoordinates, WorldMapCoordinates } from "../world/types/tilemap-tile.js";
 import { WorldEdgeChunkManager } from "../world/world-edge-chunk-manager.js";
@@ -19,30 +21,40 @@ export class VisibilityManager {
 
   }
 
-  public setCurrentVisibilityRayPoints(originPosition: WorldMapCoordinates) {
+  public setCurrentVisibilityRayPoints(originPosition: WorldMapCoordinates, fovRange : AngleFovRange) {
     this._currentRays = [];
-    const rays = [];
+    const rays : VisibilityRayPoint[] = [];
     const chunkEdges = this.edgeChunkManager.getEdgesFromMemoryChunk();
-    const borderEdges = this.getEdgePointsFromViewportBorderTiles();
+    const borderEdges = this.getEdgePointsFromViewportCornerTiles();
+    const isFovRightSide = fovRange.start > fovRange.end;
     let edges = [...chunkEdges, ...borderEdges];
-    if (this.debugManager.selectedDebugIndex != -1) {
-      edges = edges.filter((edge, i) => this.debugManager.selectedDebugIndex == i);
-    }
     for (const edge of edges) {
       const clampedEdge = this.clampMapCoordinates(edge);
-      const angle = this.getAngle(clampedEdge, originPosition);
-      const ray = this.setHit(originPosition, angle);
+      const angleRad = this.getAngleRad(clampedEdge, originPosition);
       //We use the tangent approach to calculate the angular offset, and then atan2 to get the degree
       const distance = Math.max(
         1,
         Math.hypot(clampedEdge.x - originPosition.x, clampedEdge.y - originPosition.y)
       );
-      const angleEpsilon = Math.atan2(1, distance);
-      const adjacentRays = [this.setHit(originPosition, angle + angleEpsilon), this.setHit(originPosition, angle - angleEpsilon)]
-      rays.push(ray, ...adjacentRays);
+      const angleRadEpsilon = Math.atan2(1, distance);
+      const angleRads = [angleRad, angleRad + angleRadEpsilon, angleRad - angleRadEpsilon];
+      for (const angleRad of angleRads) {
+        const angle = MathUtils.radToDegreeNormalized(angleRad);
+        if(!this.isAngleUnderFov(isFovRightSide, fovRange, angle)) {
+          continue;
+        }
+        const ray = this.setHit(originPosition, angleRad);
+        rays.push(ray);
+      }
     }
+    rays.push(...[fovRange.start, fovRange.end].map((angle) => this.setHit(originPosition, MathUtils.degreeToRad(angle))));
     this._currentRays = this.formRayTriangleFan(originPosition, rays);
     this.debugDrawPoints();
+    if (this.debugManager.selectedDebugIndex != -1) {
+      const indexStart = (this.debugManager.selectedDebugIndex) * 3;
+      const indexEnd = indexStart + 3;
+      this._currentRays = this._currentRays.slice(indexStart, indexEnd);
+    }
     return this._currentRays;
   }
 
@@ -53,7 +65,7 @@ export class VisibilityManager {
       y: originPosition.y,
       angle: 0
     }
-    const sortedRays = rays.sort((a, b) => a.angle - b.angle);
+    const sortedRays = rays.sort((a, b) => MathUtils.radToDegreeNormalized(a.angle) - MathUtils.radToDegreeNormalized(b.angle));
     const pointMeshes: VisibilityRayPoint[] = [];
     for (let i = 0; i < sortedRays.length; i++) {
       const current = sortedRays[i];
@@ -76,6 +88,14 @@ export class VisibilityManager {
         color: "#db2929"
       }
     }))
+  }
+
+  private isAngleUnderFov(isFovRightSide : boolean, fovAngle : AngleFovRange, angle : number) {
+    if ((isFovRightSide && (fovAngle.start <= angle || fovAngle.end >= angle)) ||
+      (!isFovRightSide && fovAngle.start <= angle && fovAngle.end >= angle)) {
+      return true;
+    }
+    return false;
   }
 
   private setHit(originPosition: PositionComponent, angle: number): VisibilityRayPoint {
@@ -135,7 +155,7 @@ export class VisibilityManager {
         //We take the X or Y axis that is outside viewport, then we
         //discover where the point should go based on the "last pixel on the viewport range" (t value)
         //maybe shit way to do this, review later
-        const outsideSide = this.cameraManager.getSideOutsideViewport(positionStep);
+        const outsideSide = this.cameraManager.isSideOutsideViewport(positionStep);
         let tYReachBorder = Infinity;
         let tXReachBorder = Infinity;
         let targetBoundaryX = 0;
@@ -171,7 +191,7 @@ export class VisibilityManager {
     }
   }
 
-  private getAngle(target: WorldMapCoordinates, origin: WorldMapCoordinates) {
+  private getAngleRad(target: WorldMapCoordinates, origin: WorldMapCoordinates) {
     const dx = target.x - origin.x;
     const dy = target.y - origin.y;
     return Math.atan2(dy, dx);
@@ -207,7 +227,7 @@ export class VisibilityManager {
   }
 
 
-  private getEdgePointsFromViewportBorderTiles() {
+  private getEdgePointsFromViewportCornerTiles() {
     let edgePoints: WorldMapCoordinates[] = [];
     const viewport = this.cameraManager.getViewport();
     const topLeftTile = this.worldTilemapManager.worldToTile(viewport.left, viewport.top);

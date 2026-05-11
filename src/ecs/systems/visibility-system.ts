@@ -1,47 +1,44 @@
-import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { VisibilityManager } from "../../game/visibility/visibility-manager.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { ISystem } from "./system.interface.js";
-import { CameraManager } from "../../game/world/camera-manager.js";
-import { OrderDebuggerOrchestrator } from "../debugger-orders/order-debugger-orchestrator.js";
 import { WorldMapCoordinates } from "../../game/world/types/tilemap-tile.js";
-import { DirectionAnimComponent } from "../components/direction-anim.component.js";
-import { AnimDirection } from "../components/types/anim-direction.js";
 import { SpriteComponent } from "../components/sprite.component.js";
+import { PlayerFovComponent } from "../components/player-fov.component.js";
 
 export class VisibilitySystem implements ISystem {
   constructor(
     private playerComponentStore: ComponentStore<PlayerComponent>,
     private positionComponentStore: ComponentStore<PositionComponent>,
-    private directionAnimComponentStore: ComponentStore<DirectionAnimComponent>,
+    private playerFovComponentStore: ComponentStore<PlayerFovComponent>,
     private spriteComponent : ComponentStore<SpriteComponent>,
     private visibilityManager: VisibilityManager,
-    private cameraManager :  CameraManager
+    private playerFovComponent :  ComponentStore<PlayerFovComponent>
   ) { }
 
   update(_: number): void {
-    const originPosition = this.setEyeLevelOriginPoint();
-    this.visibilityManager.setCurrentVisibilityRayPoints(originPosition);
+    const playerEntity = this.playerComponentStore.getAllEntities()[0];
+    const originPosition = this.setEyeLevelOriginPoint(playerEntity);
+    const playerFov = this.playerFovComponent.get(playerEntity);
+    this.visibilityManager.setCurrentVisibilityRayPoints(originPosition, playerFov.angleRange);
   }
 
-  private setEyeLevelOriginPoint() : WorldMapCoordinates {
-    const playerEntity = this.playerComponentStore.getAllEntities()[0];
+  private setEyeLevelOriginPoint(playerEntity : number) : WorldMapCoordinates {
     const playerPosition = this.positionComponentStore.get(playerEntity);
-    const animDirectionComponent = this.directionAnimComponentStore.get(playerEntity);
-    if(animDirectionComponent.xDirection == AnimDirection.LEFT) {
-      return {
-        x : playerPosition.x + 8,
-        y : playerPosition.y + 16
-      }
-    } else {
-      const sprite = this.spriteComponent.get(playerEntity);
-      return {
-        x : (playerPosition.x + sprite.width) - 8,
-        y : playerPosition.y + 16
-      }
+    const playerSprite = this.spriteComponent.get(playerEntity);
+    const playerFovDirection = this.playerFovComponentStore.get(playerEntity);
+    const deltaX = playerSprite.width * 0.5;
+    const deltaY = playerSprite.height * 0.5;
+    const positionCenter : WorldMapCoordinates = {
+      x: playerPosition.x + deltaX,
+      y: playerPosition.y + deltaY
+    };
+    let position = {
+      x: positionCenter.x + (deltaX * Math.cos(playerFovDirection.angleRad + Math.PI)),
+      y: positionCenter.y + (deltaY * Math.sin(playerFovDirection.angleRad + Math.PI))
     }
+    return position;
   }
 
 }
