@@ -1,5 +1,5 @@
 import { DebuggerPaintOrder } from "../../ecs/debugger-orders/types/debugger.js";
-import { VisibilityRayPoint } from "../visibility/visibility.type.js";
+import { VisibilityPoint, VisibilityRayPoint } from "../visibility/visibility.type.js";
 import { RenderObject } from "./types/render-objects.js";
 
 export type TrajectoryType = 0 | 1; // 0 = linear, 1 = parabólico
@@ -185,7 +185,7 @@ export class RendererEngine {
       precision mediump float;
 
       void main() {
-        gl_FragColor = vec4(0.0, 0.0, 0.0, 0.15);
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 0.2);
       }
     `;
 
@@ -874,12 +874,12 @@ export class RendererEngine {
     gl.enable(gl.DEPTH_TEST);
   }
 
-  public renderSprites(tileObjects: Array<RenderObject>, entityObjects: Array<RenderObject>, visibilityRays : Array<VisibilityRayPoint>, disableRaycasting = false) {
+  public renderSprites(tileObjects: Array<RenderObject>, entityObjects: Array<RenderObject>, visibilityPoints : Array<VisibilityPoint>, disableRaycasting = false) {
     this.renderSprite(tileObjects);
-    if (disableRaycasting || visibilityRays.length === 0) {
+    if (disableRaycasting || visibilityPoints.length === 0) {
       this._gl.disable(this._gl.STENCIL_TEST);
     } else {
-      this.setStencilMask(visibilityRays);
+      this.setStencilMask(visibilityPoints);
       this.toggleDrawVisibilityArea("outside");
       this.setVisibilityFogMask();
       this.toggleDrawVisibilityArea("inside");
@@ -1107,7 +1107,7 @@ export class RendererEngine {
     return this._isLoaded;
   }
 
-  private setStencilMask(visibilityRays : VisibilityRayPoint[]) {
+  private setStencilMask(visibilityRays : VisibilityPoint[]) {
     const stencilVertices = [];
     const stencilProgram = this._stencilProgram!;
     for (const visibilityRay of visibilityRays) {

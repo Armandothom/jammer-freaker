@@ -34,11 +34,11 @@ export class VisibilitySystem implements ISystem {
       x: playerPosition.x + deltaX,
       y: playerPosition.y + deltaY
     };
-    let position = {
-      x: positionCenter.x + (deltaX * Math.cos(playerFovDirection.angleRad + Math.PI)),
-      y: positionCenter.y + (deltaY * Math.sin(playerFovDirection.angleRad + Math.PI))
-    }
-    return position;
+    // let position = {
+    //   x: positionCenter.x + (deltaX * Math.cos(playerFovDirection.angleRad + Math.PI)),
+    //   y: positionCenter.y + (deltaY * Math.sin(playerFovDirection.angleRad + Math.PI))
+    // }
+    return positionCenter;
   }
 
 }

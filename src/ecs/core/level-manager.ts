@@ -12,6 +12,7 @@ import { EntityFactory } from "../entities/entity-factory.js";
 import { EnemyLifecicleSystem } from "../systems/enemy-lifecicle.system.js";
 import { ZoneFactory } from "../zones/zone-factory.js";
 import { ComponentStore } from "./component-store.js";
+import { WorldImpassableChunkManager } from "../../game/world/world-impassable-chunk-manager.js";
 
 export enum LevelEndReason {
     PlayerDeath = "player_death",
@@ -30,6 +31,7 @@ export class LevelManager {
         private tilemapManager: WorldTilemapManager,
         private worldEdgeManager: WorldEdgeManager,
         private worldEdgeChunkManager: WorldEdgeChunkManager,
+        private worldImpassableChunkManager: WorldImpassableChunkManager,
         private cameraManager: CameraManager,
         private zoneFactory: ZoneFactory,
         private entityFactory: EntityFactory,
@@ -125,5 +127,6 @@ export class LevelManager {
 
     private saveChunks() {
         this.worldEdgeChunkManager.generateChunks();
+        this.worldImpassableChunkManager.generateChunks();
     }
 }

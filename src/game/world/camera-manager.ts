@@ -83,7 +83,7 @@ export class CameraManager {
     };
   }
 
-  worldToScreen(x: number, y: number) {
+  worldToScreen(x: number, y: number) : WorldMapCoordinates {
     const viewport = this.getViewport();
     return {
       x: Math.max(0, x - viewport.left),

@@ -36,10 +36,16 @@ export abstract class WorldMapCoordinates {
   x! : number
   y! : number
 }
-
+export abstract class WorldMapTileCoordinates {
+  topLeft! : WorldMapCoordinates
+  topRight! : WorldMapCoordinates
+  bottomLeft! : WorldMapCoordinates
+  bottomRight! : WorldMapCoordinates
+}
 export abstract class TilemapCoordinates {
   tileX! : number
   tileY! : number
 }
 
 export type CoordinateStringfied = string; //x_y
+export type CoordinateBoundariesStringfied = string; //x1_y1_x2_y2

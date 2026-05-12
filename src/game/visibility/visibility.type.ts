@@ -3,3 +3,8 @@ export abstract class VisibilityRayPoint {
   y! : number;
   angle! : number;
 }
+
+export abstract class VisibilityPoint {
+  x! : number;
+  y! : number;
+}

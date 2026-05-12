@@ -25,7 +25,8 @@ import { OrderDebuggerOrchestrator } from "../debugger-orders/order-debugger-orc
 import { DebugManager } from "../core/debug-manager.js";
 import { DebugSettingKey } from "../core/types/debug-manager-settings.js";
 import { DebuggerPaintOrder } from "../debugger-orders/types/debugger.js";
-import { VisibilityRayPoint } from "../../game/visibility/visibility.type.js";
+import { VisibilityPoint, VisibilityRayPoint } from "../../game/visibility/visibility.type.js";
+import { WorldImpassableChunkManager } from "../../game/world/world-impassable-chunk-manager.js";
 
 interface BitmapTextRenderContext {
   font: BitmapFontAsset;
@@ -62,6 +63,7 @@ export class RenderSystem implements ISystem {
     private dialogBubbleSpriteComponentStore: ComponentStore<DialogBubbleSpriteComponent>,
     private bitmapTextComponentStore: ComponentStore<BitmapTextComponent>,
     private textManager: TextManager,
+    private worldImpassableTileChunkManager : WorldImpassableChunkManager
   ) { }
 
   update(deltaTime: number): void {
@@ -75,10 +77,10 @@ export class RenderSystem implements ISystem {
       ...terrainRenderObjects,
       ...wallRenderObjects
     ];
-    const visibilityRays = this.setVisibilityRaysPointToScreen();
+    const visibilityPoints = this.setVisibilityPointToScreen();
     const disableRaycasting = this.debugManager.getDebugSetting(DebugSettingKey.DISABLE_RAYCASTING);
     this.rendererEngine.toggleDebugBorderSprite(this.debugManager.getDebugSetting(DebugSettingKey.SPRITE_BOUNDS));
-    this.rendererEngine.renderSprites(tileObjects, entityObjects, visibilityRays, disableRaycasting);
+    this.rendererEngine.renderSprites(tileObjects, entityObjects, visibilityPoints, disableRaycasting);
     this.rendererEngine.uploadSpawnBatch();
     this.rendererEngine.updateParticles(deltaTime);
     this.rendererEngine.disarmSpawnStyleRects();
@@ -366,13 +368,25 @@ export class RenderSystem implements ISystem {
     return renderObjects;
   }
 
-  private setVisibilityRaysPointToScreen() {
-    let visibilityRayPointsRemapped : VisibilityRayPoint[] = [];
+  private setVisibilityPointToScreen() {
+    let visibilityRayPointsRemapped : VisibilityPoint[] = [];
+    const impassableWallPoints = this.worldImpassableTileChunkManager.getImpassableTileCoordsChunk();
     for (const visibilityRay of this.visibilityManager.currentVisibilityRayPoints) {
       const {x, y} = this.cameraManager.worldToScreen(visibilityRay.x, visibilityRay.y);
       visibilityRayPointsRemapped.push({
-        x, y, angle : visibilityRay.angle
+        x, y
       })
+    }
+    for (const impassableWallPoint of impassableWallPoints) {
+      visibilityRayPointsRemapped.push(...[
+        this.cameraManager.worldToScreen(impassableWallPoint.topLeft.x, impassableWallPoint.topLeft.y),
+        this.cameraManager.worldToScreen(impassableWallPoint.bottomLeft.x, impassableWallPoint.bottomLeft.y),
+        this.cameraManager.worldToScreen(impassableWallPoint.bottomRight.x, impassableWallPoint.bottomRight.y),
+        //
+        this.cameraManager.worldToScreen(impassableWallPoint.topRight.x, impassableWallPoint.topRight.y),
+        this.cameraManager.worldToScreen(impassableWallPoint.topLeft.x, impassableWallPoint.topLeft.y),
+        this.cameraManager.worldToScreen(impassableWallPoint.bottomRight.x, impassableWallPoint.bottomRight.y)
+      ])
     }
     return visibilityRayPointsRemapped;
   }

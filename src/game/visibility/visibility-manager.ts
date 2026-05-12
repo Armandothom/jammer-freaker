@@ -26,7 +26,7 @@ export class VisibilityManager {
     const rays : VisibilityRayPoint[] = [];
     const chunkEdges = this.edgeChunkManager.getEdgesFromMemoryChunk();
     const borderEdges = this.getEdgePointsFromViewportCornerTiles();
-    const isFovRightSide = fovRange.start > fovRange.end;
+    //const isFovRightSide = fovRange.start > fovRange.end;
     let edges = [...chunkEdges, ...borderEdges];
     for (const edge of edges) {
       const clampedEdge = this.clampMapCoordinates(edge);
@@ -39,10 +39,11 @@ export class VisibilityManager {
       const angleRadEpsilon = Math.atan2(1, distance);
       const angleRads = [angleRad, angleRad + angleRadEpsilon, angleRad - angleRadEpsilon];
       for (const angleRad of angleRads) {
-        const angle = MathUtils.radToDegreeNormalized(angleRad);
-        if(!this.isAngleUnderFov(isFovRightSide, fovRange, angle)) {
-          continue;
-        }
+        //commented, deactivated fov
+        //const angle = MathUtils.radToDegreeNormalized(angleRad);
+        // if(!this.isAngleUnderFov(isFovRightSide, fovRange, angle)) {
+        //   continue;
+        // }
         const ray = this.setHit(originPosition, angleRad);
         rays.push(ray);
       }
