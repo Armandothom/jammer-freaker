@@ -4,10 +4,12 @@ import { SoundEventBus } from "../../game/audio/sound-event-bus.js";
 import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { AwaitingAnimationEndComponent } from "../components/awaiting-animation-end.component.js";
 import { CorpseComponent } from "../components/corpse.component.js";
-import { DeathIntentComponent } from "../components/death-intent.component.js";
+import { DeathIntentComponent, DeathIntentReason } from "../components/death-intent.component.js";
 import { DeathParticlesIntentComponent } from "../components/death-particles-intent.component.js";
 import { EnemyDeadComponent } from "../components/enemy-dead.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
+import { EpipenActiveComponent } from "../components/epipen-active-component.js";
+import { HealthComponent } from "../components/health.component.js";
 import { ItemBoxComponent } from "../components/item-box.component.js";
 import { ItemDropIntentComponent } from "../components/item-drop-intent.component.js";
 import { PlayerComponent } from "../components/player.component.js";
@@ -24,6 +26,7 @@ export class DeathProcessingSystem implements ISystem {
         private entityFactory: EntityFactory,
         private deathIntentComponentStore: ComponentStore<DeathIntentComponent>,
         private playerComponentStore: ComponentStore<PlayerComponent>,
+        private healthComponentStore: ComponentStore<HealthComponent>,
         private enemyComponentStore: ComponentStore<EnemyComponent>,
         private enemyDeadComponentStore: ComponentStore<EnemyDeadComponent>,
         private itemBoxComponentStore: ComponentStore<ItemBoxComponent>,
@@ -33,6 +36,7 @@ export class DeathProcessingSystem implements ISystem {
         private positionComponentStore: ComponentStore<PositionComponent>,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
         private deathParticlesIntentComponentStore: ComponentStore<DeathParticlesIntentComponent>,
+        private epipenActiveComponentStore: ComponentStore<EpipenActiveComponent>,
         private soundEventBus: SoundEventBus,
     ) {
 
@@ -45,6 +49,18 @@ export class DeathProcessingSystem implements ISystem {
             const isCorpse = this.corpseComponentStore.has(entity)
 
             if (isPlayer) {
+                const deathIntent = this.deathIntentComponentStore.get(entity);
+                const activeEpipen = this.epipenActiveComponentStore.getOrNull(entity);
+                if (
+                    deathIntent.reason === DeathIntentReason.HealthDepleted &&
+                    activeEpipen?.undyingEffect === true
+                ) {
+                    const health = this.healthComponentStore.get(entity);
+                    if (health.hp > 0) {
+                        this.deathIntentComponentStore.remove(entity);
+                    }
+                    continue;
+                }
                 this.levelManager.endCurrentLevel(LevelEndReason.PlayerDeath);
                 this.deathIntentComponentStore.remove(entity);
             }

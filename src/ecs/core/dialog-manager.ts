@@ -1,5 +1,5 @@
 import { DIALOG_MAPPED_VALUES } from "../../game/asset-manager/consts/dialog-mapped-values.js";
-import { ShopDialogEvent } from "../components/types/shop-dialog-event.enum.js";
+import { GunsShopDialogEvent } from "../components/types/guns-shop-dialog-event.enum.js";
 
 export class DialogManager {
   public getDialogTexts(dialogSourceId: string, dialogEntryId: string): string[] {
@@ -20,11 +20,11 @@ export class DialogManager {
     return [...dialogEntry.dialogText];
   }
 
-  public getGunDealerDialogTexts(dialogEvent: ShopDialogEvent): string[] {
+  public getGunDealerDialogTexts(dialogEvent: GunsShopDialogEvent): string[] {
     return this.getDialogTexts("gun_dealer", dialogEvent);
   }
 
-  public getRandomGunDealerDialogText(dialogEvent: ShopDialogEvent): string {
+  public getRandomGunDealerDialogText(dialogEvent: GunsShopDialogEvent): string {
     const dialogTexts = this.getGunDealerDialogTexts(dialogEvent);
 
     if (dialogTexts.length === 0) {

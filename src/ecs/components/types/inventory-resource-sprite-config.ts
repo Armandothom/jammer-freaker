@@ -37,6 +37,22 @@ export const INVENTORY_RESOURCE_SPRITE_CONFIG: Record<
         width: 14,
         height: 14,
     },
+    [InventoryResourceType.Epipen]: {
+        width: 16,
+        height: 16,
+    },
+    [InventoryResourceType.CombatStim]: {
+        width: 16,
+        height: 16,
+    },
+    [InventoryResourceType.Healpack]: {
+        width: 16,
+        height: 16,
+    },
+    [InventoryResourceType.Bandage]: {
+        width: 16,
+        height: 16,
+    },
     [InventoryResourceType.Money]: {
         width: 16,
         height: 12,

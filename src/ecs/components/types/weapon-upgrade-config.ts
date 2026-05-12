@@ -423,6 +423,6 @@ export function getUpgradeValueIncrease(
     return `${formatWeaponUpgradeValue(currentValue)} >>> ${formatWeaponUpgradeValue(nextValue)}`;
 }
 
-export const SHOP_WEAPON_UPGRADE_CONFIG = WEAPON_UPGRADE_CONFIG;
-export const SHOP_WEAPON_UPGRADE_TYPES_ORDER = WEAPON_UPGRADE_TYPES_ORDER;
+export const GUNS_SHOP_WEAPON_UPGRADE_CONFIG = WEAPON_UPGRADE_CONFIG;
+export const GUNS_SHOP_WEAPON_UPGRADE_TYPES_ORDER = WEAPON_UPGRADE_TYPES_ORDER;
 export const weaponUpgradeTable = WEAPON_UPGRADE_CONFIG;

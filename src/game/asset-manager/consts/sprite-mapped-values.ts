@@ -1211,15 +1211,35 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
   ],
 
   [
-    SpriteSheetName.SHOP_BACKGROUND,
+    SpriteSheetName.GUNS_SHOP_BACKGROUND,
     {
       rows: 1,
       columns: 1,
       eachSpriteCellSizeHeight: 600,
       eachSpriteCellSizeWidth: 800,
-      srcImagePath: 'src/assets/images/shop_background.png',
+      srcImagePath: 'src/assets/images/guns_shop_background.png',
       sprites: new Map([
-        [SpriteName.SHOP_BACKGROUND, {
+        [SpriteName.GUNS_SHOP_BACKGROUND, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 600,
+          originalRenderSpriteWidth: 800,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 800, height: 600 }
+        }],
+      ])
+    }
+  ],
+
+  [
+    SpriteSheetName.MEDICAL_SHOP_BACKGROUND,
+    {
+      rows: 1,
+      columns: 1,
+      eachSpriteCellSizeHeight: 600,
+      eachSpriteCellSizeWidth: 800,
+      srcImagePath: 'src/assets/images/medical_shop_background.png',
+      sprites: new Map([
+        [SpriteName.MEDICAL_SHOP_BACKGROUND, {
           row: 1,
           column: 1,
           originalRenderSpriteHeight: 600,

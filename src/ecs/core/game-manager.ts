@@ -60,7 +60,9 @@ export class GameManager {
                 this.gameplaySystemRunner.update();
                 return;
 
-            case GameState.ShopState:
+            case GameState.ShopHubState:
+            case GameState.GunsShopState:
+            case GameState.MedicalShopState:
                 this.shopSystemRunner.update();
                 return;
 
@@ -71,19 +73,16 @@ export class GameManager {
         }
     }
 
-    requestShopState(): void {
-        if (this.activeState === GameState.ShopState) {
-            return;
-        }
+    requestShopHubState(): void {
+        this.requestShopState(GameState.ShopHubState);
+    }
 
-        this.inventorySnapshot = this.gameplaySystemRunner.capturePlayerInventorySnapshot();
-        this.shopSystemRunner.reset();
-        this.shopSystemRunner.setInventorySnapshot(this.inventorySnapshot);
-        this.shopSystemRunner.initialize();
-        this.activeState = GameState.ShopState;
+    requestGunsShopState(): void {
+        this.requestShopState(GameState.GunsShopState);
+    }
 
-        console.log("[GameManager] Transitioned to ShopState.");
-        console.log("[GameManager] Inventory snapshot:", this.inventorySnapshot);
+    requestMedicalShopState(): void {
+        this.requestShopState(GameState.MedicalShopState);
     }
 
     requestGameplayState(): void {
@@ -98,6 +97,33 @@ export class GameManager {
 
         console.log("[GameManager] Transitioned to GameplayState.");
         console.log("[GameManager] Inventory snapshot:", this.inventorySnapshot);
+    }
+
+    private requestShopState(nextState: GameState.ShopHubState | GameState.GunsShopState | GameState.MedicalShopState): void {
+        if (this.activeState === nextState) {
+            return;
+        }
+
+        if (this.activeState === GameState.GameplayState) {
+            this.inventorySnapshot = this.gameplaySystemRunner.capturePlayerInventorySnapshot();
+            this.shopSystemRunner.reset();
+            this.shopSystemRunner.setInventorySnapshot(this.inventorySnapshot);
+            this.shopSystemRunner.initialize();
+        } else if (this.isShopState(this.activeState)) {
+            this.inventorySnapshot = this.shopSystemRunner.captureInventorySnapshot();
+            this.shopSystemRunner.syncInventorySnapshot(this.inventorySnapshot);
+        }
+
+        this.activeState = nextState;
+
+        console.log(`[GameManager] Transitioned to ${nextState}.`);
+        console.log("[GameManager] Inventory snapshot:", this.inventorySnapshot);
+    }
+
+    private isShopState(state: GameState): state is GameState.ShopHubState | GameState.GunsShopState | GameState.MedicalShopState {
+        return state === GameState.ShopHubState
+            || state === GameState.GunsShopState
+            || state === GameState.MedicalShopState;
     }
 
     getCurrentState(): GameState {

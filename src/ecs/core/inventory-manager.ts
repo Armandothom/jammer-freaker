@@ -6,6 +6,14 @@ import {
     clampInventoryResourceAmount,
     InventoryResourceType,
 } from "../components/types/inventory-resource-type.js";
+import {
+    getMedicalShopUpgradeLevelConfig,
+    normalizeStoredMedicalShopUpgradeLevel,
+    type MedicalShopUpgradeDisplayValue,
+    type MedicalShopUpgradeItemType,
+    type MedicalShopUpgradeLevel,
+    type StoredMedicalShopUpgradeLevel,
+} from "../components/types/medical-shop-upgrade-item-config.js";
 import { WeaponConfig, WeaponType } from "../components/types/weapon-config.js";
 
 export class InventoryManager {
@@ -16,6 +24,10 @@ export class InventoryManager {
         [InventoryResourceType.ShotgunShell, 99],
         [InventoryResourceType.SniperMag, 99],
         [InventoryResourceType.Grenade, 99],
+        [InventoryResourceType.Epipen, 99],
+        [InventoryResourceType.CombatStim, 99],
+        [InventoryResourceType.Healpack, 99],
+        [InventoryResourceType.Bandage, 99],
         [InventoryResourceType.Money, 99999],
     ];
 
@@ -106,6 +118,50 @@ export class InventoryManager {
 
         this.setResourceAmount(inventory, resourceType, current - amount);
         return true;
+    }
+
+    public getMedicalUpgradeLevel(
+        inventory: InventoryComponent,
+        upgradeType: MedicalShopUpgradeItemType,
+    ): StoredMedicalShopUpgradeLevel {
+        return normalizeStoredMedicalShopUpgradeLevel(
+            inventory.medicalUpgrades.get(upgradeType) ?? 0,
+        );
+    }
+
+    public setMedicalUpgradeLevel(
+        inventory: InventoryComponent,
+        upgradeType: MedicalShopUpgradeItemType,
+        level: number,
+    ): void {
+        inventory.medicalUpgrades.set(
+            upgradeType,
+            normalizeStoredMedicalShopUpgradeLevel(level),
+        );
+    }
+
+    public getMedicalUpgradeValue(
+        inventory: InventoryComponent,
+        upgradeType: MedicalShopUpgradeItemType,
+    ): MedicalShopUpgradeDisplayValue | null {
+        const level = this.getMedicalUpgradeLevel(inventory, upgradeType);
+
+        if (level <= 0) {
+            return null;
+        }
+
+        return getMedicalShopUpgradeLevelConfig(
+            upgradeType,
+            level as MedicalShopUpgradeLevel,
+        ).value;
+    }
+
+    public getMedicalUpgradeValueOrDefault(
+        inventory: InventoryComponent,
+        upgradeType: MedicalShopUpgradeItemType,
+        defaultValue: MedicalShopUpgradeDisplayValue = 1,
+    ): MedicalShopUpgradeDisplayValue {
+        return this.getMedicalUpgradeValue(inventory, upgradeType) ?? defaultValue;
     }
 
     public getRoundsInMag(

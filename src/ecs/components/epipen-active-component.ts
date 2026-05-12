@@ -1,22 +1,29 @@
 import { InventoryResourceType } from "./types/inventory-resource-type.js";
-import { MEDICAL_ITEM_CONFIG } from "./types/medical-items-config.js";
+import { MEDICAL_ITEM_CONFIG, type EpipenEffectConfig } from "./types/medical-items-config.js";
 
 export type EpipenActiveEffect = {
     maxDuration: number;
     time: number;
+    velocityIncreaseFactor: number;
+    undyingEffect: boolean;
 };
 
-export class EpipenActiveComponent {
-    public effects: EpipenActiveEffect[];
-    public activeSimultaneous: number;
+export class EpipenActiveComponent implements EpipenActiveEffect {
+    public maxDuration: number;
+    public time: number;
+    public velocityIncreaseFactor: number;
+    public undyingEffect: boolean;
 
-    constructor(activeSimultaneous: number, effects?: EpipenActiveEffect[]) {
+    constructor(
+        public activeSimultaneous: number,
+        effect?: EpipenEffectConfig,
+    ) {
         const config = MEDICAL_ITEM_CONFIG[InventoryResourceType.Epipen];
+        const configuredEffect = effect ?? config.effect ?? {};
 
-        this.effects = effects ?? [{
-            maxDuration: config.duration,
-            time: 0,
-        }];
-        this.activeSimultaneous = activeSimultaneous;
+        this.maxDuration = configuredEffect.maxDuration ?? config.duration;
+        this.time = configuredEffect.time ?? 0;
+        this.velocityIncreaseFactor = configuredEffect.velocityIncreaseFactor ?? config.velocityIncreaseFactor;
+        this.undyingEffect = configuredEffect.undyingEffect ?? config.effect?.undyingEffect ?? false;
     }
 }

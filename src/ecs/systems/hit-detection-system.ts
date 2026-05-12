@@ -17,6 +17,7 @@ import { ProjectileComponent } from "../components/projectile-component.js";
 import { ShapeHitMemoryComponent } from "../components/shape-hitmemory-component.js";
 import { ShotOriginComponent } from "../components/shot-origin.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
+import { StaggerComponent } from "../components/stagger-component.js";
 import type { EnemyType } from "../components/types/enemy-type.js";
 import { WeaponType } from "../components/types/weapon-config.js";
 import { ComponentStore } from "../core/component-store.js";
@@ -47,6 +48,7 @@ export class HitDetectionSystem implements ISystem {
         private grenadeExplosionHitBoxComponentStore: ComponentStore<GrenadeExplosionHitBoxComponent>,
         private shapeHitMemoryComponentStore: ComponentStore<ShapeHitMemoryComponent>,
         private particlesComponentStore: ComponentStore<ParticlesComponent>,
+        private staggerComponentStore: ComponentStore<StaggerComponent>,
     ) { }
 
     private queueDamageTakenIntent(targetEntity: number, damagingEntity: number, damageSource: DamageSource, damage: number) {
@@ -242,7 +244,7 @@ export class HitDetectionSystem implements ISystem {
                         y: directionY / directionMagnitude,
                     }
                     : { x: 1, y: 0 };
-
+                this.staggerComponentStore.add(entity, new StaggerComponent());
                 this.particlesComponentStore.add(entity, new ParticlesComponent(projectileLastPosition.x, projectileLastPosition.y, emissionDirection, PARTICLE_TYPE_BLOOD, 9));
             }
             if (isBox) {

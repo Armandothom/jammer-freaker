@@ -1,10 +1,12 @@
 import { CameraManager } from "../../game/world/camera-manager.js";
 import { AimRotationShootingComponent } from "../components/aim-rotation-shooting.component.js";
+import { CombatStimActiveComponent } from "../components/combat-stim-active-component.js";
 import { DisableAimComponent } from "../components/disable-aim.component.js";
 import { IntentGrenadeComponent } from "../components/intent-grenade.component.js";
 import { IntentMeleeComponent } from "../components/intent-melee.component.js";
 import { IntentShotComponent } from "../components/intent-shot.component.js";
 import { InventoryComponent } from "../components/inventory-component.js";
+import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ReloadIntentComponent } from "../components/reload-intent.component.js";
@@ -24,6 +26,11 @@ import { resolveWeaponAttachmentBaseAnchor } from "../core/weapon-attachment-pos
 import { ISystem } from "./system.interface.js";
 
 const keys: Record<string, boolean> = {};
+
+type ShotTarget = {
+    x: number;
+    y: number;
+};
 
 export class ShootingSystem implements ISystem {
 
@@ -49,6 +56,8 @@ export class ShootingSystem implements ISystem {
         private weaponStatsComponentStore: ComponentStore<WeaponStatsComponent>,
         private shootingRecoilIntentComponentStore: ComponentStore<ShootingRecoilIntentComponent>,
         private spreadRadiusComponentStore: ComponentStore<SpreadRadiusComponent>,
+        private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
+        private combatStimActiveComponentStore: ComponentStore<CombatStimActiveComponent>,
         private cameraManager: CameraManager,
         private debugManager: DebugManager,
         private inventoryManager: InventoryManager,
@@ -171,16 +180,10 @@ export class ShootingSystem implements ISystem {
             return;
         }
 
-        // if (weaponWielded === SpriteName.KNIFE) {
-        //     this.pushMeeleIntent(isHold);
-        //     return;
-        // };
-
         let playerPos: { x: number, y: number } | undefined;
 
         playerPos = this.positionComponentStore.get(playerEntity);
 
-        //here
         if (!this.debugManager.isDebugPointerActive) {
             const weaponConfig = WeaponConfig[weaponWielded]
             this.shootingRecoilIntentComponentStore.add(playerEntity, new ShootingRecoilIntentComponent(weaponConfig.shootingRecoil!))
@@ -188,6 +191,9 @@ export class ShootingSystem implements ISystem {
             let shotTarget = this.randomShotWithinSpread(spreadRadius);
             if (weaponWielded === WeaponType.SHOTGUN) {
                 shotTarget = this.currentMousePos;
+            }
+            if (this.combatStimActive(playerEntity)) {
+                shotTarget = this.resolveShotTargetWithMovementCompensation(playerEntity, shotTarget);
             }
             this.intentShotComponentStore.add(playerEntity, new IntentShotComponent(
                 shotTarget.x,
@@ -198,7 +204,28 @@ export class ShootingSystem implements ISystem {
         }
     }
 
-    private randomShotWithinSpread(spreadRadius: number): { x: number; y: number } {
+    private combatStimActive(playerEntity: number): boolean {
+        return this.combatStimActiveComponentStore.getOrNull(playerEntity)?.runnningPrecision === true;
+    }
+
+    private resolveShotTargetWithMovementCompensation(playerEntity: number, shotTarget: ShotTarget): ShotTarget {
+        const movementIntent = this.movementIntentComponentStore.getOrNull(playerEntity);
+        if (!movementIntent) {
+            return shotTarget;
+        }
+
+        const currentPosition = this.positionComponentStore.getOrNull(playerEntity);
+        if (!currentPosition) {
+            return shotTarget;
+        }
+
+        return {
+            x: shotTarget.x + (movementIntent.x - currentPosition.x),
+            y: shotTarget.y + (movementIntent.y - currentPosition.y),
+        };
+    }
+
+    private randomShotWithinSpread(spreadRadius: number): ShotTarget {
         if (spreadRadius <= 8) {
             return {
                 x: this.currentMousePos.x,

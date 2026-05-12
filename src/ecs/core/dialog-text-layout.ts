@@ -4,7 +4,7 @@ import {
 } from "../components/bitmap-text.component.js";
 
 export const GAMEPLAY_DIALOG_FALLBACK_MAX_WIDTH = 96;
-export const SHOP_DIALOG_FALLBACK_MAX_WIDTH = 160;
+export const GUNS_SHOP_DIALOG_FALLBACK_MAX_WIDTH = 160;
 
 interface DialogBitmapTextLayout {
   autoWrap: boolean;

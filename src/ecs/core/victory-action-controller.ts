@@ -14,8 +14,8 @@ export class VictoryActionController implements UIActionHandler {
                 this.levelManager.startNextLevelWithCurrentInventory();
                 return true;
 
-            case VICTORY_UI_ACTION.GOTO_SHOP:
-                return this.levelManager.requestShopState();
+            case VICTORY_UI_ACTION.GOTO_SHOP_HUB:
+                return this.levelManager.requestShopHubState();
 
             default:
                 return false;

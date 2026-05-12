@@ -2,7 +2,7 @@ import { UIAction } from "./ui-action.js";
 
 export const VICTORY_UI_ACTION = {
     NEXT_MISSION: "victory.next.mission",
-    GOTO_SHOP: "victory.goto.shop"
+    GOTO_SHOP_HUB: "victory.goto.shop-hub",
 }
 
 export function createNextMissionAction(): UIAction {
@@ -11,9 +11,9 @@ export function createNextMissionAction(): UIAction {
     };
 }
 
-export function createGoToShopAction(): UIAction {
+export function createGoToShopHubAction(): UIAction {
     return {
-        type: VICTORY_UI_ACTION.GOTO_SHOP,
+        type: VICTORY_UI_ACTION.GOTO_SHOP_HUB,
     };
 }
 

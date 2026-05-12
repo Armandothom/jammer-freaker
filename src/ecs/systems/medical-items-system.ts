@@ -1,4 +1,5 @@
 import { CombatStimActiveComponent } from "../components/combat-stim-active-component.js";
+import { DeathIntentComponent, DeathIntentReason } from "../components/death-intent.component.js";
 import { EpipenActiveComponent } from "../components/epipen-active-component.js";
 import { HealBleedIntentComponent } from "../components/heal-bleed-intent.component.js";
 import { HealthComponent } from "../components/health.component.js";
@@ -8,6 +9,7 @@ import { MedicalItemUseComponent } from "../components/medical-item-use.componen
 import { PlayerComponent } from "../components/player.component.js";
 import { InventoryResourceType } from "../components/types/inventory-resource-type.js";
 import { MEDICAL_ITEM_CONFIG, type MedicalItemType } from "../components/types/medical-items-config.js";
+import { MedicalShopUpgradeItemType } from "../components/types/medical-shop-upgrade-item-config.js";
 import { VelocityComponent } from "../components/velocity-component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { InventoryManager } from "../core/inventory-manager.js";
@@ -35,6 +37,7 @@ export class MedicalItemsSystem implements ISystem {
         private healBleedIntentComponentStore: ComponentStore<HealBleedIntentComponent>,
         private combatStimActiveComponentStore: ComponentStore<CombatStimActiveComponent>,
         private epipenActiveComponentStore: ComponentStore<EpipenActiveComponent>,
+        private deathIntentComponentStore: ComponentStore<DeathIntentComponent>,
     ) {
         window.addEventListener("keydown", this.onKeyDown);
         window.addEventListener("keyup", this.onKeyUp);
@@ -44,7 +47,7 @@ export class MedicalItemsSystem implements ISystem {
 
         this.syncInputFrame();
         this.updateItemUse(deltaTime);
-        this.updateActiveItems();
+        this.updateActiveItems(deltaTime);
     }
 
     private handleMedicalItemInput(): void {
@@ -76,6 +79,7 @@ export class MedicalItemsSystem implements ISystem {
 
     private tryStartMedicalItemUse(itemApplied: MedicalItemType): void {
         const playerEntity = this.getPlayerEntity();
+
         if (playerEntity == null) {
             return;
         }
@@ -94,7 +98,8 @@ export class MedicalItemsSystem implements ISystem {
             return;
         }
 
-        const applyTime = MEDICAL_ITEM_CONFIG[itemApplied].useTime;
+        const useEfficiencyUpgrade = this.inventoryManager.getMedicalUpgradeValueOrDefault(inventory, MedicalShopUpgradeItemType.USE_EFFICIENCY);
+        const applyTime = MEDICAL_ITEM_CONFIG[itemApplied].useTime * useEfficiencyUpgrade;
         this.medicalItemUseComponentStore.add(playerEntity, new MedicalItemUseComponent(itemApplied, applyTime));
         this.applyUsageSlow(velocity);
     }
@@ -122,8 +127,11 @@ export class MedicalItemsSystem implements ISystem {
             return;
         }
 
-        velocity.currentVelocityX = velocity.baseVelocityX;
-        velocity.currentVelocityY = velocity.baseVelocityY;
+        const activeEpipen = this.epipenActiveComponentStore.getOrNull(playerEntity);
+        const velocityFactor = activeEpipen?.velocityIncreaseFactor ?? 1;
+
+        velocity.currentVelocityX = velocity.baseVelocityX * velocityFactor;
+        velocity.currentVelocityY = velocity.baseVelocityY * velocityFactor;
     }
 
     private useCancelConditions(playerEntity: number): boolean {
@@ -156,8 +164,24 @@ export class MedicalItemsSystem implements ISystem {
         }
     }
 
-    private updateActiveItems() {
+    private updateActiveItems(deltaTime: number) {
+        const playerEntity = this.playerComponentStore.getAllEntities()[0];
 
+        if (this.epipenActiveComponentStore.has(playerEntity)) {
+            const activeEpipen = this.epipenActiveComponentStore.get(playerEntity);
+            activeEpipen.time += deltaTime;
+            if (activeEpipen.time >= activeEpipen.maxDuration) {
+                this.epipenActiveComponentStore.remove(playerEntity);
+                this.restorePlayerVelocity(playerEntity);
+            }
+        }
+        if (this.combatStimActiveComponentStore.has(playerEntity)) {
+            const activeCombatStim = this.combatStimActiveComponentStore.get(playerEntity);
+            activeCombatStim.time += deltaTime;
+            if (activeCombatStim.time >= activeCombatStim.maxDuration) {
+                this.combatStimActiveComponentStore.remove(playerEntity);
+            }
+        }
     }
 
     private applyItem(item: InventoryResourceType) {
@@ -166,26 +190,90 @@ export class MedicalItemsSystem implements ISystem {
         if (playerEntity == null) {
             return;
         }
+
         const inventory = this.inventoryComponent.get(playerEntity);
         this.inventoryManager.removeResource(inventory, item, 1);
-        if (item === InventoryResourceType.Healpack) {
-            const health = this.healthComponentStore.get(playerEntity);
-            health.hp += MEDICAL_ITEM_CONFIG[item].healingQuantity;
-            if (health.hp > health.maxHp) {
-                health.hp = health.maxHp;
-            }
-        }
-        if (item === InventoryResourceType.Bandage) {
-            this.healBleedIntentComponentStore.add(playerEntity, new HealBleedIntentComponent())
-        }
-        if (item === InventoryResourceType.CombatStim) {
-            if (this.combatStimActiveComponentStore.has(playerEntity)) {
+        const stimDurationUpgrade = this.inventoryManager.getMedicalUpgradeValueOrDefault(inventory, MedicalShopUpgradeItemType.STIM_DURATION);
+        const medicalEfficiencyUpgrade = this.inventoryManager.getMedicalUpgradeValueOrDefault(inventory, MedicalShopUpgradeItemType.USE_EFFICIENCY);
 
-            } else {
-                this.combatStimActiveComponentStore.add(playerEntity, new CombatStimActiveComponent());
-            }
+        switch (item) {
+            case InventoryResourceType.Healpack:
+                const health = this.healthComponentStore.get(playerEntity);
+                health.hp += MEDICAL_ITEM_CONFIG[item].healingQuantity * medicalEfficiencyUpgrade;
+                if (health.hp > health.maxHp) {
+                    health.hp = health.maxHp;
+                }
+                break;
 
+            case InventoryResourceType.Bandage:
+                this.healBleedIntentComponentStore.add(playerEntity, new HealBleedIntentComponent())
+                break;
+
+            case InventoryResourceType.CombatStim:
+                if (this.combatStimActiveComponentStore.has(playerEntity)) {
+                    const activeCombatStims = this.combatStimActiveComponentStore.get(playerEntity);
+                    activeCombatStims.maxDuration = this.getUpgradedActiveItemDuration(item, stimDurationUpgrade);
+                    if (activeCombatStims.activeSimultaneous <= MEDICAL_ITEM_CONFIG[item].maxSimultaneous) {
+                        activeCombatStims.activeSimultaneous++;
+                    }
+                    if (activeCombatStims.activeSimultaneous > 1 && activeCombatStims.activeSimultaneous < MEDICAL_ITEM_CONFIG[item].maxSimultaneous) {
+                        activeCombatStims.runnningPrecision = true;
+                        activeCombatStims.focusFireImprovement = ((1 - MEDICAL_ITEM_CONFIG[item].focusTimeReduceFactor) * medicalEfficiencyUpgrade) ** activeCombatStims.activeSimultaneous;
+                        activeCombatStims.time = 0;
+                    }
+                    if (activeCombatStims.activeSimultaneous === 3) {
+                        this.deathIntentComponentStore.add(playerEntity, new DeathIntentComponent(playerEntity, DeathIntentReason.MedicalOverdose))
+                    }
+                } else {
+                    this.combatStimActiveComponentStore.add(
+                        playerEntity,
+                        new CombatStimActiveComponent(1, {
+                            maxDuration: this.getUpgradedActiveItemDuration(item, stimDurationUpgrade),
+                        }),
+                    );
+                }
+                break;
+
+            case InventoryResourceType.Epipen:
+                const velocity = this.velocityComponentStore.get(playerEntity);
+                if (this.epipenActiveComponentStore.has(playerEntity)) {
+                    const activeEpipen = this.epipenActiveComponentStore.get(playerEntity);
+                    activeEpipen.maxDuration = this.getUpgradedActiveItemDuration(item, stimDurationUpgrade);
+                    if (activeEpipen.activeSimultaneous <= MEDICAL_ITEM_CONFIG[item].maxSimultaneous) {
+                        activeEpipen.activeSimultaneous++;
+                    }
+                    if (activeEpipen.activeSimultaneous > 1 && activeEpipen.activeSimultaneous < MEDICAL_ITEM_CONFIG[item].maxSimultaneous) {
+                        activeEpipen.undyingEffect = true;
+                        activeEpipen.velocityIncreaseFactor = (MEDICAL_ITEM_CONFIG[item].velocityIncreaseFactor * medicalEfficiencyUpgrade) ** activeEpipen.activeSimultaneous;
+                        this.applyVelocityBuff(velocity, activeEpipen.velocityIncreaseFactor);
+                        activeEpipen.time = 0;
+                    }
+                    if (activeEpipen.activeSimultaneous === MEDICAL_ITEM_CONFIG[item].maxSimultaneous) {
+                        activeEpipen.undyingEffect = false;
+                        this.deathIntentComponentStore.add(playerEntity, new DeathIntentComponent(playerEntity, DeathIntentReason.MedicalOverdose))
+                    }
+                } else {
+                    this.epipenActiveComponentStore.add(
+                        playerEntity,
+                        new EpipenActiveComponent(1, {
+                            maxDuration: this.getUpgradedActiveItemDuration(item, stimDurationUpgrade),
+                        }),
+                    );
+                    const activeEpipen = this.epipenActiveComponentStore.get(playerEntity);
+                    this.applyVelocityBuff(velocity, activeEpipen.velocityIncreaseFactor);
+                    //note: restore base velocity when epipen wears off
+                }
+                break;
         }
+    }
+
+    private getUpgradedActiveItemDuration(item: MedicalItemType, durationFactor: number): number {
+        return MEDICAL_ITEM_CONFIG[item].duration * durationFactor;
+    }
+
+    private applyVelocityBuff(velocity: VelocityComponent, velocityFactor: number) {
+        velocity.currentVelocityX = velocity.baseVelocityX * velocityFactor;
+        velocity.currentVelocityY = velocity.baseVelocityY * velocityFactor;
     }
 
     private onKeyDown = (event: KeyboardEvent): void => {

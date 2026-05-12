@@ -6,6 +6,19 @@ export type MedicalItemType =
     | InventoryResourceType.Healpack
     | InventoryResourceType.Bandage;
 
+export type MedicalActiveEffectConfig = {
+    maxDuration?: number;
+    time?: number;
+    runnningPrecision?: boolean;
+    focusFireImprovement?: number;
+    velocityIncreaseFactor?: number;
+    undyingEffect?: boolean;
+};
+
+export type CombatStimEffectConfig = MedicalActiveEffectConfig;
+
+export type EpipenEffectConfig = MedicalActiveEffectConfig;
+
 export type MedicalItemConfig = {
     useTime: number;
     healingQuantity: number;
@@ -13,6 +26,7 @@ export type MedicalItemConfig = {
     focusTimeReduceFactor: number;
     duration: number;
     maxSimultaneous: number;
+    effect?: MedicalActiveEffectConfig;
 };
 
 export const MEDICAL_ITEM_CONFIG: Record<MedicalItemType, MedicalItemConfig> = {
@@ -23,6 +37,10 @@ export const MEDICAL_ITEM_CONFIG: Record<MedicalItemType, MedicalItemConfig> = {
         focusTimeReduceFactor: 0,
         duration: 60,
         maxSimultaneous: 3,
+        effect: {
+            velocityIncreaseFactor: 1.5,
+            undyingEffect: true,
+        },
     },
     [InventoryResourceType.CombatStim]: {
         useTime: 1,
@@ -30,7 +48,11 @@ export const MEDICAL_ITEM_CONFIG: Record<MedicalItemType, MedicalItemConfig> = {
         velocityIncreaseFactor: 0,
         focusTimeReduceFactor: 1.5,
         duration: 60,
-        maxSimultaneous: 2,
+        maxSimultaneous: 3,
+        effect: {
+            runnningPrecision: false,
+            focusFireImprovement: 1.5,
+        },
     },
     [InventoryResourceType.Healpack]: {
         useTime: 3,

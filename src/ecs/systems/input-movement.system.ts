@@ -12,7 +12,7 @@ export class InputMovementSystem implements ISystem {
         private positionComponentStore: ComponentStore<PositionComponent>,
         private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
         private playerComponentStore: ComponentStore<PlayerComponent>,
-        private velocityComponentStore: ComponentStore<VelocityComponent>
+        private velocityComponentStore: ComponentStore<VelocityComponent>,
     ) { }
 
     update(deltaTime: number): void {

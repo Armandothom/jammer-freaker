@@ -8,21 +8,28 @@ import {
     InventoryResourceType,
     SHOTGUN_SHELLS_PER_BOX,
 } from "./types/inventory-resource-type.js";
+import {
+    normalizeStoredMedicalShopUpgradeLevel,
+    type MedicalShopUpgradeItemType,
+} from "./types/medical-shop-upgrade-item-config.js";
 import { WeaponType } from "./types/weapon-config.js";
 
 export class InventoryComponent {
     public weapons: Map<WeaponType, OwnedWeaponState>;
     public resources: Map<InventoryResourceType, number>;
     public equippedWeaponType: WeaponType | null;
+    public medicalUpgrades: Map<MedicalShopUpgradeItemType, number>;
 
     constructor(
         weapons?: Map<WeaponType, OwnedWeaponState>,
         resources?: Map<InventoryResourceType, number>,
         equippedWeaponType: WeaponType | null = null,
+        medicalUpgrades?: Map<MedicalShopUpgradeItemType, number>,
     ) {
         this.weapons = weapons ?? new Map<WeaponType, OwnedWeaponState>();
         this.resources = resources ?? new Map<InventoryResourceType, number>();
         this.equippedWeaponType = equippedWeaponType;
+        this.medicalUpgrades = medicalUpgrades ?? new Map<MedicalShopUpgradeItemType, number>();
     }
 
     public toSnapshot(): InventorySnapshot {
@@ -48,10 +55,20 @@ export class InventoryComponent {
             resourceSnapshots.set(resourceType, amount);
         }
 
+        const medicalUpgradeSnapshots = new Map<MedicalShopUpgradeItemType, number>();
+
+        for (const [upgradeType, level] of this.medicalUpgrades.entries()) {
+            medicalUpgradeSnapshots.set(
+                upgradeType,
+                normalizeStoredMedicalShopUpgradeLevel(level),
+            );
+        }
+
         return new InventorySnapshot(
             weaponSnapshots,
             resourceSnapshots,
             this.equippedWeaponType,
+            medicalUpgradeSnapshots,
         );
     }
 
@@ -96,10 +113,20 @@ export class InventoryComponent {
             resources.delete(InventoryResourceType.ShotgunShellBox);
         }
 
+        const medicalUpgrades = new Map<MedicalShopUpgradeItemType, number>();
+
+        for (const [upgradeType, level] of snapshot.medicalUpgrades?.entries() ?? []) {
+            medicalUpgrades.set(
+                upgradeType,
+                normalizeStoredMedicalShopUpgradeLevel(level),
+            );
+        }
+
         return new InventoryComponent(
             weapons,
             resources,
             snapshot.equippedWeaponType,
+            medicalUpgrades,
         );
     }
 

@@ -4,7 +4,7 @@ import { PlayerComponent } from "../components/player.component.js";
 import { InventoryResourceType } from "../components/types/inventory-resource-type.js";
 import { ComponentStore } from "../core/component-store.js";
 import { InventoryManager } from "../core/inventory-manager.js";
-import { LevelEndReason, LevelManager } from "../core/level-manager.js";
+import { LevelManager } from "../core/level-manager.js";
 
 export class LevelUpdateSystem {
     private levelTime = 0;
@@ -67,7 +67,7 @@ export class LevelUpdateSystem {
             extraMoney,
         };
         this.levelCompleted = false;
-        this.levelManager.endCurrentLevel(LevelEndReason.Victory);
+        this.levelManager.requestShopHubState();
     }
 
     private resetTrackingIfNeeded(): void {

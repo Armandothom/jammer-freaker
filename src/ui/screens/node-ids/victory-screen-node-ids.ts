@@ -13,7 +13,7 @@ export const VICTORY_SCREEN_NODE_IDS = {
     nextMissionButton: {
         root: "victory.prompt.next-mission-button.root",
     },
-    goToShopButton: {
-        root: "victory.prompt.goto-shop-button.root",
+    goToShopHubButton: {
+        root: "victory.prompt.goto-shop-hub-button.root",
     },
 } as const;

@@ -1,4 +1,4 @@
-import { createGoToShopAction, createNextMissionAction } from "../input/victory-ui-action.js";
+import { createGoToShopHubAction, createNextMissionAction } from "../input/victory-ui-action.js";
 import { createUINode } from "../runtime/ui-node.js";
 import type { UIScreen } from "../runtime/ui-screen.js";
 import {
@@ -108,14 +108,14 @@ export class VictoryScreenOverlay implements UIScreen {
                             onClickAction: createNextMissionAction(),
                         }),
                         createButtonWidget({
-                            anchor: VICTORY_SCREEN_SKIN_MAP.goToShopButton.anchor,
+                            anchor: VICTORY_SCREEN_SKIN_MAP.goToShopHubButton.anchor,
                             buttonState: UIButtonState.NORMAL,
                             buttonVariant: UIButtonVariant.PRIMARY,
-                            nodeId: VICTORY_SCREEN_NODE_IDS.goToShopButton.root,
-                            offsetX: VICTORY_SCREEN_SKIN_MAP.goToShopButton.offsetX,
-                            offsetY: VICTORY_SCREEN_SKIN_MAP.goToShopButton.offsetY,
-                            text: VICTORY_SCREEN_SKIN_MAP.goToShopButton.text,
-                            onClickAction: createGoToShopAction(),
+                            nodeId: VICTORY_SCREEN_NODE_IDS.goToShopHubButton.root,
+                            offsetX: VICTORY_SCREEN_SKIN_MAP.goToShopHubButton.offsetX,
+                            offsetY: VICTORY_SCREEN_SKIN_MAP.goToShopHubButton.offsetY,
+                            text: VICTORY_SCREEN_SKIN_MAP.goToShopHubButton.text,
+                            onClickAction: createGoToShopHubAction(),
                         }),
                     ],
                 }),

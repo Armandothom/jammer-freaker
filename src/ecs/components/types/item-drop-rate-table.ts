@@ -46,6 +46,26 @@ export const ItemDropRateTable: Record<InventoryResourceType, DropEntry> = {
         quantity: 1,
     },
 
+    [InventoryResourceType.Epipen]: {
+        chance: 0,
+        quantity: 1,
+    },
+
+    [InventoryResourceType.CombatStim]: {
+        chance: 0,
+        quantity: 1,
+    },
+
+    [InventoryResourceType.Healpack]: {
+        chance: 0,
+        quantity: 1,
+    },
+
+    [InventoryResourceType.Bandage]: {
+        chance: 0,
+        quantity: 1,
+    },
+
     [InventoryResourceType.Money]: {
         chance: 0,
         quantity: 100,

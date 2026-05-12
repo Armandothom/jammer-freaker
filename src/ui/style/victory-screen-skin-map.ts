@@ -40,10 +40,10 @@ export const VICTORY_SCREEN_SKIN_MAP = {
     text: "Next Mission",
     width: 120,
   },
-  goToShopButton: {
+  goToShopHubButton: {
     anchor: "bottom-right" as UIAnchor,
     offsetX: 18,
     offsetY: 20,
-    text: "Shop",
+    text: "Shop Hub",
   },
 } as const;

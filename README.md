@@ -37,20 +37,20 @@ Current production screens:
   `src/ui/view-models/hud.view-model.ts`
   `src/ui/style/hud-skin-map.ts`
   Activated from `src/ecs/core/gameplay-system-runner.ts`
-- Shop:
-  `src/ui/screens/shop.screen.ts`
-  `src/ui/presenters/shop.presenter.ts`
-  `src/ui/view-models/shop.view-model.ts`
-  `src/ui/style/shop-skin-map.ts`
+- Guns Shop:
+  `src/ui/screens/guns-shop.screen.ts`
+  `src/ui/presenters/guns-shop.presenter.ts`
+  `src/ui/view-models/guns-shop.view-model.ts`
+  `src/ui/style/guns-shop-skin-map.ts`
   Activated from `src/ecs/core/shop-system-runner.ts`
 
 Shared config that is still used by the new UI:
 
 - Inventory resource icon sizes:
   `src/ecs/components/types/inventory-resource-sprite-config.ts`
-- Shop dialog spawning:
+- Guns Shop dialog spawning:
   `src/ecs/entities/dialog-entity-factory.ts`
-  `src/ecs/systems/shop-interaction-dialog.system.ts`
+  `src/ecs/systems/guns-shop-interaction-dialog.system.ts`
 
 ## Adding A New Screen
 
@@ -87,12 +87,12 @@ Typical flow:
 2. Import that widget into the target screen in `src/ui/screens/*.screen.ts`.
 3. Add a stable node id if the widget needs runtime updates:
    `src/ui/screens/hud-node-ids.ts`
-   `src/ui/screens/shop-node-ids.ts`
+   `src/ui/screens/node-ids/guns-shop-node-ids.ts`
 4. If the widget is dynamic, extend the screen view model in `src/ui/view-models/*.view-model.ts`.
 5. Map domain state into that widget data in `src/ui/presenters/*.presenter.ts`.
 6. Patch the widget nodes from the owning runtime system:
    `src/ecs/systems/hud-runtime.system.ts`
-   `src/ecs/systems/shop-runtime.system.ts`
+   `src/ecs/systems/guns-shop-runtime.system.ts`
 7. If the widget is clickable, add actions under `src/ui/input/` and handle them in a controller under `src/ecs/core/`.
 
 Rule of thumb:
@@ -143,6 +143,6 @@ Call `setBaseScreen`, `pushOverlay`, `popOverlay`, and `clearOverlays` from the 
 Today that means:
 
 - Gameplay UI changes belong in `src/ecs/core/gameplay-system-runner.ts`
-- Shop UI changes belong in `src/ecs/core/shop-system-runner.ts`
+- Guns Shop UI changes belong in `src/ecs/core/shop-system-runner.ts`
 
 If a future feature needs global routing across multiple game states, that routing should still decide screen activation from a runner or manager layer, not from inside a widget or presenter.

@@ -24,9 +24,9 @@ export class VictoryPresenter {
                 text: VICTORY_SCREEN_SKIN_MAP.nextMissionButton.text,
                 visible: overlayVisible,
             },
-            goToShopButton: {
+            goToShopHubButton: {
                 buttonState: UIButtonState.NORMAL,
-                text: VICTORY_SCREEN_SKIN_MAP.goToShopButton.text,
+                text: VICTORY_SCREEN_SKIN_MAP.goToShopHubButton.text,
                 visible: overlayVisible,
             },
         };

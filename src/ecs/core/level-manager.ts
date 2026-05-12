@@ -84,12 +84,22 @@ export class LevelManager {
         this.startNextLevelWithInventorySnapshot(this.captureCurrentPlayerInventorySnapshot());
     }
 
-    public requestShopState(): boolean {
+    public requestGunsShopState(): boolean {
         if (!this.gameManager) {
             return false;
         }
 
-        this.gameManager.requestShopState();
+        this.gameManager.requestGunsShopState();
+        this.stateTransitionRequested = true;
+        return true;
+    }
+
+    public requestShopHubState(): boolean {
+        if (!this.gameManager) {
+            return false;
+        }
+
+        this.gameManager.requestShopHubState();
         this.stateTransitionRequested = true;
         return true;
     }

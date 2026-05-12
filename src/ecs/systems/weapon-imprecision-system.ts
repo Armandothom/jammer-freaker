@@ -1,3 +1,4 @@
+import { CombatStimActiveComponent } from "../components/combat-stim-active-component.js";
 import { FocusFireIntentComponent } from "../components/focus-fire-intent.component.js";
 import { InventoryComponent } from "../components/inventory-component.js";
 import { MovementImprecisionIntentComponent } from "../components/movement-imprecision-intent.component.js";
@@ -46,6 +47,7 @@ export class WeaponImprecisionSystem implements ISystem {
         private shootingRecoilIntentComponentStore: ComponentStore<ShootingRecoilIntentComponent>,
         private focusFireIntentComponent: ComponentStore<FocusFireIntentComponent>,
         private inventoryComponentStore: ComponentStore<InventoryComponent>,
+        private combatStimActiveComponentStore: ComponentStore<CombatStimActiveComponent>,
     ) { }
     update(deltaTime: number): void {
         const context = this.resolveContext();
@@ -95,7 +97,13 @@ export class WeaponImprecisionSystem implements ISystem {
 
         this.standingStillTime += deltaTime;
 
-        if (this.standingStillTime >= focusFireTime && !this.focusFireIntentComponent.has(context.playerEntity)) {
+        let focusFireImprovement = 1
+
+        if (this.combatStimActiveComponentStore.has(context.playerEntity)) {
+            focusFireImprovement = this.combatStimActiveComponentStore.get(context.playerEntity).focusFireImprovement;
+        }
+
+        if (this.standingStillTime >= focusFireTime * focusFireImprovement && !this.focusFireIntentComponent.has(context.playerEntity)) {
             this.focusFireIntentComponent.add(context.playerEntity, new FocusFireIntentComponent());
         }
     }

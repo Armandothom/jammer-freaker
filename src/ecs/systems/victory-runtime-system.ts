@@ -49,17 +49,17 @@ export class VictoryRuntimeSystem implements ISystem {
             spriteName: UI_BUTTON_CONFIG[UIButtonVariant.PRIMARY].states[viewModel.nextMissionButton.buttonState].spriteName,
         });
 
-        binder.setVisibility(VICTORY_SCREEN_NODE_IDS.goToShopButton.root, viewModel.goToShopButton.visible);
-        binder.patchText(VICTORY_SCREEN_NODE_IDS.goToShopButton.root, {
-            text: viewModel.goToShopButton.text,
+        binder.setVisibility(VICTORY_SCREEN_NODE_IDS.goToShopHubButton.root, viewModel.goToShopHubButton.visible);
+        binder.patchText(VICTORY_SCREEN_NODE_IDS.goToShopHubButton.root, {
+            text: viewModel.goToShopHubButton.text,
         });
 
-        binder.patchInteraction(VICTORY_SCREEN_NODE_IDS.goToShopButton.root, {
-            disabled: viewModel.goToShopButton.buttonState === UIButtonState.DISABLED,
+        binder.patchInteraction(VICTORY_SCREEN_NODE_IDS.goToShopHubButton.root, {
+            disabled: viewModel.goToShopHubButton.buttonState === UIButtonState.DISABLED,
         });
 
-        binder.patchSprite(VICTORY_SCREEN_NODE_IDS.goToShopButton.root, {
-            spriteName: UI_BUTTON_CONFIG[UIButtonVariant.PRIMARY].states[viewModel.goToShopButton.buttonState].spriteName,
+        binder.patchSprite(VICTORY_SCREEN_NODE_IDS.goToShopHubButton.root, {
+            spriteName: UI_BUTTON_CONFIG[UIButtonVariant.PRIMARY].states[viewModel.goToShopHubButton.buttonState].spriteName,
         });
 
         this.uiRuntime.relayout();

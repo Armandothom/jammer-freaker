@@ -11,5 +11,5 @@ export type VictoryViewModel = {
     promptText: string;
     missionStats: string;
     nextMissionButton: VictoryButtonViewModel;
-    goToShopButton: VictoryButtonViewModel;
+    goToShopHubButton: VictoryButtonViewModel;
 };
