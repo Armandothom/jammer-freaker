@@ -391,6 +391,7 @@ export class RenderSystem implements ISystem {
           width: spriteWidth,
           angleRotation,
           offsetRotation: aimComponent?.pivotPointSprite || 0,
+          opacity: uiRuntimeElement?.opacity,
           zLevel,
         });
       }
@@ -623,6 +624,7 @@ export class RenderSystem implements ISystem {
         width: glyph.width,
         angleRotation: null,
         offsetRotation: 0,
+        opacity: uiRuntimeElement?.opacity,
         zLevel: baseZLevel + 0.01,
       });
     }

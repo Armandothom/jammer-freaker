@@ -83,10 +83,10 @@ export class ShootingSystem implements ISystem {
         if (this.pendingMouseDownShot) {
             this.pendingMouseDownShot = false;
             if (canAttemptShot) {
-                this.pushShotIntent(false); // first shot from a mouse press
+                this.pushShotIntent(deltaTime, false); // first shot from a mouse press
             }
         } else if (this.isMouseDown && canAttemptShot) {
-            this.pushShotIntent(true); // isHold = true
+            this.pushShotIntent(deltaTime, true); // isHold = true
         }
         if (isGrenade) {
             this.pushGrenadeIntent();
@@ -136,7 +136,7 @@ export class ShootingSystem implements ISystem {
         const weaponAttachment = weaponAttachments.find((weaponAttachmentEntry) => weaponAttachmentEntry[1].parentEntityId == playerId)!;
         const weaponEntityId = weaponAttachment[0];
         const baseAnchor = resolveWeaponAttachmentBaseAnchor(
-            this.positionComponentStore.get(playerId),
+            this.resolveEffectiveShooterPosition(playerId),
             this.spriteComponentStore.get(playerId),
             weaponAttachment[1],
         );
@@ -159,7 +159,7 @@ export class ShootingSystem implements ISystem {
         };
     }
 
-    private pushShotIntent(isHold: boolean) {
+    private pushShotIntent(deltaTime: number, isHold: boolean) {
         const playerEntity = this.playerComponentStore.getAllEntities()[0];
         const weaponWielded = this.inventoryComponentStore.get(playerEntity).equippedWeaponType;
         const inventory = this.inventoryComponentStore.get(playerEntity)
@@ -180,21 +180,21 @@ export class ShootingSystem implements ISystem {
             return;
         }
 
-        let playerPos: { x: number, y: number } | undefined;
-
-        playerPos = this.positionComponentStore.get(playerEntity);
-
         if (!this.debugManager.isDebugPointerActive) {
             const weaponConfig = WeaponConfig[weaponWielded]
+            const weaponStats = this.weaponStatsComponentStore.getOrNull(playerEntity);
             this.shootingRecoilIntentComponentStore.add(playerEntity, new ShootingRecoilIntentComponent(weaponConfig.shootingRecoil!))
-            const spreadRadius = this.spreadRadiusComponentStore.get(playerEntity).spreadRadius;
+            const spreadRadius = this.resolveSpreadRadius(playerEntity, weaponWielded);
             let shotTarget = this.randomShotWithinSpread(spreadRadius);
             if (weaponWielded === WeaponType.SHOTGUN) {
                 shotTarget = this.currentMousePos;
             }
-            if (this.combatStimActive(playerEntity)) {
-                shotTarget = this.resolveShotTargetWithMovementCompensation(playerEntity, shotTarget);
-            }
+            shotTarget = this.resolveShotTargetWithCombatStimPrecision(
+                playerEntity,
+                shotTarget,
+                weaponStats?.projectileVelocity ?? weaponConfig.projectileVelocity,
+                deltaTime,
+            );
             this.intentShotComponentStore.add(playerEntity, new IntentShotComponent(
                 shotTarget.x,
                 shotTarget.y,
@@ -204,25 +204,160 @@ export class ShootingSystem implements ISystem {
         }
     }
 
-    private combatStimActive(playerEntity: number): boolean {
-        return this.combatStimActiveComponentStore.getOrNull(playerEntity)?.runnningPrecision === true;
-    }
-
-    private resolveShotTargetWithMovementCompensation(playerEntity: number, shotTarget: ShotTarget): ShotTarget {
-        const movementIntent = this.movementIntentComponentStore.getOrNull(playerEntity);
-        if (!movementIntent) {
+    private resolveShotTargetWithCombatStimPrecision(
+        playerEntity: number,
+        shotTarget: ShotTarget,
+        projectileVelocity: number | null,
+        deltaTime: number,
+    ): ShotTarget {
+        const combatStim = this.combatStimActiveComponentStore.getOrNull(playerEntity);
+        if (!combatStim?.runnningPrecision) {
             return shotTarget;
         }
 
-        const currentPosition = this.positionComponentStore.getOrNull(playerEntity);
-        if (!currentPosition) {
+        const followFactor = this.clamp01(combatStim.runAndGunCrosshairFollowFactor);
+        if (followFactor <= 0) {
             return shotTarget;
+        }
+
+        const crosshairTarget = {
+            x: shotTarget.x + (this.currentMousePos.x - shotTarget.x) * followFactor,
+            y: shotTarget.y + (this.currentMousePos.y - shotTarget.y) * followFactor,
+        };
+
+        const leadFactor = this.clampNonNegative(combatStim.runAndGunCameraLeadFactor);
+        if (leadFactor <= 0 || projectileVelocity == null || projectileVelocity <= 0 || deltaTime <= 0) {
+            return crosshairTarget;
+        }
+
+        const movementDelta = this.resolveShooterMovementDelta(playerEntity);
+        if (movementDelta.x === 0 && movementDelta.y === 0) {
+            return crosshairTarget;
+        }
+
+        const aimOrigin = this.resolvePlayerAimBaseAnchor(playerEntity);
+        const cameraVelocity = {
+            x: movementDelta.x / deltaTime,
+            y: movementDelta.y / deltaTime,
+        };
+        const travelTime = this.resolveProjectileTravelTime(
+            aimOrigin,
+            crosshairTarget,
+            cameraVelocity,
+            projectileVelocity,
+        );
+
+        if (travelTime <= 0) {
+            return crosshairTarget;
         }
 
         return {
-            x: shotTarget.x + (movementIntent.x - currentPosition.x),
-            y: shotTarget.y + (movementIntent.y - currentPosition.y),
+            x: crosshairTarget.x + cameraVelocity.x * travelTime * leadFactor,
+            y: crosshairTarget.y + cameraVelocity.y * travelTime * leadFactor,
         };
+    }
+
+    private resolveSpreadRadius(playerEntity: number, weaponType: WeaponType): number {
+        const spread = this.spreadRadiusComponentStore.getOrNull(playerEntity);
+        if (spread) {
+            return spread.spreadRadius;
+        }
+
+        const fallbackRadius = WeaponConfig[weaponType].spreadMinRadius ?? 0;
+        this.spreadRadiusComponentStore.add(
+            playerEntity,
+            new SpreadRadiusComponent(fallbackRadius),
+        );
+
+        return fallbackRadius;
+    }
+
+    private resolveEffectiveShooterPosition(playerEntity: number): PositionComponent {
+        return this.movementIntentComponentStore.getOrNull(playerEntity)
+            ?? this.positionComponentStore.get(playerEntity);
+    }
+
+    private resolveShooterMovementDelta(playerEntity: number): ShotTarget {
+        const movementIntent = this.movementIntentComponentStore.getOrNull(playerEntity);
+        const currentPosition = this.positionComponentStore.getOrNull(playerEntity);
+
+        if (!movementIntent || !currentPosition) {
+            return { x: 0, y: 0 };
+        }
+
+        return {
+            x: movementIntent.x - currentPosition.x,
+            y: movementIntent.y - currentPosition.y,
+        };
+    }
+
+    private resolvePlayerAimBaseAnchor(playerEntity: number): ShotTarget {
+        const weaponAttachment = this.weaponAttachmentComponentStore
+            .getValuesAndEntityId()
+            .find((weaponAttachmentEntry) => weaponAttachmentEntry[1].parentEntityId == playerEntity);
+
+        if (!weaponAttachment) {
+            return this.resolveEffectiveShooterPosition(playerEntity);
+        }
+
+        return resolveWeaponAttachmentBaseAnchor(
+            this.resolveEffectiveShooterPosition(playerEntity),
+            this.spriteComponentStore.get(playerEntity),
+            weaponAttachment[1],
+        );
+    }
+
+    private resolveProjectileTravelTime(
+        aimOrigin: ShotTarget,
+        target: ShotTarget,
+        targetVelocity: ShotTarget,
+        projectileVelocity: number,
+    ): number {
+        const targetDelta = {
+            x: target.x - aimOrigin.x,
+            y: target.y - aimOrigin.y,
+        };
+        const a = targetVelocity.x * targetVelocity.x
+            + targetVelocity.y * targetVelocity.y
+            - projectileVelocity * projectileVelocity;
+        const b = 2 * (targetDelta.x * targetVelocity.x + targetDelta.y * targetVelocity.y);
+        const c = targetDelta.x * targetDelta.x + targetDelta.y * targetDelta.y;
+
+        if (Math.abs(a) < 0.0001) {
+            return b !== 0
+                ? Math.max(0, -c / b)
+                : Math.sqrt(c) / projectileVelocity;
+        }
+
+        const discriminant = b * b - 4 * a * c;
+        if (discriminant < 0) {
+            return Math.sqrt(c) / projectileVelocity;
+        }
+
+        const sqrtDiscriminant = Math.sqrt(discriminant);
+        const timeA = (-b - sqrtDiscriminant) / (2 * a);
+        const timeB = (-b + sqrtDiscriminant) / (2 * a);
+        const positiveTimes = [timeA, timeB].filter((time) => time > 0);
+
+        return positiveTimes.length > 0
+            ? Math.min(...positiveTimes)
+            : Math.sqrt(c) / projectileVelocity;
+    }
+
+    private clamp01(value: number): number {
+        if (!Number.isFinite(value)) {
+            return 0;
+        }
+
+        return Math.max(0, Math.min(value, 1));
+    }
+
+    private clampNonNegative(value: number): number {
+        if (!Number.isFinite(value)) {
+            return 0;
+        }
+
+        return Math.max(0, value);
     }
 
     private randomShotWithinSpread(spreadRadius: number): ShotTarget {

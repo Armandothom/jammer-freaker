@@ -7,9 +7,11 @@ import { CameraManager } from "../../game/world/camera-manager.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { UIActionRouter } from "../../ui/input/ui-action-router.js";
 import { UIInputSystem } from "../../ui/input/ui-input-system.js";
+import { CombatShopPresenter } from "../../ui/presenters/combat-shop.presenter.js";
 import { GunsShopPresenter } from "../../ui/presenters/guns-shop.presenter.js";
 import { MedicalShopPresenter } from "../../ui/presenters/medical-shop.presenter.js";
 import { UIRuntime } from "../../ui/runtime/ui-runtime.js";
+import { CombatShopScreen } from "../../ui/screens/combat-shop.screen.js";
 import { GunsShopScreen } from "../../ui/screens/guns-shop.screen.js";
 import { MedicalShopScreen } from "../../ui/screens/medical-shop.screen.js";
 import { ShopHubScreen } from "../../ui/screens/shop-hub.screen.js";
@@ -40,6 +42,8 @@ import type { InventorySnapshot } from "../components/snapshots/inventory-snapsh
 import { SpriteComponent } from "../components/sprite.component.js";
 import { TransformComponent } from "../components/transform-component.js";
 import { GunsShopDialogIntentComponent } from "../components/guns-shop-dialog-intent.component.js";
+import { CombatShopInventoryState } from "../components/states/combat-shop-inventory-state.js";
+import { CombatShopTabState } from "../components/states/combat-shop-tab-state.js";
 import { GunsShopInventoryState } from "../components/states/guns-shop-inventory-state.js";
 import { GunsShopTabState } from "../components/states/guns-shop-tab-state.js";
 import { GunsShopUpgradeTabState } from "../components/states/guns-shop-upgrade-tab-state.js";
@@ -49,6 +53,7 @@ import { UIRuntimeElementComponent } from "../components/ui-runtime-element.comp
 import { WallHitComponent } from "../components/wall-hit.component.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
 import { ZLayerComponent } from "../components/z-layer.component.js";
+import { CombatShopActionController } from "./combat-shop-action-controller.js";
 import { GUNS_SHOP_DIALOG_FALLBACK_MAX_WIDTH } from "./dialog-text-layout.js";
 import { DialogManager } from "./dialog-manager.js";
 import { GunsShopActionController } from "./guns-shop-action-controller.js";
@@ -63,6 +68,7 @@ import { GameState } from "./types/game-state.enum.js";
 import { AnimationSetterSystem } from "../systems/animation-setter-system.js";
 import { AnimationSpriteSystem } from "../systems/animation-sprite-system.js";
 import { RenderSystem } from "../systems/render-system.js";
+import { CombatShopRuntimeSystem } from "../systems/combat-shop-runtime.system.js";
 import { GunsShopInteractionDialogSystem } from "../systems/guns-shop-interaction-dialog.system.js";
 import { GunsShopRuntimeSystem } from "../systems/guns-shop-runtime.system.js";
 import { MedicalShopRuntimeSystem } from "../systems/medical-shop-runtime.system.js";
@@ -75,7 +81,8 @@ import { UIRuntimeEntityFactory } from "../entities/ui-runtime-entity-factory.js
 type ActiveShopState =
     | GameState.ShopHubState
     | GameState.GunsShopState
-    | GameState.MedicalShopState;
+    | GameState.MedicalShopState
+    | GameState.CombatShopState;
 
 export class ShopSystemRunner {
     private worldTilemapManager = new WorldTilemapManager();
@@ -123,11 +130,15 @@ export class ShopSystemRunner {
     private gunsShopUpgradeTabState: GunsShopUpgradeTabState;
     private medicalShopInventoryState: MedicalShopInventoryState;
     private medicalShopTabState: MedicalShopTabState;
+    private combatShopInventoryState: CombatShopInventoryState;
+    private combatShopTabState: CombatShopTabState;
     private shopHubActionController: ShopHubActionController;
     private gunsShopActionController: GunsShopActionController;
     private medicalShopActionController: MedicalShopActionController;
+    private combatShopActionController: CombatShopActionController;
     private gunsShopRuntimeSystem: GunsShopRuntimeSystem;
     private medicalShopRuntimeSystem: MedicalShopRuntimeSystem;
+    private combatShopRuntimeSystem: CombatShopRuntimeSystem;
     private uiRuntime: UIRuntime;
     private uiRuntimeInputSystem: UIRuntimeInputSystem;
     private uiRuntimeSyncSystem: UIRuntimeSyncSystem;
@@ -148,12 +159,15 @@ export class ShopSystemRunner {
         this.gunsShopUpgradeTabState = new GunsShopUpgradeTabState();
         this.medicalShopInventoryState = new MedicalShopInventoryState();
         this.medicalShopTabState = new MedicalShopTabState();
+        this.combatShopInventoryState = new CombatShopInventoryState();
+        this.combatShopTabState = new CombatShopTabState();
         this.cameraManager = new CameraManager(this.worldTilemapManager);
         this.dialogManager = new DialogManager();
         this.uiRuntime = new UIRuntime();
         this.uiRuntime.registerScreen(new ShopHubScreen());
         this.uiRuntime.registerScreen(new GunsShopScreen());
         this.uiRuntime.registerScreen(new MedicalShopScreen());
+        this.uiRuntime.registerScreen(new CombatShopScreen());
         this.visibilityManager = new VisibilityManager();
         this.cameraManager.follow(this.worldTilemapManager.worldWidth / 2, this.worldTilemapManager.worldHeight / 2);
 
@@ -236,6 +250,7 @@ export class ShopSystemRunner {
             () => this.gameManager?.requestGameplayState(),
             () => this.gameManager?.requestGunsShopState(),
             () => this.gameManager?.requestMedicalShopState(),
+            () => this.gameManager?.requestCombatShopState(),
         );
         this.gunsShopActionController = new GunsShopActionController(
             this.entityManager,
@@ -244,12 +259,17 @@ export class ShopSystemRunner {
             this.gunsShopUpgradeTabState,
             this.gunsShopDialogIntentComponentStore,
             this.gunDealerComponentStore,
-            () => this.gameManager?.requestGameplayState(),
+            () => this.gameManager?.requestShopHubState(),
         );
         this.medicalShopActionController = new MedicalShopActionController(
             this.medicalShopInventoryState,
             this.medicalShopTabState,
-            () => this.gameManager?.requestGameplayState(),
+            () => this.gameManager?.requestShopHubState(),
+        );
+        this.combatShopActionController = new CombatShopActionController(
+            this.combatShopInventoryState,
+            this.combatShopTabState,
+            () => this.gameManager?.requestShopHubState(),
         );
         this.gunsShopInteractionDialogSystem = new GunsShopInteractionDialogSystem(
             this.dialogEntityFactory,
@@ -273,12 +293,20 @@ export class ShopSystemRunner {
                 this.medicalShopTabState,
             ),
         );
+        this.combatShopRuntimeSystem = new CombatShopRuntimeSystem(
+            this.uiRuntime,
+            new CombatShopPresenter(
+                this.combatShopInventoryState,
+                this.combatShopTabState,
+            ),
+        );
         this.uiRuntimeInputSystem = new UIRuntimeInputSystem(
             new UIInputSystem(this.uiRuntime),
             new UIActionRouter([
                 this.shopHubActionController,
                 this.gunsShopActionController,
                 this.medicalShopActionController,
+                this.combatShopActionController,
             ]),
         );
         this.uiRuntimeSyncSystem = new UIRuntimeSyncSystem(this.uiRuntime, uiRuntimeEntityFactory);
@@ -321,12 +349,14 @@ export class ShopSystemRunner {
         this.inventorySnapshot = inventorySnapshot;
         this.gunsShopInventoryState.initializeFromSnapshot(inventorySnapshot);
         this.medicalShopInventoryState.initializeFromSnapshot(inventorySnapshot);
+        this.combatShopInventoryState.initializeFromSnapshot(inventorySnapshot);
     }
 
     syncInventorySnapshot(inventorySnapshot: InventorySnapshot | null): void {
         this.inventorySnapshot = inventorySnapshot;
         this.gunsShopInventoryState.applyInventorySnapshot(inventorySnapshot);
         this.medicalShopInventoryState.applyInventorySnapshot(inventorySnapshot);
+        this.combatShopInventoryState.applyInventorySnapshot(inventorySnapshot);
     }
 
     captureInventorySnapshot(): InventorySnapshot | null {
@@ -336,6 +366,8 @@ export class ShopSystemRunner {
             this.inventorySnapshot = this.gunsShopInventoryState.createSnapshot();
         } else if (activeState === GameState.MedicalShopState) {
             this.inventorySnapshot = this.medicalShopInventoryState.createSnapshot();
+        } else if (activeState === GameState.CombatShopState) {
+            this.inventorySnapshot = this.combatShopInventoryState.createSnapshot();
         }
 
         return this.inventorySnapshot;
@@ -371,6 +403,10 @@ export class ShopSystemRunner {
                 this.medicalShopRuntimeSystem.update(CoreManager.timeSinceLastRender);
                 return;
 
+            case GameState.CombatShopState:
+                this.combatShopRuntimeSystem.update(CoreManager.timeSinceLastRender);
+                return;
+
             case GameState.ShopHubState:
                 this.uiRuntime.relayout();
                 return;
@@ -385,6 +421,9 @@ export class ShopSystemRunner {
             case GameState.MedicalShopState:
                 return "medical-shop";
 
+            case GameState.CombatShopState:
+                return "combat-shop";
+
             case GameState.ShopHubState:
                 return "shop-hub";
         }
@@ -393,7 +432,8 @@ export class ShopSystemRunner {
     private isShopState(state: GameState): state is ActiveShopState {
         return state === GameState.ShopHubState
             || state === GameState.GunsShopState
-            || state === GameState.MedicalShopState;
+            || state === GameState.MedicalShopState
+            || state === GameState.CombatShopState;
     }
 
     private clearSceneState(): void {
@@ -439,6 +479,8 @@ export class ShopSystemRunner {
         this.gunsShopUpgradeTabState.reset();
         this.medicalShopInventoryState.reset();
         this.medicalShopTabState.reset();
+        this.combatShopInventoryState.reset();
+        this.combatShopTabState.reset();
         this.uiRuntimeInputSystem.reset();
         this.uiRuntime.reset();
         this.activeShopState = null;

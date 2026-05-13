@@ -19,7 +19,7 @@ import {
   createBuyGunsShopUpgradeAction,
   createBuyGunsShopWeaponAction,
   createNavigateGunsShopUpgradeTabsAction,
-  createReturnFromGunsShopToGameplayAction,
+  createReturnFromGunsShopToHubAction,
   createSelectGunsShopTabAction,
   createSelectGunsShopUpgradeTabAction,
 } from "../input/guns-shop-ui-actions.js";
@@ -93,8 +93,8 @@ export class GunsShopScreen implements UIScreen {
           nodeId: GUNS_SHOP_NODE_IDS.returnButton,
           offsetX: GUNS_SHOP_SKIN_MAP.returnButton.offsetX,
           offsetY: GUNS_SHOP_SKIN_MAP.returnButton.offsetY,
-          onClickAction: createReturnFromGunsShopToGameplayAction(),
-          text: "Next mission",
+          onClickAction: createReturnFromGunsShopToHubAction(),
+          text: "Return to Hub",
         }),
         createUINode({
           children: GUNS_SHOP_WEAPON_ITEMS_ORDER.map((itemType, index) => {

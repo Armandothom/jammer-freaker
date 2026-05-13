@@ -31,7 +31,7 @@ export class GunsShopActionController implements UIActionHandler {
     private gunsShopUpgradeTabState: GunsShopUpgradeTabState,
     private gunsShopDialogIntentComponentStore: ComponentStore<GunsShopDialogIntentComponent>,
     private gunDealerComponentStore: ComponentStore<GunDealerComponent>,
-    private requestGameplayState: () => void,
+    private requestShopHubState: () => void,
   ) { }
 
   public handle(action: UIAction): boolean {
@@ -54,8 +54,8 @@ export class GunsShopActionController implements UIActionHandler {
       case GUNS_SHOP_UI_ACTION.BUY_UPGRADE:
         return this.handleBuyUpgrade(action);
 
-      case GUNS_SHOP_UI_ACTION.RETURN_TO_GAMEPLAY:
-        this.requestGameplayState();
+      case GUNS_SHOP_UI_ACTION.RETURN_TO_HUB:
+        this.requestShopHubState();
         return true;
 
       default:

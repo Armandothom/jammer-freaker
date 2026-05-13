@@ -10,7 +10,7 @@ export class MedicalShopActionController implements UIActionHandler {
     constructor(
         private medicalShopInventoryState: MedicalShopInventoryState,
         private medicalShopTabState: MedicalShopTabState,
-        private requestGameplayState: () => void,
+        private requestShopHubState: () => void,
     ) { }
 
     public handle(action: UIAction): boolean {
@@ -21,8 +21,8 @@ export class MedicalShopActionController implements UIActionHandler {
             case MEDICAL_SHOP_UI_ACTION.BUY_UPGRADE:
                 return this.handleBuyUpgrade(action);
 
-            case MEDICAL_SHOP_UI_ACTION.RETURN_TO_GAMEPLAY:
-                this.requestGameplayState();
+            case MEDICAL_SHOP_UI_ACTION.RETURN_TO_HUB:
+                this.requestShopHubState();
                 return true;
 
             case MEDICAL_SHOP_UI_ACTION.SELECT_TAB:

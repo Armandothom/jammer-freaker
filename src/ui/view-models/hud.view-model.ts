@@ -6,8 +6,32 @@ export type HudViewModel = {
     countText: string;
   };
   health: {
+    bleedStacksText: string;
+    bleeding: boolean;
     fillRatio: number;
     text: string;
+  };
+  medicalApply: {
+    fillRatio: number;
+    playerScreenX: number;
+    playerScreenY: number;
+    playerSpriteHeight: number;
+    playerSpriteWidth: number;
+    visible: boolean;
+  };
+  medicalItems: {
+    bandage: {
+      countText: string;
+    };
+    combatStim: {
+      countText: string;
+    };
+    epipen: {
+      countText: string;
+    };
+    healpack: {
+      countText: string;
+    };
   };
   mags: {
     countText: string;

@@ -13,6 +13,7 @@ export class SpriteBatchRenderer {
   private readonly positionBuffer: WebGLBuffer;
   private readonly uvBuffer: WebGLBuffer;
   private readonly localUvBuffer: WebGLBuffer;
+  private readonly alphaBuffer: WebGLBuffer;
   private readonly textureLocation: WebGLUniformLocation | null;
   private readonly debugModeLocation: WebGLUniformLocation | null;
 
@@ -25,8 +26,9 @@ export class SpriteBatchRenderer {
     const positionBuffer = gl.createBuffer();
     const uvBuffer = gl.createBuffer();
     const localUvBuffer = gl.createBuffer();
+    const alphaBuffer = gl.createBuffer();
 
-    if (!vao || !positionBuffer || !uvBuffer || !localUvBuffer) {
+    if (!vao || !positionBuffer || !uvBuffer || !localUvBuffer || !alphaBuffer) {
       throw new Error("Unable to allocate sprite batch buffers.");
     }
 
@@ -34,12 +36,14 @@ export class SpriteBatchRenderer {
     this.positionBuffer = positionBuffer;
     this.uvBuffer = uvBuffer;
     this.localUvBuffer = localUvBuffer;
+    this.alphaBuffer = alphaBuffer;
     this.textureLocation = gl.getUniformLocation(program, "u_texture");
     this.debugModeLocation = gl.getUniformLocation(program, "debug_mode");
 
     const positionAttribLocation = gl.getAttribLocation(program, "a_position");
     const uvAttribLocation = gl.getAttribLocation(program, "a_uv");
     const localUvAttribLocation = gl.getAttribLocation(program, "a_local_uv");
+    const alphaAttribLocation = gl.getAttribLocation(program, "a_alpha");
 
     gl.bindVertexArray(this.vao);
 
@@ -54,6 +58,12 @@ export class SpriteBatchRenderer {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.localUvBuffer);
     gl.enableVertexAttribArray(localUvAttribLocation);
     gl.vertexAttribPointer(localUvAttribLocation, 2, gl.FLOAT, false, 0, 0);
+
+    if (alphaAttribLocation >= 0) {
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.alphaBuffer);
+      gl.enableVertexAttribArray(alphaAttribLocation);
+      gl.vertexAttribPointer(alphaAttribLocation, 1, gl.FLOAT, false, 0, 0);
+    }
 
     gl.bindVertexArray(null);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
@@ -111,9 +121,11 @@ export class SpriteBatchRenderer {
       const vertices: number[] = [];
       const textureUvs: number[] = [];
       const localUvs: number[] = [];
+      const alphas: number[] = [];
 
       for (const renderObject of groupedRenderObjects) {
         const zLevel = options.overrideZLevel ?? renderObject.zLevel;
+        const alpha = this.clampOpacity(renderObject.opacity ?? 1);
         const angle = renderObject.angleRotation ?? 0;
         const cosine = Math.cos(angle);
         const sine = Math.sin(angle);
@@ -150,6 +162,7 @@ export class SpriteBatchRenderer {
 
         textureUvs.push(...renderObject.uvCoordinates);
         localUvs.push(...uvBorderPattern);
+        alphas.push(alpha, alpha, alpha, alpha, alpha, alpha);
       }
 
       gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -163,10 +176,21 @@ export class SpriteBatchRenderer {
       gl.bindBuffer(gl.ARRAY_BUFFER, this.localUvBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(localUvs), gl.DYNAMIC_DRAW);
 
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.alphaBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(alphas), gl.DYNAMIC_DRAW);
+
       gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 3);
     }
 
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.bindVertexArray(null);
+  }
+
+  private clampOpacity(opacity: number): number {
+    if (!Number.isFinite(opacity)) {
+      return 1;
+    }
+
+    return Math.max(0, Math.min(opacity, 1));
   }
 }

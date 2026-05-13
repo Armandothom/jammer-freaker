@@ -6,7 +6,7 @@ import type { UIAction } from "./ui-action.js";
 export const MEDICAL_SHOP_UI_ACTION = {
     BUY_RESOURCE: "medical-shop.buy-resource",
     BUY_UPGRADE: "medical-shop.buy-upgrade",
-    RETURN_TO_GAMEPLAY: "medical-shop.return-to-gameplay",
+    RETURN_TO_HUB: "medical-shop.return-to-hub",
     SELECT_TAB: "medical-shop.select-tab",
 } as const;
 
@@ -24,9 +24,9 @@ export function createBuyMedicalShopUpgradeAction(upgradeType: MedicalShopUpgrad
     };
 }
 
-export function createReturnFromMedicalShopToGameplayAction(): UIAction {
+export function createReturnFromMedicalShopToHubAction(): UIAction {
     return {
-        type: MEDICAL_SHOP_UI_ACTION.RETURN_TO_GAMEPLAY,
+        type: MEDICAL_SHOP_UI_ACTION.RETURN_TO_HUB,
     };
 }
 

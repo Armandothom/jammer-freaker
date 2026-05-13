@@ -10,6 +10,8 @@ export type MedicalActiveEffectConfig = {
     maxDuration?: number;
     time?: number;
     runnningPrecision?: boolean;
+    runAndGunCrosshairFollowFactor?: number;
+    runAndGunCameraLeadFactor?: number;
     focusFireImprovement?: number;
     velocityIncreaseFactor?: number;
     undyingEffect?: boolean;
@@ -50,8 +52,10 @@ export const MEDICAL_ITEM_CONFIG: Record<MedicalItemType, MedicalItemConfig> = {
         duration: 60,
         maxSimultaneous: 3,
         effect: {
-            runnningPrecision: false,
-            focusFireImprovement: 1.5,
+            runnningPrecision: true,
+            runAndGunCrosshairFollowFactor: 1,
+            runAndGunCameraLeadFactor: 1,
+            focusFireImprovement: 0.66,
         },
     },
     [InventoryResourceType.Healpack]: {

@@ -6,9 +6,43 @@ export const HUD_NODE_IDS = {
   },
   health: {
     background: "hud.health.background",
+    bleedIcon: "hud.health.bleed.icon",
+    bleedRoot: "hud.health.bleed.root",
+    bleedText: "hud.health.bleed.text",
     fill: "hud.health.fill",
     root: "hud.health.root",
     text: "hud.health.text",
+  },
+  medicalApply: {
+    background: "hud.medical-apply.background",
+    fill: "hud.medical-apply.fill",
+    root: "hud.medical-apply.root",
+  },
+  medicalItems: {
+    bandage: {
+      icon: "hud.medical-items.bandage.icon",
+      key: "hud.medical-items.bandage.key",
+      quantity: "hud.medical-items.bandage.quantity",
+      root: "hud.medical-items.bandage.root",
+    },
+    combatStim: {
+      icon: "hud.medical-items.combat-stim.icon",
+      key: "hud.medical-items.combat-stim.key",
+      quantity: "hud.medical-items.combat-stim.quantity",
+      root: "hud.medical-items.combat-stim.root",
+    },
+    epipen: {
+      icon: "hud.medical-items.epipen.icon",
+      key: "hud.medical-items.epipen.key",
+      quantity: "hud.medical-items.epipen.quantity",
+      root: "hud.medical-items.epipen.root",
+    },
+    healpack: {
+      icon: "hud.medical-items.healpack.icon",
+      key: "hud.medical-items.healpack.key",
+      quantity: "hud.medical-items.healpack.quantity",
+      root: "hud.medical-items.healpack.root",
+    },
   },
   money: {
     text: "hud.money.text",

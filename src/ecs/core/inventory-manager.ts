@@ -7,6 +7,14 @@ import {
     InventoryResourceType,
 } from "../components/types/inventory-resource-type.js";
 import {
+    getCombatShopUpgradeLevelConfig,
+    normalizeStoredCombatShopUpgradeLevel,
+    type CombatShopUpgradeDisplayValue,
+    type CombatShopUpgradeLevel,
+    type CombatShopUpgradeType,
+    type StoredCombatShopUpgradeLevel,
+} from "../components/types/combat-shop-upgrade-config.js";
+import {
     getMedicalShopUpgradeLevelConfig,
     normalizeStoredMedicalShopUpgradeLevel,
     type MedicalShopUpgradeDisplayValue,
@@ -162,6 +170,50 @@ export class InventoryManager {
         defaultValue: MedicalShopUpgradeDisplayValue = 1,
     ): MedicalShopUpgradeDisplayValue {
         return this.getMedicalUpgradeValue(inventory, upgradeType) ?? defaultValue;
+    }
+
+    public getCombatUpgradeLevel(
+        inventory: InventoryComponent,
+        upgradeType: CombatShopUpgradeType,
+    ): StoredCombatShopUpgradeLevel {
+        return normalizeStoredCombatShopUpgradeLevel(
+            inventory.combatUpgrades.get(upgradeType) ?? 0,
+        );
+    }
+
+    public setCombatUpgradeLevel(
+        inventory: InventoryComponent,
+        upgradeType: CombatShopUpgradeType,
+        level: number,
+    ): void {
+        inventory.combatUpgrades.set(
+            upgradeType,
+            normalizeStoredCombatShopUpgradeLevel(level),
+        );
+    }
+
+    public getCombatUpgradeValue(
+        inventory: InventoryComponent,
+        upgradeType: CombatShopUpgradeType,
+    ): CombatShopUpgradeDisplayValue | null {
+        const level = this.getCombatUpgradeLevel(inventory, upgradeType);
+
+        if (level <= 0) {
+            return null;
+        }
+
+        return getCombatShopUpgradeLevelConfig(
+            upgradeType,
+            level as CombatShopUpgradeLevel,
+        ).value;
+    }
+
+    public getCombatUpgradeValueOrDefault(
+        inventory: InventoryComponent,
+        upgradeType: CombatShopUpgradeType,
+        defaultValue: CombatShopUpgradeDisplayValue = 1,
+    ): CombatShopUpgradeDisplayValue {
+        return this.getCombatUpgradeValue(inventory, upgradeType) ?? defaultValue;
     }
 
     public getRoundsInMag(

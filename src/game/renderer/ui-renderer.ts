@@ -15,13 +15,16 @@ export class UIRenderer {
       attribute vec3 a_position;
       attribute vec2 a_uv;
       attribute vec2 a_local_uv;
+      attribute float a_alpha;
       varying vec2 v_uv;
       varying vec2 v_local_uv;
+      varying float v_alpha;
 
       void main() {
         gl_Position = vec4(a_position, 1.0);
         v_uv = a_uv;
         v_local_uv = a_local_uv;
+        v_alpha = a_alpha;
       }
     `;
 
@@ -29,6 +32,7 @@ export class UIRenderer {
       precision mediump float;
       varying vec2 v_uv;
       varying vec2 v_local_uv;
+      varying float v_alpha;
       uniform sampler2D u_texture;
       uniform bool debug_mode;
 
@@ -40,16 +44,17 @@ export class UIRenderer {
           v_local_uv.y > (1.0 - border);
 
         if (isBorder && debug_mode) {
-          gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+          gl_FragColor = vec4(0.0, 0.0, 0.0, v_alpha);
           return;
         }
 
         vec4 texColor = texture2D(u_texture, v_uv);
-        if (texColor.a == 0.0) {
+        float alpha = texColor.a * v_alpha;
+        if (alpha <= 0.0) {
           discard;
         }
 
-        gl_FragColor = texColor;
+        gl_FragColor = vec4(texColor.rgb, alpha);
       }
     `;
 

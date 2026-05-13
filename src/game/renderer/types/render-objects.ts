@@ -13,4 +13,5 @@ export abstract class RenderObject {
   width!: number;
   angleRotation!: number | null
   offsetRotation!: number
+  opacity?: number
 }

@@ -5,7 +5,7 @@ import { ComponentStore } from "../core/component-store.js";
 import { ISystem } from "./system.interface.js";
 
 export class BleedingSystem implements ISystem {
-    private bleedDPS: number = 10;
+    private bleedDPS: number = 2;
     private maxBleedStacks: number = 2;
 
     constructor(
@@ -24,16 +24,31 @@ export class BleedingSystem implements ISystem {
         for (const entity of this.bleedIntentComponentStore.getAllEntities()) {
             const bleedIntent = this.bleedIntentComponentStore.get(entity);
             if (this.bleedingSucess(bleedIntent.bleedChance) === true) {
-                if (!this.bleedDamageComponentStore.has(entity)) {
-                    this.bleedDamageComponentStore.add(entity, new BleedDamageComponent(this.bleedDPS, 1));
-                }
-                if (this.bleedDamageComponentStore.has(entity) && this.bleedDamageComponentStore.get(entity).bleedStacks < this.maxBleedStacks) {
-                    this.bleedDamageComponentStore.get(entity).bleedStacks++;
-                }
-
+                this.applyBleedStack(entity, bleedIntent.bleedingStacks ?? 1);
             }
             this.bleedIntentComponentStore.remove(entity);
         }
+    }
+
+    private applyBleedStack(entity: number, stacksToApply: number): void {
+        const normalizedStacksToApply = Math.max(1, stacksToApply);
+        const bleedDamage = this.bleedDamageComponentStore.getOrNull(entity);
+
+        if (!bleedDamage) {
+            this.bleedDamageComponentStore.add(
+                entity,
+                new BleedDamageComponent(
+                    this.bleedDPS,
+                    Math.min(normalizedStacksToApply, this.maxBleedStacks),
+                ),
+            );
+            return;
+        }
+
+        bleedDamage.bleedStacks = Math.min(
+            bleedDamage.bleedStacks + normalizedStacksToApply,
+            this.maxBleedStacks,
+        );
     }
 
     private tryHealBleeding(): void {

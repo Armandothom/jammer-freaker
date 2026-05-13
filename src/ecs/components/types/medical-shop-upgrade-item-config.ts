@@ -1,4 +1,5 @@
 export const MedicalShopUpgradeItemType = {
+    MAX_HEALTH: "max_health",
     USE_EFFICIENCY: "use_efficiency",
     STIM_DURATION: "stim_duration",
     MEDICAL_EFFECTIVENESS: "medical_effectiveness",
@@ -32,6 +33,17 @@ export const MEDICAL_SHOP_UPGRADE_ITEM_CONFIG: Record<
     MedicalShopUpgradeItemType,
     MedicalShopUpgradeItemConfig
 > = {
+    [MedicalShopUpgradeItemType.MAX_HEALTH]: {
+        name: "Fortitude",
+        description: "Increases your Max Health.",
+        levels: {
+            1: { price: 700, value: 1.25 },
+            2: { price: 1400, value: 1.5 },
+            3: { price: 2100, value: 2 },
+        },
+        maxLevel: 3,
+        order: 0,
+    },
     [MedicalShopUpgradeItemType.USE_EFFICIENCY]: {
         name: "Usage Efficiency",
         description: "Reduces medical item use time.",
@@ -41,7 +53,7 @@ export const MEDICAL_SHOP_UPGRADE_ITEM_CONFIG: Record<
             3: { price: 2100, value: 0.7 },
         },
         maxLevel: 3,
-        order: 0,
+        order: 1,
     },
     [MedicalShopUpgradeItemType.STIM_DURATION]: {
         name: "Stim duration",
@@ -52,7 +64,7 @@ export const MEDICAL_SHOP_UPGRADE_ITEM_CONFIG: Record<
             3: { price: 2100, value: 1.75 },
         },
         maxLevel: 3,
-        order: 1,
+        order: 2,
     },
     [MedicalShopUpgradeItemType.MEDICAL_EFFECTIVENESS]: {
         name: "Medical Effectiveness",
@@ -63,7 +75,7 @@ export const MEDICAL_SHOP_UPGRADE_ITEM_CONFIG: Record<
             3: { price: 2700, value: 1.5 },
         },
         maxLevel: 3,
-        order: 2,
+        order: 3,
     },
 };
 

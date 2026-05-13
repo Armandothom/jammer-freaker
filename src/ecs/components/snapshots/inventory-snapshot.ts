@@ -1,3 +1,4 @@
+import type { CombatShopUpgradeType } from "../types/combat-shop-upgrade-config.js";
 import type { MedicalShopUpgradeItemType } from "../types/medical-shop-upgrade-item-config.js";
 import { InventoryResourceType } from "../types/inventory-resource-type.js";
 import { WeaponType } from "../types/weapon-config.js";
@@ -9,5 +10,6 @@ export class InventorySnapshot {
         public readonly resources: ReadonlyMap<InventoryResourceType, number>,
         public readonly equippedWeaponType: WeaponType | null,
         public readonly medicalUpgrades: ReadonlyMap<MedicalShopUpgradeItemType, number> = new Map<MedicalShopUpgradeItemType, number>(),
+        public readonly combatUpgrades: ReadonlyMap<CombatShopUpgradeType, number> = new Map<CombatShopUpgradeType, number>(),
     ) { }
 }

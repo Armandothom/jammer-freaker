@@ -217,7 +217,10 @@ export class MedicalItemsSystem implements ISystem {
                         activeCombatStims.activeSimultaneous++;
                     }
                     if (activeCombatStims.activeSimultaneous > 1 && activeCombatStims.activeSimultaneous < MEDICAL_ITEM_CONFIG[item].maxSimultaneous) {
-                        activeCombatStims.runnningPrecision = true;
+                        const combatStimEffect = MEDICAL_ITEM_CONFIG[item].effect;
+                        activeCombatStims.runnningPrecision = combatStimEffect?.runnningPrecision ?? activeCombatStims.runnningPrecision;
+                        activeCombatStims.runAndGunCrosshairFollowFactor = combatStimEffect?.runAndGunCrosshairFollowFactor ?? activeCombatStims.runAndGunCrosshairFollowFactor;
+                        activeCombatStims.runAndGunCameraLeadFactor = combatStimEffect?.runAndGunCameraLeadFactor ?? activeCombatStims.runAndGunCameraLeadFactor;
                         activeCombatStims.focusFireImprovement = ((1 - MEDICAL_ITEM_CONFIG[item].focusTimeReduceFactor) * medicalEfficiencyUpgrade) ** activeCombatStims.activeSimultaneous;
                         activeCombatStims.time = 0;
                     }

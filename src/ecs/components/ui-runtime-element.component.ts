@@ -3,5 +3,6 @@ export class UIRuntimeElementComponent {
     public nodeId: string,
     public screenId: string,
     public renderOrder: number,
+    public opacity: number = 1,
   ) { }
 }

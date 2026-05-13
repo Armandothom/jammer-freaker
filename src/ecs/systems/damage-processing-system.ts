@@ -20,6 +20,11 @@ export class DamageProcessingSystem implements ISystem {
     ) { }
 
     update(deltaTime: number): void {
+        this.processDamageTakenIntents();
+        this.processBleedDamage(deltaTime);
+    }
+
+    private processDamageTakenIntents(): void {
         for (const entity of this.damageTakenIntentComponentStore.getAllEntities()) {
             const damageTakenIntent = this.damageTakenIntentComponentStore.get(entity);
             const health = this.healthComponentStore.get(entity);
@@ -32,10 +37,6 @@ export class DamageProcessingSystem implements ISystem {
                 health.hp -= damage;
                 const bleedChance = this.fetchBleedChance(damagingEntity, damageSource);
                 this.bleedIntentComponentStore.add(entity, new BleedIntentComponent(bleedChance));
-                if (this.bleedDamageComponentStore.has(entity)) {
-                    const bleedDamage = this.bleedProcess(deltaTime, this.bleedDamageComponentStore.get(entity));
-                    health.hp -= bleedDamage;
-                }
                 if (health.hp <= 0) {
                     if (!this.deathIntentComponentStore.has(entity)) {
                         this.deathIntentComponentStore.add(entity, new DeathIntentComponent(damagingEntity));
@@ -44,6 +45,25 @@ export class DamageProcessingSystem implements ISystem {
             }
 
             this.damageTakenIntentComponentStore.remove(entity);
+        }
+    }
+
+    private processBleedDamage(deltaTime: number): void {
+        for (const entity of this.bleedDamageComponentStore.getAllEntities()) {
+            const health = this.healthComponentStore.getOrNull(entity);
+            if (!health || health.hp <= 0) {
+                continue;
+            }
+
+            const bleedDamage = this.bleedProcess(deltaTime, this.bleedDamageComponentStore.get(entity));
+            if (bleedDamage <= 0) {
+                continue;
+            }
+
+            health.hp -= bleedDamage;
+            if (health.hp <= 0 && !this.deathIntentComponentStore.has(entity)) {
+                this.deathIntentComponentStore.add(entity, new DeathIntentComponent(entity));
+            }
         }
     }
 

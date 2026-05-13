@@ -2,6 +2,7 @@ import type { UIAction } from "./ui-action.js";
 
 export const SHOP_HUB_UI_ACTION = {
     GO_TO_GAMEPLAY: "shop-hub.go-to-gameplay",
+    GO_TO_COMBAT_SHOP: "shop-hub.go-to-combat-shop",
     GO_TO_GUNS_SHOP: "shop-hub.go-to-guns-shop",
     GO_TO_MEDICAL_SHOP: "shop-hub.go-to-medical-shop",
 } as const;
@@ -15,6 +16,12 @@ export function createGoToGameplayFromShopHubAction(): UIAction {
 export function createGoToGunsShopFromShopHubAction(): UIAction {
     return {
         type: SHOP_HUB_UI_ACTION.GO_TO_GUNS_SHOP,
+    };
+}
+
+export function createGoToCombatShopFromShopHubAction(): UIAction {
+    return {
+        type: SHOP_HUB_UI_ACTION.GO_TO_COMBAT_SHOP,
     };
 }
 

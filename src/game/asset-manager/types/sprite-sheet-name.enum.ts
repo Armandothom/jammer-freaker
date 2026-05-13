@@ -31,4 +31,5 @@ export enum SpriteSheetName {
   END_LEVEL_PROMPTS = "end_level_prompt",
   MUZZLE_FLASH = "muzzle_flash",
   CROSSHAIR = "crosshair",
+  APPLY_BAR = "apply_bar",
 }

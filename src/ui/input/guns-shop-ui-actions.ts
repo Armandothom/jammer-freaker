@@ -10,7 +10,7 @@ export const GUNS_SHOP_UI_ACTION = {
   BUY_UPGRADE: "guns-shop.buy-upgrade",
   BUY_WEAPON: "guns-shop.buy-weapon",
   NAVIGATE_UPGRADE_TABS: "guns-shop.navigate-upgrade-tabs",
-  RETURN_TO_GAMEPLAY: "guns-shop.return-to-gameplay",
+  RETURN_TO_HUB: "guns-shop.return-to-hub",
   SELECT_TAB: "guns-shop.select-tab",
   SELECT_UPGRADE_TAB: "guns-shop.select-upgrade-tab",
 } as const;
@@ -43,9 +43,9 @@ export function createNavigateGunsShopUpgradeTabsAction(direction: "left" | "rig
   };
 }
 
-export function createReturnFromGunsShopToGameplayAction(): UIAction {
+export function createReturnFromGunsShopToHubAction(): UIAction {
   return {
-    type: GUNS_SHOP_UI_ACTION.RETURN_TO_GAMEPLAY,
+    type: GUNS_SHOP_UI_ACTION.RETURN_TO_HUB,
   };
 }
 

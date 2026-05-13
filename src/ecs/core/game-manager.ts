@@ -63,6 +63,7 @@ export class GameManager {
             case GameState.ShopHubState:
             case GameState.GunsShopState:
             case GameState.MedicalShopState:
+            case GameState.CombatShopState:
                 this.shopSystemRunner.update();
                 return;
 
@@ -85,6 +86,10 @@ export class GameManager {
         this.requestShopState(GameState.MedicalShopState);
     }
 
+    requestCombatShopState(): void {
+        this.requestShopState(GameState.CombatShopState);
+    }
+
     requestGameplayState(): void {
         if (this.activeState === GameState.GameplayState) {
             return;
@@ -99,7 +104,7 @@ export class GameManager {
         console.log("[GameManager] Inventory snapshot:", this.inventorySnapshot);
     }
 
-    private requestShopState(nextState: GameState.ShopHubState | GameState.GunsShopState | GameState.MedicalShopState): void {
+    private requestShopState(nextState: GameState.ShopHubState | GameState.GunsShopState | GameState.MedicalShopState | GameState.CombatShopState): void {
         if (this.activeState === nextState) {
             return;
         }
@@ -120,10 +125,11 @@ export class GameManager {
         console.log("[GameManager] Inventory snapshot:", this.inventorySnapshot);
     }
 
-    private isShopState(state: GameState): state is GameState.ShopHubState | GameState.GunsShopState | GameState.MedicalShopState {
+    private isShopState(state: GameState): state is GameState.ShopHubState | GameState.GunsShopState | GameState.MedicalShopState | GameState.CombatShopState {
         return state === GameState.ShopHubState
             || state === GameState.GunsShopState
-            || state === GameState.MedicalShopState;
+            || state === GameState.MedicalShopState
+            || state === GameState.CombatShopState;
     }
 
     getCurrentState(): GameState {

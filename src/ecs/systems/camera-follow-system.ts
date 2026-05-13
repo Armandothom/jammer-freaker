@@ -1,5 +1,6 @@
 import { CameraManager } from "../../game/world/camera-manager.js";
 import { CameraComponent } from "../components/camera-component.js";
+import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { ISystem } from "./system.interface.js";
@@ -8,6 +9,7 @@ export class CameraFollowSystem implements ISystem {
     constructor(
         private cameraComponentStore: ComponentStore<CameraComponent>,
         private positionComponentStore: ComponentStore<PositionComponent>,
+        private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
         private cameraManager: CameraManager,
     ) { }
 
@@ -18,7 +20,9 @@ export class CameraFollowSystem implements ISystem {
 
         const entity = cameraEntities[0];
         const position = this.positionComponentStore.get(entity);
+        const movementIntent = this.movementIntentComponentStore.getOrNull(entity);
+        const cameraTarget = movementIntent ?? position;
 
-        this.cameraManager.follow(position.x, position.y);
+        this.cameraManager.follow(cameraTarget.x, cameraTarget.y);
     }
 }

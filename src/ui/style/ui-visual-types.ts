@@ -16,6 +16,7 @@ export type UISpriteVisual = {
   spriteSheetName: SpriteSheetName;
   width?: number;
   height?: number;
+  opacity?: number;
   rotationOffset?: number;
   clip?: UISpriteClip;
 };
@@ -27,6 +28,7 @@ export type UITextVisual = {
   maxWidth?: number | null;
   autoWrap?: boolean;
   horizontalAlign?: UITextHorizontalAlign;
+  opacity?: number;
 };
 
 export type UIVisual = {

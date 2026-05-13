@@ -1,6 +1,10 @@
+import { BleedDamageComponent } from "../../ecs/components/bleed-damage.component.js";
 import { HealthComponent } from "../../ecs/components/health.component.js";
 import { InventoryComponent } from "../../ecs/components/inventory-component.js";
+import { MedicalItemUseComponent } from "../../ecs/components/medical-item-use.component.js";
 import { PlayerComponent } from "../../ecs/components/player.component.js";
+import { PositionComponent } from "../../ecs/components/position.component.js";
+import { SpriteComponent } from "../../ecs/components/sprite.component.js";
 import { INVENTORY_RESOURCE_SPRITE_CONFIG } from "../../ecs/components/types/inventory-resource-sprite-config.js";
 import { InventoryResourceType } from "../../ecs/components/types/inventory-resource-type.js";
 import { PlayerInitialProperties } from "../../ecs/components/types/player-properties.js";
@@ -8,6 +12,7 @@ import { WeaponType } from "../../ecs/components/types/weapon-config.js";
 import { ComponentStore } from "../../ecs/core/component-store.js";
 import { InventoryManager } from "../../ecs/core/inventory-manager.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
+import { CameraManager } from "../../game/world/camera-manager.js";
 import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import type { HudViewModel } from "../view-models/hud.view-model.js";
 
@@ -25,6 +30,11 @@ export class HudPresenter {
     private inventoryComponentStore: ComponentStore<InventoryComponent>,
     private playerComponentStore: ComponentStore<PlayerComponent>,
     private healthComponentStore: ComponentStore<HealthComponent>,
+    private bleedDamageComponentStore: ComponentStore<BleedDamageComponent>,
+    private medicalItemUseComponentStore: ComponentStore<MedicalItemUseComponent>,
+    private positionComponentStore: ComponentStore<PositionComponent>,
+    private spriteComponentStore: ComponentStore<SpriteComponent>,
+    private cameraManager: CameraManager,
   ) { }
 
   public buildViewModel(): HudViewModel | null {
@@ -49,14 +59,33 @@ export class HudPresenter {
     const money = this.inventoryManager.getResourceAmount(inventory, InventoryResourceType.Money);
     const maxHp = Math.max(health.maxHp, 1);
     const fillRatio = Math.max(0, Math.min(health.hp / maxHp, 1));
+    const bleedDamage = this.bleedDamageComponentStore.getOrNull(playerEntity);
+    const medicalApply = this.buildMedicalApplyViewModel(playerEntity);
 
     return {
       grenades: {
         countText: this.formatHudCounter(grenadeCount),
       },
       health: {
+        bleeding: bleedDamage != null,
+        bleedStacksText: `x${bleedDamage?.bleedStacks ?? 0}`,
         fillRatio,
-        text: `${health.hp}/${this.playerInitialProperties.hp}`,
+        text: `${health.hp}/${health.maxHp}`,
+      },
+      medicalApply,
+      medicalItems: {
+        bandage: {
+          countText: this.formatHudCounter(this.inventoryManager.getResourceAmount(inventory, InventoryResourceType.Bandage)),
+        },
+        combatStim: {
+          countText: this.formatHudCounter(this.inventoryManager.getResourceAmount(inventory, InventoryResourceType.CombatStim)),
+        },
+        epipen: {
+          countText: this.formatHudCounter(this.inventoryManager.getResourceAmount(inventory, InventoryResourceType.Epipen)),
+        },
+        healpack: {
+          countText: this.formatHudCounter(this.inventoryManager.getResourceAmount(inventory, InventoryResourceType.Healpack)),
+        },
       },
       mags: {
         countText: this.formatHudCounter(magCount),
@@ -74,6 +103,40 @@ export class HudPresenter {
       weaponAmmo: {
         roundsInMagText: this.formatHudCounter(roundsInMag),
       },
+    };
+  }
+
+  private buildMedicalApplyViewModel(playerEntity: number): HudViewModel["medicalApply"] {
+    const medicalItemUse = this.medicalItemUseComponentStore.getOrNull(playerEntity);
+    const playerPosition = this.positionComponentStore.getOrNull(playerEntity);
+    const playerSprite = this.spriteComponentStore.getOrNull(playerEntity);
+
+    if (!medicalItemUse || !playerPosition || !playerSprite) {
+      return this.buildHiddenMedicalApplyViewModel();
+    }
+
+    const viewport = this.cameraManager.getViewport();
+    const applyTime = Math.max(medicalItemUse.applyTime, Number.EPSILON);
+    const fillRatio = Math.max(0, Math.min(medicalItemUse.timer / applyTime, 1));
+
+    return {
+      fillRatio,
+      playerScreenX: playerPosition.x - viewport.left,
+      playerScreenY: playerPosition.y - viewport.top,
+      playerSpriteHeight: playerSprite.height,
+      playerSpriteWidth: playerSprite.width,
+      visible: true,
+    };
+  }
+
+  private buildHiddenMedicalApplyViewModel(): HudViewModel["medicalApply"] {
+    return {
+      fillRatio: 0,
+      playerScreenX: 0,
+      playerScreenY: 0,
+      playerSpriteHeight: 0,
+      playerSpriteWidth: 0,
+      visible: false,
     };
   }
 

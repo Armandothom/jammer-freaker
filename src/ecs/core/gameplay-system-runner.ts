@@ -392,16 +392,16 @@ export class GameplaySystemRunner {
     this.enemyLifecicleSystem = new EnemyLifecicleSystem(this.positionComponentStore, this.playerComponentStore, this.enemyComponentStore, this.enemyDeadComponentStore, this.entityFactory, this.worldTilemapManager, this.spriteManager, this.soundManager, this.freezeManager, this.spriteComponentStore, this.worldTilemapManager);
     this.levelManager = new LevelManager(this.enemyLifecicleSystem, this.worldTilemapManager, this.cameraManager, this.zoneFactory, this.entityFactory, this.playerComponentStore, this.positionComponentStore, this.movementIntentComponentStore, this.inventoryComponentStore, this.healthComponentStore, this.playerInitialProperties, this.uiManager);
     this.levelUpdateSystem = new LevelUpdateSystem(this.levelManager, this.inventoryManager, this.playerComponentStore, this.enemyDeadComponentStore, this.inventoryComponentStore);
-    this.inventoryDebugSystem = new InventoryDebugSystem(this.inventoryManager, this.inventoryComponentStore, this.playerComponentStore, this.healthComponentStore, this.damageTakenIntentComponentStore, this.weatherManager);
+    this.inventoryDebugSystem = new InventoryDebugSystem(this.inventoryManager, this.inventoryComponentStore, this.playerComponentStore, this.healthComponentStore, this.damageTakenIntentComponentStore, this.bleedIntentComponentStore, this.weatherManager);
     this.inputMovementSystem = new InputMovementSystem(this.positionComponentStore, this.movementIntentComponentStore, this.playerComponentStore, this.velocityComponentStore);
     this.shootingSystem = new ShootingSystem(this.playerComponentStore, this.intentShotComponentStore, this.positionComponentStore, this.spriteComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.intentGrenadeComponentStore, this.weaponComponentStore, this.intentMeleeComponentStore, this.disableAimComponentStore, this.inventoryComponentStore, this.reloadIntentComponentStore, this.shootingCooldownComponentStore, this.weaponStatsComponentStore, this.shootingRecoilIntentComponentStore, this.spreadRadiusComponentStore, this.movementIntentComponentStore, this.combatStimActiveComponentStore, this.cameraManager, this.debugManager, this.inventoryManager);
-    this.projectileSpawnSystem = new ProjectileSpawnSystem(this.spriteManager, this.soundEventBus, this.positionComponentStore, this.spriteComponentStore, this.weaponSpriteAttachmentComponentStore, this.entityFactory, this.intentShotComponentStore, this.shootingCooldownComponentStore, this.bulletFiredComponentStore, this.damageDealtComponentStore, this.weaponStatsComponentStore, this.playerComponentStore, this.enemyComponentStore, this.visualRecoilComponentStore);
+    this.projectileSpawnSystem = new ProjectileSpawnSystem(this.spriteManager, this.soundEventBus, this.positionComponentStore, this.movementIntentComponentStore, this.spriteComponentStore, this.weaponSpriteAttachmentComponentStore, this.entityFactory, this.intentShotComponentStore, this.shootingCooldownComponentStore, this.bulletFiredComponentStore, this.damageDealtComponentStore, this.weaponStatsComponentStore, this.playerComponentStore, this.enemyComponentStore, this.visualRecoilComponentStore, this.inventoryComponentStore, this.inventoryManager);
     this.projectileUpdateSystem = new ProjectileUpdateSystem(this.positionComponentStore, this.projectileComponentStore, this.velocityComponentStore, this.movementIntentComponentStore, this.directionComponentStore);
     this.collisionSystem = new CollisionSystem(this.spriteComponentStore, this.positionComponentStore, this.collisionBoxComponentStore, this.movementIntentComponentStore, this.projectileComponentStore, this.grenadeComponentStore, this.velocityComponentStore, this.shotOriginComponentStore, this.playerComponentStore, this.enemyComponentStore, this.particlesComponentStore, this.spriteManager, this.worldTilemapManager, this.entityFactory);
     this.renderSystem = new RenderSystem(this.renderableComponentStore, this.positionComponentStore, this.screenPositionComponentStore, this.spriteComponentStore, this.spriteClipComponentStore, this.uiRuntimeElementComponentStore, this.cameraManager, this.worldTilemapManager, this.rendererEngine, this.spriteManager, this.directionAnimComponentStore, this.aimShootingComponent, this.transformComponentStore, this.zLayerComponentStore, this.visibilityManager, this.debugManager, this.dialogBubbleSpriteComponentStore, this.bitmapTextComponentStore, this.textManager, this.grenadeComponentStore, this.grenadeExplosionComponentStore, this.grenadeTravelComponentStore);
     this.grenadeSpawnSystem = new GrenadeSpawnSystem(this.positionComponentStore, this.spriteComponentStore, this.weaponSpriteAttachmentComponentStore, this.entityFactory, this.shooterCooldownComponentStore, this.playerComponentStore, this.grenadeCooldownComponentStore, this.grenadeFiredComponentStore, this.intentGrenadeComponentStore, this.soundEventBus);
     this.grenadeUpdateSystem = new GrenadeUpdateSystem(this.entityFactory, this.positionComponentStore, this.grenadeComponentStore, this.velocityComponentStore, this.movementIntentComponentStore, this.fuseTimerComponentStore, this.shotOriginComponentStore, this.grenadeExplosionHitBoxComponentStore, this.awaitingAnimationEndComponentStore, this.grenadeTravelComponentStore, this.spriteComponentStore, this.soundEventBus);
-    this.hitDetectionSystem = new HitDetectionSystem(this.spriteManager, this.entityFactory, this.hitBoxComponentStore, this.movementIntentComponentStore, this.positionComponentStore, this.spriteComponentStore, this.aimShootingComponent, this.projectileComponentStore, this.grenadeComponentStore, this.shotOriginComponentStore, this.damageDealtComponentStore, this.playerComponentStore, this.enemyComponentStore, this.damageTakenIntentComponentStore, this.itemBoxComponentStore, this.corpseComponentStore, this.grenadeExplosionHitBoxComponentStore, this.shapeHitMemoryComponentStore, this.particlesComponentStore);
+    this.hitDetectionSystem = new HitDetectionSystem(this.spriteManager, this.entityFactory, this.hitBoxComponentStore, this.movementIntentComponentStore, this.positionComponentStore, this.spriteComponentStore, this.aimShootingComponent, this.projectileComponentStore, this.grenadeComponentStore, this.shotOriginComponentStore, this.damageDealtComponentStore, this.playerComponentStore, this.enemyComponentStore, this.damageTakenIntentComponentStore, this.itemBoxComponentStore, this.corpseComponentStore, this.grenadeExplosionHitBoxComponentStore, this.shapeHitMemoryComponentStore, this.particlesComponentStore, this.staggerComponentStore);
     this.damageProcessingSystem = new DamageProcessingSystem(
       this.damageTakenIntentComponentStore,
       this.healthComponentStore,
@@ -445,15 +445,15 @@ export class GameplaySystemRunner {
     );
     this.meleeAttackSystem = new MeleeAttackSystem(this.entityFactory, this.playerComponentStore, this.intentMeleeComponentStore, this.movementIntentComponentStore, this.positionComponentStore, this.aimShootingComponent, this.directionAnimComponentStore, this.renderableComponentStore, this.spriteComponentStore, this.weaponSpriteAttachmentComponentStore, this.zLayerComponentStore, this.shootingCooldownComponentStore, this.awaitingAnimationEndComponentStore, this.meleeIntentProcessedComponentStore);
     this.particleEmitterSystem = new ParticleEmitterSystem(this.rendererEngine, this.particlesComponentStore, this.deathParticlesIntentComponentStore, this.deathParticleBurstComponentStore);
-    this.cameraFollowSystem = new CameraFollowSystem(this.cameraComponentStore, this.positionComponentStore, this.cameraManager);
+    this.cameraFollowSystem = new CameraFollowSystem(this.cameraComponentStore, this.positionComponentStore, this.movementIntentComponentStore, this.cameraManager);
     this.dialogSystem = new DialogSystem(this.entityFactory, this.dialogIntentComponentStore, this.dialogComponentStore, this.dialogLifetimeComponentStore, this.dialogAnimComponentStore, this.bitmapTextComponentStore, this.animationComponentStore, this.playerComponentStore, this.positionComponentStore, this.spriteComponentStore);
     this.visibilitySystem = new VisibilitySystem(this.playerComponentStore, this.positionComponentStore, this.worldTilemapManager, this.visibilityManager);
     this.debugProcessor = new DebugProcessorSystem(this.debugManager, this.cameraManager, this.spriteComponentStore, this.positionComponentStore);
     this.inventorySystem = new InventorySystem(this.inventoryManager, this.inventoryComponentStore, this.playerComponentStore, this.bulletFiredComponentStore, this.grenadeFiredComponentStore);
     this.itemDropSpawnSystem = new ItemDropSpawnSystem(this.entityFactory, this.itemDropIntentComponentStore);
     this.itemDropUpdateSystem = new ItemDropUpdateSystem(this.entityFactory, this.spriteManager, this.inventoryManager, this.itemDroppedComponentStore, this.positionComponentStore, this.playerComponentStore, this.spriteComponentStore, this.inventoryComponentStore, this.soundEventBus);
-    this.weaponImprecisionSystem = new WeaponImprecisionSystem(this.playerComponentStore, this.positionComponentStore, this.spreadRadiusComponentStore, this.movementImprecisionIntentComponentStore, this.shootingRecoilIntentComponentStore, this.focusFireIntentComponentStore, this.inventoryComponentStore, this.combatStimActiveComponentStore);
-    this.hudRuntimeSystem = new HudRuntimeSystem(this.uiRuntime, new HudPresenter(this.inventoryManager, this.playerInitialProperties, this.inventoryComponentStore, this.playerComponentStore, this.healthComponentStore));
+    this.weaponImprecisionSystem = new WeaponImprecisionSystem(this.inventoryManager, this.playerComponentStore, this.positionComponentStore, this.spreadRadiusComponentStore, this.movementImprecisionIntentComponentStore, this.shootingRecoilIntentComponentStore, this.focusFireIntentComponentStore, this.inventoryComponentStore, this.combatStimActiveComponentStore);
+    this.hudRuntimeSystem = new HudRuntimeSystem(this.uiRuntime, new HudPresenter(this.inventoryManager, this.playerInitialProperties, this.inventoryComponentStore, this.playerComponentStore, this.healthComponentStore, this.bleedDamageComponentStore, this.medicalItemUseComponentStore, this.positionComponentStore, this.spriteComponentStore, this.cameraManager));
     this.crosshairRuntimeSystem = new CrosshairRuntimeSystem(this.uiRuntime, new CrosshairPresenter(this.inventoryComponentStore, this.playerComponentStore, this.spreadRadiusComponentStore));
     this.deathRuntimeSystem = new DeathRuntimeSystem(this.uiRuntime, new DeathPresenter(this.levelManager));
     this.victoryRuntimeSystem = new VictoryRuntimeSystem(this.uiRuntime, new VictoryPresenter(this.levelManager));
@@ -464,6 +464,7 @@ export class GameplaySystemRunner {
     this.visualEffectsSystem = new VisualEffectsSystem(this.entityFactory, this.intentShotComponentStore, this.animationComponentStore, this.weaponSpriteAttachmentComponentStore, this.parentEntityComponentStore, this.playerComponentStore, this.positionComponentStore, this.aimShootingComponent, this.spriteComponentStore, this.awaitingAnimationEndComponentStore, this.vfxComponentStore)
     this.weatherSystem = new WeatherSystem(this.weatherManager, this.spriteManager, this.rendererEngine, this.soundManager);
     this.audioSystem = new AudioSystem(this.soundManager, this.soundEventBus);
+    this.levelManager.onBeforeLevelRebuild(() => this.clearTransientLevelState());
     this.logDebugKeybinds();
   }
 
@@ -483,7 +484,6 @@ export class GameplaySystemRunner {
     this.inputDebugSystem.update(CoreManager.timeSinceLastRender);
     this.debugProcessor.update(CoreManager.timeSinceLastRender);
     this.inventoryDebugSystem.update(CoreManager.timeSinceLastRender);
-    this.cameraFollowSystem.update();
     this.levelProgressionSystem.update(CoreManager.timeSinceLastRender);
     this.enemyLifecicleSystem.update(CoreManager.timeSinceLastRender);
     this.aiIntentProcessorSystem.update(CoreManager.timeSinceLastRender);
@@ -493,6 +493,8 @@ export class GameplaySystemRunner {
     this.weaponSwitchSystem.update(CoreManager.timeSinceLastRender);
     this.aiMovementBehaviorSystem.update(CoreManager.timeSinceLastRender);
     this.staggerSystem.update(CoreManager.timeSinceLastRender);
+    this.collisionSystem.update(CoreManager.timeSinceLastRender);
+    this.cameraFollowSystem.update();
     //this.aiAttackBehaviorSystem.update(CoreManager.timeSinceLastRender);
     this.shootingSystem.update(CoreManager.timeSinceLastRender);
     this.meleeAttackSystem.update(CoreManager.timeSinceLastRender);
@@ -575,7 +577,8 @@ export class GameplaySystemRunner {
     GameplaySystemRunner.hasLoggedDebugKeybinds = true;
 
     const debugKeybinds = [
-      '[DEBUG][KEYBINDS] Available debug shortcuts:',
+      '[DEBUG][KEYBINDS] Available shortcuts:',
+      'Debug:',
       'Press O to toggle the debug panel.',
       'Press O to trigger the debug dialog ("Follow\\nme!").',
       'Press N to print the player inventory.',
@@ -585,8 +588,14 @@ export class GameplaySystemRunner {
       'Press Numpad1 to cycle rain: low rain -> medium rain -> high rain -> disabled.',
       'Press Numpad2 to toggle screen tint: no_screen_tint <-> screen_tint.',
       'Press K to damage the player by 20 HP.',
+      'Press L to queue a bleed intent on the player.',
       'Press 0 to end the level and open the shop hub.',
       'Use the debug panel to toggle sprite bounds, debug paint, and AI path.',
+      'Medical items:',
+      'Press T to use a healpack.',
+      'Press V to use a bandage.',
+      'Press C to use an epipen.',
+      'Press X to use combat stim.',
     ];
 
     for (const line of debugKeybinds) {
@@ -606,5 +615,32 @@ export class GameplaySystemRunner {
 
     this.uiRuntime.popOverlay(this.crosshairScreenId);
     this.rendererEngine.setCanvasCursor("default");
+  }
+
+  private clearTransientLevelState(): void {
+    this.intentClickComponentStore.clear();
+    this.intentShotComponentStore.clear();
+    this.intentGrenadeComponentStore.clear();
+    this.intentMeleeComponentStore.clear();
+    this.reloadIntentComponentStore.clear();
+    this.damageTakenIntentComponentStore.clear();
+    this.deathIntentComponentStore.clear();
+    this.bleedIntentComponentStore.clear();
+    this.bleedDamageComponentStore.clear();
+    this.healBleedIntentComponentStore.clear();
+    this.medicalItemUseComponentStore.clear();
+    this.combatStimActiveComponentStore.clear();
+    this.epipenActiveComponentStore.clear();
+    this.shootingCooldownComponentStore.clear();
+    this.shooterCooldownComponentStore.clear();
+    this.grenadeCooldownComponentStore.clear();
+    this.bulletFiredComponentStore.clear();
+    this.grenadeFiredComponentStore.clear();
+    this.focusFireIntentComponentStore.clear();
+    this.movementImprecisionIntentComponentStore.clear();
+    this.shootingRecoilIntentComponentStore.clear();
+    this.spreadRadiusComponentStore.clear();
+    this.staggerComponentStore.clear();
+    this.visualRecoilComponentStore.clear();
   }
 }

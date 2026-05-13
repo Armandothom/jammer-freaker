@@ -1,4 +1,5 @@
 import { WeatherManager } from "../../game/weather/weather-manager.js";
+import { BleedIntentComponent } from "../components/bleed-intent.component.js";
 import { DamageTakenIntentComponent } from "../components/damage-taken-intent.component.js";
 import { HealthComponent } from "../components/health.component.js";
 import { InventoryComponent } from "../components/inventory-component.js";
@@ -25,6 +26,7 @@ export class InventoryDebugSystem implements ISystem {
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private healthComponentStore: ComponentStore<HealthComponent>,
         private damageTakenIntentComponentStore: ComponentStore<DamageTakenIntentComponent>,
+        private bleedIntentComponentStore: ComponentStore<BleedIntentComponent>,
         private weatherManager: WeatherManager,
     ) {
         window.addEventListener("keydown", this.onKeyDown);
@@ -89,6 +91,11 @@ export class InventoryDebugSystem implements ISystem {
                 this.queueDamageTakenIntent(playerEntity, playerEntity, WeaponType.PISTOL, 20);
                 console.log(`[InventoryDebug] Queued 20 damage for player. HP: ${health.hp}/${health.maxHp}`);
             }
+        }
+
+        if (this.wasKeyPressedThisFrame("KeyL")) {
+            this.bleedIntentComponentStore.add(playerEntity, new BleedIntentComponent(1));
+            console.log("[InventoryDebug] Queued bleed intent for player.");
         }
 
         this.syncInputFrame();

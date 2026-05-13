@@ -1518,4 +1518,31 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
     }
   ],
 
+  [
+    SpriteSheetName.APPLY_BAR,
+    {
+      rows: 1,
+      columns: 2,
+      eachSpriteCellSizeHeight: 8,
+      eachSpriteCellSizeWidth: 48,
+      srcImagePath: 'src/assets/images/apply_bar.png',
+      sprites: new Map([
+        [SpriteName.APPLY_BAR_EMPTY, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 8,
+          originalRenderSpriteWidth: 48,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 48, height: 8 }
+        }],
+        [SpriteName.APPLY_BAR_FILL, {
+          row: 1,
+          column: 2,
+          originalRenderSpriteHeight: 8,
+          originalRenderSpriteWidth: 48,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 48, height: 8 }
+        }],
+      ])
+    }
+  ],
+
 ]);

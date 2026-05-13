@@ -38,7 +38,12 @@ export class UIRuntimeEntityFactory {
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(DEFAULT_UI_Z_LAYER));
     this.uiRuntimeElementComponentStore.add(
       entityId,
-      new UIRuntimeElementComponent(node.nodeId, node.screenId, node.renderOrder),
+      new UIRuntimeElementComponent(
+        node.nodeId,
+        node.screenId,
+        node.renderOrder,
+        this.resolveNodeOpacity(node),
+      ),
     );
     this.syncVisualState(entityId, node);
 
@@ -80,10 +85,16 @@ export class UIRuntimeEntityFactory {
       runtimeElement.nodeId = node.nodeId;
       runtimeElement.screenId = node.screenId;
       runtimeElement.renderOrder = node.renderOrder;
+      runtimeElement.opacity = this.resolveNodeOpacity(node);
     } else {
       this.uiRuntimeElementComponentStore.add(
         entityId,
-        new UIRuntimeElementComponent(node.nodeId, node.screenId, node.renderOrder),
+        new UIRuntimeElementComponent(
+          node.nodeId,
+          node.screenId,
+          node.renderOrder,
+          this.resolveNodeOpacity(node),
+        ),
       );
     }
 
@@ -207,5 +218,15 @@ export class UIRuntimeEntityFactory {
   private syncVisualState(entityId: number, node: UIRenderableNode): void {
     this.syncSprite(entityId, node);
     this.syncBitmapText(entityId, node);
+  }
+
+  private resolveNodeOpacity(node: UIRenderableNode): number {
+    const opacity = node.visual.sprite?.opacity ?? node.visual.text?.opacity ?? 1;
+
+    if (!Number.isFinite(opacity)) {
+      return 1;
+    }
+
+    return Math.max(0, Math.min(opacity, 1));
   }
 }

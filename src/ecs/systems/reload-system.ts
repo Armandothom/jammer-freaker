@@ -4,6 +4,7 @@ import { SoundEventBus } from "../../game/audio/sound-event-bus.js";
 import { InventoryComponent } from "../components/inventory-component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { ReloadIntentComponent } from "../components/reload-intent.component.js";
+import { CombatShopUpgradeType } from "../components/types/combat-shop-upgrade-config.js";
 import { WeaponConfig, WeaponType } from "../components/types/weapon-config.js";
 import { WeaponStatsComponent } from "../components/weapon-stats.component.js";
 import { ComponentStore } from "../core/component-store.js";
@@ -48,7 +49,9 @@ export class ReloadSystem implements ISystem {
                 return;
             }
 
-            const endReloadTime = reloadIntent.endReloadTime;
+            const reloadImprovement = this.resolveReloadImprovement(inventory);
+
+            const endReloadTime = reloadIntent.endReloadTime * reloadImprovement;
             if (!reloadIntent.hasPlayedReloadSound) {
                 this.emitReloadSound(reloadedWeapon);
                 reloadIntent.hasPlayedReloadSound = true;
@@ -175,6 +178,21 @@ export class ReloadSystem implements ISystem {
                 volume: SOUND_VOLUME.SNIPER_RELOAD,
             });
         }
+    }
+
+
+    private resolveReloadImprovement(inventory: InventoryComponent): number {
+        const multiplier = this.inventoryManager.getCombatUpgradeValueOrDefault(
+            inventory,
+            CombatShopUpgradeType.FASTER_RELOAD,
+            1,
+        );
+
+        if (!Number.isFinite(multiplier) || multiplier <= 0) {
+            return 1;
+        }
+
+        return multiplier;
     }
 }
 

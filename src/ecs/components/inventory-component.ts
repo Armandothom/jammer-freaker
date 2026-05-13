@@ -9,6 +9,10 @@ import {
     SHOTGUN_SHELLS_PER_BOX,
 } from "./types/inventory-resource-type.js";
 import {
+    normalizeStoredCombatShopUpgradeLevel,
+    type CombatShopUpgradeType,
+} from "./types/combat-shop-upgrade-config.js";
+import {
     normalizeStoredMedicalShopUpgradeLevel,
     type MedicalShopUpgradeItemType,
 } from "./types/medical-shop-upgrade-item-config.js";
@@ -19,17 +23,20 @@ export class InventoryComponent {
     public resources: Map<InventoryResourceType, number>;
     public equippedWeaponType: WeaponType | null;
     public medicalUpgrades: Map<MedicalShopUpgradeItemType, number>;
+    public combatUpgrades: Map<CombatShopUpgradeType, number>;
 
     constructor(
         weapons?: Map<WeaponType, OwnedWeaponState>,
         resources?: Map<InventoryResourceType, number>,
         equippedWeaponType: WeaponType | null = null,
         medicalUpgrades?: Map<MedicalShopUpgradeItemType, number>,
+        combatUpgrades?: Map<CombatShopUpgradeType, number>,
     ) {
         this.weapons = weapons ?? new Map<WeaponType, OwnedWeaponState>();
         this.resources = resources ?? new Map<InventoryResourceType, number>();
         this.equippedWeaponType = equippedWeaponType;
         this.medicalUpgrades = medicalUpgrades ?? new Map<MedicalShopUpgradeItemType, number>();
+        this.combatUpgrades = combatUpgrades ?? new Map<CombatShopUpgradeType, number>();
     }
 
     public toSnapshot(): InventorySnapshot {
@@ -64,11 +71,21 @@ export class InventoryComponent {
             );
         }
 
+        const combatUpgradeSnapshots = new Map<CombatShopUpgradeType, number>();
+
+        for (const [upgradeType, level] of this.combatUpgrades.entries()) {
+            combatUpgradeSnapshots.set(
+                upgradeType,
+                normalizeStoredCombatShopUpgradeLevel(level),
+            );
+        }
+
         return new InventorySnapshot(
             weaponSnapshots,
             resourceSnapshots,
             this.equippedWeaponType,
             medicalUpgradeSnapshots,
+            combatUpgradeSnapshots,
         );
     }
 
@@ -122,11 +139,21 @@ export class InventoryComponent {
             );
         }
 
+        const combatUpgrades = new Map<CombatShopUpgradeType, number>();
+
+        for (const [upgradeType, level] of snapshot.combatUpgrades?.entries() ?? []) {
+            combatUpgrades.set(
+                upgradeType,
+                normalizeStoredCombatShopUpgradeLevel(level),
+            );
+        }
+
         return new InventoryComponent(
             weapons,
             resources,
             snapshot.equippedWeaponType,
             medicalUpgrades,
+            combatUpgrades,
         );
     }
 

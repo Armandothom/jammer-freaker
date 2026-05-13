@@ -16,7 +16,7 @@ import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import {
     createBuyMedicalShopResourceAction,
     createBuyMedicalShopUpgradeAction,
-    createReturnFromMedicalShopToGameplayAction,
+    createReturnFromMedicalShopToHubAction,
     createSelectMedicalShopTabAction,
 } from "../input/medical-shop-ui-actions.js";
 import { createUINode, type UINode } from "../runtime/ui-node.js";
@@ -86,8 +86,8 @@ export class MedicalShopScreen implements UIScreen {
                     nodeId: MEDICAL_SHOP_NODE_IDS.returnButton,
                     offsetX: MEDICAL_SHOP_SKIN_MAP.returnButton.offsetX,
                     offsetY: MEDICAL_SHOP_SKIN_MAP.returnButton.offsetY,
-                    onClickAction: createReturnFromMedicalShopToGameplayAction(),
-                    text: "Next mission",
+                    onClickAction: createReturnFromMedicalShopToHubAction(),
+                    text: "Return to Hub",
                 }),
                 createUINode({
                     children: MEDICAL_SHOP_RESOURCE_ITEMS_ORDER.map((itemType, index) => {

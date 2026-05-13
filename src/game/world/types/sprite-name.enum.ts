@@ -155,4 +155,6 @@ export enum SpriteName {
   MUZZLE_FLASH_PISTOL = "muzzle_flash_pistol",
   MUZZLE_FLASH_SHOTGUN = "muzzle_flash_shotgun",
   CROSSHAIR_CARDINAL = "crosshair_cardinal",
+  APPLY_BAR_EMPTY = "apply_bar_empty",
+  APPLY_BAR_FILL = "apply_bar_fill",
 }

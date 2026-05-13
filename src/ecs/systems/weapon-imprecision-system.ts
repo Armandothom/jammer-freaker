@@ -6,12 +6,14 @@ import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ShootingRecoilIntentComponent } from "../components/shooting-recoil-intent.component.js";
 import { SpreadRadiusComponent } from "../components/spread-radius.component.js";
+import { CombatShopUpgradeType } from "../components/types/combat-shop-upgrade-config.js";
 import {
     WeaponConfig as WEAPON_CONFIG,
     type WeaponConfig as WeaponConfigValues,
     type WeaponType,
 } from "../components/types/weapon-config.js";
 import { ComponentStore } from "../core/component-store.js";
+import { InventoryManager } from "../core/inventory-manager.js";
 import { ISystem } from "./system.interface.js";
 
 type Position = {
@@ -27,6 +29,7 @@ type SpreadBounds = {
 type WeaponImprecisionContext = {
     bounds: SpreadBounds,
     equippedWeapon: WeaponType,
+    inventory: InventoryComponent,
     playerEntity: number,
     playerPosition: Position,
     spread: SpreadRadiusComponent,
@@ -40,6 +43,7 @@ export class WeaponImprecisionSystem implements ISystem {
     private standingStillTime: number = 0;
 
     constructor(
+        private inventoryManager: InventoryManager,
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private positionComponentStore: ComponentStore<PositionComponent>,
         private spreadRadiusComponentStore: ComponentStore<SpreadRadiusComponent>,
@@ -75,6 +79,7 @@ export class WeaponImprecisionSystem implements ISystem {
 
     private checkFocusFireConditions(context: WeaponImprecisionContext, deltaTime: number) {
         const focusFireTime = context.weaponConfig.focusFireTime;
+        const inventory = context.inventory;
         if (focusFireTime == null) {
             this.resetFocusFireState(context.playerEntity);
             return;
@@ -97,13 +102,18 @@ export class WeaponImprecisionSystem implements ISystem {
 
         this.standingStillTime += deltaTime;
 
-        let focusFireImprovement = 1
+        let focusFireStimImprovement = 1
 
         if (this.combatStimActiveComponentStore.has(context.playerEntity)) {
-            focusFireImprovement = this.combatStimActiveComponentStore.get(context.playerEntity).focusFireImprovement;
+            focusFireStimImprovement = this.combatStimActiveComponentStore.get(context.playerEntity).focusFireImprovement;
         }
 
-        if (this.standingStillTime >= focusFireTime * focusFireImprovement && !this.focusFireIntentComponent.has(context.playerEntity)) {
+        let focusFireUpgradeImprovement = this.inventoryManager.getCombatUpgradeValue(inventory, CombatShopUpgradeType.FOCUS_UPGRADE);
+        if (focusFireUpgradeImprovement === null) {
+            focusFireUpgradeImprovement = 1;
+        }
+
+        if (this.standingStillTime >= focusFireTime * focusFireStimImprovement * focusFireUpgradeImprovement && !this.focusFireIntentComponent.has(context.playerEntity)) {
             this.focusFireIntentComponent.add(context.playerEntity, new FocusFireIntentComponent());
         }
     }
@@ -157,13 +167,13 @@ export class WeaponImprecisionSystem implements ISystem {
         const playerPosition = this.positionComponentStore.getOrNull(playerEntity);
         const inventory = this.inventoryComponentStore.getOrNull(playerEntity);
         const equippedWeapon = inventory?.equippedWeaponType;
-        if (!playerPosition || equippedWeapon == null) {
+        if (!playerPosition || !inventory || equippedWeapon == null) {
             this.spreadRadiusComponentStore.remove(playerEntity);
             return null;
         }
 
         const weaponConfig = WEAPON_CONFIG[equippedWeapon];
-        const bounds = this.resolveSpreadBounds(weaponConfig);
+        const bounds = this.resolveSpreadBounds(weaponConfig, inventory);
         if (!bounds) {
             this.spreadRadiusComponentStore.remove(playerEntity);
             return null;
@@ -174,6 +184,7 @@ export class WeaponImprecisionSystem implements ISystem {
         return {
             bounds,
             equippedWeapon,
+            inventory,
             playerEntity,
             playerPosition: {
                 x: playerPosition.x,
@@ -199,15 +210,35 @@ export class WeaponImprecisionSystem implements ISystem {
         return nextSpread;
     }
 
-    private resolveSpreadBounds(weaponConfig: WeaponConfigValues): SpreadBounds | null {
+    private resolveSpreadBounds(
+        weaponConfig: WeaponConfigValues,
+        inventory: InventoryComponent,
+    ): SpreadBounds | null {
         if (weaponConfig.spreadMinRadius == null || weaponConfig.spreadMaxRadius == null) {
             return null;
         }
 
+        const accuracyMultiplier = this.resolveAccuracySpreadMultiplier(inventory);
+        const adjustedMaxRadius = weaponConfig.spreadMaxRadius * accuracyMultiplier;
+
         return {
-            max: Math.max(weaponConfig.spreadMinRadius, weaponConfig.spreadMaxRadius),
+            max: Math.max(weaponConfig.spreadMinRadius, adjustedMaxRadius),
             min: Math.min(weaponConfig.spreadMinRadius, weaponConfig.spreadMaxRadius),
         };
+    }
+
+    private resolveAccuracySpreadMultiplier(inventory: InventoryComponent): number {
+        const multiplier = this.inventoryManager.getCombatUpgradeValueOrDefault(
+            inventory,
+            CombatShopUpgradeType.ACCURACY_INCREASE,
+            1,
+        );
+
+        if (!Number.isFinite(multiplier) || multiplier <= 0) {
+            return 1;
+        }
+
+        return multiplier;
     }
 
     private clampSpreadRadius(value: number, bounds: SpreadBounds): number {

@@ -8,18 +8,22 @@ import { BulletFiredComponent } from "../components/bullet-fired.component.js";
 import { DamageDealtComponent } from "../components/damage-dealt.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
 import { IntentShotComponent } from "../components/intent-shot.component.js";
+import { InventoryComponent } from "../components/inventory-component.js";
+import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
+import { CombatShopUpgradeType } from "../components/types/combat-shop-upgrade-config.js";
 import { EnemyConfig, type EnemyType } from "../components/types/enemy-type.js";
 import { WeaponConfig, WeaponType } from "../components/types/weapon-config.js";
 import { VisualRecoilComponent } from "../components/visual-recoil.component.js";
 import { WeaponSpriteAttachmentComponent } from "../components/weapon-attachment.component.js";
 import { WeaponStatsComponent } from "../components/weapon-stats.component.js";
 import { ComponentStore } from "../core/component-store.js";
-import { EntityFactory } from "../entities/entity-factory.js";
+import { InventoryManager } from "../core/inventory-manager.js";
 import { resolveWeaponAttachmentBaseAnchor, resolveWeaponAttachmentPose } from "../core/weapon-attachment-pose-resolver.js";
+import { EntityFactory } from "../entities/entity-factory.js";
 import { ISystem } from "./system.interface.js";
 
 export class ProjectileSpawnSystem implements ISystem {
@@ -27,6 +31,7 @@ export class ProjectileSpawnSystem implements ISystem {
         private spriteManager: SpriteManager,
         private soundEventBus: SoundEventBus,
         private positionComponentStore: ComponentStore<PositionComponent>,
+        private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
         private attachedSpriteComponent: ComponentStore<WeaponSpriteAttachmentComponent>,
         private entityFactory: EntityFactory,
@@ -38,6 +43,8 @@ export class ProjectileSpawnSystem implements ISystem {
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private enemyComponentStore: ComponentStore<EnemyComponent>,
         private visualRecoilComponentStore: ComponentStore<VisualRecoilComponent>,
+        private inventoryComponentStore: ComponentStore<InventoryComponent>,
+        private inventoryManager: InventoryManager,
     ) {
     }
 
@@ -49,6 +56,7 @@ export class ProjectileSpawnSystem implements ISystem {
     private playerIntentShotConversion() {
         const attachedWeapons = this.attachedSpriteComponent.getValuesAndEntityId();
         const playerEntity = this.playerComponentStore.getAllEntities()[0];
+        const inventory = this.inventoryComponentStore.get(playerEntity);
         if (this.intentShotComponentStore.has(playerEntity)) {
             const intent = this.intentShotComponentStore.get(playerEntity);
             const weaponWielded = intent.weaponWielded;
@@ -60,7 +68,7 @@ export class ProjectileSpawnSystem implements ISystem {
             const attachedWeaponEntityId = attachedWeaponEntry[0];
             const weaponSprite = this.spriteComponentStore.get(attachedWeaponEntityId);
             const baseAnchor = resolveWeaponAttachmentBaseAnchor(
-                this.positionComponentStore.get(playerEntity),
+                this.resolveEffectiveShooterPosition(playerEntity),
                 this.spriteComponentStore.get(playerEntity),
                 attachedWeapon,
             );
@@ -70,10 +78,12 @@ export class ProjectileSpawnSystem implements ISystem {
             const angle = Math.atan2(dy, dx);
             let dir = { x: Math.cos(angle), y: Math.sin(angle) };
 
+            const fireRateIncrease = this.resolveFireRateImprovement(inventory);
+
             const weaponFireRate = this.weaponStatsComponentStore.has(playerEntity)
                 ? this.weaponStatsComponentStore.get(playerEntity).fireRate
                 : WeaponConfig[weaponWielded].fireRate;
-            const shotsPerSecond = weaponFireRate / 60;
+            const shotsPerSecond = (weaponFireRate * fireRateIncrease) / 60;
             const fireCooldown = 1 / shotsPerSecond;
 
             const weaponStats = this.weaponStatsComponentStore.get(playerEntity);
@@ -153,7 +163,7 @@ export class ProjectileSpawnSystem implements ISystem {
             if (!intent) continue;
             const weaponSprite = this.spriteComponentStore.get(attachedWeaponEntityId);
             const baseAnchor = resolveWeaponAttachmentBaseAnchor(
-                this.positionComponentStore.get(entity),
+                this.resolveEffectiveShooterPosition(entity),
                 this.spriteComponentStore.get(entity),
                 attachedWeapon,
             );
@@ -173,6 +183,21 @@ export class ProjectileSpawnSystem implements ISystem {
         }
     }
 
+
+    private resolveFireRateImprovement(inventory: InventoryComponent): number {
+        const multiplier = this.inventoryManager.getCombatUpgradeValueOrDefault(
+            inventory,
+            CombatShopUpgradeType.FAST_TRIGGER,
+            1,
+        );
+
+        if (!Number.isFinite(multiplier) || multiplier <= 0) {
+            return 1;
+        }
+
+        return multiplier;
+    }
+
     private spawnProjectile(
         dir: { x: number; y: number },
         shootingWeapon: WeaponSpriteAttachmentComponent,
@@ -185,7 +210,7 @@ export class ProjectileSpawnSystem implements ISystem {
 
     ): void {
         const attachmentBaseAnchor = resolveWeaponAttachmentBaseAnchor(
-            this.positionComponentStore.get(shootingWeapon.parentEntityId),
+            this.resolveEffectiveShooterPosition(shootingWeapon.parentEntityId),
             this.spriteComponentStore.get(shootingWeapon.parentEntityId),
             shootingWeapon,
         );
@@ -216,6 +241,11 @@ export class ProjectileSpawnSystem implements ISystem {
             SpriteSheetName.PROJECTILE,
             AnimationName.BULLET_FIRED,
         );
+    }
+
+    private resolveEffectiveShooterPosition(shooterEntity: number): PositionComponent {
+        return this.movementIntentComponentStore.getOrNull(shooterEntity)
+            ?? this.positionComponentStore.get(shooterEntity);
     }
 
     private generateRandomProjectileDirections(

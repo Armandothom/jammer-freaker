@@ -6,6 +6,7 @@ export class ShopHubActionController implements UIActionHandler {
         private requestGameplayState: () => void,
         private requestGunsShopState: () => void,
         private requestMedicalShopState: () => void,
+        private requestCombatShopState: () => void,
     ) { }
 
     public handle(action: UIAction): boolean {
@@ -20,6 +21,10 @@ export class ShopHubActionController implements UIActionHandler {
 
             case SHOP_HUB_UI_ACTION.GO_TO_MEDICAL_SHOP:
                 this.requestMedicalShopState();
+                return true;
+
+            case SHOP_HUB_UI_ACTION.GO_TO_COMBAT_SHOP:
+                this.requestCombatShopState();
                 return true;
 
             default:

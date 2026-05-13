@@ -7,6 +7,12 @@ import { MovementIntentComponent } from "../components/movement-intent.component
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import type { InventorySnapshot } from "../components/snapshots/inventory-snapshot.js";
+import {
+    getMedicalShopUpgradeLevelConfig,
+    MedicalShopUpgradeItemType,
+    normalizeStoredMedicalShopUpgradeLevel,
+    type MedicalShopUpgradeLevel,
+} from "../components/types/medical-shop-upgrade-item-config.js";
 import { PlayerInitialProperties } from "../components/types/player-properties.js";
 import { WeaponType } from "../components/types/weapon-config.js";
 import { EntityFactory } from "../entities/entity-factory.js";
@@ -43,6 +49,7 @@ export class LevelManager {
     private gameManager: GameManager | null = null;
     private nextPlayerInventorySnapshot: InventorySnapshot | null = null;
     private stateTransitionRequested = false;
+    private beforeLevelRebuildHandlers: Array<() => void> = [];
 
     constructor(
         private enemyLifecicleSystem: EnemyLifecicleSystem,
@@ -113,8 +120,13 @@ export class LevelManager {
         return this.currentLevelEndReason;
     }
 
+    public onBeforeLevelRebuild(handler: () => void): void {
+        this.beforeLevelRebuildHandlers.push(handler);
+    }
+
     private rebuildLevel(): void {
         this.endCurrentLevel(LevelEndReason.Reset);
+        this.notifyBeforeLevelRebuild();
         this.levelBuildId += 1;
         this.levelUpdatePending = false;
         this.tilemapManager.clearLevelGeometry();
@@ -133,6 +145,12 @@ export class LevelManager {
         this.applyLevelResult(levelResult);
 
         this.finalizeLevelBuild();
+    }
+
+    private notifyBeforeLevelRebuild(): void {
+        for (const handler of this.beforeLevelRebuildHandlers) {
+            handler();
+        }
     }
 
     private applyLevelResult(levelResult: WorldLevelResult): void {
@@ -192,12 +210,13 @@ export class LevelManager {
         }
 
         const [playerEntityId] = this.playerComponentStore.getAllEntities();
+        const playerInitialHp = this.resolvePlayerInitialHp(inventorySnapshot?.medicalUpgrades);
 
         if (playerEntityId == null) {
             this.entityFactory.createPlayer(
                 worldX,
                 worldY,
-                this.playerInitialProperties.hp,
+                playerInitialHp,
                 this.playerInitialProperties.velocity,
                 WeaponType.PISTOL,
                 inventorySnapshot ?? undefined,
@@ -217,13 +236,14 @@ export class LevelManager {
             if (inventorySnapshot) {
                 const nextInventory = InventoryComponent.fromSnapshot(inventorySnapshot);
                 const nextWeaponType = nextInventory.equippedWeaponType ?? WeaponType.PISTOL;
+                const nextPlayerInitialHp = this.resolvePlayerInitialHp(nextInventory.medicalUpgrades);
 
                 this.inventoryComponentStore.add(playerEntityId, nextInventory);
 
                 if (this.healthComponentStore.has(playerEntityId)) {
                     const health = this.healthComponentStore.get(playerEntityId);
-                    health.hp = this.playerInitialProperties.hp;
-                    health.maxHp = this.playerInitialProperties.hp;
+                    health.hp = nextPlayerInitialHp;
+                    health.maxHp = nextPlayerInitialHp;
                 }
 
                 this.entityFactory.destroyPlayerWeapon(playerEntityId);
@@ -237,6 +257,26 @@ export class LevelManager {
         this.currentLevelInitialInventorySnapshot = this.captureCurrentPlayerInventorySnapshot();
         this.nextPlayerInventorySnapshot = null;
         this.cameraManager.follow(worldX, worldY);
+    }
+
+    private resolvePlayerInitialHp(
+        medicalUpgrades?: ReadonlyMap<MedicalShopUpgradeItemType, number>,
+    ): number {
+        const baseHp = this.playerInitialProperties.hp;
+        const maxHealthLevel = normalizeStoredMedicalShopUpgradeLevel(
+            medicalUpgrades?.get(MedicalShopUpgradeItemType.MAX_HEALTH) ?? 0,
+        );
+
+        if (maxHealthLevel <= 0) {
+            return baseHp;
+        }
+
+        const maxHealthMultiplier = getMedicalShopUpgradeLevelConfig(
+            MedicalShopUpgradeItemType.MAX_HEALTH,
+            maxHealthLevel as MedicalShopUpgradeLevel,
+        ).value;
+
+        return baseHp * maxHealthMultiplier;
     }
 
     private advanceToNextLevel(): void {
