@@ -201,7 +201,7 @@ export class EntityFactory {
     const equippedWeapon = inventoryComponent.equippedWeaponType!
     this.createPlayerWeapon(entityId, equippedWeapon);
     const spriteInfo = this.spriteComponentStore.get(entityId);
-    this.createShadow(entityId, startX, startY, spriteInfo.width, spriteInfo.height, SpriteName.SHADOW_1);
+    this.createShadow(entityId, startX, startY, spriteInfo.width / 2, spriteInfo.height / 2, SpriteName.SHADOW_1);
     this.pathFindingObstacleComponent.add(entityId, new PathFindingObstacleComponent());
     return entityId;
   }
@@ -560,8 +560,8 @@ export class EntityFactory {
     parentSpriteWidth: number,
     parentSpriteHeight: number,
     shadowSprite: SpriteName,
-    shadowWidth: number = 32,
-    shadowHeight: number = 10,
+    shadowWidth: number = 28,
+    shadowHeight: number = 8,
   ) {
     const entityId = this.entityManager.registerEntity();
 
