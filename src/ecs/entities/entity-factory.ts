@@ -34,6 +34,8 @@ import { ItemDroppedComponent } from "../components/item-dropped.component.js";
 import { MeleeIntentProcessedComponent } from "../components/melee-intent-processed.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { ParentEntityComponent } from "../components/parent-entity-component.js";
+import { PathFindingObstacleComponent } from "../components/pathfinding-obstacle.component.js";
+import { PlayerFovComponent } from "../components/player-fov.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ProjectileComponent } from "../components/projectile-component.js";
@@ -75,8 +77,6 @@ import { resolveShadowPosition } from "../core/shadow-position-resolver.js";
 import { UIManager } from "../core/ui-manager.js";
 import { resolveEffectiveWeaponConfigFromInventory } from "../core/weapon-stats-resolver.js";
 import { VFXComponent } from "../systems/vfx-component.js";
-import { PathFindingObstacleComponent } from "../components/pathfinding-obstacle.component.js";
-import { PlayerFovComponent } from "../components/player-fov.component.js";
 
 const GRENADE_SPRITE_WIDTH = 14;
 const GRENADE_SPRITE_HEIGHT = 16;
@@ -560,8 +560,8 @@ export class EntityFactory {
     parentSpriteWidth: number,
     parentSpriteHeight: number,
     shadowSprite: SpriteName,
-    shadowWidth: number = 36,
-    shadowHeight: number = 14,
+    shadowWidth: number = 32,
+    shadowHeight: number = 10,
   ) {
     const entityId = this.entityManager.registerEntity();
 
