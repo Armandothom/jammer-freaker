@@ -8,6 +8,7 @@ import { DebugManagerSettings, DebugSettingKey } from "./types/debug-manager-set
 export class DebugManager {
     private _settings = new DebugManagerSettings();
     private _selectedEnemyEntity : number | null = null;
+    private _selectedDebugIndex : number = -1;
     private _isMoveOrderActive: boolean = false;
     private _spawnerState : {
         active : boolean
@@ -38,6 +39,12 @@ export class DebugManager {
             case DebugSettingKey.DEBUG_PAINT:
                 this._settings.showDebugPaint = !this._settings.showDebugPaint;
                 break;
+            case DebugSettingKey.INSPECT_TILE:
+                this._settings.showInspectTile = !this._settings.showInspectTile;
+                break;
+            case DebugSettingKey.DISABLE_RAYCASTING:
+                this._settings.disableRaycasting = !this._settings.disableRaycasting;
+                break;
         }
     }
 
@@ -49,6 +56,11 @@ export class DebugManager {
 
     public toggleMoveOrderState(isActive : boolean) {
         this._isMoveOrderActive = isActive;
+    }
+
+    public shiftSelectedDebugIndex(direction : "left" | "right") {
+        const selectedIndexOffset = direction === "right" ? 1 : -1;
+        this._selectedDebugIndex = Math.max(-1, this._selectedDebugIndex + selectedIndexOffset);
     }
 
     public toggleHighlightedEnemy(arrowSelected : "left" | "right") {
@@ -70,11 +82,15 @@ export class DebugManager {
                 return this._settings.showAiPath;
             case DebugSettingKey.DEBUG_PAINT:
                 return this._settings.showDebugPaint;
+            case DebugSettingKey.INSPECT_TILE:
+                return this._settings.showInspectTile;
+            case DebugSettingKey.DISABLE_RAYCASTING:
+                return this._settings.disableRaycasting;
         }
     }
 
     get isDebugPointerActive() {
-        return this._spawnerState.active || this._isMoveOrderActive;
+        return this._spawnerState.active || this._isMoveOrderActive || this._settings.showInspectTile;
     }
 
     get isSpawnerPointerActive() {
@@ -85,11 +101,19 @@ export class DebugManager {
         return this._isMoveOrderActive;
     }
 
+    get isInspectTileActive() {
+        return this._settings.showInspectTile;
+    }
+
     get activeSpawnerType() {
         return this._spawnerState.type;
     }
     
     get selectedEnemyEntity() {
         return this._selectedEnemyEntity;
+    }
+
+    get selectedDebugIndex() {
+        return this._selectedDebugIndex;
     }
 }

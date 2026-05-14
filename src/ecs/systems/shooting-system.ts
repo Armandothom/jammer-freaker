@@ -24,6 +24,7 @@ import { DebugManager } from "../core/debug-manager.js";
 import { InventoryManager } from "../core/inventory-manager.js";
 import { resolveWeaponAttachmentBaseAnchor } from "../core/weapon-attachment-pose-resolver.js";
 import { ISystem } from "./system.interface.js";
+import { PlayerFovComponent } from "../components/player-fov.component.js";
 
 const keys: Record<string, boolean> = {};
 
@@ -58,6 +59,7 @@ export class ShootingSystem implements ISystem {
         private spreadRadiusComponentStore: ComponentStore<SpreadRadiusComponent>,
         private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
         private combatStimActiveComponentStore: ComponentStore<CombatStimActiveComponent>,
+        private playerFovComponentStore : ComponentStore<PlayerFovComponent>,
         private cameraManager: CameraManager,
         private debugManager: DebugManager,
         private inventoryManager: InventoryManager,
@@ -153,6 +155,7 @@ export class ShootingSystem implements ISystem {
         const dy = mouseWorldPosition.y - baseAnchor.y;
         const angle = Math.atan2(dy, dx);
         this.aimShootingComponentStore.add(weaponEntityId, new AimRotationShootingComponent(angle, weaponComponent.configuredPivotRotation));
+        this.playerFovComponentStore.add(playerId, new PlayerFovComponent(angle));
         this.currentMousePos = {
             x: mouseWorldPosition.x,
             y: mouseWorldPosition.y,

@@ -37,7 +37,6 @@ export class SpriteManager {
   /**
    * We use this method to get the UV coordinates from the spriteSheet.
    * It is assumed that the spriteSheet image is flipped (since WebGL renders from bottom-left https://stackoverflow.com/a/74483656)
-   * @param spriteName the name of the sprite for this BaseSprite.
    */
   public getUvCoordinates(spriteName: SpriteName, spriteSheetName: SpriteSheetName, mirroredX = false, mirroredY = false) {
     const spriteProperties = this.getSpriteProperties(spriteName, spriteSheetName);
@@ -113,7 +112,7 @@ export class SpriteManager {
     const mappedUv = [
       xLeftNormalized, yTopNormalized,       //topleft
       xLeftNormalized, yBottomNormalized,    //bottomleft
-      xRightNormalized, yTopNormalized,      //rightleft
+      xRightNormalized, yTopNormalized,      //topright
 
       xRightNormalized, yBottomNormalized,   //bottomright
       xRightNormalized, yTopNormalized,      //topright

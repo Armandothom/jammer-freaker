@@ -1,14 +1,16 @@
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
+import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
 import { RendererEngine } from "../../game/renderer/renderer-engine.js";
 import { RenderObject } from "../../game/renderer/types/render-objects.js";
 import { TextLayoutHelper, BitmapTextLayout } from "../../game/text/text-layout-helper.js";
 import { TextManager } from "../../game/text/text-manager.js";
 import { BitmapFontAsset } from "../../game/text/types/bitmap-font.js";
 import { VisibilityManager } from "../../game/visibility/visibility-manager.js";
+import { VisibilityPoint } from "../../game/visibility/visibility.type.js";
 import { CameraManager } from "../../game/world/camera-manager.js";
-import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
 import { CameraViewport } from "../../game/world/types/camera-viewport.js";
 import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+import { WorldImpassableChunkManager } from "../../game/world/world-impassable-chunk-manager.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { AimRotationShootingComponent } from "../components/aim-rotation-shooting.component.js";
 import { BitmapTextComponent } from "../components/bitmap-text.component.js";
@@ -23,15 +25,15 @@ import { ScreenPositionComponent } from "../components/screen-position.component
 import { SpriteClipComponent } from "../components/sprite-clip.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { TransformComponent } from "../components/transform-component.js";
-import { UIRuntimeElementComponent } from "../components/ui-runtime-element.component.js";
 import { AnimDirection } from "../components/types/anim-direction.js";
+import { UIRuntimeElementComponent } from "../components/ui-runtime-element.component.js";
 import { ZLayerComponent } from "../components/z-layer.component.js";
-import { ComponentStore } from "../core/component-store.js";
-import { ISystem } from "./system.interface.js";
-import { OrderDebuggerOrchestrator } from "../debugger-orders/order-debugger-orchestrator.js";
 import { DebugManager } from "../core/debug-manager.js";
 import { DebugSettingKey } from "../core/types/debug-manager-settings.js";
+import { ComponentStore } from "../core/component-store.js";
+import { OrderDebuggerOrchestrator } from "../debugger-orders/order-debugger-orchestrator.js";
 import { DebuggerPaintOrder } from "../debugger-orders/types/debugger.js";
+import { ISystem } from "./system.interface.js";
 
 interface BitmapTextRenderContext {
   font: BitmapFontAsset;
@@ -84,15 +86,17 @@ export class RenderSystem implements ISystem {
     private grenadeComponentStore: ComponentStore<GrenadeComponent>,
     private grenadeExplosionComponentStore: ComponentStore<GrenadeExplosionComponent>,
     private grenadeTravelComponentStore: ComponentStore<GrenadeTravelComponent>,
+    private worldImpassableTileChunkManager: WorldImpassableChunkManager | null = null,
   ) { }
 
   update(deltaTime: number): void {
     const viewport = this.cameraManager.getViewport();
+    this.rendererEngine.clear();
+
     const viewportBackgroundRenderObjects = this.getViewportBackgroundRenderObjects(viewport);
     const terrainRenderObjects = this.getTerrainRenderObjects(viewport);
     const wallRenderObjects = this.getWallRenderObjects(viewport);
     const overTerrainRenderObjects = this.getOverTerrainRenderObjects(viewport);
-    const fogOverlayRenderObjects = this.getFogOverlayRenderObjects(viewport);
     const gameUiDepthThreshold = this.maxDepthLevel + 1;
     const worldSpaceRenderObjects = overTerrainRenderObjects.filter(
       (renderObject) => renderObject.zLevel <= gameUiDepthThreshold,
@@ -100,28 +104,41 @@ export class RenderSystem implements ISystem {
     const gameUiRenderObjects = overTerrainRenderObjects.filter(
       (renderObject) => renderObject.zLevel > gameUiDepthThreshold,
     );
-    const worldRenderObjects = [
+    const tileObjects = [
       ...viewportBackgroundRenderObjects,
       ...terrainRenderObjects,
       ...wallRenderObjects,
-      ...worldSpaceRenderObjects,
-      ...fogOverlayRenderObjects,
     ];
-    const debugBorderSprites = this.debugManager.getDebugSetting(DebugSettingKey.SPRITE_BOUNDS);
-    const debugPaintOrders = this.debugManager.getDebugSetting(DebugSettingKey.DEBUG_PAINT)
-      ? this.getDebugPaintOrders(viewport)
-      : [];
+    const visibilityPoints = this.setVisibilityPointToScreen();
+    const disableRaycasting = this.debugManager.getDebugSetting(DebugSettingKey.DISABLE_RAYCASTING);
 
-    this.rendererEngine.renderFrame({
-      deltaTime,
-      viewport,
-      worldWidth: this.tilemapManager.worldWidth,
-      worldHeight: this.tilemapManager.worldHeight,
-      worldRenderObjects,
-      uiRenderObjects: gameUiRenderObjects,
-      debugBorderSprites,
-      debugPaintOrders,
-    });
+    this.rendererEngine.toggleDebugBorderSprite(
+      this.debugManager.getDebugSetting(DebugSettingKey.SPRITE_BOUNDS),
+    );
+    this.rendererEngine.renderSprites(
+      tileObjects,
+      worldSpaceRenderObjects,
+      visibilityPoints,
+      disableRaycasting,
+    );
+    this.rendererEngine.setParticleViewport(viewport.left, viewport.top);
+    this.rendererEngine.setParticleWorldBounds(
+      this.tilemapManager.worldWidth,
+      this.tilemapManager.worldHeight,
+    );
+    this.rendererEngine.uploadSpawnBatch();
+    this.rendererEngine.updateParticles(deltaTime);
+    this.rendererEngine.disarmSpawnStyleRects();
+    this.rendererEngine.renderParticles();
+
+    const legacyUiRenderObjects = this.getLegacyUiRenderObjects(gameUiRenderObjects);
+    if (legacyUiRenderObjects.length > 0) {
+      this.rendererEngine.renderUiSprites(legacyUiRenderObjects);
+    }
+
+    if (this.debugManager.getDebugSetting(DebugSettingKey.DEBUG_PAINT)) {
+      this.renderDebugPaint(this.getDebugPaintOrders(viewport));
+    }
   }
 
   private getDebugPaintOrders(viewport: CameraViewport): DebuggerPaintOrder[] {
@@ -142,6 +159,12 @@ export class RenderSystem implements ISystem {
     });
   }
 
+  private renderDebugPaint(orders: DebuggerPaintOrder[]) {
+    for (const order of orders) {
+      this.rendererEngine.renderDebugPaint(order);
+    }
+  }
+
   private getTerrainRenderObjects(viewport: CameraViewport): Array<RenderObject> {
     const terrainRenderObjects: Array<RenderObject> = [];
     const terrainTilesInViewport = this.tilemapManager.getTilesInArea(viewport);
@@ -151,12 +174,11 @@ export class RenderSystem implements ISystem {
     for (const terrainTile of terrainTilesInViewport) {
       const spriteDetails = this.spriteManager.getSpriteProperties(
         terrainTile.spriteName,
-        terrainSpritesheet
+        terrainSpritesheet,
       );
 
       const worldX = terrainTile.x * tileSize;
       const worldY = terrainTile.y * tileSize;
-
       const screenX = worldX - viewport.left;
       const screenY = worldY - viewport.top;
 
@@ -166,7 +188,7 @@ export class RenderSystem implements ISystem {
         spriteSheetTexture: spriteDetails.spriteSheet.texture,
         uvCoordinates: this.spriteManager.getUvCoordinates(
           terrainTile.spriteName,
-          terrainSpritesheet
+          terrainSpritesheet,
         ),
         height: tileSize,
         width: tileSize,
@@ -225,7 +247,7 @@ export class RenderSystem implements ISystem {
     for (const wallTile of wallTilesInViewport) {
       const spriteDetails = this.spriteManager.getSpriteProperties(
         wallTile.spriteName,
-        wallSpritesheet
+        wallSpritesheet,
       );
 
       const worldX = wallTile.x * tileSize;
@@ -239,7 +261,7 @@ export class RenderSystem implements ISystem {
         spriteSheetTexture: spriteDetails.spriteSheet.texture,
         uvCoordinates: this.spriteManager.getUvCoordinates(
           wallTile.spriteName,
-          wallSpritesheet
+          wallSpritesheet,
         ),
         height: tileSize,
         width: tileSize,
@@ -288,26 +310,23 @@ export class RenderSystem implements ISystem {
       if (sprite) {
         const spriteProperties = this.spriteManager.getSpriteProperties(
           sprite.spriteName,
-          sprite.spriteSheetName
+          sprite.spriteSheetName,
         );
         const spriteClip = this.spriteClipComponentStore.getOrNull(entity);
-
         let spriteWidth =
           sprite.width ?? spriteProperties.sprite.originalRenderSpriteWidth;
         let spriteHeight =
           sprite.height ?? spriteProperties.sprite.originalRenderSpriteHeight;
         const layerMultiplier = this.layerMultiplicator[layerComponent.layer] ?? 1;
-
         const aimComponent = this.aimShootingComponentStore.getOrNull(entity);
         const transformComponent = this.transformComponentStore.getOrNull(entity);
         const directionAnim = this.directionAnimComponentStore.getOrNull(entity);
-
         const mirrorSpriteX = directionAnim?.xDirection === AnimDirection.LEFT;
         const mirrorSpriteY = directionAnim?.yDirection === AnimDirection.BOTTOM;
         let screenX = 0;
         let screenY = 0;
         let zLevel = this.getGameUiDepthLevel(layerMultiplier);
-        let uvCoordinates = spriteClip
+        const uvCoordinates = spriteClip
           ? this.spriteManager.getClippedUvCoordinates(
             sprite.spriteName,
             sprite.spriteSheetName,
@@ -341,43 +360,26 @@ export class RenderSystem implements ISystem {
         }
 
         if (isScreenSpace) {
-          screenX = screenPosition.x + (transformComponent?.xOffset ?? 0);
-          screenY = screenPosition.y + (transformComponent?.yOffset ?? 0);
+          screenX = screenPosition!.x + (transformComponent?.xOffset ?? 0);
+          screenY = screenPosition!.y + (transformComponent?.yOffset ?? 0);
           zLevel += this.getUiRenderOrderOffset(uiRuntimeElement);
         } else {
           const worldPosition = position!;
           const worldLeft = worldPosition.x;
-          const worldRight = worldPosition.x + spriteWidth;
           const worldTop = worldPosition.y;
-          const worldBottom = worldPosition.y + spriteHeight;
 
-          const isOutsideViewport =
-            worldRight < viewport.left ||
-            worldLeft > viewport.right ||
-            worldBottom < viewport.top ||
-            worldTop > viewport.bottom;
-
-          if (isOutsideViewport) {
-            continue;
-          }
-
-          const visibilitySampleX = worldPosition.x + (spriteWidth / 2);
-          const visibilitySampleY = worldPosition.y + (spriteHeight / 2);
-
-          if (
-            !this.visibilityManager.isWorldPositionVisible(
-              visibilitySampleX,
-              visibilitySampleY,
-              this.tilemapManager,
-            )
-          ) {
+          if (this.isOutsideViewport(worldLeft, worldTop, spriteWidth, spriteHeight, viewport)) {
             continue;
           }
 
           screenX = worldPosition.x + (transformComponent?.xOffset ?? 0) - viewport.left;
-          screenY = worldPosition.y + (transformComponent?.yOffset ?? 0) - viewport.top - this.getPossibleRenderOffsetY(entity);
+          screenY = worldPosition.y
+            + (transformComponent?.yOffset ?? 0)
+            - viewport.top
+            - this.getPossibleRenderOffsetY(entity);
           zLevel = this.getDepthLevel(worldPosition.y, layerMultiplier);
         }
+
         const angleRotation = aimComponent || transformComponent?.rotationOffset
           ? (aimComponent?.aimAngle ?? 0) + (transformComponent?.rotationOffset ?? 0)
           : null;
@@ -428,7 +430,6 @@ export class RenderSystem implements ISystem {
     const textContext = bitmapText
       ? this.buildBitmapTextRenderContext(bitmapText, dialogBubble)
       : null;
-
     const bubbleWidth = dialogBubble
       ? textContext?.bubbleWidth ?? dialogBubble.minWidth
       : 0;
@@ -446,8 +447,8 @@ export class RenderSystem implements ISystem {
       return renderObjects;
     }
 
-    const baseX = isScreenSpace ? screenPosition.x : position?.x;
-    const baseY = isScreenSpace ? screenPosition.y : position?.y;
+    const baseX = isScreenSpace ? screenPosition!.x : position?.x;
+    const baseY = isScreenSpace ? screenPosition!.y : position?.y;
 
     if (baseX === undefined || baseY === undefined) {
       return renderObjects;
@@ -460,27 +461,8 @@ export class RenderSystem implements ISystem {
       ? baseY - bubbleHeight
       : baseY;
 
-    if (!isScreenSpace) {
-      if (this.isOutsideViewport(left, top, boundsWidth, boundsHeight, viewport)) {
-        return renderObjects;
-      }
-
-      const visibilitySampleX = dialogBubble
-        ? baseX
-        : left + (boundsWidth / 2);
-      const visibilitySampleY = dialogBubble
-        ? baseY
-        : top + (boundsHeight / 2);
-
-      if (
-        !this.visibilityManager.isWorldPositionVisible(
-          visibilitySampleX,
-          visibilitySampleY,
-          this.tilemapManager,
-        )
-      ) {
-        return renderObjects;
-      }
+    if (!isScreenSpace && this.isOutsideViewport(left, top, boundsWidth, boundsHeight, viewport)) {
+      return renderObjects;
     }
 
     const layerMultiplier = this.layerMultiplicator[layerComponent.layer] ?? 1;
@@ -520,9 +502,7 @@ export class RenderSystem implements ISystem {
     }
 
     const textLeft = left + (dialogBubble?.textOffsetX ?? 0);
-    const textTop = top
-      + (dialogBubble?.textOffsetY ?? 0)
-      + Math.round((textContext.textBoxHeight - textContext.layout.height) / 2);
+    const textTop = top + (dialogBubble?.textOffsetY ?? 0);
 
     for (const glyph of textContext.layout.glyphs) {
       renderObjects.push({
@@ -561,8 +541,8 @@ export class RenderSystem implements ISystem {
     const isScreenSpace = !!screenPosition;
     const textContext = this.buildBitmapTextRenderContext(bitmapText, null);
     const glyphBounds = this.getBitmapTextBounds(textContext.layout);
-    const baseX = isScreenSpace ? screenPosition.x : position?.x;
-    const baseY = isScreenSpace ? screenPosition.y : position?.y;
+    const baseX = isScreenSpace ? screenPosition!.x : position?.x;
+    const baseY = isScreenSpace ? screenPosition!.y : position?.y;
 
     if (baseX === undefined || baseY === undefined) {
       return renderObjects;
@@ -579,20 +559,8 @@ export class RenderSystem implements ISystem {
       return renderObjects;
     }
 
-    if (!isScreenSpace) {
-      if (this.isOutsideViewport(baseX, baseY, boundsWidth, boundsHeight, viewport)) {
-        return renderObjects;
-      }
-
-      if (
-        !this.visibilityManager.isWorldPositionVisible(
-          baseX + (boundsWidth / 2),
-          baseY + (boundsHeight / 2),
-          this.tilemapManager,
-        )
-      ) {
-        return renderObjects;
-      }
+    if (!isScreenSpace && this.isOutsideViewport(baseX, baseY, boundsWidth, boundsHeight, viewport)) {
+      return renderObjects;
     }
 
     const layerMultiplier = this.layerMultiplicator[layerComponent.layer] ?? 1;
@@ -630,6 +598,31 @@ export class RenderSystem implements ISystem {
     }
 
     return renderObjects;
+  }
+
+  private setVisibilityPointToScreen() {
+    const visibilityRayPointsRemapped: VisibilityPoint[] = [];
+    const impassableWallPoints = this.worldImpassableTileChunkManager
+      ? this.worldImpassableTileChunkManager.getImpassableTileCoordsChunk()
+      : [];
+
+    for (const visibilityRay of this.visibilityManager.currentVisibilityRayPoints) {
+      const { x, y } = this.cameraManager.worldToScreen(visibilityRay.x, visibilityRay.y);
+      visibilityRayPointsRemapped.push({ x, y });
+    }
+
+    for (const impassableWallPoint of impassableWallPoints) {
+      visibilityRayPointsRemapped.push(
+        this.cameraManager.worldToScreen(impassableWallPoint.topLeft.x, impassableWallPoint.topLeft.y),
+        this.cameraManager.worldToScreen(impassableWallPoint.bottomLeft.x, impassableWallPoint.bottomLeft.y),
+        this.cameraManager.worldToScreen(impassableWallPoint.bottomRight.x, impassableWallPoint.bottomRight.y),
+        this.cameraManager.worldToScreen(impassableWallPoint.topRight.x, impassableWallPoint.topRight.y),
+        this.cameraManager.worldToScreen(impassableWallPoint.topLeft.x, impassableWallPoint.topLeft.y),
+        this.cameraManager.worldToScreen(impassableWallPoint.bottomRight.x, impassableWallPoint.bottomRight.y),
+      );
+    }
+
+    return visibilityRayPointsRemapped;
   }
 
   private buildBitmapTextRenderContext(
@@ -682,7 +675,7 @@ export class RenderSystem implements ISystem {
       bubbleWidth,
       bubbleHeight,
       textBoxWidth: Math.max(0, bubbleWidth - dialogBubble.textOffsetX - dialogBubble.paddingX),
-      textBoxHeight: Math.max(0, bubbleHeight - dialogBubble.textOffsetY - dialogBubble.paddingY),
+      textBoxHeight: Math.max(initialBubbleHeight, bubbleHeight),
     };
   }
 
@@ -708,6 +701,7 @@ export class RenderSystem implements ISystem {
     if (bitmapText.maxWidth && bitmapText.maxWidth > 0) {
       return bitmapText.maxWidth;
     }
+
     return Math.max(fallbackWidth, 0);
   }
 
@@ -759,47 +753,6 @@ export class RenderSystem implements ISystem {
     );
   }
 
-  private getFogOverlayRenderObjects(viewport: CameraViewport): Array<RenderObject> {
-    if (!this.visibilityManager.fogOfWarEnabled) {
-      return [];
-    }
-
-    const fogOverlayRenderObjects: Array<RenderObject> = [];
-    const terrainTilesInViewport = this.tilemapManager.getTilesInArea(viewport);
-    const fogSpriteDetails = this.spriteManager.getSpriteProperties(
-      SpriteName.BLANK,
-      SpriteSheetName.BLANK,
-    );
-    const fogUvCoordinates = this.spriteManager.getUvCoordinates(
-      SpriteName.BLANK,
-      SpriteSheetName.BLANK,
-    );
-    const tileSize = this.tilemapManager.tileSize;
-
-    for (const terrainTile of terrainTilesInViewport) {
-      if (this.visibilityManager.isTileVisible(terrainTile.x, terrainTile.y)) {
-        continue;
-      }
-
-      const worldX = terrainTile.x * tileSize;
-      const worldY = terrainTile.y * tileSize;
-
-      fogOverlayRenderObjects.push({
-        xWorldPosition: worldX - viewport.left,
-        yWorldPosition: worldY - viewport.top,
-        spriteSheetTexture: fogSpriteDetails.spriteSheet.texture,
-        uvCoordinates: fogUvCoordinates,
-        height: tileSize,
-        width: tileSize,
-        angleRotation: null,
-        offsetRotation: 0,
-        zLevel: this.maxDepthLevel,
-      });
-    }
-
-    return fogOverlayRenderObjects;
-  }
-
   private getDepthLevel(worldY: number, layerMultiplier: number): number {
     const clampedWorldY = Math.max(0, Math.min(worldY, this.tilemapManager.worldHeight));
     const maxDepthSource = this.tilemapManager.worldHeight * this.maxLayerMultiplier;
@@ -808,7 +761,6 @@ export class RenderSystem implements ISystem {
       return 0;
     }
 
-    // Keeps the existing Y/layer ordering while staying inside the clip-space depth range.
     return (clampedWorldY * layerMultiplier / maxDepthSource) * this.maxDepthLevel;
   }
 
@@ -822,6 +774,13 @@ export class RenderSystem implements ISystem {
     }
 
     return uiRuntimeElement.renderOrder * 0.1;
+  }
+
+  private getLegacyUiRenderObjects(renderObjects: RenderObject[]): RenderObject[] {
+    return renderObjects.map((renderObject) => ({
+      ...renderObject,
+      zLevel: this.maxDepthLevel,
+    }));
   }
 
   private getPossibleRenderOffsetY(entity: number): number {

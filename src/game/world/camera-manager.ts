@@ -1,18 +1,20 @@
 import { CameraViewport } from "./types/camera-viewport.js";
+import { OutsideBondsSide } from "./types/camera.type.js";
+import { WorldMapCoordinates } from "./types/tilemap-tile.js";
 import { WorldTilemapManager } from "./world-tilemap-manager.js";
 
 export class CameraManager {
   private cameraX = 0;
   private cameraY = 0;
-
+  private _canvas : HTMLCanvasElement;
   private viewportWidth: number;
   private viewportHeight: number;
 
   constructor(private worldTilemapManager: WorldTilemapManager) {
-    const canvas = document.getElementById("gl-canvas") as HTMLCanvasElement;
+    this._canvas = document.getElementById("gl-canvas") as HTMLCanvasElement;
 
-    this.viewportWidth = canvas.width;
-    this.viewportHeight = canvas.height;
+    this.viewportWidth = this._canvas.width;
+    this.viewportHeight = this._canvas.height;
   }
 
   follow(worldX: number, worldY: number) {
@@ -46,6 +48,31 @@ export class CameraManager {
       height: this.viewportHeight,
     };
   }
+  
+  isSideOutsideViewport(position: WorldMapCoordinates): OutsideBondsSide {
+    const viewport = this.getViewport();
+    let outsideBoundsCheck: OutsideBondsSide = {
+      xAxis: null,
+      yAxis: null,
+      xDiff : 0,
+      yDiff : 0
+    }
+    if (position.x < viewport.left) {
+      outsideBoundsCheck.xAxis = "left";
+      outsideBoundsCheck.xDiff = Math.abs(position.x - viewport.left);
+    } else if (position.x > viewport.right) {
+      outsideBoundsCheck.xAxis = "right";
+      outsideBoundsCheck.xDiff = Math.abs(position.x - viewport.right);
+    }
+    if (position.y < viewport.top) {
+      outsideBoundsCheck.yAxis = "top";
+      outsideBoundsCheck.yDiff = Math.abs(position.y - viewport.top);
+    } else if (position.y > viewport.bottom) {
+      outsideBoundsCheck.yAxis = "bottom";
+      outsideBoundsCheck.yDiff = Math.abs(position.y - viewport.bottom);
+    }
+    return outsideBoundsCheck;
+  }
 
   screenToWorld(
     screenX: number,
@@ -61,5 +88,13 @@ export class CameraManager {
       x: viewport.left + normalizedX * this.viewportWidth,
       y: viewport.top + normalizedY * this.viewportHeight,
     };
+  }
+
+  worldToScreen(x: number, y: number) : WorldMapCoordinates {
+    const viewport = this.getViewport();
+    return {
+      x: Math.max(0, x - viewport.left),
+      y: Math.max(0, y - viewport.top)
+    }
   }
 }

@@ -1,4 +1,6 @@
 import { CameraManager } from "../../game/world/camera-manager.js";
+import { WorldEdgeChunkManager } from "../../game/world/world-edge-chunk-manager.js";
+import { WorldEdgeManager } from "../../game/world/world-edge-manager.js";
 import { WorldLevelResult } from "../../game/world/types/world-level-result.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { HealthComponent } from "../components/health.component.js";
@@ -19,8 +21,9 @@ import { EntityFactory } from "../entities/entity-factory.js";
 import { EnemyLifecicleSystem } from "../systems/enemy-lifecicle.system.js";
 import { ZoneFactory } from "../zones/zone-factory.js";
 import { ComponentStore } from "./component-store.js";
-import type { GameManager } from "./game-manager.js";
+import { GameManager } from "./game-manager.js";
 import { UIManager } from "./ui-manager.js";
+import { WorldImpassableChunkManager } from "../../game/world/world-impassable-chunk-manager.js";
 
 export enum LevelEndReason {
     PlayerDeath = "player_death",
@@ -54,6 +57,9 @@ export class LevelManager {
     constructor(
         private enemyLifecicleSystem: EnemyLifecicleSystem,
         private tilemapManager: WorldTilemapManager,
+        private worldEdgeManager: WorldEdgeManager,
+        private worldEdgeChunkManager: WorldEdgeChunkManager,
+        private worldImpassableChunkManager: WorldImpassableChunkManager,
         private cameraManager: CameraManager,
         private zoneFactory: ZoneFactory,
         private entityFactory: EntityFactory,
@@ -145,6 +151,8 @@ export class LevelManager {
         this.applyLevelResult(levelResult);
 
         this.finalizeLevelBuild();
+        this.worldEdgeManager.setEdges();
+        this.saveChunks();
     }
 
     private notifyBeforeLevelRebuild(): void {
@@ -318,4 +326,8 @@ export class LevelManager {
     private onKeyUp = (event: KeyboardEvent): void => {
         this.pressedKeys.delete(event.code);
     };
+    private saveChunks() {
+        this.worldEdgeChunkManager.generateChunks();
+        this.worldImpassableChunkManager.generateChunks();
+    }
 }

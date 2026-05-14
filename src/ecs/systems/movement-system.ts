@@ -1,5 +1,6 @@
 import { InventoryComponent } from "../components/inventory-component.js";
 import { MovementImprecisionIntentComponent } from "../components/movement-imprecision-intent.component.js";
+import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";

@@ -1,4 +1,5 @@
 import { CameraManager } from "../../game/world/camera-manager.js";
+import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { DebugManager } from "../core/debug-manager.js";
 import { DebugSettingKey } from "../core/types/debug-manager-settings.js";
 import { OrderDebuggerOrchestrator } from "../debugger-orders/order-debugger-orchestrator.js";
@@ -12,29 +13,41 @@ export class InputDebugSystem implements ISystem {
     private canvas: HTMLCanvasElement | null;
     private spawnEnemyButton: HTMLButtonElement | null;
     private enemyMoveButton: HTMLButtonElement | null;
+    private inspectTileButton: HTMLButtonElement | null;
     private spawnCursorBadge: HTMLElement | null;
     private moveCursorBadge: HTMLElement | null;
+    private inspectTileBadge: HTMLElement | null;
     private enemyEntityPreviousButton : HTMLElement | null;
     private enemyEntityNextButton : HTMLElement | null;
     private enemyEntityHighlightDiv : HTMLElement | null;
+    private debugIndexPreviousButton : HTMLElement | null;
+    private debugIndexNextButton : HTMLElement | null;
+    private debugIndexValueDiv : HTMLElement | null;
     private isInputPanelVisible = false;
 
-    constructor(debugManager: DebugManager, cameraManager : CameraManager) {
+    constructor(debugManager: DebugManager, cameraManager : CameraManager, private worldTilemapManager: WorldTilemapManager) {
         this.debugManager = debugManager;
         this.cameraManager = cameraManager;
         this.panel = document.querySelector<HTMLElement>("#debug-panel");
         this.canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas");
         this.spawnEnemyButton = document.querySelector<HTMLButtonElement>("#spawnEnemyButton");
         this.enemyMoveButton = document.querySelector<HTMLButtonElement>("#enemyMoveButton");
+        this.inspectTileButton = document.querySelector<HTMLButtonElement>("#inspectTileButton");
         this.spawnCursorBadge = document.querySelector<HTMLElement>("#spawnCursorBadge");
         this.moveCursorBadge = document.querySelector<HTMLElement>("#moveCursorBadge");
+        this.inspectTileBadge = document.querySelector<HTMLElement>("#inspectTileBadge");
         this.enemyEntityHighlightDiv = document.querySelector<HTMLElement>("#enemyEntityValue");
         this.enemyEntityPreviousButton = document.querySelector<HTMLButtonElement>("#enemyEntityPreviousButton");
         this.enemyEntityNextButton = document.querySelector<HTMLButtonElement>("#enemyEntityNextButton");
+        this.debugIndexValueDiv = document.querySelector<HTMLElement>("#debugIndexValue");
+        this.debugIndexPreviousButton = document.querySelector<HTMLButtonElement>("#debugIndexPreviousButton");
+        this.debugIndexNextButton = document.querySelector<HTMLButtonElement>("#debugIndexNextButton");
 
         this.initializePanelInputs();
         this.initializeSpawnerUi();
+        this.initializeDebugIndexOptionsUi();
         this.initializeEnemyEntityOptionsUi();
+        this.initializeInspectTileUi();
         this.canvas?.addEventListener("mouseenter", this.handleCanvasMouseEnter);
         this.canvas?.addEventListener("mouseleave", this.handleCanvasMouseLeave);
         this.canvas?.addEventListener("mousemove", this.handleCanvasMouseMove);
@@ -56,6 +69,7 @@ export class InputDebugSystem implements ISystem {
         this.bindDebugCheckbox(DebugSettingKey.SPRITE_BOUNDS);
         this.bindDebugCheckbox(DebugSettingKey.DEBUG_PAINT);
         this.bindDebugCheckbox(DebugSettingKey.AI_PATH);
+        this.bindDebugCheckbox(DebugSettingKey.DISABLE_RAYCASTING);
         this.syncPanelVisibility();
     }
 
@@ -75,6 +89,19 @@ export class InputDebugSystem implements ISystem {
             this.moveCursorBadge.hidden = false;
             this.moveCursorBadge.style.left = `${event.clientX}px`;
             this.moveCursorBadge.style.top = `${event.clientY}px`;
+        }
+
+        if(this.inspectTileBadge && this.debugManager.isInspectTileActive) {
+            const coords = this.getWorldCoordFromClick(event);
+            if (!coords) {
+                this.inspectTileBadge.hidden = true;
+                return;
+            }
+            const tile = this.worldTilemapManager.worldToTile(coords.worldPosX, coords.worldPosY);
+            this.inspectTileBadge.hidden = false;
+            this.inspectTileBadge.style.left = `${event.clientX}px`;
+            this.inspectTileBadge.style.top = `${event.clientY}px`;
+            this.inspectTileBadge.textContent = `Tile: ${tile.tileX}, ${tile.tileY}`;
         }
     }
 
@@ -127,6 +154,28 @@ export class InputDebugSystem implements ISystem {
 
     //!--Spawner
 
+    //--Debug Index Options
+    private initializeDebugIndexOptionsUi() {
+        this.debugIndexNextButton?.addEventListener("click", (() => this.shiftSelectedDebugIndex("right")));
+        this.debugIndexPreviousButton?.addEventListener("click", (() => this.shiftSelectedDebugIndex("left")));
+        this.syncDebugIndexOptionsUi();
+    }
+
+    private shiftSelectedDebugIndex(direction : "left" | "right") {
+        this.debugManager.shiftSelectedDebugIndex(direction);
+        this.syncDebugIndexOptionsUi();
+    }
+
+    private syncDebugIndexOptionsUi() {
+        if(!this.debugIndexValueDiv) {
+            return;
+        }
+
+        this.debugIndexValueDiv.textContent = this.debugManager.selectedDebugIndex.toString();
+    }
+
+    //!--Debug Index Options
+
 
 
     //--Enemy Entities Options
@@ -169,6 +218,26 @@ export class InputDebugSystem implements ISystem {
 
     //!--Enemy Entities Options
 
+    //--Inspect Tile
+    private initializeInspectTileUi() {
+        this.inspectTileButton?.addEventListener("click", () => {
+            this.debugManager.toggleDebugSetting(DebugSettingKey.INSPECT_TILE);
+            this.syncInspectTileUi();
+            this.syncPointerBadges();
+        });
+        this.syncInspectTileUi();
+    }
+
+    private syncInspectTileUi() {
+        if (!this.inspectTileButton) {
+            return;
+        }
+        this.inspectTileButton.textContent = this.debugManager.isInspectTileActive ? "Stop Inspect Tile" : "Inspect Tile";
+        this.inspectTileButton.setAttribute("aria-pressed", this.debugManager.isInspectTileActive ? "true" : "false");
+    }
+
+    //!--Inspect Tile
+
     private bindDebugCheckbox(settingKey: DebugSettingKey) {
         const input = document.querySelector<HTMLInputElement>(`#${settingKey}`);
         if (!input) {
@@ -181,6 +250,7 @@ export class InputDebugSystem implements ISystem {
             if (currentValue !== input.checked) {
                 this.debugManager.toggleDebugSetting(settingKey);
             }
+            this.syncPointerBadges();
         });
     }
 
@@ -203,6 +273,9 @@ export class InputDebugSystem implements ISystem {
         if(this.debugManager.isMovePointerActive && this.moveCursorBadge) {
             this.moveCursorBadge.hidden = false;
         }
+        if(this.debugManager.isInspectTileActive && this.inspectTileBadge) {
+            this.inspectTileBadge.hidden = false;
+        }
     }
 
     private handleCanvasMouseLeave = (): void => {
@@ -211,6 +284,21 @@ export class InputDebugSystem implements ISystem {
         }
         if(this.moveCursorBadge && this.debugManager.isMovePointerActive) {
             this.moveCursorBadge.hidden = true;
+        }
+        if(this.inspectTileBadge && this.debugManager.isInspectTileActive) {
+            this.inspectTileBadge.hidden = true;
+        }
+    }
+
+    private syncPointerBadges() {
+        if (this.spawnCursorBadge && !this.debugManager.isSpawnerPointerActive) {
+            this.spawnCursorBadge.hidden = true;
+        }
+        if (this.moveCursorBadge && !this.debugManager.isMovePointerActive) {
+            this.moveCursorBadge.hidden = true;
+        }
+        if (this.inspectTileBadge && !this.debugManager.isInspectTileActive) {
+            this.inspectTileBadge.hidden = true;
         }
     }
 

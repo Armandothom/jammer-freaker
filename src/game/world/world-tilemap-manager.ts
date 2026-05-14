@@ -2,7 +2,7 @@ import { OrderDebuggerOrchestrator } from '../../ecs/debugger-orders/order-debug
 import { SpriteSheetName } from '../asset-manager/types/sprite-sheet-name.enum.js';
 import { CameraViewport } from './types/camera-viewport.js';
 import { SpriteName } from './types/sprite-name.enum.js';
-import { TilemapTile, WorldPoiTile, WorldPoiTileType, TilemapWallTile, TilemapPathInformation } from './types/tilemap-tile.js';
+import { TilemapTile, WorldPoiTile, WorldPoiTileType, TilemapWallTile, TilemapPathInformation, TilemapCoordinates } from './types/tilemap-tile.js';
 import { BakedWall, WorldLevelResult } from './types/world-level-result.js';
 import { WorldZone, ZoneType } from './types/zone-type.js';
 
@@ -24,11 +24,12 @@ export class WorldTilemapManager {
   private readonly _tilemapSpritesheetName = SpriteSheetName.TERRAIN;
   private readonly _tilemap: Map<string, TilemapTile> = new Map();
   private readonly _wallTiles: Map<string, TilemapWallTile> = new Map();
+  private readonly _impassableWallTiles: Map<string, TilemapWallTile> = new Map();
   private readonly _poiTiles: Map<WorldPoiTileType, Map<string, WorldPoiTile>> = new Map();
   private readonly _zones: WorldZone[] = [];
 
-  public readonly _maxNumberTilesX: number;
-  public readonly _maxNumberTilesY: number;
+  private readonly _maxNumberTilesX: number;
+  private readonly _maxNumberTilesY: number;
 
   constructor() {
     this._maxNumberTilesX = Math.floor(this.worldWidth / this.tileSize);
@@ -145,18 +146,27 @@ export class WorldTilemapManager {
 
   public clearLevelGeometry(): void {
     this._wallTiles.clear();
+    this._impassableWallTiles.clear();
     this.resetTilemapToGround();
   }
 
   public setWall(x: number, y: number, spriteName: SpriteName): void {
     this.ensureTileBounds(x, y);
-
+    const isSolid = true;
     this._wallTiles.set(this.setTilemapKey(x, y), {
       x,
       y,
       spriteName,
-      solid: true,
+      solid: isSolid,
     });
+    if(isSolid) {
+      this._impassableWallTiles.set(this.setTilemapKey(x, y), {
+        x,
+        y,
+        spriteName,
+        solid: true,
+      })
+    }
   }
 
   public hasWall(x: number, y: number): boolean {
@@ -171,6 +181,20 @@ export class WorldTilemapManager {
 
   public isWallSolid(x: number, y: number): boolean {
     return this.getWall(x, y)?.solid ?? false;
+  }
+
+  public isWithinTilemap(tile : TilemapCoordinates) {
+    if(tile.tileX > this._maxNumberTilesX || tile.tileY > this._maxNumberTilesY || tile.tileX < 0 || tile.tileY < 0) {
+      return false;
+    }
+      return true;
+  }
+
+  public clampCoordinates(tile : TilemapCoordinates) : TilemapCoordinates {
+    return {
+      tileX : Math.min(Math.max(tile.tileX, 0), this._maxNumberTilesX),
+      tileY : Math.min(Math.max(tile.tileY, 0), this._maxNumberTilesY),
+    } 
   }
 
   private getTileLimitViewport(viewport : CameraViewport) {
@@ -266,11 +290,11 @@ export class WorldTilemapManager {
 
 
   public getTilemapPathInformation() : TilemapPathInformation {
-    const impassableWallTiles = Array.from(this._wallTiles.values()).filter((value) => value.solid);
+    const impassableWallTiles = Array.from(this._impassableWallTiles.keys());
     return {
       maxTilesX : this._maxNumberTilesX,
       maxTilesY : this._maxNumberTilesY,
-      impassableTiles : new Map<string, TilemapWallTile>(impassableWallTiles.map((wallTile) => [this.setTilemapKey(wallTile.x, wallTile.y), wallTile])),
+      impassableTiles : new Set<string>(impassableWallTiles),
       tileSize : this.tileSize
     };
   }
@@ -290,15 +314,16 @@ export class WorldTilemapManager {
     return this.getTile(x, y).type;
   }
 
-  public get zones(): WorldZone[] {
-    return this._zones;
-  }
-
-  public worldToTile(worldX: number, worldY: number): { tileX: number; tileY: number } {
+  public worldToTile(worldX: number, worldY: number): TilemapCoordinates {
     return {
       tileX: Math.floor(worldX / this.tileSize),
       tileY: Math.floor(worldY / this.tileSize),
     };
+  }
+
+
+  public tileIndexToWorld(tileCoord : number) : number {
+    return tileCoord * this.tileSize;
   }
 
   public tileToWorld(tileX: number, tileY: number, anchorPosition : "topLeft" | "center" = "topLeft"): { worldX: number; worldY: number } {
@@ -309,21 +334,24 @@ export class WorldTilemapManager {
     };
   }
 
-  public get worldMaxBoundsTiles() {
-    return {
-      left: 0,
-      top: 0,
-      right: this._maxNumberTilesX,
-      bottom: this._maxNumberTilesY,
-    };
-  }
-
-  public get appliedSpriteSheetName() {
-    return this._tilemapSpritesheetName;
-  }
-
   public setTilemapKey(x: number, y: number): string {
     return `${x}_${y}`;
+  }
+
+  public getTileFromKey(key : string): TilemapCoordinates | null {
+    const splitted = key.split("_");
+    if(splitted.length != 2) {
+      return null;
+    }
+    const tileX = Number(splitted[0]);
+    const tileY = Number(splitted[1]);
+    if(isNaN(tileX) || isNaN(tileY)) {
+      return null;
+    }
+    return {
+      tileX : Number(splitted[0]),
+      tileY : Number(splitted[1])
+    }
   }
 
   private resetTilemapToGround(): void {
@@ -338,4 +366,36 @@ export class WorldTilemapManager {
       throw new Error(`Tile out of bounds: (${x}, ${y})`);
     }
   }
+
+
+  public get worldMaxBoundsTiles() {
+    return {
+      left: 0,
+      top: 0,
+      right: this._maxNumberTilesX,
+      bottom: this._maxNumberTilesY,
+    };
+  }
+
+  public get appliedSpriteSheetName() {
+    return this._tilemapSpritesheetName;
+  }
+
+  public get zones(): WorldZone[] {
+    return this._zones;
+  }
+
+  public get impassableWallTiles() {
+    return this._impassableWallTiles;
+  }
+
+  public get maxNumberTilesY() {
+    return this._maxNumberTilesY;
+  }
+
+  public get maxNumberTilesX() {
+    return this._maxNumberTilesX;
+  }
+
+
 }
