@@ -48,7 +48,8 @@ export class VisibilityManager {
         rays.push(ray);
       }
     }
-    rays.push(...[fovRange.start, fovRange.end].map((angle) => this.setHit(originPosition, MathUtils.degreeToRad(angle))));
+    //Rays on limit, to limit FOV
+    //rays.push(...[fovRange.start, fovRange.end].map((angle) => this.setHit(originPosition, MathUtils.degreeToRad(angle))));
     this._currentRays = this.formRayTriangleFan(originPosition, rays);
     this.debugDrawPoints();
     if (this.debugManager.selectedDebugIndex != -1) {
@@ -151,7 +152,6 @@ export class VisibilityManager {
       }
       const isWithinViewport = this.cameraManager.isWithinViewport(positionStep.x, positionStep.x, positionStep.y, positionStep.y);
       const isWithinTilemap = this.worldTilemapManager.isWithinTilemap(currentTile);
-      const isWithinMap = isWithinTilemap && isWithinViewport;
       if (!isWithinViewport) {
         //We take the X or Y axis that is outside viewport, then we
         //discover where the point should go based on the "last pixel on the viewport range" (t value)
@@ -182,7 +182,7 @@ export class VisibilityManager {
           y: positionStep.y
         }
       }
-      if (isObstacleHit || !isWithinMap) {
+      if (isObstacleHit || !isWithinTilemap) {
         return {
           angle,
           x: positionStep.x,

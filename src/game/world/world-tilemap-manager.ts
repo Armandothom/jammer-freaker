@@ -184,7 +184,7 @@ export class WorldTilemapManager {
   }
 
   public isWithinTilemap(tile : TilemapCoordinates) {
-    if(tile.tileX > this._maxNumberTilesX || tile.tileY > this._maxNumberTilesY || tile.tileX < 0 || tile.tileY < 0) {
+    if(tile.tileX >= this._maxNumberTilesX || tile.tileY >= this._maxNumberTilesY || tile.tileX < 0 || tile.tileY < 0) {
       return false;
     }
       return true;
