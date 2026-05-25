@@ -1,6 +1,7 @@
 import { SPRITESHEET_MAPPED_VALUES } from "../../game/asset-manager/consts/sprite-mapped-values.js";
 import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
+import { LootContainerType } from "../../game/world/loot/loot-container-config.js";
 import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import { AiAttackRangeComponent } from "../components/ai-attack-range.component.js";
 import { AIComponent } from "../components/ai.component.js";
@@ -31,6 +32,7 @@ import { HitBoxComponent } from "../components/hit-box-component.js";
 import { InventoryComponent } from "../components/inventory-component.js";
 import { ItemBoxComponent } from "../components/item-box.component.js";
 import { ItemDroppedComponent } from "../components/item-dropped.component.js";
+import { LootContainerComponent } from "../components/loot-container.component.js";
 import { MeleeIntentProcessedComponent } from "../components/melee-intent-processed.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { ParentEntityComponent } from "../components/parent-entity-component.js";
@@ -174,6 +176,7 @@ export class EntityFactory {
     private vfxComponentStore: ComponentStore<VFXComponent>,
     private pathFindingObstacleComponent: ComponentStore<PathFindingObstacleComponent>,
     private playerFovComponentStore: ComponentStore<PlayerFovComponent>,
+    private lootContainerComponentStore: ComponentStore<LootContainerComponent>,
   ) {
   }
 
@@ -733,7 +736,7 @@ export class EntityFactory {
     const entityId = this.entityManager.registerEntity();
     const boxHp = 1;
     this.renderableComponentStore.add(entityId, new RenderableComponent());
-    this.positionComponentStore.add(entityId, new PositionComponent(startX, startY))
+    this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.healthComponentStore.add(entityId, new HealthComponent(boxHp));
     this.collisionBoxComponentStore.add(entityId, new CollisionBoxComponent())
     this.hitboxComponentStore.add(entityId, new HitBoxComponent());
@@ -743,6 +746,18 @@ export class EntityFactory {
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
     const spriteInfo = this.spriteComponentStore.get(entityId);
     this.createShadow(entityId, startX, startY, spriteInfo.width, spriteInfo.height, SpriteName.SHADOW_1);
+  }
+
+  createLootContainer(startX: number, startY: number, spriteName: SpriteName, spriteSheetName: SpriteSheetName, lootContainerType: LootContainerType): number {
+    const entityId = this.entityManager.registerEntity();
+    this.renderableComponentStore.add(entityId, new RenderableComponent());
+    this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
+    this.lootContainerComponentStore.add(entityId, new LootContainerComponent(lootContainerType));
+    this.spriteComponentStore.add(entityId, new SpriteComponent(spriteName, spriteSheetName));
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
+    const spriteInfo = this.spriteComponentStore.get(entityId);
+    this.createShadow(entityId, startX, startY, spriteInfo.width, spriteInfo.height, SpriteName.SHADOW_1);
+    return entityId;
   }
 
   createItemDrop(startX: number, startY: number, resourceType: InventoryResourceType, amount: number, spriteName: SpriteName, spriteSheetName: SpriteSheetName, animationName: AnimationName) {
@@ -877,6 +892,16 @@ export class EntityFactory {
     this.collisionBoxComponentStore.remove(entityId);
     this.hitboxComponentStore.remove(entityId);
     this.itemBoxComponentStore.remove(entityId);
+    this.spriteComponentStore.remove(entityId);
+    this.animationComponentStore.remove(entityId);
+    this.zLayerComponentStore.remove(entityId);
+    this.destroyShadow(entityId);
+  }
+
+  destroyLootContainer(entityId: number): void {
+    this.renderableComponentStore.remove(entityId);
+    this.positionComponentStore.remove(entityId);
+    this.lootContainerComponentStore.remove(entityId);
     this.spriteComponentStore.remove(entityId);
     this.animationComponentStore.remove(entityId);
     this.zLayerComponentStore.remove(entityId);

@@ -32,4 +32,5 @@ export enum SpriteSheetName {
   MUZZLE_FLASH = "muzzle_flash",
   CROSSHAIR = "crosshair",
   APPLY_BAR = "apply_bar",
+  BUILDING_WALLS = "building_walls",
 }

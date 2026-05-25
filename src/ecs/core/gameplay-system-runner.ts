@@ -7,6 +7,7 @@ import { WeatherManager } from "../../game/weather/weather-manager.js";
 import { CameraManager } from "../../game/world/camera-manager.js";
 import { CollisionManager } from "../../game/world/collision-manager.js";
 import { PathFindingManager } from "../../game/world/pathfinding-manager.js";
+import { WorldMapManager } from "../../game/world/world-map-manager.js";
 import { WorldEdgeChunkManager } from "../../game/world/world-edge-chunk-manager.js";
 import { WorldEdgeManager } from "../../game/world/world-edge-manager.js";
 import { WorldImpassableChunkManager } from "../../game/world/world-impassable-chunk-manager.js";
@@ -73,6 +74,7 @@ import { MedicalItemUseComponent } from "../components/medical-item-use.componen
 import { ItemBoxComponent } from "../components/item-box.component.js";
 import { ItemDropIntentComponent } from "../components/item-drop-intent.component.js";
 import { ItemDroppedComponent } from "../components/item-dropped.component.js";
+import { LootContainerComponent } from "../components/loot-container.component.js";
 import { MeleeIntentProcessedComponent } from "../components/melee-intent-processed.component.js";
 import { MovementImprecisionIntentComponent } from "../components/movement-imprecision-intent.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
@@ -160,6 +162,7 @@ import { ItemDropSpawnSystem } from "../systems/item-drop-spawn.system.js";
 import { ItemDropUpdateSystem } from "../systems/item-drop-update.system.js";
 import { LevelProgressionSystem } from "../systems/level-progression.system.js";
 import { LevelUpdateSystem } from "../systems/level-update.system.js";
+import { LootContainerSpawnSystem } from "../systems/loot-container-spawn-system.js";
 import { MedicalItemsSystem } from "../systems/medical-items-system.js";
 import { MeleeAttackSystem } from "../systems/melee-attack.system.js";
 import { MovementSystem } from "../systems/movement-system.js";
@@ -183,8 +186,6 @@ import { WeaponImprecisionSystem } from "../systems/weapon-imprecision-system.js
 import { WeaponSwitchSystem } from "../systems/weapon-switch-system.js";
 import { WeatherSystem } from "../systems/weather.system.js";
 import { SpriteLevelScalerSystem } from "../systems/zoom-level-scaler-system.js";
-import { StructureBaker } from "../zones/structure-baker.js";
-import { ZoneFactory } from "../zones/zone-factory.js";
 import { ComponentStore } from "./component-store.js";
 import { CoreManager } from "./core-manager.js";
 import { DeathActionController } from "./death-action-controller.js";
@@ -297,6 +298,7 @@ export class GameplaySystemRunner {
   private staggerComponentStore: ComponentStore<StaggerComponent> = new ComponentStore("StaggerComponent");
   private focusFireIntentComponentStore: ComponentStore<FocusFireIntentComponent> = new ComponentStore("FocusFireIntentComponent");
   private itemBoxComponentStore: ComponentStore<ItemBoxComponent> = new ComponentStore("ItemBoxComponent");
+  private lootContainerComponentStore: ComponentStore<LootContainerComponent> = new ComponentStore("LootContainerComponent");
   private corpseComponentStore: ComponentStore<CorpseComponent> = new ComponentStore("CorpseComponent");
   private awaitingAnimationEndComponentStore: ComponentStore<AwaitingAnimationEndComponent> = new ComponentStore("AwaitingAnimationEndComponent");
   private itemDropIntentComponentStore: ComponentStore<ItemDropIntentComponent> = new ComponentStore("ItemDropIntentComponent");
@@ -345,8 +347,6 @@ export class GameplaySystemRunner {
   private particleEmitterSystem: ParticleEmitterSystem;
   private cameraFollowSystem: CameraFollowSystem;
   private visibilitySystem: VisibilitySystem;
-  private zoneFactory: ZoneFactory;
-  private structureBaker: StructureBaker;
   private dialogSystem: DialogSystem;
   private hitDetectionSystem: HitDetectionSystem;
   private damageProcessingSystem: DamageProcessingSystem;
@@ -361,6 +361,7 @@ export class GameplaySystemRunner {
   private deathRuntimeSystem: DeathRuntimeSystem;
   private itemDropSpawnSystem: ItemDropSpawnSystem;
   private itemDropUpdateSystem: ItemDropUpdateSystem;
+  private lootContainerSpawnSystem: LootContainerSpawnSystem;
   private uiRuntime: UIRuntime;
   private uiRuntimeInputSystem: UIRuntimeInputSystem;
   private uiRuntimeSyncSystem: UIRuntimeSyncSystem;
@@ -376,6 +377,7 @@ export class GameplaySystemRunner {
 
   constructor(
     private worldTilemapManager: WorldTilemapManager,
+    private worldMapManager: WorldMapManager,
     private spriteManager: SpriteManager,
     private textManager: TextManager,
     private entityManager: EntityManager,
@@ -411,8 +413,6 @@ export class GameplaySystemRunner {
     this.freezeManager = new FreezeManager();
     this.inventoryManager = new InventoryManager();
     this.playerInitialProperties = new PlayerInitialProperties();
-    this.structureBaker = new StructureBaker();
-    this.zoneFactory = new ZoneFactory(this.structureBaker);
     this.inputDebugSystem = new InputDebugSystem(this.debugManager, this.cameraManager, this.worldTilemapManager);
     this.uiManager = new UIManager(this.cameraManager);
     this.uiRuntime = new UIRuntime();
@@ -423,10 +423,11 @@ export class GameplaySystemRunner {
     this.uiRuntime.setBaseScreen("hud");
     this.uiRuntime.pushOverlay(this.crosshairScreenId);
     this.soundEventBus = new SoundEventBus();
-    this.entityFactory = new EntityFactory(entityManager, this.inventoryManager, this.uiManager, this.renderableComponentStore, this.playerComponentStore, this.enemyComponentStore, this.positionComponentStore, this.spriteComponentStore, this.projectileComponentStore, this.shooterCooldownComponentStore, this.velocityComponentStore, this.movementIntentComponentStore, this.animationComponentStore, this.directionAnimComponentStore, this.collisionBoxComponentStore, this.aiComponentStore, this.healthComponentStore, this.shotOriginComponentStore, this.damageDealtComponentStore, this.shootingCooldownComponentStore, this.aiAttackRangeComponentStore, this.enemyDeadComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.zLayerComponentStore, this.directionComponentStore, this.weaponComponentStore, this.weaponMagazineComponentStore, this.weaponStatsComponentStore, this.grenadeComponentStore, this.fuseTimerComponentStore, this.shapeDimensionComponentStore, this.shapePositionComponentStore, this.shapeComponentStore, this.shapeDirectionComponentStore, this.shapeAngleComponentStore, this.shapeHitMemoryComponentStore, this.cameraComponentStore, this.hitBoxComponentStore, this.awaitingAnimationEndComponentStore, this.corpseComponentStore, this.grenadeExplosionHitBoxComponentStore, this.dialogComponentStore, this.dialogLifetimeComponentStore, this.dialogBubbleSpriteComponentStore, this.bitmapTextComponentStore, this.dialogAnimComponentStore, this.inventoryComponentStore, this.itemBoxComponentStore, this.itemDroppedComponentStore, this.screenPositionComponentStore, this.gameUiAnchorComponentStore, this.gameUiComponentStore, this.meleeIntentProcessedComponentStore, this.shadowComponentStore, this.parentEntityComponentStore, this.grenadeTravelComponentStore, this.vfxComponentStore, this.pathFindingObstacleComponentStore, this.playerFovComponentStore);
+    this.entityFactory = new EntityFactory(entityManager, this.inventoryManager, this.uiManager, this.renderableComponentStore, this.playerComponentStore, this.enemyComponentStore, this.positionComponentStore, this.spriteComponentStore, this.projectileComponentStore, this.shooterCooldownComponentStore, this.velocityComponentStore, this.movementIntentComponentStore, this.animationComponentStore, this.directionAnimComponentStore, this.collisionBoxComponentStore, this.aiComponentStore, this.healthComponentStore, this.shotOriginComponentStore, this.damageDealtComponentStore, this.shootingCooldownComponentStore, this.aiAttackRangeComponentStore, this.enemyDeadComponentStore, this.aimShootingComponent, this.weaponSpriteAttachmentComponentStore, this.zLayerComponentStore, this.directionComponentStore, this.weaponComponentStore, this.weaponMagazineComponentStore, this.weaponStatsComponentStore, this.grenadeComponentStore, this.fuseTimerComponentStore, this.shapeDimensionComponentStore, this.shapePositionComponentStore, this.shapeComponentStore, this.shapeDirectionComponentStore, this.shapeAngleComponentStore, this.shapeHitMemoryComponentStore, this.cameraComponentStore, this.hitBoxComponentStore, this.awaitingAnimationEndComponentStore, this.corpseComponentStore, this.grenadeExplosionHitBoxComponentStore, this.dialogComponentStore, this.dialogLifetimeComponentStore, this.dialogBubbleSpriteComponentStore, this.bitmapTextComponentStore, this.dialogAnimComponentStore, this.inventoryComponentStore, this.itemBoxComponentStore, this.itemDroppedComponentStore, this.screenPositionComponentStore, this.gameUiAnchorComponentStore, this.gameUiComponentStore, this.meleeIntentProcessedComponentStore, this.shadowComponentStore, this.parentEntityComponentStore, this.grenadeTravelComponentStore, this.vfxComponentStore, this.pathFindingObstacleComponentStore, this.playerFovComponentStore, this.lootContainerComponentStore);
     const uiRuntimeEntityFactory = new UIRuntimeEntityFactory(this.entityManager, this.renderableComponentStore, this.screenPositionComponentStore, this.spriteComponentStore, this.bitmapTextComponentStore, this.zLayerComponentStore, this.uiRuntimeElementComponentStore, this.spriteClipComponentStore, this.transformComponentStore);
     this.enemyLifecicleSystem = new EnemyLifecicleSystem(this.positionComponentStore, this.playerComponentStore, this.enemyComponentStore, this.enemyDeadComponentStore, this.entityFactory, this.worldTilemapManager, this.spriteManager, this.soundManager, this.freezeManager, this.spriteComponentStore, this.worldTilemapManager);
-    this.levelManager = new LevelManager(this.enemyLifecicleSystem, this.worldTilemapManager, this.worldEdgeManager, this.worldEdgeChunkManager, this.worldImpassableWallChunkManager, this.cameraManager, this.zoneFactory, this.entityFactory, this.playerComponentStore, this.positionComponentStore, this.movementIntentComponentStore, this.inventoryComponentStore, this.healthComponentStore, this.playerInitialProperties, this.uiManager);
+    this.levelManager = new LevelManager(this.enemyLifecicleSystem, this.worldMapManager, this.worldTilemapManager, this.worldEdgeManager, this.worldEdgeChunkManager, this.worldImpassableWallChunkManager, this.cameraManager, this.entityFactory, this.playerComponentStore, this.positionComponentStore, this.movementIntentComponentStore, this.inventoryComponentStore, this.healthComponentStore, this.playerInitialProperties);
+    this.lootContainerSpawnSystem = new LootContainerSpawnSystem(this.levelManager.getBuildingInteractionManager(), this.entityFactory);
     this.levelUpdateSystem = new LevelUpdateSystem(this.levelManager, this.inventoryManager, this.playerComponentStore, this.enemyDeadComponentStore, this.inventoryComponentStore);
     this.inventoryDebugSystem = new InventoryDebugSystem(this.inventoryManager, this.inventoryComponentStore, this.playerComponentStore, this.healthComponentStore, this.damageTakenIntentComponentStore, this.bleedIntentComponentStore, this.weatherManager);
     this.inputMovementSystem = new InputMovementSystem(this.positionComponentStore, this.movementIntentComponentStore, this.playerComponentStore, this.velocityComponentStore);
@@ -537,6 +538,7 @@ export class GameplaySystemRunner {
     this.projectileSpawnSystem.update(CoreManager.timeSinceLastRender);
     this.grenadeSpawnSystem.update(CoreManager.timeSinceLastRender);
     this.projectileUpdateSystem.update(CoreManager.timeSinceLastRender);
+    this.lootContainerSpawnSystem.update(CoreManager.timeSinceLastRender);
     this.itemDropSpawnSystem.update(CoreManager.timeSinceLastRender);
     this.itemDropUpdateSystem.update(CoreManager.timeSinceLastRender);
     this.grenadeUpdateSystem.update(CoreManager.timeSinceLastRender);
@@ -576,7 +578,6 @@ export class GameplaySystemRunner {
   }
 
   initialize() {
-    this.levelManager.update();
     this.syncGameplayCrosshairAndCursor();
   }
 
@@ -586,6 +587,11 @@ export class GameplaySystemRunner {
 
   startNextLevelWithInventorySnapshot(inventorySnapshot: InventorySnapshot | null): void {
     this.levelManager.startNextLevelWithInventorySnapshot(inventorySnapshot);
+    this.syncGameplayCrosshairAndCursor();
+  }
+
+  startMapWithInventorySnapshot(mapId: string, inventorySnapshot: InventorySnapshot | null): void {
+    this.levelManager.startMapWithInventorySnapshot(mapId, inventorySnapshot);
     this.syncGameplayCrosshairAndCursor();
   }
 
@@ -654,6 +660,7 @@ export class GameplaySystemRunner {
   }
 
   private clearTransientLevelState(): void {
+    this.lootContainerSpawnSystem.reset();
     this.intentClickComponentStore.clear();
     this.intentShotComponentStore.clear();
     this.intentGrenadeComponentStore.clear();

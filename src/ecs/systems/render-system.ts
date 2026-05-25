@@ -168,10 +168,11 @@ export class RenderSystem implements ISystem {
   private getTerrainRenderObjects(viewport: CameraViewport): Array<RenderObject> {
     const terrainRenderObjects: Array<RenderObject> = [];
     const terrainTilesInViewport = this.tilemapManager.getTilesInArea(viewport);
-    const terrainSpritesheet = this.tilemapManager.appliedSpriteSheetName;
     const tileSize = this.tilemapManager.tileSize;
 
     for (const terrainTile of terrainTilesInViewport) {
+      const terrainSpritesheet = terrainTile.spriteSheetName
+        ?? this.tilemapManager.appliedSpriteSheetName;
       const spriteDetails = this.spriteManager.getSpriteProperties(
         terrainTile.spriteName,
         terrainSpritesheet,
@@ -181,10 +182,13 @@ export class RenderSystem implements ISystem {
       const worldY = terrainTile.y * tileSize;
       const screenX = worldX - viewport.left;
       const screenY = worldY - viewport.top;
+      const spriteRotation = terrainTile.spriteRotation ?? null;
+      const shouldRotateAroundCenter = spriteRotation !== null;
+      const rotationPivot = tileSize / 2;
 
       terrainRenderObjects.push({
-        xWorldPosition: screenX,
-        yWorldPosition: screenY,
+        xWorldPosition: shouldRotateAroundCenter ? screenX + rotationPivot : screenX,
+        yWorldPosition: shouldRotateAroundCenter ? screenY + rotationPivot : screenY,
         spriteSheetTexture: spriteDetails.spriteSheet.texture,
         uvCoordinates: this.spriteManager.getUvCoordinates(
           terrainTile.spriteName,
@@ -192,8 +196,10 @@ export class RenderSystem implements ISystem {
         ),
         height: tileSize,
         width: tileSize,
-        angleRotation: null,
+        angleRotation: spriteRotation,
         offsetRotation: 0,
+        rotationPivotX: shouldRotateAroundCenter ? rotationPivot : undefined,
+        rotationPivotY: shouldRotateAroundCenter ? rotationPivot : undefined,
         zLevel: this.getDepthLevel(worldY, this.layerMultiplicator["1"]),
       });
     }
@@ -241,10 +247,11 @@ export class RenderSystem implements ISystem {
   private getWallRenderObjects(viewport: CameraViewport): Array<RenderObject> {
     const wallRenderObjects: Array<RenderObject> = [];
     const wallTilesInViewport = this.tilemapManager.getWallTilesInArea(viewport);
-    const wallSpritesheet = this.tilemapManager.appliedSpriteSheetName;
     const tileSize = this.tilemapManager.tileSize;
 
     for (const wallTile of wallTilesInViewport) {
+      const wallSpritesheet = wallTile.spriteSheetName
+        ?? this.tilemapManager.appliedSpriteSheetName;
       const spriteDetails = this.spriteManager.getSpriteProperties(
         wallTile.spriteName,
         wallSpritesheet,
@@ -254,10 +261,13 @@ export class RenderSystem implements ISystem {
       const worldY = wallTile.y * tileSize;
       const screenX = worldX - viewport.left;
       const screenY = worldY - viewport.top;
+      const spriteRotation = wallTile.spriteRotation ?? null;
+      const shouldRotateAroundCenter = spriteRotation !== null;
+      const rotationPivot = tileSize / 2;
 
       wallRenderObjects.push({
-        xWorldPosition: screenX,
-        yWorldPosition: screenY,
+        xWorldPosition: shouldRotateAroundCenter ? screenX + rotationPivot : screenX,
+        yWorldPosition: shouldRotateAroundCenter ? screenY + rotationPivot : screenY,
         spriteSheetTexture: spriteDetails.spriteSheet.texture,
         uvCoordinates: this.spriteManager.getUvCoordinates(
           wallTile.spriteName,
@@ -265,8 +275,10 @@ export class RenderSystem implements ISystem {
         ),
         height: tileSize,
         width: tileSize,
-        angleRotation: null,
+        angleRotation: spriteRotation,
         offsetRotation: 0,
+        rotationPivotX: shouldRotateAroundCenter ? rotationPivot : undefined,
+        rotationPivotY: shouldRotateAroundCenter ? rotationPivot : undefined,
         zLevel: this.getDepthLevel(worldY, this.layerMultiplicator["2"]),
       });
     }

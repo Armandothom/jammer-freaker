@@ -74,12 +74,17 @@ export class ShootingSystem implements ISystem {
         if (keys["g"] || keys["G"]) isGrenade = true;
         if (keys["f"] || keys["F"]) isMelee = true;
 
-
-        if (this.lastMouseEvent) {
-            this.updateMousePosition(this.lastMouseEvent);
+        const playerEntity = this.getPlayerEntity();
+        if (playerEntity == null) {
+            this.clearMouseShotState();
+            return;
         }
 
-        const playerEntity = this.playerComponentStore.getAllEntities()[0];
+        if (this.lastMouseEvent && !this.updateMousePosition(this.lastMouseEvent)) {
+            this.pendingMouseDownShot = false;
+            return;
+        }
+
         const canAttemptShot = this.canAttemptShot(playerEntity);
 
         if (this.pendingMouseDownShot) {
@@ -101,8 +106,10 @@ export class ShootingSystem implements ISystem {
     private initListeners() {
         this.canvas.addEventListener("mousedown", (e: MouseEvent) => {
             this.isMouseDown = true;
-            this.pendingMouseDownShot = true;
-            this.updateMousePosition(e);
+            this.pendingMouseDownShot = this.updateMousePosition(e);
+            if (!this.pendingMouseDownShot) {
+                this.isMouseDown = false;
+            }
         });
 
         this.canvas.addEventListener("mouseup", () => {
@@ -126,20 +133,30 @@ export class ShootingSystem implements ISystem {
         return this.canCancelShotgunReload(playerEntity);
     }
 
-    private updateMousePosition = (e: MouseEvent) => {
+    private updateMousePosition = (e: MouseEvent): boolean => {
         this.lastMouseEvent = e;
-        const playerIdRes = this.playerComponentStore.getAllEntities();
-        const playerId = playerIdRes[0];
-        if (this.disableAimComponentStore.has(playerId)) {
-            return;
+        const playerId = this.getPlayerEntity();
+        if (playerId == null) {
+            return false;
         }
+
+        if (this.disableAimComponentStore.has(playerId)) {
+            return false;
+        }
+
+        const effectiveShooterPosition = this.resolveEffectiveShooterPositionOrNull(playerId);
+        const playerSprite = this.spriteComponentStore.getOrNull(playerId);
+        const weaponComponent = this.weaponComponentStore.getOrNull(playerId);
         const weaponAttachments = this.weaponAttachmentComponentStore.getValuesAndEntityId();
-        const weaponComponent = this.weaponComponentStore.get(playerId);
-        const weaponAttachment = weaponAttachments.find((weaponAttachmentEntry) => weaponAttachmentEntry[1].parentEntityId == playerId)!;
+        const weaponAttachment = weaponAttachments.find((weaponAttachmentEntry) => weaponAttachmentEntry[1].parentEntityId == playerId);
+        if (!effectiveShooterPosition || !playerSprite || !weaponComponent || !weaponAttachment) {
+            return false;
+        }
+
         const weaponEntityId = weaponAttachment[0];
         const baseAnchor = resolveWeaponAttachmentBaseAnchor(
-            this.resolveEffectiveShooterPosition(playerId),
-            this.spriteComponentStore.get(playerId),
+            effectiveShooterPosition,
+            playerSprite,
             weaponAttachment[1],
         );
         const rect = this.canvas.getBoundingClientRect();
@@ -160,12 +177,17 @@ export class ShootingSystem implements ISystem {
             x: mouseWorldPosition.x,
             y: mouseWorldPosition.y,
         };
+        return true;
     }
 
     private pushShotIntent(deltaTime: number, isHold: boolean) {
-        const playerEntity = this.playerComponentStore.getAllEntities()[0];
-        const weaponWielded = this.inventoryComponentStore.get(playerEntity).equippedWeaponType;
-        const inventory = this.inventoryComponentStore.get(playerEntity)
+        const playerEntity = this.getPlayerEntity();
+        if (playerEntity == null) return;
+
+        const inventory = this.inventoryComponentStore.getOrNull(playerEntity)
+        if (!inventory) return;
+
+        const weaponWielded = inventory.equippedWeaponType;
         if (weaponWielded == null) return;
 
         if (this.canCancelShotgunReload(playerEntity)) {
@@ -275,9 +297,9 @@ export class ShootingSystem implements ISystem {
         return fallbackRadius;
     }
 
-    private resolveEffectiveShooterPosition(playerEntity: number): PositionComponent {
+    private resolveEffectiveShooterPositionOrNull(playerEntity: number): PositionComponent | null {
         return this.movementIntentComponentStore.getOrNull(playerEntity)
-            ?? this.positionComponentStore.get(playerEntity);
+            ?? this.positionComponentStore.getOrNull(playerEntity);
     }
 
     private resolveShooterMovementDelta(playerEntity: number): ShotTarget {
@@ -295,17 +317,23 @@ export class ShootingSystem implements ISystem {
     }
 
     private resolvePlayerAimBaseAnchor(playerEntity: number): ShotTarget {
+        const effectiveShooterPosition = this.resolveEffectiveShooterPositionOrNull(playerEntity);
+        if (!effectiveShooterPosition) {
+            return this.currentMousePos;
+        }
+
         const weaponAttachment = this.weaponAttachmentComponentStore
             .getValuesAndEntityId()
             .find((weaponAttachmentEntry) => weaponAttachmentEntry[1].parentEntityId == playerEntity);
+        const playerSprite = this.spriteComponentStore.getOrNull(playerEntity);
 
-        if (!weaponAttachment) {
-            return this.resolveEffectiveShooterPosition(playerEntity);
+        if (!weaponAttachment || !playerSprite) {
+            return effectiveShooterPosition;
         }
 
         return resolveWeaponAttachmentBaseAnchor(
-            this.resolveEffectiveShooterPosition(playerEntity),
-            this.spriteComponentStore.get(playerEntity),
+            effectiveShooterPosition,
+            playerSprite,
             weaponAttachment[1],
         );
     }
@@ -394,12 +422,13 @@ export class ShootingSystem implements ISystem {
     }
 
     private pushGrenadeIntent() {
-        const playerEntity = this.playerComponentStore.getAllEntities()[0];
-        let playerPos: { x: number, y: number } | undefined;
-        const inventory = this.inventoryComponentStore.get(playerEntity)
-        if (this.inventoryManager.getResourceAmount(inventory, InventoryResourceType.Grenade) == 0) return;
+        const playerEntity = this.getPlayerEntity();
+        if (playerEntity == null) return;
 
-        playerPos = this.positionComponentStore.get(playerEntity);
+        const inventory = this.inventoryComponentStore.getOrNull(playerEntity)
+        if (!inventory) return;
+        if (this.inventoryManager.getResourceAmount(inventory, InventoryResourceType.Grenade) == 0) return;
+        if (!this.positionComponentStore.has(playerEntity)) return;
 
         this.intentGrenadeComponentStore.add(playerEntity, new IntentGrenadeComponent(
             this.currentMousePos.x,
@@ -408,16 +437,25 @@ export class ShootingSystem implements ISystem {
     }
 
     private pushMeeleIntent() {
-        const playerEntity = this.playerComponentStore.getAllEntities()[0];
-        let playerPos: { x: number, y: number } | undefined;
+        const playerEntity = this.getPlayerEntity();
+        if (playerEntity == null) return;
 
         if (this.disableAimComponentStore.has(playerEntity)) return;
-        playerPos = this.positionComponentStore.get(playerEntity);
+        if (!this.positionComponentStore.has(playerEntity)) return;
 
         this.intentMeleeComponentStore.add(playerEntity, new IntentMeleeComponent(
             this.currentMousePos.x,
             this.currentMousePos.y,
         ));
+    }
+
+    private getPlayerEntity(): number | null {
+        return this.playerComponentStore.getAllEntities()[0] ?? null;
+    }
+
+    private clearMouseShotState(): void {
+        this.isMouseDown = false;
+        this.pendingMouseDownShot = false;
     }
 }
 

@@ -103,6 +103,16 @@ export class SpriteManager {
     let yTop = cellY + sourceOffsetY;
     let yBottom = yTop + sourceHeight;
 
+    if (sourceWidth > 1) {
+      xLeft += 0.5;
+      xRight -= 0.5;
+    }
+
+    if (sourceHeight > 1) {
+      yTop += 0.5;
+      yBottom -= 0.5;
+    }
+
     //We normalize to between 0 and 1
     const xLeftNormalized = xLeft / spriteSheetWidth;
     const xRightNormalized = xRight / spriteSheetWidth;

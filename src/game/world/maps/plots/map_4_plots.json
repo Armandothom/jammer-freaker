@@ -1,0 +1,110 @@
+{
+    "mapId": "map_4",
+    "tileSize": 32,
+    "plots": [
+        {
+            "id": "plot_1",
+            "xMin": 160,
+            "yMin": 0,
+            "xMax": 1696,
+            "yMax": 544,
+            "orientation": "south"
+        },
+        {
+            "id": "plot_2",
+            "xMin": 2560,
+            "yMin": 0,
+            "xMax": 5056,
+            "yMax": 544,
+            "orientation": "south"
+        },
+        {
+            "id": "plot_3",
+            "xMin": 224,
+            "yMin": 832,
+            "xMax": 1632,
+            "yMax": 2848,
+            "orientation": "east"
+        },
+        {
+            "id": "plot_4",
+            "xMin": 2624,
+            "yMin": 2528,
+            "xMax": 6048,
+            "yMax": 3232,
+            "orientation": "south"
+        },
+        {
+            "id": "plot_5",
+            "xMin": 2624,
+            "yMin": 832,
+            "xMax": 5056,
+            "yMax": 1536,
+            "orientation": "north"
+        },
+        {
+            "id": "plot_6",
+            "xMin": 5344,
+            "yMin": 832,
+            "xMax": 6048,
+            "yMax": 2528,
+            "orientation": "east"
+        },
+        {
+            "id": "plot_7",
+            "xMin": 2624,
+            "yMin": 1536,
+            "xMax": 3328,
+            "yMax": 2528,
+            "orientation": "west"
+        },
+        {
+            "id": "plot_8",
+            "xMin": 4352,
+            "yMin": 1536,
+            "xMax": 5056,
+            "yMax": 2528,
+            "orientation": "east"
+        },
+        {
+            "id": "plot_9",
+            "xMin": 224,
+            "yMin": 3136,
+            "xMax": 1632,
+            "yMax": 4288,
+            "orientation": "north"
+        },
+        {
+            "id": "plot_10",
+            "xMin": 1920,
+            "yMin": 3520,
+            "xMax": 4192,
+            "yMax": 4288,
+            "orientation": "south"
+        },
+        {
+            "id": "plot_11",
+            "xMin": 4480,
+            "yMin": 3520,
+            "xMax": 6272,
+            "yMax": 4288,
+            "orientation": "north"
+        },
+        {
+            "id": "plot_12",
+            "xMin": 0,
+            "yMin": 4576,
+            "xMax": 1632,
+            "yMax": 5792,
+            "orientation": "north"
+        },
+        {
+            "id": "plot_13",
+            "xMin": 1920,
+            "yMin": 4576,
+            "xMax": 6272,
+            "yMax": 5792,
+            "orientation": "north"
+        }
+    ]
+}

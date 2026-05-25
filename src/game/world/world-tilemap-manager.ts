@@ -1,110 +1,116 @@
-import { OrderDebuggerOrchestrator } from '../../ecs/debugger-orders/order-debugger-orchestrator.js';
 import { SpriteSheetName } from '../asset-manager/types/sprite-sheet-name.enum.js';
+import {
+  isWorldMapTerrainTileSolid,
+  isWorldMapTerrainTileType,
+  isWorldMapTerrainTileVisibleWall,
+  resolveWorldMapTerrainSpriteName,
+  resolveWorldMapTerrainSpriteRotation,
+} from './maps/world-map-terrain-config.js';
+import type { WorldMapDefinition } from './maps/world-map-registry.js';
 import { CameraViewport } from './types/camera-viewport.js';
 import { SpriteName } from './types/sprite-name.enum.js';
 import { TilemapTile, WorldPoiTile, WorldPoiTileType, TilemapWallTile, TilemapPathInformation, TilemapCoordinates } from './types/tilemap-tile.js';
-import { BakedWall, WorldLevelResult } from './types/world-level-result.js';
-import { WorldZone, ZoneType } from './types/zone-type.js';
+
+type TileCoordinates = {
+  x: number;
+  y: number;
+};
 
 export class WorldTilemapManager {
-  public readonly worldWidth = 3200;
-  public readonly worldHeight = 3200;
+  public worldWidth = 3200;
+  public worldHeight = 3200;
 
-  public readonly tileSize = 32;
-
-  public readonly zoneWidth = 800;
-  public readonly zoneHeight = 800;
-
-  public readonly zoneWidthTiles = this.zoneWidth / this.tileSize;   // 25
-  public readonly zoneHeightTiles = this.zoneHeight / this.tileSize; // 25
-
-  public readonly zoneCountX = this.worldWidth / this.zoneWidth;
-  public readonly zoneCountY = this.worldHeight / this.zoneHeight;
+  public tileSize = 32;
 
   private readonly _tilemapSpritesheetName = SpriteSheetName.TERRAIN;
   private readonly _tilemap: Map<string, TilemapTile> = new Map();
   private readonly _wallTiles: Map<string, TilemapWallTile> = new Map();
   private readonly _impassableWallTiles: Map<string, TilemapWallTile> = new Map();
+  private readonly _visionBlockingWallTiles: Map<string, TilemapWallTile> = new Map();
+  private readonly _impactWallTiles: Map<string, TilemapWallTile> = new Map();
   private readonly _poiTiles: Map<WorldPoiTileType, Map<string, WorldPoiTile>> = new Map();
-  private readonly _zones: WorldZone[] = [];
 
-  private readonly _maxNumberTilesX: number;
-  private readonly _maxNumberTilesY: number;
+  private _maxNumberTilesX: number;
+  private _maxNumberTilesY: number;
 
   constructor() {
     this._maxNumberTilesX = Math.floor(this.worldWidth / this.tileSize);
     this._maxNumberTilesY = Math.floor(this.worldHeight / this.tileSize);
 
     this.initializeBaseTilemap();
-    this.initializeZones();
   }
 
-  private initializeBaseTilemap(): void {
+  private initializeBaseTilemap(
+    type: TilemapTile['type'] = 'ground',
+    spriteName: SpriteName = SpriteName.PLOT_TERRAIN,
+    spriteSheetName: SpriteSheetName = this._tilemapSpritesheetName,
+  ): void {
     for (let y = 0; y < this._maxNumberTilesY; y++) {
       for (let x = 0; x < this._maxNumberTilesX; x++) {
         this._tilemap.set(this.setTilemapKey(x, y), {
           x,
           y,
-          spriteName: SpriteName.METAL_1,
-          type: 'ground',
+          spriteName,
+          spriteSheetName,
+          spriteRotation: null,
+          type,
         });
       }
     }
   }
 
-  private initializeZones(): void {
-    for (let zoneGridY = 0; zoneGridY < this.zoneCountY; zoneGridY++) {
-      for (let zoneGridX = 0; zoneGridX < this.zoneCountX; zoneGridX++) {
-        this._zones.push({
-          zoneGridX,
-          zoneGridY,
-          tileX: zoneGridX * this.zoneWidthTiles,
-          tileY: zoneGridY * this.zoneHeightTiles,
-          widthTiles: this.zoneWidthTiles,
-          heightTiles: this.zoneHeightTiles,
-          type: this.resolveZoneType(zoneGridX, zoneGridY),
-        });
+  public applyWorldMap(worldMap: WorldMapDefinition): void {
+    this.tileSize = worldMap.tileSize;
+    this.worldWidth = worldMap.width * this.tileSize;
+    this.worldHeight = worldMap.height * this.tileSize;
+    this._maxNumberTilesX = worldMap.width;
+    this._maxNumberTilesY = worldMap.height;
+
+    this._tilemap.clear();
+    this._wallTiles.clear();
+    this._impassableWallTiles.clear();
+    this._visionBlockingWallTiles.clear();
+    this._impactWallTiles.clear();
+    this._poiTiles.clear();
+
+    this.initializeBaseTilemap(
+      "out_of_bounds",
+      resolveWorldMapTerrainSpriteName("out_of_bounds"),
+      this._tilemapSpritesheetName,
+    );
+
+    for (const mapTile of worldMap.tiles) {
+      const spriteName = resolveWorldMapTerrainSpriteName(mapTile.type);
+      const spriteRotation = resolveWorldMapTerrainSpriteRotation(mapTile.type);
+
+      this._tilemap.set(this.setTilemapKey(mapTile.x, mapTile.y), {
+        x: mapTile.x,
+        y: mapTile.y,
+        spriteName,
+        spriteSheetName: this._tilemapSpritesheetName,
+        spriteRotation,
+        type: mapTile.type,
+      });
+
+      if (isWorldMapTerrainTileSolid(mapTile.type)) {
+        this.setImpassableTile(
+          mapTile.x,
+          mapTile.y,
+          spriteName,
+          spriteRotation,
+          isWorldMapTerrainTileVisibleWall(mapTile.type),
+        );
       }
     }
+
+    this.applyPoiTiles(this.getVisibleWallsAsTileCoordinates());
   }
 
-  private resolveZoneType(zoneGridX: number, zoneGridY: number): ZoneType {
-    const isLeft = zoneGridX === 0;
-    const isRight = zoneGridX === this.zoneCountX - 1;
-    const isTop = zoneGridY === 0;
-    const isBottom = zoneGridY === this.zoneCountY - 1;
-
-    if (isLeft && isTop) return ZoneType.NorthWestCorner;
-    if (isRight && isTop) return ZoneType.NorthEastCorner;
-    if (isLeft && isBottom) return ZoneType.SouthWestCorner;
-    if (isRight && isBottom) return ZoneType.SouthEastCorner;
-
-    if (isTop) return ZoneType.NorthExterior;
-    if (isBottom) return ZoneType.SouthExterior;
-    if (isLeft) return ZoneType.WestExterior;
-    if (isRight) return ZoneType.EastExterior;
-
-    if (zoneGridX === 1 && zoneGridY === 1) return ZoneType.InnerNorthWest;
-    if (zoneGridX === 2 && zoneGridY === 1) return ZoneType.InnerNorthEast;
-    if (zoneGridX === 1 && zoneGridY === 2) return ZoneType.InnerSouthWest;
-    if (zoneGridX === 2 && zoneGridY === 2) return ZoneType.InnerSouthEast;
-
-    throw new Error(`Invalid zone coordinates: (${zoneGridX}, ${zoneGridY})`);
+  public refreshPoiTiles(): void {
+    this.applyPoiTiles(this.getVisibleWallsAsTileCoordinates());
   }
 
-  public applyWorldLevelResult(levelResult: WorldLevelResult): void {
-    this.applyGroundTiles(levelResult.groundTiles);
-    this.applyWalls(levelResult.walls);
-    this.applyPoiTiles(levelResult.walls);
-  }
-
-  public applyGroundTiles(groundTiles: WorldLevelResult['groundTiles']): void {
-    for (const groundTile of groundTiles) {
-      this.setTileType(groundTile.x, groundTile.y, groundTile.type);
-    }
-  }
-
-  public applyPoiTiles(walls: BakedWall[]) {
+  public applyPoiTiles(walls: TileCoordinates[]) {
     this._poiTiles.set(WorldPoiTileType.COVER, new Map());
     const coverMapTiles = this._poiTiles.get(WorldPoiTileType.COVER)!;
     for (const wall of walls) {
@@ -138,35 +144,154 @@ export class WorldTilemapManager {
     this._poiTiles.set(WorldPoiTileType.COVER, coverMapTiles);
   }
 
-  public applyWalls(walls: BakedWall[]): void {
-    for (const wall of walls) {
-      this.setWall(wall.x, wall.y, SpriteName.WALL_1);
-    }
-  }
-
   public clearLevelGeometry(): void {
     this._wallTiles.clear();
     this._impassableWallTiles.clear();
+    this._visionBlockingWallTiles.clear();
+    this._impactWallTiles.clear();
+    this._poiTiles.clear();
     this.resetTilemapToGround();
   }
 
-  public setWall(x: number, y: number, spriteName: SpriteName): void {
+  public setWall(
+    x: number,
+    y: number,
+    spriteName: SpriteName,
+    spriteSheetName: SpriteSheetName = this._tilemapSpritesheetName,
+    spriteRotation: number | null = null,
+  ): void {
+    this.setWallTile(x, y, spriteName, spriteSheetName, true, spriteRotation, true);
+  }
+
+  public setSeeThroughWall(
+    x: number,
+    y: number,
+    spriteName: SpriteName,
+    spriteSheetName: SpriteSheetName = this._tilemapSpritesheetName,
+    spriteRotation: number | null = null,
+  ): void {
+    this.setWallTile(x, y, spriteName, spriteSheetName, false, spriteRotation, true);
+  }
+
+  public setAssetTile(
+    x: number,
+    y: number,
+    spriteName: SpriteName,
+    spriteSheetName: SpriteSheetName,
+    spriteRotation: number | null,
+    options: {
+      impact: boolean;
+      impassable: boolean;
+      seeThrough: boolean;
+    },
+  ): void {
     this.ensureTileBounds(x, y);
-    const isSolid = true;
-    this._wallTiles.set(this.setTilemapKey(x, y), {
+    const key = this.setTilemapKey(x, y);
+    const wallTile = {
       x,
       y,
       spriteName,
-      solid: isSolid,
-    });
-    if(isSolid) {
-      this._impassableWallTiles.set(this.setTilemapKey(x, y), {
-        x,
-        y,
-        spriteName,
-        solid: true,
-      })
+      spriteSheetName,
+      spriteRotation,
+      solid: options.impassable,
+      blocksVision: !options.seeThrough,
+      impact: options.impact,
+    };
+
+    this._wallTiles.set(key, wallTile);
+
+    if (options.impassable) {
+      this._impassableWallTiles.set(key, wallTile);
+    } else {
+      this._impassableWallTiles.delete(key);
     }
+
+    if (options.seeThrough) {
+      this._visionBlockingWallTiles.delete(key);
+    } else {
+      this._visionBlockingWallTiles.set(key, wallTile);
+    }
+
+    if (options.impact) {
+      this._impactWallTiles.set(key, wallTile);
+    } else {
+      this._impactWallTiles.delete(key);
+    }
+  }
+
+  private setImpassableTile(
+    x: number,
+    y: number,
+    spriteName: SpriteName,
+    spriteRotation: number | null,
+    visible: boolean,
+  ): void {
+    this.ensureTileBounds(x, y);
+    const wallTile = {
+      x,
+      y,
+      spriteName,
+      spriteSheetName: this._tilemapSpritesheetName,
+      spriteRotation,
+      solid: true,
+      blocksVision: true,
+      impact: true,
+    };
+
+    this._impassableWallTiles.set(this.setTilemapKey(x, y), wallTile);
+    this._visionBlockingWallTiles.set(this.setTilemapKey(x, y), wallTile);
+    this._impactWallTiles.set(this.setTilemapKey(x, y), wallTile);
+
+    if (visible) {
+      this._wallTiles.set(this.setTilemapKey(x, y), wallTile);
+    }
+  }
+
+  private setWallTile(
+    x: number,
+    y: number,
+    spriteName: SpriteName,
+    spriteSheetName: SpriteSheetName,
+    blocksVision: boolean,
+    spriteRotation: number | null,
+    impact: boolean,
+  ): void {
+    this.ensureTileBounds(x, y);
+    const key = this.setTilemapKey(x, y);
+    const wallTile = {
+      x,
+      y,
+      spriteName,
+      spriteSheetName,
+      spriteRotation,
+      solid: true,
+      blocksVision,
+      impact,
+    };
+
+    this._wallTiles.set(key, wallTile);
+    this._impassableWallTiles.set(key, wallTile);
+
+    if (blocksVision) {
+      this._visionBlockingWallTiles.set(key, wallTile);
+    } else {
+      this._visionBlockingWallTiles.delete(key);
+    }
+
+    if (impact) {
+      this._impactWallTiles.set(key, wallTile);
+    } else {
+      this._impactWallTiles.delete(key);
+    }
+  }
+
+  private getVisibleWallsAsTileCoordinates(): TileCoordinates[] {
+    return Array.from(this._wallTiles.values())
+      .filter((wallTile) => wallTile.solid)
+      .map((wallTile) => ({
+        x: wallTile.x,
+        y: wallTile.y,
+      }));
   }
 
   public hasWall(x: number, y: number): boolean {
@@ -180,11 +305,22 @@ export class WorldTilemapManager {
   }
 
   public isWallSolid(x: number, y: number): boolean {
-    return this.getWall(x, y)?.solid ?? false;
+    this.ensureTileBounds(x, y);
+    return this._impassableWallTiles.get(this.setTilemapKey(x, y))?.solid ?? false;
+  }
+
+  public isVisionBlocked(x: number, y: number): boolean {
+    this.ensureTileBounds(x, y);
+    return this._visionBlockingWallTiles.has(this.setTilemapKey(x, y));
+  }
+
+  public hasTileImpact(x: number, y: number): boolean {
+    this.ensureTileBounds(x, y);
+    return this._impactWallTiles.has(this.setTilemapKey(x, y));
   }
 
   public isWithinTilemap(tile : TilemapCoordinates) {
-    if(tile.tileX > this._maxNumberTilesX || tile.tileY > this._maxNumberTilesY || tile.tileX < 0 || tile.tileY < 0) {
+    if(tile.tileX >= this._maxNumberTilesX || tile.tileY >= this._maxNumberTilesY || tile.tileX < 0 || tile.tileY < 0) {
       return false;
     }
       return true;
@@ -192,8 +328,8 @@ export class WorldTilemapManager {
 
   public clampCoordinates(tile : TilemapCoordinates) : TilemapCoordinates {
     return {
-      tileX : Math.min(Math.max(tile.tileX, 0), this._maxNumberTilesX),
-      tileY : Math.min(Math.max(tile.tileY, 0), this._maxNumberTilesY),
+      tileX : Math.min(Math.max(tile.tileX, 0), this._maxNumberTilesX - 1),
+      tileY : Math.min(Math.max(tile.tileY, 0), this._maxNumberTilesY - 1),
     } 
   }
 
@@ -306,12 +442,44 @@ export class WorldTilemapManager {
 
     this._tilemap.set(this.setTilemapKey(x, y), {
       ...currentTile,
+      spriteName: this.resolveTileSpriteName(type, currentTile.spriteName),
+      spriteSheetName: this._tilemapSpritesheetName,
+      spriteRotation: this.resolveTileSpriteRotation(type),
+      type,
+    });
+  }
+
+  public setGroundTile(
+    x: number,
+    y: number,
+    type: TilemapTile['type'],
+    spriteName: SpriteName,
+    spriteSheetName: SpriteSheetName = this._tilemapSpritesheetName,
+    spriteRotation: number | null = null,
+  ): void {
+    this.ensureTileBounds(x, y);
+    this._tilemap.set(this.setTilemapKey(x, y), {
+      x,
+      y,
+      spriteName,
+      spriteSheetName,
+      spriteRotation,
       type,
     });
   }
 
   public getTileType(x: number, y: number): TilemapTile['type'] {
     return this.getTile(x, y).type;
+  }
+
+  public getTileTypeAtWorldPosition(worldX: number, worldY: number): TilemapTile['type'] | null {
+    const tile = this.worldToTile(worldX, worldY);
+
+    if (!this.isWithinTilemap(tile)) {
+      return null;
+    }
+
+    return this.getTileType(tile.tileX, tile.tileY);
   }
 
   public worldToTile(worldX: number, worldY: number): TilemapCoordinates {
@@ -355,10 +523,34 @@ export class WorldTilemapManager {
   }
 
   private resetTilemapToGround(): void {
+    this._impactWallTiles.clear();
+
     for (const tile of this._tilemap.values()) {
-      tile.spriteName = SpriteName.METAL_1;
+      tile.spriteName = SpriteName.PLOT_TERRAIN;
+      tile.spriteSheetName = this._tilemapSpritesheetName;
+      tile.spriteRotation = null;
       tile.type = 'ground';
     }
+  }
+
+  private resolveTileSpriteName(type: TilemapTile['type'], fallback: SpriteName): SpriteName {
+    if (isWorldMapTerrainTileType(type)) {
+      return resolveWorldMapTerrainSpriteName(type);
+    }
+
+    if (type === 'ground' || type === 'player_spawn' || type === 'extraction_area') {
+      return SpriteName.PLOT_TERRAIN;
+    }
+
+    return fallback;
+  }
+
+  private resolveTileSpriteRotation(type: TilemapTile['type']): number | null {
+    if (isWorldMapTerrainTileType(type)) {
+      return resolveWorldMapTerrainSpriteRotation(type);
+    }
+
+    return null;
   }
 
   private ensureTileBounds(x: number, y: number): void {
@@ -381,12 +573,12 @@ export class WorldTilemapManager {
     return this._tilemapSpritesheetName;
   }
 
-  public get zones(): WorldZone[] {
-    return this._zones;
-  }
-
   public get impassableWallTiles() {
     return this._impassableWallTiles;
+  }
+
+  public get visionBlockingWallTiles() {
+    return this._visionBlockingWallTiles;
   }
 
   public get maxNumberTilesY() {

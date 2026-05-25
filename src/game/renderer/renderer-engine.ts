@@ -169,7 +169,7 @@ export class RendererEngine {
       return;
     }
 
-    this.renderWorldPass(tileObjects);
+    this.renderWorldPass(tileObjects, false);
 
     if (disableRaycasting || visibilityPoints.length === 0) {
       this.gl.disable(this.gl.STENCIL_TEST);
@@ -273,8 +273,8 @@ export class RendererEngine {
     gl.disable(gl.STENCIL_TEST);
   }
 
-  private renderWorldPass(renderObjects: RenderObject[]): void {
-    this.worldRenderer.render(renderObjects, this.debugBorderSprites);
+  private renderWorldPass(renderObjects: RenderObject[], debugBorderSprites = this.debugBorderSprites): void {
+    this.worldRenderer.render(renderObjects, debugBorderSprites);
   }
 
   private renderParticlePass(

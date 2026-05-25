@@ -6,27 +6,183 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
   [
     SpriteSheetName.TERRAIN,
     {
-      rows: 30,
-      columns: 15,
-      eachSpriteCellSizeHeight: 16,
-      eachSpriteCellSizeWidth: 16,
-      srcImagePath: 'src/assets/images/tilesheet_metal.png',
+      rows: 1,
+      columns: 11,
+      eachSpriteCellSizeHeight: 32,
+      eachSpriteCellSizeWidth: 32,
+      srcImagePath: 'src/assets/images/terrain_spritesheet.png',
       sprites: new Map([
-        [SpriteName.METAL_1, {
+        [SpriteName.STREET_TERRAIN, {
           row: 1,
           column: 1,
           originalRenderSpriteHeight: 32,
           originalRenderSpriteWidth: 32,
-          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 16, height: 16 }
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
         }],
-        [SpriteName.WALL_1, {
+        [SpriteName.SIDEWALK_TERRAIN, {
+          row: 1,
+          column: 2,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }
+        ],
+        [SpriteName.SIDEWALK_CURB_NORTH, {
+          row: 1,
+          column: 3,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }
+        ],
+        [SpriteName.SIDEWALK_CURB_CORNER, {
           row: 1,
           column: 4,
           originalRenderSpriteHeight: 32,
           originalRenderSpriteWidth: 32,
-          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 16, height: 16 }
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
         }
-        ]
+        ],
+        [SpriteName.SIDEWALK_CURB_CORNER_SINGLE, {
+          row: 1,
+          column: 5,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }
+        ],
+        [SpriteName.PLOT_TERRAIN, {
+          row: 1,
+          column: 6,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }
+        ],
+        [SpriteName.GRASS_TERRAIN, {
+          row: 1,
+          column: 7,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }
+        ],
+        [SpriteName.WATER_TERRAIN, {
+          row: 1,
+          column: 8,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }
+        ],
+        [SpriteName.MAP_WALL_TERRAIN, {
+          row: 1,
+          column: 9,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }
+        ],
+        [SpriteName.MAP_WALL_TERRAIN_CORNER, {
+          row: 1,
+          column: 10,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }
+        ],
+        [SpriteName.OOB_TERRAIN, {
+          row: 1,
+          column: 11,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }
+        ],
+      ]),
+    }
+  ],
+
+  [
+    SpriteSheetName.BUILDING_WALLS,
+    {
+      rows: 1,
+      columns: 8,
+      eachSpriteCellSizeHeight: 32,
+      eachSpriteCellSizeWidth: 32,
+      srcImagePath: 'src/assets/images/building_wall_spritesheet.png',
+      sprites: new Map([
+        [SpriteName.CONCRETE_WALL_1, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+        [SpriteName.CONCRETE_WALL_2, {
+          row: 1,
+          column: 2,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }
+        ],
+        [SpriteName.CONCRETE_WALL_3, {
+          row: 1,
+          column: 3,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }
+        ],
+        [SpriteName.CLEAN_WALL_1, {
+          row: 1,
+          column: 4,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }
+        ],
+        [SpriteName.CLEAN_WALL_2, {
+          row: 1,
+          column: 5,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }
+        ],
+        [SpriteName.BLUE_WALL, {
+          row: 1,
+          column: 6,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }
+        ],
+        [SpriteName.BEIGE_WALL, {
+          row: 1,
+          column: 7,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }
+        ],
+        [SpriteName.BROWN_WALL, {
+          row: 1,
+          column: 8,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }
+        ],
+        [SpriteName.WINDOW, {
+          row: 1,
+          column: 9,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }
+        ],
       ]),
     }
   ],

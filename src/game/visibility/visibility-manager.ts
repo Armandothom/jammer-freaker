@@ -224,7 +224,7 @@ export class VisibilityManager {
   }
 
   private checkRayHitObstacle(tile: TilemapCoordinates) {
-    return this.worldTilemapManager.impassableWallTiles.has(this.worldTilemapManager.setTilemapKey(tile.tileX, tile.tileY));
+    return this.worldTilemapManager.visionBlockingWallTiles.has(this.worldTilemapManager.setTilemapKey(tile.tileX, tile.tileY));
   }
 
 
@@ -267,7 +267,7 @@ export class VisibilityManager {
 
   private appendEdgesFromTiles(groupedTiles: TilemapCoordinates[], edgePoints: WorldMapCoordinates[]) {
     for (const tile of groupedTiles) {
-      if (this.worldTilemapManager.impassableWallTiles.has(this.worldTilemapManager.setTilemapKey(tile.tileX, tile.tileY))) {
+      if (this.worldTilemapManager.visionBlockingWallTiles.has(this.worldTilemapManager.setTilemapKey(tile.tileX, tile.tileY))) {
         const worldCoord = this.worldTilemapManager.tileToWorld(tile.tileX, tile.tileY);
         edgePoints.push(
           this.clampMapCoordinates({ x: worldCoord.worldX, y: worldCoord.worldY }),

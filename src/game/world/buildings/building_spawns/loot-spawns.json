@@ -1,0 +1,1672 @@
+{
+    "id": "building_loot_spawns",
+    "tileSize": 32,
+    "spawnType": "loot",
+    "buildings": [
+        {
+            "id": "auto_repair_shop",
+            "name": "auto_repair_shop",
+            "tileSize": 32,
+            "variations": [
+                {
+                    "id": "auto_repair_shop_0",
+                    "variation": 0,
+                    "orientations": {
+                        "north": {
+                            "orientation": "north",
+                            "width": 20,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "south": {
+                            "orientation": "south",
+                            "width": 20,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "west": {
+                            "orientation": "west",
+                            "width": 16,
+                            "height": 20,
+                            "spawns": []
+                        },
+                        "east": {
+                            "orientation": "east",
+                            "width": 16,
+                            "height": 20,
+                            "spawns": []
+                        }
+                    }
+                },
+                {
+                    "id": "auto_repair_shop_1",
+                    "variation": 1,
+                    "orientations": {
+                        "north": {
+                            "orientation": "north",
+                            "width": 20,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "south": {
+                            "orientation": "south",
+                            "width": 20,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "west": {
+                            "orientation": "west",
+                            "width": 16,
+                            "height": 20,
+                            "spawns": []
+                        },
+                        "east": {
+                            "orientation": "east",
+                            "width": 16,
+                            "height": 20,
+                            "spawns": []
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "id": "bank",
+            "name": "bank",
+            "tileSize": 32,
+            "variations": [
+                {
+                    "id": "bank_0",
+                    "variation": 0,
+                    "orientations": {
+                        "north": {
+                            "orientation": "north",
+                            "width": 25,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "south": {
+                            "orientation": "south",
+                            "width": 25,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "west": {
+                            "orientation": "west",
+                            "width": 16,
+                            "height": 25,
+                            "spawns": []
+                        },
+                        "east": {
+                            "orientation": "east",
+                            "width": 16,
+                            "height": 25,
+                            "spawns": []
+                        }
+                    }
+                },
+                {
+                    "id": "bank_1",
+                    "variation": 1,
+                    "orientations": {
+                        "north": {
+                            "orientation": "north",
+                            "width": 25,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "south": {
+                            "orientation": "south",
+                            "width": 25,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "west": {
+                            "orientation": "west",
+                            "width": 16,
+                            "height": 25,
+                            "spawns": []
+                        },
+                        "east": {
+                            "orientation": "east",
+                            "width": 16,
+                            "height": 25,
+                            "spawns": []
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "id": "construction_store",
+            "name": "construction_store",
+            "tileSize": 32,
+            "variations": [
+                {
+                    "id": "construction_store_0",
+                    "variation": 0,
+                    "orientations": {
+                        "north": {
+                            "orientation": "north",
+                            "width": 25,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "south": {
+                            "orientation": "south",
+                            "width": 25,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "west": {
+                            "orientation": "west",
+                            "width": 16,
+                            "height": 25,
+                            "spawns": []
+                        },
+                        "east": {
+                            "orientation": "east",
+                            "width": 16,
+                            "height": 25,
+                            "spawns": []
+                        }
+                    }
+                },
+                {
+                    "id": "construction_store_1",
+                    "variation": 1,
+                    "orientations": {
+                        "north": {
+                            "orientation": "north",
+                            "width": 25,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "south": {
+                            "orientation": "south",
+                            "width": 25,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "west": {
+                            "orientation": "west",
+                            "width": 16,
+                            "height": 25,
+                            "spawns": []
+                        },
+                        "east": {
+                            "orientation": "east",
+                            "width": 16,
+                            "height": 25,
+                            "spawns": []
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "id": "hardware_store",
+            "name": "hardware_store",
+            "tileSize": 32,
+            "variations": [
+                {
+                    "id": "hardware_store_0",
+                    "variation": 0,
+                    "orientations": {
+                        "north": {
+                            "orientation": "north",
+                            "width": 20,
+                            "height": 16,
+                            "spawns": [
+                                {
+                                    "x": 1,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 5,
+                                    "y": 5
+                                },
+                                {
+                                    "x": 18,
+                                    "y": 7
+                                },
+                                {
+                                    "x": 9,
+                                    "y": 11
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 13,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 15,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 18,
+                                    "y": 14
+                                }
+                            ]
+                        },
+                        "south": {
+                            "orientation": "south",
+                            "width": 20,
+                            "height": 16,
+                            "spawns": [
+                                {
+                                    "x": 18,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 10
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 8
+                                },
+                                {
+                                    "x": 10,
+                                    "y": 4
+                                },
+                                {
+                                    "x": 18,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 6,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 4,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 1
+                                }
+                            ]
+                        },
+                        "west": {
+                            "orientation": "west",
+                            "width": 16,
+                            "height": 20,
+                            "spawns": [
+                                {
+                                    "x": 1,
+                                    "y": 18
+                                },
+                                {
+                                    "x": 5,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 7,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 11,
+                                    "y": 10
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 18
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 6
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 4
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 1
+                                }
+                            ]
+                        },
+                        "east": {
+                            "orientation": "east",
+                            "width": 16,
+                            "height": 20,
+                            "spawns": [
+                                {
+                                    "x": 14,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 10,
+                                    "y": 5
+                                },
+                                {
+                                    "x": 8,
+                                    "y": 18
+                                },
+                                {
+                                    "x": 4,
+                                    "y": 9
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 13
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 15
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 18
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "id": "hardware_store_1",
+                    "variation": 1,
+                    "orientations": {
+                        "north": {
+                            "orientation": "north",
+                            "width": 20,
+                            "height": 16,
+                            "spawns": [
+                                {
+                                    "x": 1,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 5,
+                                    "y": 5
+                                },
+                                {
+                                    "x": 18,
+                                    "y": 7
+                                },
+                                {
+                                    "x": 9,
+                                    "y": 11
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 13,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 15,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 18,
+                                    "y": 14
+                                }
+                            ]
+                        },
+                        "south": {
+                            "orientation": "south",
+                            "width": 20,
+                            "height": 16,
+                            "spawns": [
+                                {
+                                    "x": 18,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 10
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 8
+                                },
+                                {
+                                    "x": 10,
+                                    "y": 4
+                                },
+                                {
+                                    "x": 18,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 6,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 4,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 1
+                                }
+                            ]
+                        },
+                        "west": {
+                            "orientation": "west",
+                            "width": 16,
+                            "height": 20,
+                            "spawns": [
+                                {
+                                    "x": 1,
+                                    "y": 18
+                                },
+                                {
+                                    "x": 5,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 7,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 11,
+                                    "y": 10
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 18
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 6
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 4
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 1
+                                }
+                            ]
+                        },
+                        "east": {
+                            "orientation": "east",
+                            "width": 16,
+                            "height": 20,
+                            "spawns": [
+                                {
+                                    "x": 14,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 10,
+                                    "y": 5
+                                },
+                                {
+                                    "x": 8,
+                                    "y": 18
+                                },
+                                {
+                                    "x": 4,
+                                    "y": 9
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 13
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 15
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 18
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "id": "hospital",
+            "name": "hospital",
+            "tileSize": 32,
+            "variations": [
+                {
+                    "id": "hospital_0",
+                    "variation": 0,
+                    "orientations": {
+                        "north": {
+                            "orientation": "north",
+                            "width": 32,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "south": {
+                            "orientation": "south",
+                            "width": 32,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "west": {
+                            "orientation": "west",
+                            "width": 16,
+                            "height": 32,
+                            "spawns": []
+                        },
+                        "east": {
+                            "orientation": "east",
+                            "width": 16,
+                            "height": 32,
+                            "spawns": []
+                        }
+                    }
+                },
+                {
+                    "id": "hospital_1",
+                    "variation": 1,
+                    "orientations": {
+                        "north": {
+                            "orientation": "north",
+                            "width": 32,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "south": {
+                            "orientation": "south",
+                            "width": 32,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "west": {
+                            "orientation": "west",
+                            "width": 16,
+                            "height": 32,
+                            "spawns": []
+                        },
+                        "east": {
+                            "orientation": "east",
+                            "width": 16,
+                            "height": 32,
+                            "spawns": []
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "id": "kiosk",
+            "name": "kiosk",
+            "tileSize": 32,
+            "variations": [
+                {
+                    "id": "kiosk_0",
+                    "variation": 0,
+                    "orientations": {
+                        "north": {
+                            "orientation": "north",
+                            "width": 10,
+                            "height": 10,
+                            "spawns": [
+                                {
+                                    "x": 1,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 8,
+                                    "y": 6
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 8
+                                }
+                            ]
+                        },
+                        "south": {
+                            "orientation": "south",
+                            "width": 10,
+                            "height": 10,
+                            "spawns": [
+                                {
+                                    "x": 8,
+                                    "y": 8
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 3
+                                },
+                                {
+                                    "x": 8,
+                                    "y": 1
+                                }
+                            ]
+                        },
+                        "west": {
+                            "orientation": "west",
+                            "width": 10,
+                            "height": 10,
+                            "spawns": [
+                                {
+                                    "x": 1,
+                                    "y": 8
+                                },
+                                {
+                                    "x": 6,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 8,
+                                    "y": 8
+                                }
+                            ]
+                        },
+                        "east": {
+                            "orientation": "east",
+                            "width": 10,
+                            "height": 10,
+                            "spawns": [
+                                {
+                                    "x": 8,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 3,
+                                    "y": 8
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 1
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "id": "kiosk_1",
+                    "variation": 1,
+                    "orientations": {
+                        "north": {
+                            "orientation": "north",
+                            "width": 10,
+                            "height": 10,
+                            "spawns": [
+                                {
+                                    "x": 1,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 8,
+                                    "y": 6
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 8
+                                }
+                            ]
+                        },
+                        "south": {
+                            "orientation": "south",
+                            "width": 10,
+                            "height": 10,
+                            "spawns": [
+                                {
+                                    "x": 8,
+                                    "y": 8
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 3
+                                },
+                                {
+                                    "x": 8,
+                                    "y": 1
+                                }
+                            ]
+                        },
+                        "west": {
+                            "orientation": "west",
+                            "width": 10,
+                            "height": 10,
+                            "spawns": [
+                                {
+                                    "x": 1,
+                                    "y": 8
+                                },
+                                {
+                                    "x": 6,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 8,
+                                    "y": 8
+                                }
+                            ]
+                        },
+                        "east": {
+                            "orientation": "east",
+                            "width": 10,
+                            "height": 10,
+                            "spawns": [
+                                {
+                                    "x": 8,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 3,
+                                    "y": 8
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 1
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "id": "military_camp",
+            "name": "military_camp",
+            "tileSize": 32,
+            "variations": [
+                {
+                    "id": "military_camp_0",
+                    "variation": 0,
+                    "orientations": {
+                        "north": {
+                            "orientation": "north",
+                            "width": 25,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "south": {
+                            "orientation": "south",
+                            "width": 25,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "west": {
+                            "orientation": "west",
+                            "width": 16,
+                            "height": 25,
+                            "spawns": []
+                        },
+                        "east": {
+                            "orientation": "east",
+                            "width": 16,
+                            "height": 25,
+                            "spawns": []
+                        }
+                    }
+                },
+                {
+                    "id": "military_camp_1",
+                    "variation": 1,
+                    "orientations": {
+                        "north": {
+                            "orientation": "north",
+                            "width": 25,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "south": {
+                            "orientation": "south",
+                            "width": 25,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "west": {
+                            "orientation": "west",
+                            "width": 16,
+                            "height": 25,
+                            "spawns": []
+                        },
+                        "east": {
+                            "orientation": "east",
+                            "width": 16,
+                            "height": 25,
+                            "spawns": []
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "id": "police_station",
+            "name": "police_station",
+            "tileSize": 32,
+            "variations": [
+                {
+                    "id": "police_station_0",
+                    "variation": 0,
+                    "orientations": {
+                        "north": {
+                            "orientation": "north",
+                            "width": 25,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "south": {
+                            "orientation": "south",
+                            "width": 25,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "west": {
+                            "orientation": "west",
+                            "width": 16,
+                            "height": 25,
+                            "spawns": []
+                        },
+                        "east": {
+                            "orientation": "east",
+                            "width": 16,
+                            "height": 25,
+                            "spawns": []
+                        }
+                    }
+                },
+                {
+                    "id": "police_station_1",
+                    "variation": 1,
+                    "orientations": {
+                        "north": {
+                            "orientation": "north",
+                            "width": 25,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "south": {
+                            "orientation": "south",
+                            "width": 25,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "west": {
+                            "orientation": "west",
+                            "width": 16,
+                            "height": 25,
+                            "spawns": []
+                        },
+                        "east": {
+                            "orientation": "east",
+                            "width": 16,
+                            "height": 25,
+                            "spawns": []
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "id": "post_office",
+            "name": "post_office",
+            "tileSize": 32,
+            "variations": [
+                {
+                    "id": "post_office_0",
+                    "variation": 0,
+                    "orientations": {
+                        "north": {
+                            "orientation": "north",
+                            "width": 20,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "south": {
+                            "orientation": "south",
+                            "width": 20,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "west": {
+                            "orientation": "west",
+                            "width": 16,
+                            "height": 20,
+                            "spawns": []
+                        },
+                        "east": {
+                            "orientation": "east",
+                            "width": 16,
+                            "height": 20,
+                            "spawns": []
+                        }
+                    }
+                },
+                {
+                    "id": "post_office_1",
+                    "variation": 1,
+                    "orientations": {
+                        "north": {
+                            "orientation": "north",
+                            "width": 20,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "south": {
+                            "orientation": "south",
+                            "width": 20,
+                            "height": 16,
+                            "spawns": []
+                        },
+                        "west": {
+                            "orientation": "west",
+                            "width": 16,
+                            "height": 20,
+                            "spawns": []
+                        },
+                        "east": {
+                            "orientation": "east",
+                            "width": 16,
+                            "height": 20,
+                            "spawns": []
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "id": "residence",
+            "name": "residence",
+            "tileSize": 32,
+            "variations": [
+                {
+                    "id": "residence_0",
+                    "variation": 0,
+                    "orientations": {
+                        "north": {
+                            "orientation": "north",
+                            "width": 20,
+                            "height": 16,
+                            "spawns": [
+                                {
+                                    "x": 1,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 18,
+                                    "y": 6
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 8
+                                },
+                                {
+                                    "x": 9,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 18,
+                                    "y": 14
+                                }
+                            ]
+                        },
+                        "south": {
+                            "orientation": "south",
+                            "width": 20,
+                            "height": 16,
+                            "spawns": [
+                                {
+                                    "x": 18,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 9
+                                },
+                                {
+                                    "x": 18,
+                                    "y": 7
+                                },
+                                {
+                                    "x": 10,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 1
+                                }
+                            ]
+                        },
+                        "west": {
+                            "orientation": "west",
+                            "width": 16,
+                            "height": 20,
+                            "spawns": [
+                                {
+                                    "x": 1,
+                                    "y": 18
+                                },
+                                {
+                                    "x": 6,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 8,
+                                    "y": 18
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 10
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 1
+                                }
+                            ]
+                        },
+                        "east": {
+                            "orientation": "east",
+                            "width": 16,
+                            "height": 20,
+                            "spawns": [
+                                {
+                                    "x": 14,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 9,
+                                    "y": 18
+                                },
+                                {
+                                    "x": 7,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 9
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 18
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "id": "residence_1",
+                    "variation": 1,
+                    "orientations": {
+                        "north": {
+                            "orientation": "north",
+                            "width": 20,
+                            "height": 16,
+                            "spawns": [
+                                {
+                                    "x": 1,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 18,
+                                    "y": 6
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 8
+                                },
+                                {
+                                    "x": 9,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 18,
+                                    "y": 14
+                                }
+                            ]
+                        },
+                        "south": {
+                            "orientation": "south",
+                            "width": 20,
+                            "height": 16,
+                            "spawns": [
+                                {
+                                    "x": 18,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 9
+                                },
+                                {
+                                    "x": 18,
+                                    "y": 7
+                                },
+                                {
+                                    "x": 10,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 1
+                                }
+                            ]
+                        },
+                        "west": {
+                            "orientation": "west",
+                            "width": 16,
+                            "height": 20,
+                            "spawns": [
+                                {
+                                    "x": 1,
+                                    "y": 18
+                                },
+                                {
+                                    "x": 6,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 8,
+                                    "y": 18
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 10
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 1
+                                }
+                            ]
+                        },
+                        "east": {
+                            "orientation": "east",
+                            "width": 16,
+                            "height": 20,
+                            "spawns": [
+                                {
+                                    "x": 14,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 9,
+                                    "y": 18
+                                },
+                                {
+                                    "x": 7,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 9
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 18
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "id": "school_building",
+            "name": "school_building",
+            "tileSize": 32,
+            "variations": [
+                {
+                    "id": "school_building_0",
+                    "variation": 0,
+                    "orientations": {
+                        "north": {
+                            "orientation": "north",
+                            "width": 32,
+                            "height": 16,
+                            "spawns": [
+                                {
+                                    "x": 4,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 9,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 22,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 27,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 7
+                                },
+                                {
+                                    "x": 30,
+                                    "y": 7
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 10
+                                },
+                                {
+                                    "x": 30,
+                                    "y": 10
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 17,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 30,
+                                    "y": 14
+                                }
+                            ]
+                        },
+                        "south": {
+                            "orientation": "south",
+                            "width": 32,
+                            "height": 16,
+                            "spawns": [
+                                {
+                                    "x": 27,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 22,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 9,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 4,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 30,
+                                    "y": 8
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 8
+                                },
+                                {
+                                    "x": 30,
+                                    "y": 5
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 5
+                                },
+                                {
+                                    "x": 30,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 17,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 1
+                                }
+                            ]
+                        },
+                        "west": {
+                            "orientation": "west",
+                            "width": 16,
+                            "height": 32,
+                            "spawns": [
+                                {
+                                    "x": 1,
+                                    "y": 27
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 22
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 9
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 4
+                                },
+                                {
+                                    "x": 7,
+                                    "y": 30
+                                },
+                                {
+                                    "x": 7,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 10,
+                                    "y": 30
+                                },
+                                {
+                                    "x": 10,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 30
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 17
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 1
+                                }
+                            ]
+                        },
+                        "east": {
+                            "orientation": "east",
+                            "width": 16,
+                            "height": 32,
+                            "spawns": [
+                                {
+                                    "x": 14,
+                                    "y": 4
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 9
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 22
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 27
+                                },
+                                {
+                                    "x": 8,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 8,
+                                    "y": 30
+                                },
+                                {
+                                    "x": 5,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 5,
+                                    "y": 30
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 17
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 30
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "id": "school_building_1",
+                    "variation": 1,
+                    "orientations": {
+                        "north": {
+                            "orientation": "north",
+                            "width": 32,
+                            "height": 16,
+                            "spawns": [
+                                {
+                                    "x": 4,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 9,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 22,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 27,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 7
+                                },
+                                {
+                                    "x": 30,
+                                    "y": 7
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 10
+                                },
+                                {
+                                    "x": 30,
+                                    "y": 10
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 17,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 30,
+                                    "y": 14
+                                }
+                            ]
+                        },
+                        "south": {
+                            "orientation": "south",
+                            "width": 32,
+                            "height": 16,
+                            "spawns": [
+                                {
+                                    "x": 27,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 22,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 9,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 4,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 30,
+                                    "y": 8
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 8
+                                },
+                                {
+                                    "x": 30,
+                                    "y": 5
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 5
+                                },
+                                {
+                                    "x": 30,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 17,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 1
+                                }
+                            ]
+                        },
+                        "west": {
+                            "orientation": "west",
+                            "width": 16,
+                            "height": 32,
+                            "spawns": [
+                                {
+                                    "x": 1,
+                                    "y": 27
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 22
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 9
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 4
+                                },
+                                {
+                                    "x": 7,
+                                    "y": 30
+                                },
+                                {
+                                    "x": 7,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 10,
+                                    "y": 30
+                                },
+                                {
+                                    "x": 10,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 30
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 17
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 1
+                                }
+                            ]
+                        },
+                        "east": {
+                            "orientation": "east",
+                            "width": 16,
+                            "height": 32,
+                            "spawns": [
+                                {
+                                    "x": 14,
+                                    "y": 4
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 9
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 22
+                                },
+                                {
+                                    "x": 14,
+                                    "y": 27
+                                },
+                                {
+                                    "x": 8,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 8,
+                                    "y": 30
+                                },
+                                {
+                                    "x": 5,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 5,
+                                    "y": 30
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 1
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 14
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 17
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 30
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

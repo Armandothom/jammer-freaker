@@ -16,6 +16,7 @@ export class WorldImpassableChunkManager {
   }
 
   public generateChunks() {
+    this.refreshChunkSize();
     const impassableWallTiles = Array.from(this.worldTilemapManager.impassableWallTiles.values());
     this._chunks = new Map();
     for (let x = 0; x < this.worldTilemapManager.worldWidth; x += this._chunkWidthSize) {
@@ -39,6 +40,7 @@ export class WorldImpassableChunkManager {
   }
 
   public getImpassableTileCoordsChunk() {
+    this.refreshChunkSize();
     const tileCoordinates : Array<WorldMapTileCoordinates> = [];
     const viewPort = this.cameraManager.getViewport();
     const indexStart = this.getChunkCoordinates({x : viewPort.left, y: viewPort.top});
@@ -72,8 +74,13 @@ export class WorldImpassableChunkManager {
     return Math.max(0, Math.min(value, this._chunkCount - 1));
   }
 
+  private refreshChunkSize(): void {
+    this._chunkWidthSize = this.worldTilemapManager.worldWidth / this._chunkCount;
+    this._chunkHeightSize = this.worldTilemapManager.worldHeight / this._chunkCount;
+  }
+
   private getTileBorderPoints(tile : TilemapWallTile) : WorldMapTileCoordinates {
-    const tileBoundary = this.worldTilemapManager.tileSize - 1;
+    const tileBoundary = this.worldTilemapManager.tileSize;
     const tileWorldCoords = this.worldTilemapManager.tileToWorld(tile.x, tile.y);
     return {
       topLeft : {

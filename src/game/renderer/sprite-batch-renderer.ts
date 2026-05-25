@@ -141,10 +141,10 @@ export class SpriteBatchRenderer {
         ];
 
         const pivot = {
-          x: 0,
-          y: mirrored
+          x: renderObject.rotationPivotX ?? 0,
+          y: renderObject.rotationPivotY ?? (mirrored
             ? renderObject.height - renderObject.offsetRotation
-            : renderObject.offsetRotation,
+            : renderObject.offsetRotation),
         };
 
         for (const point of localQuad) {

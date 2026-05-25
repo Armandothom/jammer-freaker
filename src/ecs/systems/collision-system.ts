@@ -75,7 +75,7 @@ export class CollisionSystem implements ISystem {
                 continue;
             }
 
-            if (this.wouldCollideWithWall(intendedRect)) {
+            if (this.wouldCollideWithWall(intendedRect, this.projectileComponentStore.has(entity))) {
                 this.collisionLastFrameComponentStore.add(entity, new CollisionLastFrameComponent(CoreManager.timeGlobalSinceStart, false));
                 this.handleWallCollision(entity);
             }
@@ -180,7 +180,7 @@ export class CollisionSystem implements ISystem {
         return null;
     }
 
-    private wouldCollideWithWall(intendedRect: Rect): boolean {
+    private wouldCollideWithWall(intendedRect: Rect, useImpactTiles: boolean): boolean {
         const tileSize = this.worldTilemapManager.tileSize;
 
         const startTileX = Math.floor(intendedRect.left / tileSize);
@@ -195,7 +195,11 @@ export class CollisionSystem implements ISystem {
                     return true;
                 }
 
-                if (!this.worldTilemapManager.isWallSolid(tileX, tileY)) {
+                const hasBlockingTile = useImpactTiles
+                    ? this.worldTilemapManager.hasTileImpact(tileX, tileY)
+                    : this.worldTilemapManager.isWallSolid(tileX, tileY);
+
+                if (!hasBlockingTile) {
                     continue;
                 }
 

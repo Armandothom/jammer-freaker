@@ -1,7 +1,10 @@
 import { CameraManager } from "../../game/world/camera-manager.js";
+import { BuildingInteractionManager } from "../../game/world/buildings/building-interaction-manager.js";
+import { BuildingInPlotSorter } from "../../game/world/buildings/building-in-plot-sorter.js";
+import { BuildingTilemapApplier } from "../../game/world/buildings/building-tilemap-applier.js";
 import { WorldEdgeChunkManager } from "../../game/world/world-edge-chunk-manager.js";
 import { WorldEdgeManager } from "../../game/world/world-edge-manager.js";
-import { WorldLevelResult } from "../../game/world/types/world-level-result.js";
+import { WorldMapManager } from "../../game/world/world-map-manager.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { HealthComponent } from "../components/health.component.js";
 import { InventoryComponent } from "../components/inventory-component.js";
@@ -19,10 +22,8 @@ import { PlayerInitialProperties } from "../components/types/player-properties.j
 import { WeaponType } from "../components/types/weapon-config.js";
 import { EntityFactory } from "../entities/entity-factory.js";
 import { EnemyLifecicleSystem } from "../systems/enemy-lifecicle.system.js";
-import { ZoneFactory } from "../zones/zone-factory.js";
 import { ComponentStore } from "./component-store.js";
 import { GameManager } from "./game-manager.js";
-import { UIManager } from "./ui-manager.js";
 import { WorldImpassableChunkManager } from "../../game/world/world-impassable-chunk-manager.js";
 
 export enum LevelEndReason {
@@ -53,15 +54,19 @@ export class LevelManager {
     private nextPlayerInventorySnapshot: InventorySnapshot | null = null;
     private stateTransitionRequested = false;
     private beforeLevelRebuildHandlers: Array<() => void> = [];
+    private currentMapId: string;
+    private readonly buildingInPlotSorter: BuildingInPlotSorter;
+    private readonly buildingTilemapApplier: BuildingTilemapApplier;
+    private readonly buildingInteractionManager: BuildingInteractionManager;
 
     constructor(
         private enemyLifecicleSystem: EnemyLifecicleSystem,
+        private worldMapManager: WorldMapManager,
         private tilemapManager: WorldTilemapManager,
         private worldEdgeManager: WorldEdgeManager,
         private worldEdgeChunkManager: WorldEdgeChunkManager,
         private worldImpassableChunkManager: WorldImpassableChunkManager,
         private cameraManager: CameraManager,
-        private zoneFactory: ZoneFactory,
         private entityFactory: EntityFactory,
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private positionComponentStore: ComponentStore<PositionComponent>,
@@ -69,8 +74,11 @@ export class LevelManager {
         private inventoryComponentStore: ComponentStore<InventoryComponent>,
         private healthComponentStore: ComponentStore<HealthComponent>,
         private playerInitialProperties: PlayerInitialProperties,
-        private uiManager: UIManager,
     ) {
+        this.currentMapId = this.worldMapManager.defaultMapId;
+        this.buildingInPlotSorter = new BuildingInPlotSorter();
+        this.buildingTilemapApplier = new BuildingTilemapApplier(this.tilemapManager);
+        this.buildingInteractionManager = new BuildingInteractionManager();
         this.levelNumber = this.previousLevel;
         this.levelStats = {
             time: "",
@@ -83,14 +91,30 @@ export class LevelManager {
     }
 
     async update(): Promise<void> {
-        this.advanceToNextLevel();
+        this.startMapWithInventorySnapshot(
+            this.worldMapManager.defaultMapId,
+            this.captureCurrentPlayerInventorySnapshot(),
+        );
+    }
+
+    public startMapWithInventorySnapshot(
+        mapId: string | null | undefined,
+        inventorySnapshot: InventorySnapshot | null,
+    ): void {
+        this.currentMapId = this.worldMapManager.resolveMapId(mapId);
+        this.previousLevel = this.levelNumber;
+        this.levelNumber = this.worldMapManager.getMapIndex(this.currentMapId) + 1;
+        this.nextPlayerInventorySnapshot = this.cloneInventorySnapshot(inventorySnapshot);
+        this.rebuildLevel();
     }
 
     public startNextLevelWithInventorySnapshot(
         inventorySnapshot: InventorySnapshot | null,
     ): void {
-        this.nextPlayerInventorySnapshot = this.cloneInventorySnapshot(inventorySnapshot);
-        this.advanceToNextLevel();
+        this.startMapWithInventorySnapshot(
+            this.worldMapManager.getNextMapId(this.currentMapId),
+            inventorySnapshot,
+        );
     }
 
     public startNextLevelWithCurrentInventory(): void {
@@ -143,13 +167,14 @@ export class LevelManager {
             extraMoney: 0,
         };
 
-        const levelResult = this.zoneFactory.generateLevel({
-            levelNumber: this.levelNumber,
-            zones: this.tilemapManager.zones,
-        });
+        const worldMap = this.worldMapManager.getMap(this.currentMapId);
+        const playerSpawn = this.worldMapManager.getRandomStreetSpawnTile(worldMap.id);
 
-        this.applyLevelResult(levelResult);
-
+        this.tilemapManager.applyWorldMap(worldMap);
+        const buildingPlacements = this.buildingInPlotSorter.generateBuildingsForMap(worldMap.id);
+        this.buildingInteractionManager.rebuild(buildingPlacements);
+        this.buildingTilemapApplier.apply(buildingPlacements);
+        this.spawnPlayerAtTile(playerSpawn.tileX, playerSpawn.tileY);
         this.finalizeLevelBuild();
         this.worldEdgeManager.setEdges();
         this.saveChunks();
@@ -159,11 +184,6 @@ export class LevelManager {
         for (const handler of this.beforeLevelRebuildHandlers) {
             handler();
         }
-    }
-
-    private applyLevelResult(levelResult: WorldLevelResult): void {
-        this.tilemapManager.applyWorldLevelResult(levelResult);
-        this.spawnPlayer(levelResult);
     }
 
     public endCurrentLevel(reason: LevelEndReason): void {
@@ -191,6 +211,10 @@ export class LevelManager {
         this.gameManager = gameManager;
     }
 
+    public getBuildingInteractionManager(): BuildingInteractionManager {
+        return this.buildingInteractionManager;
+    }
+
     public updateStateTransitions(): boolean {
         const shouldCompleteLevel = this.wasKeyPressedThisFrame("Digit0");
         const shouldShortCircuitFrame = this.stateTransitionRequested;
@@ -205,17 +229,9 @@ export class LevelManager {
         return shouldShortCircuitFrame;
     }
 
-    private spawnPlayer(levelResult: WorldLevelResult): void {
-        const spawn = levelResult.playerSpawns[0];
-        const fallbackSpawn = { worldX: 400, worldY: 32 };
-        const { worldX, worldY } = spawn
-            ? this.tilemapManager.tileToWorld(spawn.x, spawn.y)
-            : fallbackSpawn;
+    private spawnPlayerAtTile(tileX: number, tileY: number): void {
+        const { worldX, worldY } = this.tilemapManager.tileToWorld(tileX, tileY);
         const inventorySnapshot = this.nextPlayerInventorySnapshot;
-
-        if (!spawn) {
-            console.warn('No player spawn found in level result. Falling back to the default spawn position.');
-        }
 
         const [playerEntityId] = this.playerComponentStore.getAllEntities();
         const playerInitialHp = this.resolvePlayerInitialHp(inventorySnapshot?.medicalUpgrades);
@@ -285,12 +301,6 @@ export class LevelManager {
         ).value;
 
         return baseHp * maxHealthMultiplier;
-    }
-
-    private advanceToNextLevel(): void {
-        this.previousLevel = this.levelNumber;
-        this.levelNumber = this.previousLevel + 1;
-        this.rebuildLevel();
     }
 
     private captureCurrentPlayerInventorySnapshot(): InventorySnapshot | null {
