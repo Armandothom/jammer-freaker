@@ -5,7 +5,22 @@ import { WeaponUpgradeState } from "../components/states/weapon-upgrade-state.js
 import {
     clampInventoryResourceAmount,
     InventoryResourceType,
+    isInventoryResourceType,
 } from "../components/types/inventory-resource-type.js";
+import {
+    clampMiscResourceAmount,
+    MiscResourceType,
+} from "../components/types/misc-resource-type.js";
+import {
+    BackpackType,
+    getBackpackLevel,
+    getBackpackMaxSlots,
+    getBackpackTypeForMiscResource,
+    isBackpackMiscResourceType,
+    normalizeBackpackType,
+} from "../components/types/backpack-config.js";
+import type { LootContainerContentComponent } from "../components/loot-container-content.component.js";
+import type { LootTableItemId } from "../../game/world/loot/loot-tables.js";
 import {
     getCombatShopUpgradeLevelConfig,
     normalizeStoredCombatShopUpgradeLevel,
@@ -57,6 +72,100 @@ export class InventoryManager {
         return inventory;
     }
 
+    public getBackpackType(inventory: InventoryComponent): BackpackType {
+        return normalizeBackpackType(inventory.backpackType);
+    }
+
+    public getBackpackLevel(inventory: InventoryComponent): number {
+        return getBackpackLevel(this.getBackpackType(inventory));
+    }
+
+    public getBackpackMaxSlots(inventory: InventoryComponent): number {
+        return getBackpackMaxSlots(this.getBackpackType(inventory));
+    }
+
+    public getBackpackUsedSlots(inventory: InventoryComponent): number {
+        let usedSlots = 0;
+
+        for (const [resourceType, amount] of inventory.resources.entries()) {
+            if (!this.isBackpackLimitedResourceType(resourceType)) {
+                continue;
+            }
+
+            if (this.normalizeInventoryItemAmount(amount) > 0) {
+                usedSlots += 1;
+            }
+        }
+
+        for (const [miscResourceType, amount] of inventory.miscResources.entries()) {
+            if (isBackpackMiscResourceType(miscResourceType)) {
+                continue;
+            }
+
+            if (this.normalizeInventoryItemAmount(amount) > 0) {
+                usedSlots += 1;
+            }
+        }
+
+        return usedSlots;
+    }
+
+    public getBackpackAvailableSlots(inventory: InventoryComponent): number {
+        return Math.max(
+            0,
+            this.getBackpackMaxSlots(inventory) - this.getBackpackUsedSlots(inventory),
+        );
+    }
+
+    public canUpgradeBackpack(
+        inventory: InventoryComponent,
+        nextBackpackType: BackpackType,
+    ): boolean {
+        return getBackpackLevel(nextBackpackType) > this.getBackpackLevel(inventory);
+    }
+
+    public upgradeBackpack(
+        inventory: InventoryComponent,
+        nextBackpackType: BackpackType,
+    ): boolean {
+        const normalizedBackpackType = normalizeBackpackType(nextBackpackType);
+
+        if (!this.canUpgradeBackpack(inventory, normalizedBackpackType)) {
+            return false;
+        }
+
+        inventory.backpackType = normalizedBackpackType;
+        return true;
+    }
+
+    public resolveBackpackUpgradeType(itemId: LootTableItemId): BackpackType | null {
+        if (isInventoryResourceType(itemId)) {
+            return null;
+        }
+
+        return getBackpackTypeForMiscResource(itemId);
+    }
+
+    public canCollectBackpackUpgradeItem(
+        inventory: InventoryComponent,
+        itemId: LootTableItemId,
+    ): boolean {
+        const backpackType = this.resolveBackpackUpgradeType(itemId);
+
+        return backpackType !== null
+            && this.canUpgradeBackpack(inventory, backpackType);
+    }
+
+    public logFailedToStash(
+        inventory: InventoryComponent,
+        itemId: LootTableItemId,
+        amount: number,
+    ): void {
+        console.log(
+            `Failed to stash (${this.normalizeInventoryItemAmount(amount)} ${itemId}), (${this.getBackpackAvailableSlots(inventory)} backpack spaces remaining)`,
+        );
+    }
+
     public getWeaponState(
         inventory: InventoryComponent,
         weaponType: WeaponType
@@ -96,17 +205,46 @@ export class InventoryManager {
         );
     }
 
+    public canAddResource(
+        inventory: InventoryComponent,
+        resourceType: InventoryResourceType,
+        amount: number
+    ): boolean {
+        const normalizedAmount = this.normalizeInventoryItemAmount(amount);
+
+        if (normalizedAmount <= 0) {
+            return false;
+        }
+
+        const addableAmount = this.getAddableResourceAmount(
+            inventory,
+            resourceType,
+            normalizedAmount,
+        );
+
+        if (addableAmount < normalizedAmount) {
+            return false;
+        }
+
+        return this.getResourceBackpackSlotCost(inventory, resourceType)
+            <= this.getBackpackAvailableSlots(inventory);
+    }
+
     public addResource(
         inventory: InventoryComponent,
         resourceType: InventoryResourceType,
         amount: number
-    ): void {
-        if (amount <= 0) {
-            return;
+    ): boolean {
+        const normalizedAmount = this.normalizeInventoryItemAmount(amount);
+
+        if (!this.canAddResource(inventory, resourceType, normalizedAmount)) {
+            this.logFailedToStash(inventory, resourceType, normalizedAmount);
+            return false;
         }
 
         const current = this.getResourceAmount(inventory, resourceType);
-        this.setResourceAmount(inventory, resourceType, current + amount);
+        this.setResourceAmount(inventory, resourceType, current + normalizedAmount);
+        return true;
     }
 
     public removeResource(
@@ -126,6 +264,132 @@ export class InventoryManager {
 
         this.setResourceAmount(inventory, resourceType, current - amount);
         return true;
+    }
+
+    public getMiscResourceAmount(
+        inventory: InventoryComponent,
+        miscResourceType: MiscResourceType
+    ): number {
+        return inventory.miscResources.get(miscResourceType) ?? 0;
+    }
+
+    public setMiscResourceAmount(
+        inventory: InventoryComponent,
+        miscResourceType: MiscResourceType,
+        amount: number
+    ): void {
+        inventory.miscResources.set(
+            miscResourceType,
+            clampMiscResourceAmount(amount),
+        );
+    }
+
+    public canAddMiscResource(
+        inventory: InventoryComponent,
+        miscResourceType: MiscResourceType,
+        amount: number
+    ): boolean {
+        const normalizedAmount = this.normalizeInventoryItemAmount(amount);
+
+        if (normalizedAmount <= 0) {
+            return false;
+        }
+
+        if (isBackpackMiscResourceType(miscResourceType)) {
+            return false;
+        }
+
+        const addableAmount = this.getAddableMiscResourceAmount(
+            inventory,
+            miscResourceType,
+            normalizedAmount,
+        );
+
+        if (addableAmount < normalizedAmount) {
+            return false;
+        }
+
+        return this.getMiscResourceBackpackSlotCost(inventory, miscResourceType)
+            <= this.getBackpackAvailableSlots(inventory);
+    }
+
+    public addMiscResource(
+        inventory: InventoryComponent,
+        miscResourceType: MiscResourceType,
+        amount: number
+    ): boolean {
+        const normalizedAmount = this.normalizeInventoryItemAmount(amount);
+
+        if (!this.canAddMiscResource(inventory, miscResourceType, normalizedAmount)) {
+            this.logFailedToStash(inventory, miscResourceType, normalizedAmount);
+            return false;
+        }
+
+        const current = this.getMiscResourceAmount(inventory, miscResourceType);
+        this.setMiscResourceAmount(inventory, miscResourceType, current + normalizedAmount);
+        return true;
+    }
+
+    public removeMiscResource(
+        inventory: InventoryComponent,
+        miscResourceType: MiscResourceType,
+        amount: number
+    ): boolean {
+        if (amount <= 0) {
+            return false;
+        }
+
+        const current = this.getMiscResourceAmount(inventory, miscResourceType);
+
+        if (current < amount) {
+            return false;
+        }
+
+        this.setMiscResourceAmount(inventory, miscResourceType, current - amount);
+        return true;
+    }
+
+    public canAddLootItem(
+        inventory: InventoryComponent,
+        itemId: LootTableItemId,
+        amount: number,
+    ): boolean {
+        if (isInventoryResourceType(itemId)) {
+            return this.canAddResource(inventory, itemId, amount);
+        }
+
+        return this.canAddMiscResource(inventory, itemId, amount);
+    }
+
+    public addLootItem(
+        inventory: InventoryComponent,
+        itemId: LootTableItemId,
+        amount: number,
+    ): boolean {
+        if (isInventoryResourceType(itemId)) {
+            return this.addResource(inventory, itemId, amount);
+        }
+
+        return this.addMiscResource(inventory, itemId, amount);
+    }
+
+    public addLootContainerContent(
+        inventory: InventoryComponent,
+        lootContainerContent: LootContainerContentComponent,
+    ): number {
+        let addedItems = 0;
+
+        for (const lootSlot of lootContainerContent.lootSlots) {
+            if (!lootSlot) {
+                continue;
+            }
+
+            if (this.addLootItem(inventory, lootSlot.itemId, lootSlot.amount)) {
+                addedItems++;
+            }
+        }
+
+        return addedItems;
     }
 
     public getMedicalUpgradeLevel(
@@ -317,9 +581,61 @@ export class InventoryManager {
         }
     }
 
+    private getAddableResourceAmount(
+        inventory: InventoryComponent,
+        resourceType: InventoryResourceType,
+        amount: number,
+    ): number {
+        const current = this.getResourceAmount(inventory, resourceType);
+        const next = clampInventoryResourceAmount(resourceType, current + amount);
+
+        return Math.max(0, next - current);
+    }
+
+    private getAddableMiscResourceAmount(
+        inventory: InventoryComponent,
+        miscResourceType: MiscResourceType,
+        amount: number,
+    ): number {
+        const current = this.getMiscResourceAmount(inventory, miscResourceType);
+        const next = clampMiscResourceAmount(current + amount);
+
+        return Math.max(0, next - current);
+    }
+
+    private getResourceBackpackSlotCost(
+        inventory: InventoryComponent,
+        resourceType: InventoryResourceType,
+    ): number {
+        if (!this.isBackpackLimitedResourceType(resourceType)) {
+            return 0;
+        }
+
+        return this.getResourceAmount(inventory, resourceType) > 0 ? 0 : 1;
+    }
+
+    private getMiscResourceBackpackSlotCost(
+        inventory: InventoryComponent,
+        miscResourceType: MiscResourceType,
+    ): number {
+        return this.getMiscResourceAmount(inventory, miscResourceType) > 0 ? 0 : 1;
+    }
+
+    private isBackpackLimitedResourceType(resourceType: InventoryResourceType): boolean {
+        return resourceType !== InventoryResourceType.Money;
+    }
+
+    private normalizeInventoryItemAmount(amount: number): number {
+        return Math.max(0, Math.floor(amount));
+    }
+
     public debugPrintInventory(inventory: InventoryComponent): void {
         console.log("===== INVENTORY =====");
         console.log("Equipped:", inventory.equippedWeaponType ?? "none");
+        console.log(
+            "Backpack:",
+            `${this.getBackpackType(inventory)} (${this.getBackpackUsedSlots(inventory)}/${this.getBackpackMaxSlots(inventory)} slots)`,
+        );
 
         console.log("---- Weapons ----");
         for (const [weaponType, weaponState] of inventory.weapons.entries()) {

@@ -7,6 +7,7 @@ import { SpriteSheetName } from "./types/sprite-sheet-name.enum.js";
 export class SpriteManager {
   private _mappedSpriteSheetAssets: Map<SpriteSheetName, SpriteSheetAsset> = new Map();
   private _gl: WebGL2RenderingContext;
+  private readonly uvCoordinateCache = new Map<string, number[]>();
   constructor(private assetManager: AssetManager) {
     const canvas = document.querySelector<HTMLCanvasElement>("#gl-canvas")!;
     this._gl = canvas?.getContext("webgl2")!;
@@ -39,8 +40,15 @@ export class SpriteManager {
    * It is assumed that the spriteSheet image is flipped (since WebGL renders from bottom-left https://stackoverflow.com/a/74483656)
    */
   public getUvCoordinates(spriteName: SpriteName, spriteSheetName: SpriteSheetName, mirroredX = false, mirroredY = false) {
+    const cacheKey = this.getUvCoordinateCacheKey(spriteName, spriteSheetName, mirroredX, mirroredY);
+    const cachedUvCoordinates = this.uvCoordinateCache.get(cacheKey);
+
+    if (cachedUvCoordinates) {
+      return cachedUvCoordinates;
+    }
+
     const spriteProperties = this.getSpriteProperties(spriteName, spriteSheetName);
-    return this.buildUvCoordinates(
+    const uvCoordinates = this.buildUvCoordinates(
       spriteProperties,
       spriteProperties.sprite.spriteCellOffset.offsetX,
       spriteProperties.sprite.spriteCellOffset.offsetY,
@@ -49,6 +57,9 @@ export class SpriteManager {
       mirroredX,
       mirroredY,
     );
+
+    this.uvCoordinateCache.set(cacheKey, uvCoordinates);
+    return uvCoordinates;
   }
 
   public getClippedUvCoordinates(
@@ -103,6 +114,16 @@ export class SpriteManager {
     let yTop = cellY + sourceOffsetY;
     let yBottom = yTop + sourceHeight;
 
+    if (sourceWidth > 1) {
+      xLeft += 0.5;
+      xRight -= 0.5;
+    }
+
+    if (sourceHeight > 1) {
+      yTop += 0.5;
+      yBottom -= 0.5;
+    }
+
     //We normalize to between 0 and 1
     const xLeftNormalized = xLeft / spriteSheetWidth;
     const xRightNormalized = xRight / spriteSheetWidth;
@@ -135,6 +156,15 @@ export class SpriteManager {
       mappedUv[11] = yTopNormalized;
     }
     return mappedUv;
+  }
+
+  private getUvCoordinateCacheKey(
+    spriteName: SpriteName,
+    spriteSheetName: SpriteSheetName,
+    mirroredX: boolean,
+    mirroredY: boolean,
+  ): string {
+    return `${spriteSheetName}:${spriteName}:${Number(mirroredX)}:${Number(mirroredY)}`;
   }
 
   public getSpriteProperties(spriteName: SpriteName, spriteSheetName: SpriteSheetName) {

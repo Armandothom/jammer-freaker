@@ -2,9 +2,9 @@ import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-nam
 import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
 import {
     createGoToCombatShopFromShopHubAction,
-    createGoToGameplayFromShopHubAction,
     createGoToGunsShopFromShopHubAction,
     createGoToMedicalShopFromShopHubAction,
+    createGoToMissionSelectFromShopHubAction,
 } from "../input/shop-hub-ui-actions.js";
 import { createUINode } from "../runtime/ui-node.js";
 import type { UIScreen } from "../runtime/ui-screen.js";
@@ -13,8 +13,8 @@ import { createButtonWidget } from "../widgets/button.widget.js";
 import { SHOP_HUB_NODE_IDS } from "./node-ids/shop-hub-node-ids.js";
 
 const SHOP_HUB_BUTTON_WIDTH = 160;
-const SHOP_HUB_BUTTON_HEIGHT = 48;
-const SHOP_HUB_BUTTON_GAP = 16;
+const SHOP_HUB_BUTTON_HEIGHT = 36;
+const SHOP_HUB_BUTTON_GAP = 8;
 
 export class ShopHubScreen implements UIScreen {
     public readonly id = "shop-hub";
@@ -37,6 +37,18 @@ export class ShopHubScreen implements UIScreen {
                 }),
                 createUINode({
                     children: [
+                        createButtonWidget({
+                            anchor: "top-left",
+                            buttonState: UIButtonState.NORMAL,
+                            buttonVariant: UIButtonVariant.PROMINENT,
+                            height: SHOP_HUB_BUTTON_HEIGHT,
+                            nodeId: SHOP_HUB_NODE_IDS.buttons.goToMission,
+                            offsetX: 0,
+                            offsetY: 0,
+                            onClickAction: createGoToMissionSelectFromShopHubAction(),
+                            text: "Go-To-Mission",
+                            width: SHOP_HUB_BUTTON_WIDTH,
+                        }),
                         createButtonWidget({
                             anchor: "top-left",
                             buttonState: UIButtonState.NORMAL,
@@ -71,18 +83,6 @@ export class ShopHubScreen implements UIScreen {
                             offsetY: 0,
                             onClickAction: createGoToCombatShopFromShopHubAction(),
                             text: "Combat Shop",
-                            width: SHOP_HUB_BUTTON_WIDTH,
-                        }),
-                        createButtonWidget({
-                            anchor: "top-left",
-                            buttonState: UIButtonState.NORMAL,
-                            buttonVariant: UIButtonVariant.PROMINENT,
-                            height: SHOP_HUB_BUTTON_HEIGHT,
-                            nodeId: SHOP_HUB_NODE_IDS.buttons.goToGameplay,
-                            offsetX: 0,
-                            offsetY: 0,
-                            onClickAction: createGoToGameplayFromShopHubAction(),
-                            text: "Go-To-Mission",
                             width: SHOP_HUB_BUTTON_WIDTH,
                         }),
                     ],

@@ -1,5 +1,6 @@
 type CollisionBoxConfig = {
     collides?: boolean
+    impacts?: boolean
     widthFactor?: number
     heightFactor?: number
     offsetX?: number
@@ -8,6 +9,7 @@ type CollisionBoxConfig = {
 
 export class CollisionBoxComponent {
     public collides: boolean
+    public impacts: boolean
     public widthFactor: number
     public heightFactor: number
     public offsetX: number
@@ -15,6 +17,7 @@ export class CollisionBoxComponent {
 
     constructor(config: CollisionBoxConfig = {}) {
         this.collides = config.collides ?? true
+        this.impacts = config.impacts ?? true
         this.widthFactor = config.widthFactor ?? 0.75
         this.heightFactor = config.heightFactor ?? 0.75
         this.offsetX = config.offsetX ?? 0.125

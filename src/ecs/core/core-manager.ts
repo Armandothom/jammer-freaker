@@ -3,6 +3,7 @@ import { SoundManager } from "../../game/asset-manager/sound-manager.js";
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { RendererEngine } from "../../game/renderer/renderer-engine.js";
 import { TextManager } from "../../game/text/text-manager.js";
+import { WorldMapManager } from "../../game/world/world-map-manager.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { DebugManager } from "./debug-manager.js";
 import { EntityManager } from "./entity-manager.js";
@@ -19,6 +20,7 @@ export class CoreManager {
     private _spriteManager!: SpriteManager;
     private _textManager!: TextManager;
     private _gameManager!: GameManager;
+    private _worldMapManager!: WorldMapManager;
     private _worldTilemapManager!: WorldTilemapManager;
     private _rendererEngine: RendererEngine;
     private _entityManager: EntityManager;
@@ -42,8 +44,9 @@ export class CoreManager {
         this._textManager = new TextManager(this._assetManager);
         console.log("Game generated");
 
+        this._worldMapManager = new WorldMapManager();
         this._worldTilemapManager = new WorldTilemapManager();
-        this._gameManager = new GameManager(this._worldTilemapManager, this._spriteManager, this._textManager, this._entityManager, this._soundManager, this._rendererEngine, this._debugManager);
+        this._gameManager = new GameManager(this._worldTilemapManager, this._worldMapManager, this._spriteManager, this._textManager, this._entityManager, this._soundManager, this._rendererEngine, this._debugManager);
         this._gameManager.initialize();
         this._soundManager.resumeOnUserGesture();
         //this._soundManager.playSound("THEME", true, 0.1);

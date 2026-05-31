@@ -51,6 +51,11 @@ interface BitmapTextBounds {
   height: number;
 }
 
+interface WallRenderObjectGroups {
+  base: RenderObject[];
+  visibilityMasked: RenderObject[];
+}
+
 const SCREEN_SPACE_DIALOG_Z_OFFSET = 1000;
 
 export class RenderSystem implements ISystem {
@@ -98,17 +103,21 @@ export class RenderSystem implements ISystem {
     const wallRenderObjects = this.getWallRenderObjects(viewport);
     const overTerrainRenderObjects = this.getOverTerrainRenderObjects(viewport);
     const gameUiDepthThreshold = this.maxDepthLevel + 1;
-    const worldSpaceRenderObjects = overTerrainRenderObjects.filter(
-      (renderObject) => renderObject.zLevel <= gameUiDepthThreshold,
-    );
-    const gameUiRenderObjects = overTerrainRenderObjects.filter(
-      (renderObject) => renderObject.zLevel > gameUiDepthThreshold,
-    );
+    const worldSpaceRenderObjects: RenderObject[] = [...wallRenderObjects.visibilityMasked];
+    const gameUiRenderObjects: RenderObject[] = [];
     const tileObjects = [
       ...viewportBackgroundRenderObjects,
       ...terrainRenderObjects,
-      ...wallRenderObjects,
+      ...wallRenderObjects.base,
     ];
+
+    for (const renderObject of overTerrainRenderObjects) {
+      if (renderObject.zLevel <= gameUiDepthThreshold) {
+        worldSpaceRenderObjects.push(renderObject);
+      } else {
+        gameUiRenderObjects.push(renderObject);
+      }
+    }
     const visibilityPoints = this.setVisibilityPointToScreen();
     const disableRaycasting = this.debugManager.getDebugSetting(DebugSettingKey.DISABLE_RAYCASTING);
 
@@ -131,9 +140,8 @@ export class RenderSystem implements ISystem {
     this.rendererEngine.disarmSpawnStyleRects();
     this.rendererEngine.renderParticles();
 
-    const legacyUiRenderObjects = this.getLegacyUiRenderObjects(gameUiRenderObjects);
-    if (legacyUiRenderObjects.length > 0) {
-      this.rendererEngine.renderUiSprites(legacyUiRenderObjects);
+    if (gameUiRenderObjects.length > 0) {
+      this.rendererEngine.renderUiSprites(gameUiRenderObjects);
     }
 
     if (this.debugManager.getDebugSetting(DebugSettingKey.DEBUG_PAINT)) {
@@ -168,32 +176,54 @@ export class RenderSystem implements ISystem {
   private getTerrainRenderObjects(viewport: CameraViewport): Array<RenderObject> {
     const terrainRenderObjects: Array<RenderObject> = [];
     const terrainTilesInViewport = this.tilemapManager.getTilesInArea(viewport);
-    const terrainSpritesheet = this.tilemapManager.appliedSpriteSheetName;
     const tileSize = this.tilemapManager.tileSize;
 
     for (const terrainTile of terrainTilesInViewport) {
+      const terrainSpritesheet = terrainTile.spriteSheetName
+        ?? this.tilemapManager.appliedSpriteSheetName;
       const spriteDetails = this.spriteManager.getSpriteProperties(
         terrainTile.spriteName,
         terrainSpritesheet,
       );
 
+      const shouldUseMappedTileBounds = this.shouldUseMappedTileBounds(
+        terrainTile.spriteName,
+        terrainSpritesheet,
+      );
+      const spriteOffset = shouldUseMappedTileBounds
+        ? spriteDetails.sprite.spriteCellOffset
+        : { offsetX: 0, offsetY: 0 };
+      const spriteWidth = shouldUseMappedTileBounds
+        ? spriteDetails.sprite.originalRenderSpriteWidth
+        : tileSize;
+      const spriteHeight = shouldUseMappedTileBounds
+        ? spriteDetails.sprite.originalRenderSpriteHeight
+        : tileSize;
       const worldX = terrainTile.x * tileSize;
       const worldY = terrainTile.y * tileSize;
-      const screenX = worldX - viewport.left;
-      const screenY = worldY - viewport.top;
+      const screenX = worldX - viewport.left + spriteOffset.offsetX;
+      const screenY = worldY - viewport.top + spriteOffset.offsetY;
+      const spriteRotation = terrainTile.spriteRotation ?? null;
+      const shouldRotateAroundCenter = spriteRotation !== null;
+      const rotationPivotX = (tileSize / 2) - spriteOffset.offsetX;
+      const rotationPivotY = (tileSize / 2) - spriteOffset.offsetY;
 
       terrainRenderObjects.push({
-        xWorldPosition: screenX,
-        yWorldPosition: screenY,
+        xWorldPosition: shouldRotateAroundCenter ? screenX + rotationPivotX : screenX,
+        yWorldPosition: shouldRotateAroundCenter ? screenY + rotationPivotY : screenY,
         spriteSheetTexture: spriteDetails.spriteSheet.texture,
         uvCoordinates: this.spriteManager.getUvCoordinates(
           terrainTile.spriteName,
           terrainSpritesheet,
+          terrainTile.spriteMirrorX ?? false,
+          terrainTile.spriteMirrorY ?? false,
         ),
-        height: tileSize,
-        width: tileSize,
-        angleRotation: null,
+        height: spriteHeight,
+        width: spriteWidth,
+        angleRotation: spriteRotation,
         offsetRotation: 0,
+        rotationPivotX: shouldRotateAroundCenter ? rotationPivotX : undefined,
+        rotationPivotY: shouldRotateAroundCenter ? rotationPivotY : undefined,
         zLevel: this.getDepthLevel(worldY, this.layerMultiplicator["1"]),
       });
     }
@@ -238,37 +268,72 @@ export class RenderSystem implements ISystem {
     return renderObjects;
   }
 
-  private getWallRenderObjects(viewport: CameraViewport): Array<RenderObject> {
-    const wallRenderObjects: Array<RenderObject> = [];
+  private getWallRenderObjects(viewport: CameraViewport): WallRenderObjectGroups {
+    const wallRenderObjects: WallRenderObjectGroups = {
+      base: [],
+      visibilityMasked: [],
+    };
     const wallTilesInViewport = this.tilemapManager.getWallTilesInArea(viewport);
-    const wallSpritesheet = this.tilemapManager.appliedSpriteSheetName;
     const tileSize = this.tilemapManager.tileSize;
 
     for (const wallTile of wallTilesInViewport) {
+      if (wallTile.spriteVisible === false) {
+        continue;
+      }
+
+      const wallSpritesheet = wallTile.spriteSheetName
+        ?? this.tilemapManager.appliedSpriteSheetName;
       const spriteDetails = this.spriteManager.getSpriteProperties(
         wallTile.spriteName,
         wallSpritesheet,
       );
 
+      const shouldUseMappedTileBounds = this.shouldUseMappedTileBounds(
+        wallTile.spriteName,
+        wallSpritesheet,
+      );
+      const spriteOffset = shouldUseMappedTileBounds
+        ? spriteDetails.sprite.spriteCellOffset
+        : { offsetX: 0, offsetY: 0 };
+      const spriteWidth = shouldUseMappedTileBounds
+        ? spriteDetails.sprite.originalRenderSpriteWidth
+        : tileSize;
+      const spriteHeight = shouldUseMappedTileBounds
+        ? spriteDetails.sprite.originalRenderSpriteHeight
+        : tileSize;
       const worldX = wallTile.x * tileSize;
       const worldY = wallTile.y * tileSize;
-      const screenX = worldX - viewport.left;
-      const screenY = worldY - viewport.top;
+      const screenX = worldX - viewport.left + spriteOffset.offsetX;
+      const screenY = worldY - viewport.top + spriteOffset.offsetY;
+      const spriteRotation = wallTile.spriteRotation ?? null;
+      const shouldRotateAroundCenter = spriteRotation !== null;
+      const rotationPivotX = (tileSize / 2) - spriteOffset.offsetX;
+      const rotationPivotY = (tileSize / 2) - spriteOffset.offsetY;
 
-      wallRenderObjects.push({
-        xWorldPosition: screenX,
-        yWorldPosition: screenY,
+      const renderObject = {
+        xWorldPosition: shouldRotateAroundCenter ? screenX + rotationPivotX : screenX,
+        yWorldPosition: shouldRotateAroundCenter ? screenY + rotationPivotY : screenY,
         spriteSheetTexture: spriteDetails.spriteSheet.texture,
         uvCoordinates: this.spriteManager.getUvCoordinates(
           wallTile.spriteName,
           wallSpritesheet,
+          wallTile.spriteMirrorX ?? false,
+          wallTile.spriteMirrorY ?? false,
         ),
-        height: tileSize,
-        width: tileSize,
-        angleRotation: null,
+        height: spriteHeight,
+        width: spriteWidth,
+        angleRotation: spriteRotation,
         offsetRotation: 0,
+        rotationPivotX: shouldRotateAroundCenter ? rotationPivotX : undefined,
+        rotationPivotY: shouldRotateAroundCenter ? rotationPivotY : undefined,
         zLevel: this.getDepthLevel(worldY, this.layerMultiplicator["2"]),
-      });
+      };
+
+      if (wallTile.visibilityStencilMasked === true) {
+        wallRenderObjects.visibilityMasked.push(renderObject);
+      } else {
+        wallRenderObjects.base.push(renderObject);
+      }
     }
 
     return wallRenderObjects;
@@ -313,10 +378,12 @@ export class RenderSystem implements ISystem {
           sprite.spriteSheetName,
         );
         const spriteClip = this.spriteClipComponentStore.getOrNull(entity);
-        let spriteWidth =
-          sprite.width ?? spriteProperties.sprite.originalRenderSpriteWidth;
-        let spriteHeight =
-          sprite.height ?? spriteProperties.sprite.originalRenderSpriteHeight;
+        let spriteWidth = sprite.hasExplicitWidth
+          ? sprite.width
+          : spriteProperties.sprite.originalRenderSpriteWidth;
+        let spriteHeight = sprite.hasExplicitHeight
+          ? sprite.height
+          : spriteProperties.sprite.originalRenderSpriteHeight;
         const layerMultiplier = this.layerMultiplicator[layerComponent.layer] ?? 1;
         const aimComponent = this.aimShootingComponentStore.getOrNull(entity);
         const transformComponent = this.transformComponentStore.getOrNull(entity);
@@ -380,9 +447,24 @@ export class RenderSystem implements ISystem {
           zLevel = this.getDepthLevel(worldPosition.y, layerMultiplier);
         }
 
-        const angleRotation = aimComponent || transformComponent?.rotationOffset
+        const hasTransformRotation = !!transformComponent && (
+          transformComponent.rotationOffset !== 0 ||
+          transformComponent.rotationPivotX !== undefined ||
+          transformComponent.rotationPivotY !== undefined ||
+          transformComponent.rotationPivotXFactor !== undefined ||
+          transformComponent.rotationPivotYFactor !== undefined
+        );
+        const angleRotation = aimComponent || hasTransformRotation
           ? (aimComponent?.aimAngle ?? 0) + (transformComponent?.rotationOffset ?? 0)
           : null;
+        const rotationPivotX = transformComponent?.rotationPivotX
+          ?? (transformComponent?.rotationPivotXFactor !== undefined
+            ? spriteWidth * transformComponent.rotationPivotXFactor
+            : undefined);
+        const rotationPivotY = transformComponent?.rotationPivotY
+          ?? (transformComponent?.rotationPivotYFactor !== undefined
+            ? spriteHeight * transformComponent.rotationPivotYFactor
+            : undefined);
 
         renderObjects.push({
           xWorldPosition: screenX,
@@ -393,7 +475,13 @@ export class RenderSystem implements ISystem {
           width: spriteWidth,
           angleRotation,
           offsetRotation: aimComponent?.pivotPointSprite || 0,
+          rotationPivotX,
+          rotationPivotY,
           opacity: uiRuntimeElement?.opacity,
+          ignoreVisibilityStencil: this.shouldIgnoreVisibilityStencil(
+            sprite.spriteName,
+            sprite.spriteSheetName,
+          ),
           zLevel,
         });
       }
@@ -776,11 +864,16 @@ export class RenderSystem implements ISystem {
     return uiRuntimeElement.renderOrder * 0.1;
   }
 
-  private getLegacyUiRenderObjects(renderObjects: RenderObject[]): RenderObject[] {
-    return renderObjects.map((renderObject) => ({
-      ...renderObject,
-      zLevel: this.maxDepthLevel,
-    }));
+  private isDoorSprite(spriteName: SpriteName, spriteSheetName: SpriteSheetName): boolean {
+    return spriteName === SpriteName.DOOR_1 && spriteSheetName === SpriteSheetName.DOORS;
+  }
+
+  private shouldUseMappedTileBounds(spriteName: SpriteName, spriteSheetName: SpriteSheetName): boolean {
+    return this.isDoorSprite(spriteName, spriteSheetName);
+  }
+
+  private shouldIgnoreVisibilityStencil(spriteName: SpriteName, spriteSheetName: SpriteSheetName): boolean {
+    return this.isDoorSprite(spriteName, spriteSheetName);
   }
 
   private getPossibleRenderOffsetY(entity: number): number {

@@ -18,6 +18,7 @@ export class WorldEdgeChunkManager {
   }
 
   public generateChunks() {
+    this.refreshChunkSize();
     const edges = this.worldEdgeManager.verticesPositionWallEdge;
     this._chunks = new Map();
     for (let x = 0; x < this.worldTilemapManager.worldWidth; x += this._chunkWidthSize) {
@@ -37,6 +38,7 @@ export class WorldEdgeChunkManager {
   }
 
   public getEdgesFromMemoryChunk() {
+    this.refreshChunkSize();
     const edges : Array<WorldMapCoordinates> = [];
     const viewPort = this.cameraManager.getViewport();
     //We set the corners of the screen as edges also
@@ -88,6 +90,11 @@ export class WorldEdgeChunkManager {
 
   private clampIndex(value: number): number {
     return Math.max(0, Math.min(value, this._chunkCount - 1));
+  }
+
+  private refreshChunkSize(): void {
+    this._chunkWidthSize = this.worldTilemapManager.worldWidth / this._chunkCount;
+    this._chunkHeightSize = this.worldTilemapManager.worldHeight / this._chunkCount;
   }
 
 }

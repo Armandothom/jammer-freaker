@@ -331,8 +331,8 @@ export class EnemyLifecicleSystem implements ISystem {
             }
             if (sucessCount == aliveEnemyEntities.length) {
                 const playerDistance = Math.hypot(
-                    playerPos.x - rolledPosition.x * spriteProperties.sprite.originalRenderSpriteWidth * (canvas.width / (this.tilemapManager.tileSize * this.tilemapManager._maxNumberTilesX)),
-                    playerPos.y - rolledPosition.y * spriteProperties.sprite.originalRenderSpriteHeight * (canvas.height / (this.tilemapManager.tileSize * this.tilemapManager._maxNumberTilesY)));
+                    playerPos.x - rolledPosition.x * spriteProperties.sprite.originalRenderSpriteWidth * (canvas.width / (this.tilemapManager.tileSize * this.tilemapManager.maxNumberTilesX)),
+                    playerPos.y - rolledPosition.y * spriteProperties.sprite.originalRenderSpriteHeight * (canvas.height / (this.tilemapManager.tileSize * this.tilemapManager.maxNumberTilesY)));
                 if (playerDistance >= 180) {
                     checkPlayerEnemyLogic = true;
                 }
@@ -350,8 +350,8 @@ export class EnemyLifecicleSystem implements ISystem {
         }
 
         return {
-            x: rolledPosition.x * spriteProperties.sprite.originalRenderSpriteWidth * (canvas.width / (this.tilemapManager.tileSize * this.tilemapManager._maxNumberTilesX)),
-            y: rolledPosition.y * spriteProperties.sprite.originalRenderSpriteHeight * (canvas.height / (this.tilemapManager.tileSize * this.tilemapManager._maxNumberTilesY)),
+            x: rolledPosition.x * spriteProperties.sprite.originalRenderSpriteWidth * (canvas.width / (this.tilemapManager.tileSize * this.tilemapManager.maxNumberTilesX)),
+            y: rolledPosition.y * spriteProperties.sprite.originalRenderSpriteHeight * (canvas.height / (this.tilemapManager.tileSize * this.tilemapManager.maxNumberTilesY)),
             success: true
         };
     }

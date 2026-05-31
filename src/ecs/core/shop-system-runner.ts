@@ -4,6 +4,9 @@ import { TextManager } from "../../game/text/text-manager.js";
 import { WeatherManager } from "../../game/weather/weather-manager.js";
 import { VisibilityManager } from "../../game/visibility/visibility-manager.js";
 import { CameraManager } from "../../game/world/camera-manager.js";
+import { WorldMapManager } from "../../game/world/world-map-manager.js";
+import { WorldEdgeChunkManager } from "../../game/world/world-edge-chunk-manager.js";
+import { WorldEdgeManager } from "../../game/world/world-edge-manager.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import { UIActionRouter } from "../../ui/input/ui-action-router.js";
 import { UIInputSystem } from "../../ui/input/ui-input-system.js";
@@ -13,6 +16,7 @@ import { MedicalShopPresenter } from "../../ui/presenters/medical-shop.presenter
 import { UIRuntime } from "../../ui/runtime/ui-runtime.js";
 import { CombatShopScreen } from "../../ui/screens/combat-shop.screen.js";
 import { GunsShopScreen } from "../../ui/screens/guns-shop.screen.js";
+import { MissionSelectScreen } from "../../ui/screens/mission-select.screen.js";
 import { MedicalShopScreen } from "../../ui/screens/medical-shop.screen.js";
 import { ShopHubScreen } from "../../ui/screens/shop-hub.screen.js";
 import { AIComponent } from "../components/ai.component.js";
@@ -58,6 +62,7 @@ import { GUNS_SHOP_DIALOG_FALLBACK_MAX_WIDTH } from "./dialog-text-layout.js";
 import { DialogManager } from "./dialog-manager.js";
 import { GunsShopActionController } from "./guns-shop-action-controller.js";
 import { MedicalShopActionController } from "./medical-shop-action-controller.js";
+import { MissionSelectActionController } from "./mission-select-action-controller.js";
 import { ShopHubActionController } from "./shop-hub-action-controller.js";
 import { ComponentStore } from "./component-store.js";
 import { CoreManager } from "./core-manager.js";
@@ -80,6 +85,7 @@ import { UIRuntimeEntityFactory } from "../entities/ui-runtime-entity-factory.js
 
 type ActiveShopState =
     | GameState.ShopHubState
+    | GameState.MissionSelectState
     | GameState.GunsShopState
     | GameState.MedicalShopState
     | GameState.CombatShopState;
@@ -87,6 +93,8 @@ type ActiveShopState =
 export class ShopSystemRunner {
     private worldTilemapManager = new WorldTilemapManager();
     private cameraManager: CameraManager;
+    private worldEdgeManager: WorldEdgeManager;
+    private worldEdgeChunkManager: WorldEdgeChunkManager;
     private dialogManager: DialogManager;
     private visibilityManager: VisibilityManager;
     private movementIntentComponentStore: ComponentStore<MovementIntentComponent> = new ComponentStore("MovementIntentComponent");
@@ -133,6 +141,7 @@ export class ShopSystemRunner {
     private combatShopInventoryState: CombatShopInventoryState;
     private combatShopTabState: CombatShopTabState;
     private shopHubActionController: ShopHubActionController;
+    private missionSelectActionController: MissionSelectActionController;
     private gunsShopActionController: GunsShopActionController;
     private medicalShopActionController: MedicalShopActionController;
     private combatShopActionController: CombatShopActionController;
@@ -153,6 +162,7 @@ export class ShopSystemRunner {
         private debugManager: DebugManager,
         private entityManager: EntityManager,
         private weatherManager: WeatherManager,
+        private worldMapManager: WorldMapManager,
     ) {
         this.gunsShopInventoryState = new GunsShopInventoryState();
         this.gunsShopTabState = new GunsShopTabState();
@@ -162,13 +172,27 @@ export class ShopSystemRunner {
         this.combatShopInventoryState = new CombatShopInventoryState();
         this.combatShopTabState = new CombatShopTabState();
         this.cameraManager = new CameraManager(this.worldTilemapManager);
+        this.worldEdgeManager = new WorldEdgeManager(this.worldTilemapManager);
+        this.worldEdgeChunkManager = new WorldEdgeChunkManager(
+            this.worldTilemapManager,
+            this.cameraManager,
+            this.worldEdgeManager,
+        );
         this.dialogManager = new DialogManager();
         this.uiRuntime = new UIRuntime();
         this.uiRuntime.registerScreen(new ShopHubScreen());
+        this.uiRuntime.registerScreen(new MissionSelectScreen(this.worldMapManager.getMapSummaries()));
         this.uiRuntime.registerScreen(new GunsShopScreen());
         this.uiRuntime.registerScreen(new MedicalShopScreen());
         this.uiRuntime.registerScreen(new CombatShopScreen());
-        this.visibilityManager = new VisibilityManager();
+        this.worldEdgeManager.setEdges();
+        this.worldEdgeChunkManager.generateChunks();
+        this.visibilityManager = new VisibilityManager(
+            this.worldEdgeChunkManager,
+            this.worldTilemapManager,
+            this.cameraManager,
+            this.debugManager,
+        );
         this.cameraManager.follow(this.worldTilemapManager.worldWidth / 2, this.worldTilemapManager.worldHeight / 2);
 
         const uiRuntimeEntityFactory = new UIRuntimeEntityFactory(
@@ -247,10 +271,14 @@ export class ShopSystemRunner {
             this.awaitingAnimationEndComponentStore,
         );
         this.shopHubActionController = new ShopHubActionController(
-            () => this.gameManager?.requestGameplayState(),
+            () => this.gameManager?.requestMissionSelectState(),
             () => this.gameManager?.requestGunsShopState(),
             () => this.gameManager?.requestMedicalShopState(),
             () => this.gameManager?.requestCombatShopState(),
+        );
+        this.missionSelectActionController = new MissionSelectActionController(
+            (mapId) => this.gameManager?.requestGameplayState(mapId),
+            () => this.gameManager?.requestShopHubState(),
         );
         this.gunsShopActionController = new GunsShopActionController(
             this.entityManager,
@@ -304,6 +332,7 @@ export class ShopSystemRunner {
             new UIInputSystem(this.uiRuntime),
             new UIActionRouter([
                 this.shopHubActionController,
+                this.missionSelectActionController,
                 this.gunsShopActionController,
                 this.medicalShopActionController,
                 this.combatShopActionController,
@@ -408,6 +437,7 @@ export class ShopSystemRunner {
                 return;
 
             case GameState.ShopHubState:
+            case GameState.MissionSelectState:
                 this.uiRuntime.relayout();
                 return;
         }
@@ -426,11 +456,15 @@ export class ShopSystemRunner {
 
             case GameState.ShopHubState:
                 return "shop-hub";
+
+            case GameState.MissionSelectState:
+                return "mission-select";
         }
     }
 
     private isShopState(state: GameState): state is ActiveShopState {
         return state === GameState.ShopHubState
+            || state === GameState.MissionSelectState
             || state === GameState.GunsShopState
             || state === GameState.MedicalShopState
             || state === GameState.CombatShopState;

@@ -6,6 +6,8 @@ export class UIRenderer {
   private readonly program: WebGLProgram;
   private readonly spriteBatchRenderer: SpriteBatchRenderer;
   private readonly maxDepthLevel = 1000;
+  private readonly renderObjectsByZLevel = new Map<number, RenderObject[]>();
+  private readonly zLevels: number[] = [];
 
   constructor(
     gl: WebGL2RenderingContext,
@@ -67,11 +69,30 @@ export class UIRenderer {
       return;
     }
 
-    const zLevels = [...new Set(renderObjects.map((renderObject) => renderObject.zLevel))]
-      .sort((left, right) => left - right);
+    this.renderObjectsByZLevel.clear();
+    this.zLevels.length = 0;
 
-    for (const zLevel of zLevels) {
-      const renderBatch = renderObjects.filter((renderObject) => renderObject.zLevel === zLevel);
+    for (const renderObject of renderObjects) {
+      let renderBatch = this.renderObjectsByZLevel.get(renderObject.zLevel);
+
+      if (!renderBatch) {
+        renderBatch = [];
+        this.renderObjectsByZLevel.set(renderObject.zLevel, renderBatch);
+        this.zLevels.push(renderObject.zLevel);
+      }
+
+      renderBatch.push(renderObject);
+    }
+
+    this.zLevels.sort((left, right) => left - right);
+
+    for (const zLevel of this.zLevels) {
+      const renderBatch = this.renderObjectsByZLevel.get(zLevel);
+
+      if (!renderBatch) {
+        continue;
+      }
+
       this.spriteBatchRenderer.draw(renderBatch, {
         debugBorderSprites,
         depthTestEnabled: false,
