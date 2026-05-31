@@ -16,6 +16,16 @@ type TileCoordinates = {
   y: number;
 };
 
+export interface TilemapWallTileState {
+  impassable?: boolean;
+  seeThrough?: boolean;
+  impact?: boolean;
+  spriteRotation?: number | null;
+  spriteMirrorX?: boolean;
+  spriteMirrorY?: boolean;
+  visibilityStencilReveal?: boolean;
+}
+
 export class WorldTilemapManager {
   public worldWidth = 3200;
   public worldHeight = 3200;
@@ -53,6 +63,9 @@ export class WorldTilemapManager {
           spriteName,
           spriteSheetName,
           spriteRotation: null,
+          spriteMirrorX: false,
+          spriteMirrorY: false,
+          spriteVisible: true,
           type,
         });
       }
@@ -89,6 +102,9 @@ export class WorldTilemapManager {
         spriteName,
         spriteSheetName: this._tilemapSpritesheetName,
         spriteRotation,
+        spriteMirrorX: false,
+        spriteMirrorY: false,
+        spriteVisible: true,
         type: mapTile.type,
       });
 
@@ -159,8 +175,20 @@ export class WorldTilemapManager {
     spriteName: SpriteName,
     spriteSheetName: SpriteSheetName = this._tilemapSpritesheetName,
     spriteRotation: number | null = null,
+    spriteMirrorX = false,
+    spriteMirrorY = false,
   ): void {
-    this.setWallTile(x, y, spriteName, spriteSheetName, true, spriteRotation, true);
+    this.setWallTile(
+      x,
+      y,
+      spriteName,
+      spriteSheetName,
+      true,
+      spriteRotation,
+      true,
+      spriteMirrorX,
+      spriteMirrorY,
+    );
   }
 
   public setSeeThroughWall(
@@ -169,8 +197,102 @@ export class WorldTilemapManager {
     spriteName: SpriteName,
     spriteSheetName: SpriteSheetName = this._tilemapSpritesheetName,
     spriteRotation: number | null = null,
+    spriteMirrorX = false,
+    spriteMirrorY = false,
   ): void {
-    this.setWallTile(x, y, spriteName, spriteSheetName, false, spriteRotation, true);
+    this.setWallTile(
+      x,
+      y,
+      spriteName,
+      spriteSheetName,
+      false,
+      spriteRotation,
+      true,
+      spriteMirrorX,
+      spriteMirrorY,
+    );
+  }
+
+  public setWallTileState(
+    x: number,
+    y: number,
+    state: TilemapWallTileState,
+  ): boolean {
+    if (!this.isWithinTilemap({ tileX: x, tileY: y })) {
+      return false;
+    }
+
+    const key = this.setTilemapKey(x, y);
+    const wallTile = this._wallTiles.get(key);
+
+    if (!wallTile) {
+      return false;
+    }
+
+    wallTile.solid = state.impassable ?? wallTile.solid;
+    wallTile.blocksVision = state.seeThrough === undefined
+      ? wallTile.blocksVision
+      : !state.seeThrough;
+    wallTile.impact = state.impact ?? wallTile.impact;
+
+    if ("spriteRotation" in state) {
+      wallTile.spriteRotation = state.spriteRotation;
+    }
+
+    if (state.spriteMirrorX !== undefined) {
+      wallTile.spriteMirrorX = state.spriteMirrorX;
+    }
+
+    if (state.spriteMirrorY !== undefined) {
+      wallTile.spriteMirrorY = state.spriteMirrorY;
+    }
+
+    if (state.visibilityStencilReveal !== undefined) {
+      wallTile.visibilityStencilReveal = state.visibilityStencilReveal;
+    }
+
+    this.syncWallTileStateMaps(key, wallTile);
+    this.refreshPoiTiles();
+
+    return true;
+  }
+
+  public setBreakableTileRenderEnabled(
+    x: number,
+    y: number,
+    enabled: boolean,
+  ): boolean {
+    if (!this.isWithinTilemap({ tileX: x, tileY: y })) {
+      return false;
+    }
+
+    const wallTile = this._wallTiles.get(this.setTilemapKey(x, y));
+
+    if (!wallTile || !this.isBreakableWallSprite(wallTile.spriteName)) {
+      return false;
+    }
+
+    wallTile.spriteVisible = enabled;
+    return true;
+  }
+
+  public setWallTileVisibilityStencilRevealEnabled(
+    x: number,
+    y: number,
+    enabled: boolean,
+  ): boolean {
+    if (!this.isWithinTilemap({ tileX: x, tileY: y })) {
+      return false;
+    }
+
+    const wallTile = this._wallTiles.get(this.setTilemapKey(x, y));
+
+    if (!wallTile) {
+      return false;
+    }
+
+    wallTile.visibilityStencilReveal = enabled;
+    return true;
   }
 
   public setAssetTile(
@@ -193,30 +315,18 @@ export class WorldTilemapManager {
       spriteName,
       spriteSheetName,
       spriteRotation,
+      spriteMirrorX: false,
+      spriteMirrorY: false,
+      spriteVisible: true,
+      visibilityStencilReveal: false,
+      visibilityStencilMasked: true,
       solid: options.impassable,
       blocksVision: !options.seeThrough,
       impact: options.impact,
     };
 
     this._wallTiles.set(key, wallTile);
-
-    if (options.impassable) {
-      this._impassableWallTiles.set(key, wallTile);
-    } else {
-      this._impassableWallTiles.delete(key);
-    }
-
-    if (options.seeThrough) {
-      this._visionBlockingWallTiles.delete(key);
-    } else {
-      this._visionBlockingWallTiles.set(key, wallTile);
-    }
-
-    if (options.impact) {
-      this._impactWallTiles.set(key, wallTile);
-    } else {
-      this._impactWallTiles.delete(key);
-    }
+    this.syncWallTileStateMaps(key, wallTile);
   }
 
   private setImpassableTile(
@@ -233,6 +343,10 @@ export class WorldTilemapManager {
       spriteName,
       spriteSheetName: this._tilemapSpritesheetName,
       spriteRotation,
+      spriteMirrorX: false,
+      spriteMirrorY: false,
+      spriteVisible: true,
+      visibilityStencilReveal: true,
       solid: true,
       blocksVision: true,
       impact: true,
@@ -255,6 +369,8 @@ export class WorldTilemapManager {
     blocksVision: boolean,
     spriteRotation: number | null,
     impact: boolean,
+    spriteMirrorX = false,
+    spriteMirrorY = false,
   ): void {
     this.ensureTileBounds(x, y);
     const key = this.setTilemapKey(x, y);
@@ -264,21 +380,33 @@ export class WorldTilemapManager {
       spriteName,
       spriteSheetName,
       spriteRotation,
+      spriteMirrorX,
+      spriteMirrorY,
+      spriteVisible: true,
+      visibilityStencilReveal: true,
       solid: true,
       blocksVision,
       impact,
     };
 
     this._wallTiles.set(key, wallTile);
-    this._impassableWallTiles.set(key, wallTile);
+    this.syncWallTileStateMaps(key, wallTile);
+  }
 
-    if (blocksVision) {
+  private syncWallTileStateMaps(key: string, wallTile: TilemapWallTile): void {
+    if (wallTile.solid) {
+      this._impassableWallTiles.set(key, wallTile);
+    } else {
+      this._impassableWallTiles.delete(key);
+    }
+
+    if (wallTile.blocksVision) {
       this._visionBlockingWallTiles.set(key, wallTile);
     } else {
       this._visionBlockingWallTiles.delete(key);
     }
 
-    if (impact) {
+    if (wallTile.impact) {
       this._impactWallTiles.set(key, wallTile);
     } else {
       this._impactWallTiles.delete(key);
@@ -445,6 +573,9 @@ export class WorldTilemapManager {
       spriteName: this.resolveTileSpriteName(type, currentTile.spriteName),
       spriteSheetName: this._tilemapSpritesheetName,
       spriteRotation: this.resolveTileSpriteRotation(type),
+      spriteMirrorX: false,
+      spriteMirrorY: false,
+      spriteVisible: true,
       type,
     });
   }
@@ -456,6 +587,8 @@ export class WorldTilemapManager {
     spriteName: SpriteName,
     spriteSheetName: SpriteSheetName = this._tilemapSpritesheetName,
     spriteRotation: number | null = null,
+    spriteMirrorX = false,
+    spriteMirrorY = false,
   ): void {
     this.ensureTileBounds(x, y);
     this._tilemap.set(this.setTilemapKey(x, y), {
@@ -464,6 +597,9 @@ export class WorldTilemapManager {
       spriteName,
       spriteSheetName,
       spriteRotation,
+      spriteMirrorX,
+      spriteMirrorY,
+      spriteVisible: true,
       type,
     });
   }
@@ -529,8 +665,15 @@ export class WorldTilemapManager {
       tile.spriteName = SpriteName.PLOT_TERRAIN;
       tile.spriteSheetName = this._tilemapSpritesheetName;
       tile.spriteRotation = null;
+      tile.spriteMirrorX = false;
+      tile.spriteMirrorY = false;
+      tile.spriteVisible = true;
       tile.type = 'ground';
     }
+  }
+
+  private isBreakableWallSprite(spriteName: SpriteName): boolean {
+    return spriteName === SpriteName.DOOR_1 || spriteName === SpriteName.WINDOW;
   }
 
   private resolveTileSpriteName(type: TilemapTile['type'], fallback: SpriteName): SpriteName {

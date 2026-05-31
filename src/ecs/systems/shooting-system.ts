@@ -9,6 +9,7 @@ import { InventoryComponent } from "../components/inventory-component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
+import { PlayerOccupiedComponent } from "../components/player-occupied.component.js";
 import { ReloadIntentComponent } from "../components/reload-intent.component.js";
 import { ShootingCooldownComponent } from "../components/shooting-cooldown.component.js";
 import { ShootingRecoilIntentComponent } from "../components/shooting-recoil-intent.component.js";
@@ -60,6 +61,7 @@ export class ShootingSystem implements ISystem {
         private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
         private combatStimActiveComponentStore: ComponentStore<CombatStimActiveComponent>,
         private playerFovComponentStore : ComponentStore<PlayerFovComponent>,
+        private playerOccupiedComponentStore: ComponentStore<PlayerOccupiedComponent>,
         private cameraManager: CameraManager,
         private debugManager: DebugManager,
         private inventoryManager: InventoryManager,
@@ -76,6 +78,11 @@ export class ShootingSystem implements ISystem {
 
         const playerEntity = this.getPlayerEntity();
         if (playerEntity == null) {
+            this.clearMouseShotState();
+            return;
+        }
+
+        if (this.isPlayerOccupied(playerEntity)) {
             this.clearMouseShotState();
             return;
         }
@@ -183,6 +190,7 @@ export class ShootingSystem implements ISystem {
     private pushShotIntent(deltaTime: number, isHold: boolean) {
         const playerEntity = this.getPlayerEntity();
         if (playerEntity == null) return;
+        if (this.isPlayerOccupied(playerEntity)) return;
 
         const inventory = this.inventoryComponentStore.getOrNull(playerEntity)
         if (!inventory) return;
@@ -424,6 +432,7 @@ export class ShootingSystem implements ISystem {
     private pushGrenadeIntent() {
         const playerEntity = this.getPlayerEntity();
         if (playerEntity == null) return;
+        if (this.isPlayerOccupied(playerEntity)) return;
 
         const inventory = this.inventoryComponentStore.getOrNull(playerEntity)
         if (!inventory) return;
@@ -439,6 +448,7 @@ export class ShootingSystem implements ISystem {
     private pushMeeleIntent() {
         const playerEntity = this.getPlayerEntity();
         if (playerEntity == null) return;
+        if (this.isPlayerOccupied(playerEntity)) return;
 
         if (this.disableAimComponentStore.has(playerEntity)) return;
         if (!this.positionComponentStore.has(playerEntity)) return;
@@ -451,6 +461,10 @@ export class ShootingSystem implements ISystem {
 
     private getPlayerEntity(): number | null {
         return this.playerComponentStore.getAllEntities()[0] ?? null;
+    }
+
+    private isPlayerOccupied(playerEntity: number): boolean {
+        return this.playerOccupiedComponentStore.has(playerEntity);
     }
 
     private clearMouseShotState(): void {

@@ -64,20 +64,22 @@ export const BUILDING_LOOT_CONTEXTS: Record<BuildingName, BuildingLootContext> =
     buildingName: BuildingName.POLICE_STATION,
     containerWeights: [
       { containerType: LootContainerType.MILITARY_CRATE, weight: 65 },
-      { containerType: LootContainerType.DRAWER, weight: 35 },
+      { containerType: LootContainerType.OFFICE_DRAWER, weight: 35 },
     ],
   },
 
   [BuildingName.POST_OFFICE]: {
     buildingName: BuildingName.POST_OFFICE,
     containerWeights: [
-      { containerType: LootContainerType.DRAWER, weight: 100 },
+      { containerType: LootContainerType.OFFICE_DRAWER, weight: 100 },
     ],
   },
 
   [BuildingName.SCHOOL_BUILDING]: {
     buildingName: BuildingName.SCHOOL_BUILDING,
-    containerWeights: [],
+    containerWeights: [
+      { containerType: LootContainerType.SCHOOL_BOX, weight: 100 },
+    ],
   },
 
   [BuildingName.MILITARY_CAMP]: {
@@ -89,7 +91,9 @@ export const BUILDING_LOOT_CONTEXTS: Record<BuildingName, BuildingLootContext> =
 
   [BuildingName.AUTO_REPAIR_SHOP]: {
     buildingName: BuildingName.AUTO_REPAIR_SHOP,
-    containerWeights: [],
+    containerWeights: [
+      { containerType: LootContainerType.TOOLBOX, weight: 100 },
+    ],
   },
 };
 

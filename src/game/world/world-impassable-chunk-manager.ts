@@ -17,7 +17,8 @@ export class WorldImpassableChunkManager {
 
   public generateChunks() {
     this.refreshChunkSize();
-    const impassableWallTiles = Array.from(this.worldTilemapManager.impassableWallTiles.values());
+    const impassableWallTiles = Array.from(this.worldTilemapManager.impassableWallTiles.values())
+      .filter((wallTile) => wallTile.visibilityStencilReveal !== false);
     this._chunks = new Map();
     for (let x = 0; x < this.worldTilemapManager.worldWidth; x += this._chunkWidthSize) {
       for (let y = 0; y < this.worldTilemapManager.worldHeight; y += this._chunkHeightSize) {

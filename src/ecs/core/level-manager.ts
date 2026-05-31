@@ -24,6 +24,7 @@ import { EntityFactory } from "../entities/entity-factory.js";
 import { EnemyLifecicleSystem } from "../systems/enemy-lifecicle.system.js";
 import { ComponentStore } from "./component-store.js";
 import { GameManager } from "./game-manager.js";
+import type { LootContainerManager } from "./loot-container-manager.js";
 import { WorldImpassableChunkManager } from "../../game/world/world-impassable-chunk-manager.js";
 
 export enum LevelEndReason {
@@ -54,6 +55,7 @@ export class LevelManager {
     private nextPlayerInventorySnapshot: InventorySnapshot | null = null;
     private stateTransitionRequested = false;
     private beforeLevelRebuildHandlers: Array<() => void> = [];
+    private lootContainerManager: LootContainerManager | null = null;
     private currentMapId: string;
     private readonly buildingInPlotSorter: BuildingInPlotSorter;
     private readonly buildingTilemapApplier: BuildingTilemapApplier;
@@ -174,6 +176,7 @@ export class LevelManager {
         const buildingPlacements = this.buildingInPlotSorter.generateBuildingsForMap(worldMap.id);
         this.buildingInteractionManager.rebuild(buildingPlacements);
         this.buildingTilemapApplier.apply(buildingPlacements);
+        this.lootContainerManager?.create();
         this.spawnPlayerAtTile(playerSpawn.tileX, playerSpawn.tileY);
         this.finalizeLevelBuild();
         this.worldEdgeManager.setEdges();
@@ -209,6 +212,10 @@ export class LevelManager {
 
     public bindGameManager(gameManager: GameManager): void {
         this.gameManager = gameManager;
+    }
+
+    public bindLootContainerManager(lootContainerManager: LootContainerManager): void {
+        this.lootContainerManager = lootContainerManager;
     }
 
     public getBuildingInteractionManager(): BuildingInteractionManager {

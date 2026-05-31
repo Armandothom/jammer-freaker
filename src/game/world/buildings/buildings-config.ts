@@ -1,21 +1,9 @@
-export type BuildingSize = {
-    width: number;
-    height: number;
-};
-
 export enum BuildingType {
     Massive = "massive",
     Large = "large",
     Medium = "medium",
     Small = "small",
 }
-
-export const BUILDING_SIZE_CONFIG: Record<BuildingType, BuildingSize> = {
-    [BuildingType.Massive]: { width: 1024, height: 512 },
-    [BuildingType.Large]: { width: 800, height: 512 },
-    [BuildingType.Medium]: { width: 640, height: 512 },
-    [BuildingType.Small]: { width: 320, height: 320 },
-};
 
 export const BUILDING_TYPE_PLACEMENT_ORDER: BuildingType[] = [
     BuildingType.Massive,

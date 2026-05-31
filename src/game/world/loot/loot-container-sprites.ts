@@ -7,46 +7,31 @@ export interface LootContainerSpriteRef {
   spriteSheetName: SpriteSheetName;
 }
 
+const WOODEN_BOX_PLACEHOLDER: LootContainerSpriteRef = {
+  spriteName: SpriteName.WOODEN_BOX_1,
+  spriteSheetName: SpriteSheetName.WOODEN_BOX,
+};
+
 export const LOOT_CONTAINER_SPRITES: Record<LootContainerType, LootContainerSpriteRef> = {
-  [LootContainerType.DRAWER]: {
-    spriteName: SpriteName.WOODEN_BOX_1,
-    spriteSheetName: SpriteSheetName.WOODEN_BOX,
-  },
+  [LootContainerType.DRAWER]: WOODEN_BOX_PLACEHOLDER,
 
-  [LootContainerType.TOOLBOX]: {
-    spriteName: SpriteName.WOODEN_BOX_1,
-    spriteSheetName: SpriteSheetName.WOODEN_BOX,
-  },
+  [LootContainerType.TOOLBOX]: WOODEN_BOX_PLACEHOLDER,
 
-  [LootContainerType.WOODEN_CRATE]: {
-    spriteName: SpriteName.WOODEN_BOX_1,
-    spriteSheetName: SpriteSheetName.WOODEN_BOX,
-  },
+  [LootContainerType.WOODEN_CRATE]: WOODEN_BOX_PLACEHOLDER,
 
-  [LootContainerType.CARD_BOX]: {
-    spriteName: SpriteName.WOODEN_BOX_1,
-    spriteSheetName: SpriteSheetName.WOODEN_BOX,
-  },
+  [LootContainerType.SCHOOL_BOX]: WOODEN_BOX_PLACEHOLDER,
 
-  [LootContainerType.MEDICAL_BAG]: {
-    spriteName: SpriteName.WOODEN_BOX_1,
-    spriteSheetName: SpriteSheetName.WOODEN_BOX,
-  },
+  [LootContainerType.CARD_BOX]: WOODEN_BOX_PLACEHOLDER,
 
-  [LootContainerType.MILITARY_CRATE]: {
-    spriteName: SpriteName.WOODEN_BOX_1,
-    spriteSheetName: SpriteSheetName.WOODEN_BOX,
-  },
+  [LootContainerType.MEDICAL_BAG]: WOODEN_BOX_PLACEHOLDER,
 
-  [LootContainerType.CASH_REGISTER]: {
-    spriteName: SpriteName.WOODEN_BOX_1,
-    spriteSheetName: SpriteSheetName.WOODEN_BOX,
-  },
+  [LootContainerType.MILITARY_CRATE]: WOODEN_BOX_PLACEHOLDER,
 
-  [LootContainerType.VAULT]: {
-    spriteName: SpriteName.WOODEN_BOX_1,
-    spriteSheetName: SpriteSheetName.WOODEN_BOX,
-  },
+  [LootContainerType.CASH_REGISTER]: WOODEN_BOX_PLACEHOLDER,
+
+  [LootContainerType.OFFICE_DRAWER]: WOODEN_BOX_PLACEHOLDER,
+
+  [LootContainerType.VAULT]: WOODEN_BOX_PLACEHOLDER,
 };
 
 export function getLootContainerSprite(containerType: LootContainerType): LootContainerSpriteRef {

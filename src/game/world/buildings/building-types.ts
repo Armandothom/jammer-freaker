@@ -3,13 +3,16 @@ import type { BuildingName } from "./buildings-config.js";
 export type BuildingOrientation = "north" | "south" | "east" | "west";
 export type BuildingAssetDirection = "N" | "S" | "E" | "W";
 export type BuildingAssetTileType = `asset_${number}`;
+export type BuildingDoorPanelSide = "left" | "right";
+export type BuildingDoorTileType =
+  | "door"
+  | "door_left"
+  | "door_right";
 
 export type StandardBuildingTileType =
   | "out_of_bounds"
   | "window"
-  | "door"
-  | "door_1"
-  | "door_2"
+  | BuildingDoorTileType
   | "floor";
 
 export type BuildingTileType =
@@ -72,4 +75,42 @@ export interface PlacedBuilding {
 
 export function isBuildingAssetTileType(tileType: BuildingTileType): tileType is BuildingAssetTileType {
   return /^asset_[1-9]\d*$/.test(tileType);
+}
+
+export function isBuildingDoorTileType(
+  tileType: BuildingTileType | null | undefined,
+): tileType is BuildingDoorTileType {
+  return tileType === "door"
+    || tileType === "door_left"
+    || tileType === "door_right";
+}
+
+export function getBuildingDoorPanelSide(
+  tileType: BuildingTileType | null | undefined,
+): BuildingDoorPanelSide | null {
+  switch (tileType) {
+    case "door_left":
+      return "left";
+
+    case "door_right":
+      return "right";
+
+    default:
+      return null;
+  }
+}
+
+export function swapBuildingDoorPanelSide(
+  tileType: BuildingTileType,
+): BuildingTileType {
+  switch (tileType) {
+    case "door_left":
+      return "door_right";
+
+    case "door_right":
+      return "door_left";
+
+    default:
+      return tileType;
+  }
 }

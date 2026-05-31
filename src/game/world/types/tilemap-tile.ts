@@ -46,6 +46,9 @@ export abstract class TilemapBase {
   spriteName?: SpriteName;
   spriteSheetName?: SpriteSheetName;
   spriteRotation?: number | null;
+  spriteMirrorX?: boolean;
+  spriteMirrorY?: boolean;
+  spriteVisible?: boolean;
 }
 export abstract class TilemapTile extends TilemapBase {
   spriteName!: SpriteName;
@@ -57,6 +60,8 @@ export abstract class TilemapWallTile extends TilemapBase {
   solid!: boolean;
   blocksVision!: boolean;
   impact!: boolean;
+  visibilityStencilReveal?: boolean;
+  visibilityStencilMasked?: boolean;
 }
 
 export enum WorldPoiTileType {

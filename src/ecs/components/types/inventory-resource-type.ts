@@ -13,8 +13,27 @@ export enum InventoryResourceType {
     Money = "money",
 }
 
+export const INVENTORY_RESOURCE_TYPES: readonly InventoryResourceType[] = [
+    InventoryResourceType.PistolMag,
+    InventoryResourceType.SmgMag,
+    InventoryResourceType.RifleMag,
+    InventoryResourceType.SniperMag,
+    InventoryResourceType.ShotgunShell,
+    InventoryResourceType.ShotgunShellBox,
+    InventoryResourceType.Grenade,
+    InventoryResourceType.Epipen,
+    InventoryResourceType.CombatStim,
+    InventoryResourceType.Healpack,
+    InventoryResourceType.Bandage,
+    InventoryResourceType.Money,
+];
 export const SHOTGUN_SHELLS_PER_BOX = 6;
 export const MAX_STACKABLE_RESOURCE_AMOUNT = 99;
+
+export function isInventoryResourceType(value: unknown): value is InventoryResourceType {
+    return typeof value === "string"
+        && INVENTORY_RESOURCE_TYPES.indexOf(value as InventoryResourceType) !== -1;
+}
 
 export function getInventoryResourceMaxAmount(resourceType: InventoryResourceType): number {
     switch (resourceType) {

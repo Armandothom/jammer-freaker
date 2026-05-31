@@ -1,9 +1,6 @@
 import type { BuildingOrientation } from "./building-types.js";
 import type { BuildingName } from "./buildings-config.js";
-import enemySpawnCatalog from "./building_spawns/enemy-spawns.json" with { type: "json" };
 import lootSpawnCatalog from "./building_spawns/loot-spawns.json" with { type: "json" };
-
-export type BuildingSpawnKind = "enemy" | "loot";
 
 export interface BuildingSpawnPointDefinition {
   x: number;
@@ -28,19 +25,14 @@ type RawSpawnCatalog = {
   buildings?: RawSpawnBuilding[];
 };
 
-const SPAWN_CATALOG_BY_KIND: Record<BuildingSpawnKind, RawSpawnCatalog> = {
-  enemy: enemySpawnCatalog as RawSpawnCatalog,
-  loot: lootSpawnCatalog as RawSpawnCatalog,
-};
+const LOOT_SPAWN_CATALOG = lootSpawnCatalog as RawSpawnCatalog;
 
-export function getBuildingSpawnPoints(
+export function getBuildingLootSpawnPoints(
   buildingName: BuildingName,
   variationIndex: number,
   orientation: BuildingOrientation,
-  spawnKind: BuildingSpawnKind,
 ): BuildingSpawnPointDefinition[] {
-  const catalog = SPAWN_CATALOG_BY_KIND[spawnKind];
-  const building = catalog.buildings?.find((entry) => entry.id === buildingName);
+  const building = LOOT_SPAWN_CATALOG.buildings?.find((entry) => entry.id === buildingName);
 
   if (!building) {
     return [];

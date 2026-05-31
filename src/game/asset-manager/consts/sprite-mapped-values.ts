@@ -188,6 +188,67 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
   ],
 
   [
+    SpriteSheetName.DOORS,
+    {
+      rows: 1,
+      columns: 1,
+      eachSpriteCellSizeHeight: 32,
+      eachSpriteCellSizeWidth: 32,
+      srcImagePath: 'src/assets/images/doors_spritesheet.png',
+      sprites: new Map([
+        [SpriteName.DOOR_1, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 7,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 7 }
+        }],
+      ]),
+
+    }
+  ],
+
+  [
+    SpriteSheetName.INVENTORY_FRAMES,
+    {
+      rows: 1,
+      columns: 8,
+      eachSpriteCellSizeHeight: 32,
+      eachSpriteCellSizeWidth: 32,
+      srcImagePath: 'src/assets/images/inventory_frame.png',
+      sprites: new Map([
+        [SpriteName.INVENTORY_FRAME_1, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+      ]),
+    }
+  ],
+
+  [
+    SpriteSheetName.ITEM_FRAMES,
+    {
+      rows: 1,
+      columns: 8,
+      eachSpriteCellSizeHeight: 32,
+      eachSpriteCellSizeWidth: 32,
+      srcImagePath: 'src/assets/images/item_frame.png',
+      sprites: new Map([
+        [SpriteName.ITEM_FRAME_1, {
+          row: 1,
+          column: 1,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 32,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 32, height: 32 }
+        }],
+      ]),
+    }
+  ],
+
+  [
     SpriteSheetName.WEAPON,
     {
       rows: 1,

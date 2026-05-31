@@ -114,6 +114,14 @@ export class GunsShopInventoryState {
             return false;
         }
 
+        if (!this.inventoryManager.canAddResource(
+            inventory,
+            itemConfig.resourceType,
+            itemConfig.resourceAmount,
+        )) {
+            return false;
+        }
+
         if (!this.trySpendMoney(itemConfig.price)) {
             return false;
         }

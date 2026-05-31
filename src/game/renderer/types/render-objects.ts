@@ -16,4 +16,5 @@ export abstract class RenderObject {
   rotationPivotX?: number
   rotationPivotY?: number
   opacity?: number
+  ignoreVisibilityStencil?: boolean
 }

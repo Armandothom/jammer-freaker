@@ -169,6 +169,7 @@ export class CollisionSystem implements ISystem {
 
             const otherCollision = this.collisionBoxComponentStore.get(other);
             if (!otherCollision.collides) continue;
+            if ((isProjectile || isGrenade) && !otherCollision.impacts) continue;
 
             const otherRect = this.buildEntityRectFromPosition(other);
 

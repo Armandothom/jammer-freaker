@@ -29,9 +29,16 @@ import { GrenadeExplosionHitBoxComponent } from "../components/grenade-explosion
 import { GrenadeTravelComponent } from "../components/grenade-travel.component.js";
 import { HealthComponent } from "../components/health.component.js";
 import { HitBoxComponent } from "../components/hit-box-component.js";
+import {
+  InteractableComponent,
+  type InteractableDoorVisualState,
+  InteractableKind,
+  type InteractableSpriteState,
+} from "../components/interactable-component.js";
 import { InventoryComponent } from "../components/inventory-component.js";
 import { ItemBoxComponent } from "../components/item-box.component.js";
 import { ItemDroppedComponent } from "../components/item-dropped.component.js";
+import { LootContainerContentComponent } from "../components/loot-container-content.component.js";
 import { LootContainerComponent } from "../components/loot-container.component.js";
 import { MeleeIntentProcessedComponent } from "../components/melee-intent-processed.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
@@ -55,6 +62,7 @@ import { ShootingCooldownComponent } from "../components/shooting-cooldown.compo
 import { ShotOriginComponent } from "../components/shot-origin.component.js";
 import { InventorySnapshot } from "../components/snapshots/inventory-snapshot.js";
 import { SpriteComponent } from "../components/sprite.component.js";
+import { TransformComponent } from "../components/transform-component.js";
 import { AnimDirection } from "../components/types/anim-direction.js";
 import { EnemyConfig, EnemyType } from "../components/types/enemy-type.js";
 import { GameUIEntryType, GameUIType } from "../components/types/game-ui-type.js";
@@ -177,6 +185,9 @@ export class EntityFactory {
     private pathFindingObstacleComponent: ComponentStore<PathFindingObstacleComponent>,
     private playerFovComponentStore: ComponentStore<PlayerFovComponent>,
     private lootContainerComponentStore: ComponentStore<LootContainerComponent>,
+    private lootContainerContentComponentStore: ComponentStore<LootContainerContentComponent>,
+    private interactableComponentStore: ComponentStore<InteractableComponent>,
+    private transformComponentStore: ComponentStore<TransformComponent>,
   ) {
   }
 
@@ -748,15 +759,90 @@ export class EntityFactory {
     this.createShadow(entityId, startX, startY, spriteInfo.width, spriteInfo.height, SpriteName.SHADOW_1);
   }
 
-  createLootContainer(startX: number, startY: number, spriteName: SpriteName, spriteSheetName: SpriteSheetName, lootContainerType: LootContainerType): number {
+  createLootContainer(
+    startX: number,
+    startY: number,
+    spriteName: SpriteName,
+    spriteSheetName: SpriteSheetName,
+    lootContainerType: LootContainerType,
+    lootContainerContent: LootContainerContentComponent,
+    tileX: number,
+    tileY: number,
+  ): number {
     const entityId = this.entityManager.registerEntity();
     this.renderableComponentStore.add(entityId, new RenderableComponent());
     this.positionComponentStore.add(entityId, new PositionComponent(startX, startY));
     this.lootContainerComponentStore.add(entityId, new LootContainerComponent(lootContainerType));
+    this.lootContainerContentComponentStore.add(entityId, lootContainerContent);
+    this.interactableComponentStore.add(entityId, new InteractableComponent({
+      kind: InteractableKind.CONTAINER,
+      tileX,
+      tileY,
+      radius: 32,
+      targetEntityId: entityId,
+    }));
     this.spriteComponentStore.add(entityId, new SpriteComponent(spriteName, spriteSheetName));
+    this.collisionBoxComponentStore.add(entityId, new CollisionBoxComponent({ impacts: false }));
     this.zLayerComponentStore.add(entityId, new ZLayerComponent(3));
     const spriteInfo = this.spriteComponentStore.get(entityId);
     this.createShadow(entityId, startX, startY, spriteInfo.width, spriteInfo.height, SpriteName.SHADOW_1);
+    return entityId;
+  }
+
+  createDoor(
+    tileX: number,
+    tileY: number,
+    closedSpriteState?: InteractableSpriteState,
+    closedVisualState?: InteractableDoorVisualState,
+    openVisualState?: InteractableDoorVisualState,
+  ): number {
+    // Door geometry lives in the tilemap; this entity only carries interaction state.
+    const entityId = this.entityManager.registerEntity();
+    const radius = 32;
+    const interactable = new InteractableComponent({
+      kind: InteractableKind.DOOR,
+      tileX,
+      tileY,
+      radius,
+      closedSpriteState,
+      closedVisualState,
+      openVisualState,
+    });
+
+    if (closedVisualState) {
+      interactable.visualEntityId = this.createDoorVisual(closedVisualState);
+    }
+
+    this.interactableComponentStore.add(entityId, interactable);
+    return entityId;
+  }
+
+  createDoorVisual(visualState: InteractableDoorVisualState): number {
+    const entityId = this.entityManager.registerEntity();
+    this.renderableComponentStore.add(entityId, new RenderableComponent());
+    this.positionComponentStore.add(entityId, new PositionComponent(visualState.x, visualState.y));
+    this.spriteComponentStore.add(entityId, new SpriteComponent(
+      visualState.spriteName,
+      visualState.spriteSheetName,
+    ));
+    this.transformComponentStore.add(entityId, new TransformComponent(
+      0,
+      0,
+      visualState.rotation ?? 0,
+      undefined,
+      undefined,
+      visualState.pivotXFactor,
+      visualState.pivotYFactor,
+    ));
+    this.zLayerComponentStore.add(entityId, new ZLayerComponent(visualState.zLayer));
+
+    if (visualState.mirrorX || visualState.mirrorY) {
+      this.directionAnimationComponentStore.add(entityId, new DirectionAnimComponent(
+        visualState.mirrorX ? AnimDirection.LEFT : AnimDirection.RIGHT,
+        visualState.mirrorY ? AnimDirection.BOTTOM : AnimDirection.TOP,
+      ));
+    }
+
     return entityId;
   }
 
@@ -902,10 +988,35 @@ export class EntityFactory {
     this.renderableComponentStore.remove(entityId);
     this.positionComponentStore.remove(entityId);
     this.lootContainerComponentStore.remove(entityId);
+    this.lootContainerContentComponentStore.remove(entityId);
+    this.interactableComponentStore.remove(entityId);
     this.spriteComponentStore.remove(entityId);
     this.animationComponentStore.remove(entityId);
+    this.collisionBoxComponentStore.remove(entityId);
     this.zLayerComponentStore.remove(entityId);
     this.destroyShadow(entityId);
+  }
+
+  destroyInteractable(entityId: number): void {
+    const interactable = this.interactableComponentStore.getOrNull(entityId);
+
+    if (interactable?.visualEntityId !== null && interactable?.visualEntityId !== undefined) {
+      this.destroyDoorVisual(interactable.visualEntityId);
+    }
+
+    this.interactableComponentStore.remove(entityId);
+  }
+
+  destroyDoorVisual(entityId: number): void {
+    this.renderableComponentStore.remove(entityId);
+    this.positionComponentStore.remove(entityId);
+    this.spriteComponentStore.remove(entityId);
+    this.transformComponentStore.remove(entityId);
+    this.zLayerComponentStore.remove(entityId);
+
+    if (this.directionAnimationComponentStore.has(entityId)) {
+      this.directionAnimationComponentStore.remove(entityId);
+    }
   }
 
   destroyItemDrop(entityId: number) {

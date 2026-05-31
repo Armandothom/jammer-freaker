@@ -37,15 +37,19 @@ export class ItemDropUpdateSystem implements ISystem {
             const item = this.itemDroppedComponentStore.get(itemDropped);
             if (this.isPlayerOverlappingDroppedItem(itemDropped, playerEntity)) {
                 const collectedResource = this.resolveCollectedResource(item);
-                this.soundEventBus.emitSound({
-                    key: SOUND_KEYS.ITEM_PICKUP,
-                    volume: SOUND_VOLUME.ITEM_PICKUP,
-                })
-                this.inventoryManager.addResource(
+                const wasCollected = this.inventoryManager.addResource(
                     inventory,
                     collectedResource.type,
                     collectedResource.amount,
                 );
+                if (!wasCollected) {
+                    continue;
+                }
+
+                this.soundEventBus.emitSound({
+                    key: SOUND_KEYS.ITEM_PICKUP,
+                    volume: SOUND_VOLUME.ITEM_PICKUP,
+                })
                 this.entityFactory.destroyItemDrop(itemDropped);
             }
         }

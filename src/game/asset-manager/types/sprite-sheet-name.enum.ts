@@ -33,4 +33,7 @@ export enum SpriteSheetName {
   CROSSHAIR = "crosshair",
   APPLY_BAR = "apply_bar",
   BUILDING_WALLS = "building_walls",
+  DOORS = "doors",
+  INVENTORY_FRAMES = "inventory_frames",
+  ITEM_FRAMES = "item_frames"
 }

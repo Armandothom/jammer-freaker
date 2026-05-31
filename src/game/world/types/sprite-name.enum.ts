@@ -177,4 +177,7 @@ export enum SpriteName {
   BEIGE_WALL = "beige_wall",
   BROWN_WALL = "brown_wall",
   WINDOW = "window",
+  DOOR_1 = "door_1",
+  INVENTORY_FRAME_1 = "inventory_frame_1",
+  ITEM_FRAME_1 = "item_frame_1",
 }

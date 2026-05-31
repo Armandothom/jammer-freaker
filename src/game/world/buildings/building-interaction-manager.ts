@@ -1,64 +1,37 @@
 import type {
-  BuildingAssetDirection,
-  BuildingAssetTileType,
-  BuildingOrientation,
   BuildingTileDefinition,
   BuildingTileType,
   PlacedBuilding,
 } from "./building-types.js";
-import { isBuildingAssetTileType } from "./building-types.js";
-import type { LootContainerType } from "../loot/loot-container-config.js";
-import { getBuildingAssetDefinition } from "./building-assets.js";
-import { getBuildingSpawnPoints, type BuildingSpawnKind } from "./building-spawn-registry.js";
+import { isBuildingDoorTileType } from "./building-types.js";
+import { getBuildingLootSpawnPoints } from "./building-spawn-registry.js";
 import type { BuildingName } from "./buildings-config.js";
 
 export type BuildingInteractionFeatureKind =
   | "door"
-  | "window"
-  | "asset"
-  | "loot_spawn"
-  | "enemy_spawn";
+  | "loot_spawn";
 
 export interface BuildingInteractionFeature {
   id: string;
   kind: BuildingInteractionFeatureKind;
   buildingName: BuildingName;
   buildingInstanceId: string;
-  variationId: string;
-  variationIndex: number;
-  orientation: BuildingOrientation;
-  plotId: string;
-  localX: number;
-  localY: number;
   tileX: number;
   tileY: number;
   worldX: number;
   worldY: number;
   tileSize: number;
   tileType?: BuildingTileType;
-  assetType?: BuildingAssetTileType;
-  assetDirection?: BuildingAssetDirection;
-  spawnKind?: BuildingSpawnKind;
-  lootContainerType?: LootContainerType;
-  impact?: boolean;
-  interactable: boolean;
-  blocksMovement: boolean;
-  blocksVision: boolean;
-  seeThrough: boolean;
 }
 
 export class BuildingInteractionManager {
   private tileSize = 32;
-  private readonly featuresById = new Map<string, BuildingInteractionFeature>();
-  private readonly featuresByTile = new Map<string, BuildingInteractionFeature[]>();
   private readonly featuresByKind = new Map<BuildingInteractionFeatureKind, BuildingInteractionFeature[]>();
-  private readonly featuresByBuildingInstance = new Map<string, BuildingInteractionFeature[]>();
-  private readonly placementsByTile = new Map<string, PlacedBuilding>();
-  private placements: PlacedBuilding[] = [];
+  private readonly buildingInstanceIdsByTile = new Map<string, string>();
+  private readonly doorFeaturesByBuildingInstanceId = new Map<string, BuildingInteractionFeature[]>();
 
   public rebuild(placements: PlacedBuilding[]): void {
     this.clear();
-    this.placements = [...placements];
     this.tileSize = placements[0]?.tileSize ?? this.tileSize;
 
     for (const placement of placements) {
@@ -67,95 +40,53 @@ export class BuildingInteractionManager {
   }
 
   public clear(): void {
-    this.featuresById.clear();
-    this.featuresByTile.clear();
     this.featuresByKind.clear();
-    this.featuresByBuildingInstance.clear();
-    this.placementsByTile.clear();
-    this.placements = [];
-  }
-
-  public getAllPlacements(): PlacedBuilding[] {
-    return [...this.placements];
-  }
-
-  public getAllFeatures(): BuildingInteractionFeature[] {
-    return Array.from(this.featuresById.values());
-  }
-
-  public getFeatureById(featureId: string): BuildingInteractionFeature | null {
-    return this.featuresById.get(featureId) ?? null;
-  }
-
-  public getFeaturesAtTile(tileX: number, tileY: number): BuildingInteractionFeature[] {
-    return [...(this.featuresByTile.get(this.tileKey(tileX, tileY)) ?? [])];
-  }
-
-  public getPlacementAtTile(tileX: number, tileY: number): PlacedBuilding | null {
-    return this.placementsByTile.get(this.tileKey(tileX, tileY)) ?? null;
-  }
-
-  public getFeaturesByKind(kind: BuildingInteractionFeatureKind): BuildingInteractionFeature[] {
-    return [...(this.featuresByKind.get(kind) ?? [])];
+    this.buildingInstanceIdsByTile.clear();
+    this.doorFeaturesByBuildingInstanceId.clear();
   }
 
   public getDoors(): BuildingInteractionFeature[] {
     return this.getFeaturesByKind("door");
   }
 
-  public getWindows(): BuildingInteractionFeature[] {
-    return this.getFeaturesByKind("window");
-  }
-
   public getLootSpawnPoints(): BuildingInteractionFeature[] {
     return this.getFeaturesByKind("loot_spawn");
   }
 
-  public getEnemySpawnPoints(): BuildingInteractionFeature[] {
-    return this.getFeaturesByKind("enemy_spawn");
+  public getDoorsForBuildingAtWorldPosition(worldX: number, worldY: number): BuildingInteractionFeature[] {
+    const buildingInstanceId = this.getBuildingInstanceIdAtWorldPosition(worldX, worldY);
+
+    if (!buildingInstanceId) {
+      return [];
+    }
+
+    return [...(this.doorFeaturesByBuildingInstanceId.get(buildingInstanceId) ?? [])];
   }
 
-  public getBuildingFeatures(buildingInstanceId: string): BuildingInteractionFeature[] {
-    return [...(this.featuresByBuildingInstance.get(buildingInstanceId) ?? [])];
-  }
+  public getNearestDoorForBuildingAtWorldPosition(
+    worldX: number,
+    worldY: number,
+  ): BuildingInteractionFeature | null {
+    const doors = this.getDoorsForBuildingAtWorldPosition(worldX, worldY);
 
-  public getFeaturesNearTile(
-    tileX: number,
-    tileY: number,
-    radiusTiles = 1,
-    kind?: BuildingInteractionFeatureKind,
-  ): BuildingInteractionFeature[] {
-    const features: BuildingInteractionFeature[] = [];
+    if (doors.length === 0) {
+      return null;
+    }
 
-    for (let y = tileY - radiusTiles; y <= tileY + radiusTiles; y++) {
-      for (let x = tileX - radiusTiles; x <= tileX + radiusTiles; x++) {
-        for (const feature of this.getFeaturesAtTile(x, y)) {
-          if (!kind || feature.kind === kind) {
-            features.push(feature);
-          }
-        }
+    let nearestDoor = doors[0];
+    let nearestDistanceSquared = this.getDistanceSquaredToFeature(worldX, worldY, nearestDoor);
+
+    for (let index = 1; index < doors.length; index += 1) {
+      const door = doors[index];
+      const distanceSquared = this.getDistanceSquaredToFeature(worldX, worldY, door);
+
+      if (distanceSquared < nearestDistanceSquared) {
+        nearestDoor = door;
+        nearestDistanceSquared = distanceSquared;
       }
     }
 
-    return features;
-  }
-
-  public getFeaturesNearWorldPosition(
-    worldX: number,
-    worldY: number,
-    radiusTiles = 1,
-    kind?: BuildingInteractionFeatureKind,
-  ): BuildingInteractionFeature[] {
-    return this.getFeaturesNearTile(
-      Math.floor(worldX / this.tileSize),
-      Math.floor(worldY / this.tileSize),
-      radiusTiles,
-      kind,
-    );
-  }
-
-  public isSeeThroughFeatureAtTile(tileX: number, tileY: number): boolean {
-    return this.getFeaturesAtTile(tileX, tileY).some((feature) => feature.seeThrough);
+    return nearestDoor;
   }
 
   private indexPlacement(placement: PlacedBuilding): void {
@@ -164,90 +95,47 @@ export class BuildingInteractionManager {
     const buildingInstanceId = this.getBuildingInstanceId(placement, originTileX, originTileY);
 
     for (const tile of placement.tiles) {
-      const tileX = originTileX + tile.x;
-      const tileY = originTileY + tile.y;
-      this.placementsByTile.set(this.tileKey(tileX, tileY), placement);
-      this.indexTileFeature(placement, buildingInstanceId, originTileX, originTileY, tile);
+      this.buildingInstanceIdsByTile.set(
+        this.tileKey(originTileX + tile.x, originTileY + tile.y),
+        buildingInstanceId,
+      );
+      this.indexDoorFeature(placement, buildingInstanceId, originTileX, originTileY, tile);
     }
 
-    this.indexSpawnFeatures(placement, buildingInstanceId, originTileX, originTileY, "loot");
-    this.indexSpawnFeatures(placement, buildingInstanceId, originTileX, originTileY, "enemy");
+    this.indexLootSpawnFeatures(placement, buildingInstanceId, originTileX, originTileY);
   }
 
-  private indexTileFeature(
+  private indexDoorFeature(
     placement: PlacedBuilding,
     buildingInstanceId: string,
     originTileX: number,
     originTileY: number,
     tile: BuildingTileDefinition,
   ): void {
-    if (isDoorTile(tile.type)) {
-      this.addFeature({
-        ...this.buildBaseFeature(placement, buildingInstanceId, originTileX, originTileY, tile.x, tile.y),
-        id: `${buildingInstanceId}:door:${tile.x}_${tile.y}`,
-        kind: "door",
-        tileType: tile.type,
-        impact: true,
-        interactable: true,
-        blocksMovement: true,
-        blocksVision: true,
-        seeThrough: false,
-      });
+    if (!isBuildingDoorTileType(tile.type)) {
       return;
     }
 
-    if (tile.type === "window") {
-      this.addFeature({
-        ...this.buildBaseFeature(placement, buildingInstanceId, originTileX, originTileY, tile.x, tile.y),
-        id: `${buildingInstanceId}:window:${tile.x}_${tile.y}`,
-        kind: "window",
-        tileType: tile.type,
-        impact: true,
-        interactable: false,
-        blocksMovement: true,
-        blocksVision: false,
-        seeThrough: true,
-      });
-      return;
-    }
-
-    if (isBuildingAssetTileType(tile.type)) {
-      const asset = getBuildingAssetDefinition(placement.buildingName, tile.type);
-
-      if (!asset) {
-        throw new Error(`Missing asset config for "${placement.buildingName}.${tile.type}".`);
-      }
-
-      this.addFeature({
-        ...this.buildBaseFeature(placement, buildingInstanceId, originTileX, originTileY, tile.x, tile.y),
-        id: `${buildingInstanceId}:asset:${tile.x}_${tile.y}`,
-        kind: "asset",
-        tileType: tile.type,
-        assetType: tile.type,
-        assetDirection: tile.assetDirection,
-        impact: asset.impact,
-        interactable: false,
-        blocksMovement: asset.impassable,
-        blocksVision: !asset.seeThrough,
-        seeThrough: asset.seeThrough,
-      });
-    }
+    this.addFeature({
+      ...this.buildBaseFeature(placement, buildingInstanceId, originTileX, originTileY, tile.x, tile.y),
+      id: `${buildingInstanceId}:door:${tile.x}_${tile.y}`,
+      kind: "door",
+      tileType: tile.type,
+    });
   }
 
-  private indexSpawnFeatures(
+  private indexLootSpawnFeatures(
     placement: PlacedBuilding,
     buildingInstanceId: string,
     originTileX: number,
     originTileY: number,
-    spawnKind: BuildingSpawnKind,
   ): void {
-    const spawnPoints = getBuildingSpawnPoints(
+    const spawnPoints = getBuildingLootSpawnPoints(
       placement.buildingName,
       placement.variationIndex,
       placement.orientation,
-      spawnKind,
     );
-    const kind: BuildingInteractionFeatureKind = spawnKind === "loot" ? "loot_spawn" : "enemy_spawn";
+
     spawnPoints.forEach((spawnPoint, index) => {
       this.addFeature({
         ...this.buildBaseFeature(
@@ -258,14 +146,8 @@ export class BuildingInteractionManager {
           spawnPoint.x,
           spawnPoint.y,
         ),
-        id: `${buildingInstanceId}:${kind}:${index}:${spawnPoint.x}_${spawnPoint.y}`,
-        kind,
-        spawnKind,
-        impact: false,
-        interactable: false,
-        blocksMovement: false,
-        blocksVision: false,
-        seeThrough: true,
+        id: `${buildingInstanceId}:loot_spawn:${index}:${spawnPoint.x}_${spawnPoint.y}`,
+        kind: "loot_spawn",
       });
     });
   }
@@ -277,7 +159,7 @@ export class BuildingInteractionManager {
     originTileY: number,
     localX: number,
     localY: number,
-  ): Omit<BuildingInteractionFeature, "id" | "kind" | "interactable" | "blocksMovement" | "blocksVision" | "seeThrough"> {
+  ): Omit<BuildingInteractionFeature, "id" | "kind" | "tileType"> {
     const tileX = originTileX + localX;
     const tileY = originTileY + localY;
     const worldX = tileX * placement.tileSize + placement.tileSize / 2;
@@ -286,12 +168,6 @@ export class BuildingInteractionManager {
     return {
       buildingName: placement.buildingName,
       buildingInstanceId,
-      variationId: placement.variationId,
-      variationIndex: placement.variationIndex,
-      orientation: placement.orientation,
-      plotId: placement.plotId,
-      localX,
-      localY,
       tileX,
       tileY,
       worldX,
@@ -300,21 +176,20 @@ export class BuildingInteractionManager {
     };
   }
 
-  private addFeature(feature: BuildingInteractionFeature): void {
-    this.featuresById.set(feature.id, feature);
-    this.appendToMapList(this.featuresByTile, this.tileKey(feature.tileX, feature.tileY), feature);
-    this.appendToMapList(this.featuresByKind, feature.kind, feature);
-    this.appendToMapList(this.featuresByBuildingInstance, feature.buildingInstanceId, feature);
+  private getFeaturesByKind(kind: BuildingInteractionFeatureKind): BuildingInteractionFeature[] {
+    return [...(this.featuresByKind.get(kind) ?? [])];
   }
 
-  private appendToMapList<TKey>(
-    map: Map<TKey, BuildingInteractionFeature[]>,
-    key: TKey,
-    feature: BuildingInteractionFeature,
-  ): void {
-    const features = map.get(key) ?? [];
+  private addFeature(feature: BuildingInteractionFeature): void {
+    const features = this.featuresByKind.get(feature.kind) ?? [];
     features.push(feature);
-    map.set(key, features);
+    this.featuresByKind.set(feature.kind, features);
+
+    if (feature.kind === "door") {
+      const doors = this.doorFeaturesByBuildingInstanceId.get(feature.buildingInstanceId) ?? [];
+      doors.push(feature);
+      this.doorFeaturesByBuildingInstanceId.set(feature.buildingInstanceId, doors);
+    }
   }
 
   private getBuildingInstanceId(
@@ -331,11 +206,25 @@ export class BuildingInteractionManager {
     ].join(":");
   }
 
+  private getBuildingInstanceIdAtWorldPosition(worldX: number, worldY: number): string | null {
+    const tileX = Math.floor(worldX / this.tileSize);
+    const tileY = Math.floor(worldY / this.tileSize);
+
+    return this.buildingInstanceIdsByTile.get(this.tileKey(tileX, tileY)) ?? null;
+  }
+
+  private getDistanceSquaredToFeature(
+    worldX: number,
+    worldY: number,
+    feature: BuildingInteractionFeature,
+  ): number {
+    const deltaX = feature.worldX - worldX;
+    const deltaY = feature.worldY - worldY;
+
+    return (deltaX * deltaX) + (deltaY * deltaY);
+  }
+
   private tileKey(tileX: number, tileY: number): string {
     return `${tileX}_${tileY}`;
   }
-}
-
-function isDoorTile(tileType: BuildingTileType): boolean {
-  return tileType === "door" || tileType === "door_1" || tileType === "door_2";
 }

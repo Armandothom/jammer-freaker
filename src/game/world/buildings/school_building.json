@@ -17,8 +17,8 @@
                     "encoding": "tile-rle-v1",
                     "tileTypes": [
                         "out_of_bounds",
-                        "door_1",
-                        "door_2",
+                        "door_left",
+                        "door_right",
                         "floor",
                         "asset_1",
                         "asset_2",
@@ -704,8 +704,8 @@
                         "floor",
                         "asset_1",
                         "asset_4",
-                        "door_1",
-                        "door_2",
+                        "door_left",
+                        "door_right",
                         "asset_3",
                         "asset_2"
                     ],
@@ -1387,8 +1387,8 @@
                         "out_of_bounds",
                         "floor",
                         "asset_1",
-                        "door_1",
-                        "door_2",
+                        "door_left",
+                        "door_right",
                         "asset_3",
                         "asset_2",
                         "asset_4"
@@ -2226,9 +2226,9 @@
                     "tileTypes": [
                         "out_of_bounds",
                         "floor",
-                        "door_1",
+                        "door_left",
                         "asset_1",
-                        "door_2",
+                        "door_right",
                         "asset_3",
                         "asset_2",
                         "asset_4"

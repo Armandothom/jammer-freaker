@@ -18,8 +18,8 @@
                     "tileTypes": [
                         "out_of_bounds",
                         "window",
-                        "door_1",
-                        "door_2",
+                        "door_left",
+                        "door_right",
                         "floor",
                         "asset_1"
                     ],
@@ -492,8 +492,8 @@
                         "window",
                         "floor",
                         "asset_1",
-                        "door_1",
-                        "door_2"
+                        "door_left",
+                        "door_right"
                     ],
                     "tileRuns": [
                         [
@@ -964,8 +964,8 @@
                         "window",
                         "floor",
                         "asset_1",
-                        "door_1",
-                        "door_2"
+                        "door_left",
+                        "door_right"
                     ],
                     "tileRuns": [
                         [
@@ -1279,8 +1279,8 @@
                         "out_of_bounds",
                         "floor",
                         "window",
-                        "door_1",
-                        "door_2",
+                        "door_left",
+                        "door_right",
                         "asset_1"
                     ],
                     "tileRuns": [

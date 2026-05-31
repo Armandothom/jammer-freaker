@@ -10,7 +10,7 @@ import type {
   BuildingVariationDefinition,
   StandardBuildingTileType,
 } from "./building-types.js";
-import { isBuildingAssetTileType } from "./building-types.js";
+import { isBuildingAssetTileType, swapBuildingDoorPanelSide } from "./building-types.js";
 
 type RawBuildingTileRun = [unknown, unknown];
 
@@ -52,13 +52,10 @@ const STANDARD_BUILDING_TILE_TYPES: StandardBuildingTileType[] = [
   "out_of_bounds",
   "window",
   "door",
-  "door_1",
-  "door_2",
+  "door_left",
+  "door_right",
   "floor",
 ];
-const BUILDING_TILE_TYPE_ALIASES: Record<string, BuildingTileType> = {
-  wall: "out_of_bounds",
-};
 
 export const BUILDING_REGISTRY: Partial<Record<BuildingName, BuildingDefinition>> =
   buildBuildingRegistry(RAW_BUILDING_MODULES);
@@ -340,7 +337,7 @@ function rotateCanonicalOrientation(
         tiles: canonicalOrientation.tiles.map((tile) => ({
           x: canonicalOrientation.width - 1 - tile.x,
           y: canonicalOrientation.height - 1 - tile.y,
-          type: tile.type,
+          type: rotateBuildingTileType(tile.type, "south"),
           assetDirection: rotateBuildingAssetDirection(tile.assetDirection, "south"),
         })),
       };
@@ -353,7 +350,7 @@ function rotateCanonicalOrientation(
         tiles: canonicalOrientation.tiles.map((tile) => ({
           x: canonicalOrientation.height - 1 - tile.y,
           y: tile.x,
-          type: tile.type,
+          type: rotateBuildingTileType(tile.type, "east"),
           assetDirection: rotateBuildingAssetDirection(tile.assetDirection, "east"),
         })),
       };
@@ -366,7 +363,7 @@ function rotateCanonicalOrientation(
         tiles: canonicalOrientation.tiles.map((tile) => ({
           x: tile.y,
           y: canonicalOrientation.width - 1 - tile.x,
-          type: tile.type,
+          type: rotateBuildingTileType(tile.type, "west"),
           assetDirection: rotateBuildingAssetDirection(tile.assetDirection, "west"),
         })),
       };
@@ -427,10 +424,6 @@ function parseBuildingOrientationName(value: unknown, path: string): BuildingOri
 }
 
 function parseBuildingTileType(value: unknown, path: string): BuildingTileType {
-  if (typeof value === "string" && BUILDING_TILE_TYPE_ALIASES[value]) {
-    return BUILDING_TILE_TYPE_ALIASES[value];
-  }
-
   if (typeof value === "string" && isBuildingAssetTileType(value as BuildingTileType)) {
     return value as BuildingAssetTileType;
   }
@@ -511,6 +504,15 @@ function rotateBuildingAssetDirection(
   const rotatedIndex = (directionIndex + clockwiseTurnsByOrientation[targetOrientation]) % directions.length;
 
   return directions[rotatedIndex];
+}
+
+function rotateBuildingTileType(
+  tileType: BuildingTileType,
+  targetOrientation: BuildingOrientation,
+): BuildingTileType {
+  return targetOrientation === "south" || targetOrientation === "west"
+    ? swapBuildingDoorPanelSide(tileType)
+    : tileType;
 }
 
 function parsePositiveInteger(value: unknown, path: string): number {
