@@ -1,5 +1,4 @@
 import type { RenderObject } from "./types/render-objects.js";
-import { toClipSpace } from "./renderer-shared.js";
 
 export interface SpriteBatchDrawOptions {
   debugBorderSprites: boolean;
@@ -9,6 +8,17 @@ export interface SpriteBatchDrawOptions {
 }
 
 export class SpriteBatchRenderer {
+  private static readonly LOCAL_QUAD_X_FACTORS = [0, 0, 1, 1, 1, 0];
+  private static readonly LOCAL_QUAD_Y_FACTORS = [0, 1, 0, 1, 0, 1];
+  private static readonly UV_BORDER_PATTERN = [
+    0.0, 0.0,
+    0.0, 1.0,
+    1.0, 0.0,
+    1.0, 1.0,
+    1.0, 0.0,
+    0.0, 1.0,
+  ];
+
   private readonly vao: WebGLVertexArrayObject;
   private readonly positionBuffer: WebGLBuffer;
   private readonly uvBuffer: WebGLBuffer;
@@ -16,6 +26,12 @@ export class SpriteBatchRenderer {
   private readonly alphaBuffer: WebGLBuffer;
   private readonly textureLocation: WebGLUniformLocation | null;
   private readonly debugModeLocation: WebGLUniformLocation | null;
+  private readonly groupedRenderObjects = new Map<WebGLTexture, RenderObject[]>();
+  private readonly activeTextures: WebGLTexture[] = [];
+  private positionUploadBuffer = new Float32Array(0);
+  private textureUvUploadBuffer = new Float32Array(0);
+  private localUvUploadBuffer = new Float32Array(0);
+  private alphaUploadBuffer = new Float32Array(0);
 
   constructor(
     private gl: WebGL2RenderingContext,
@@ -99,91 +115,129 @@ export class SpriteBatchRenderer {
       gl.uniform1i(this.debugModeLocation, Number(options.debugBorderSprites));
     }
 
-    const groups = new Map<WebGLTexture, RenderObject[]>();
-    for (const renderObject of renderObjects) {
-      const group = groups.get(renderObject.spriteSheetTexture) ?? [];
-      group.push(renderObject);
-      groups.set(renderObject.spriteSheetTexture, group);
-    }
-
-    const uvBorderPattern = [
-      0.0, 0.0,
-      0.0, 1.0,
-      1.0, 0.0,
-      1.0, 1.0,
-      1.0, 0.0,
-      0.0, 1.0,
-    ];
+    this.groupRenderObjects(renderObjects);
 
     gl.bindVertexArray(this.vao);
 
-    for (const [texture, groupedRenderObjects] of groups) {
-      const vertices: number[] = [];
-      const textureUvs: number[] = [];
-      const localUvs: number[] = [];
-      const alphas: number[] = [];
+    const clipXScale = 2 / this.canvas.width;
+    const clipYScale = 2 / this.canvas.height;
+
+    for (const texture of this.activeTextures) {
+      const groupedRenderObjects = this.groupedRenderObjects.get(texture);
+
+      if (!groupedRenderObjects || groupedRenderObjects.length === 0) {
+        continue;
+      }
+
+      const spriteCount = groupedRenderObjects.length;
+      const positionValueCount = spriteCount * 6 * 3;
+      const uvValueCount = spriteCount * 6 * 2;
+      const alphaValueCount = spriteCount * 6;
+
+      this.positionUploadBuffer = this.ensureFloat32Capacity(
+        this.positionUploadBuffer,
+        positionValueCount,
+      );
+      this.textureUvUploadBuffer = this.ensureFloat32Capacity(
+        this.textureUvUploadBuffer,
+        uvValueCount,
+      );
+      this.localUvUploadBuffer = this.ensureFloat32Capacity(
+        this.localUvUploadBuffer,
+        uvValueCount,
+      );
+      this.alphaUploadBuffer = this.ensureFloat32Capacity(
+        this.alphaUploadBuffer,
+        alphaValueCount,
+      );
+
+      let positionOffset = 0;
+      let textureUvOffset = 0;
+      let localUvOffset = 0;
+      let alphaOffset = 0;
 
       for (const renderObject of groupedRenderObjects) {
         const zLevel = options.overrideZLevel ?? renderObject.zLevel;
+        const clipZ = 1.0 - (zLevel / 1000) * 2.0;
         const alpha = this.clampOpacity(renderObject.opacity ?? 1);
         const angle = renderObject.angleRotation ?? 0;
         const cosine = Math.cos(angle);
         const sine = Math.sin(angle);
         const mirrored = cosine < 0;
 
-        const localQuad = [
-          { x: 0, y: 0 },
-          { x: 0, y: renderObject.height },
-          { x: renderObject.width, y: 0 },
-          { x: renderObject.width, y: renderObject.height },
-          { x: renderObject.width, y: 0 },
-          { x: 0, y: renderObject.height },
-        ];
-
         const pivot = {
-          x: 0,
-          y: mirrored
+          x: renderObject.rotationPivotX ?? 0,
+          y: renderObject.rotationPivotY ?? (mirrored
             ? renderObject.height - renderObject.offsetRotation
-            : renderObject.offsetRotation,
+            : renderObject.offsetRotation),
         };
 
-        for (const point of localQuad) {
-          const deltaX = point.x - pivot.x;
-          const deltaY = point.y - pivot.y;
+        for (let vertexIndex = 0; vertexIndex < 6; vertexIndex += 1) {
+          const pointX = renderObject.width * SpriteBatchRenderer.LOCAL_QUAD_X_FACTORS[vertexIndex];
+          const pointY = renderObject.height * SpriteBatchRenderer.LOCAL_QUAD_Y_FACTORS[vertexIndex];
+          const deltaX = pointX - pivot.x;
+          const deltaY = pointY - pivot.y;
           const worldX = renderObject.angleRotation !== null
             ? renderObject.xWorldPosition + (deltaX * cosine) - (deltaY * sine)
             : renderObject.xWorldPosition + deltaX;
           const worldY = renderObject.angleRotation !== null
             ? renderObject.yWorldPosition + (deltaX * sine) + (deltaY * cosine)
             : renderObject.yWorldPosition + deltaY;
-          const [clipX, clipY, clipZ] = toClipSpace(worldX, worldY, zLevel, this.canvas);
-          vertices.push(clipX, clipY, clipZ);
+
+          this.positionUploadBuffer[positionOffset++] = (worldX * clipXScale) - 1;
+          this.positionUploadBuffer[positionOffset++] = 1 - (worldY * clipYScale);
+          this.positionUploadBuffer[positionOffset++] = clipZ;
         }
 
-        textureUvs.push(...renderObject.uvCoordinates);
-        localUvs.push(...uvBorderPattern);
-        alphas.push(alpha, alpha, alpha, alpha, alpha, alpha);
+        for (let uvIndex = 0; uvIndex < renderObject.uvCoordinates.length; uvIndex += 1) {
+          this.textureUvUploadBuffer[textureUvOffset++] = renderObject.uvCoordinates[uvIndex];
+        }
+
+        for (let uvIndex = 0; uvIndex < SpriteBatchRenderer.UV_BORDER_PATTERN.length; uvIndex += 1) {
+          this.localUvUploadBuffer[localUvOffset++] = SpriteBatchRenderer.UV_BORDER_PATTERN[uvIndex];
+        }
+
+        for (let alphaIndex = 0; alphaIndex < 6; alphaIndex += 1) {
+          this.alphaUploadBuffer[alphaOffset++] = alpha;
+        }
       }
 
       gl.bindTexture(gl.TEXTURE_2D, texture);
 
       gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.DYNAMIC_DRAW);
+      gl.bufferData(
+        gl.ARRAY_BUFFER,
+        this.positionUploadBuffer.subarray(0, positionOffset),
+        gl.DYNAMIC_DRAW,
+      );
 
       gl.bindBuffer(gl.ARRAY_BUFFER, this.uvBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureUvs), gl.DYNAMIC_DRAW);
+      gl.bufferData(
+        gl.ARRAY_BUFFER,
+        this.textureUvUploadBuffer.subarray(0, textureUvOffset),
+        gl.DYNAMIC_DRAW,
+      );
 
       gl.bindBuffer(gl.ARRAY_BUFFER, this.localUvBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(localUvs), gl.DYNAMIC_DRAW);
+      gl.bufferData(
+        gl.ARRAY_BUFFER,
+        this.localUvUploadBuffer.subarray(0, localUvOffset),
+        gl.DYNAMIC_DRAW,
+      );
 
       gl.bindBuffer(gl.ARRAY_BUFFER, this.alphaBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(alphas), gl.DYNAMIC_DRAW);
+      gl.bufferData(
+        gl.ARRAY_BUFFER,
+        this.alphaUploadBuffer.subarray(0, alphaOffset),
+        gl.DYNAMIC_DRAW,
+      );
 
-      gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 3);
+      gl.drawArrays(gl.TRIANGLES, 0, positionOffset / 3);
     }
 
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.bindVertexArray(null);
+    this.clearActiveRenderGroups();
   }
 
   private clampOpacity(opacity: number): number {
@@ -192,5 +246,49 @@ export class SpriteBatchRenderer {
     }
 
     return Math.max(0, Math.min(opacity, 1));
+  }
+
+  private groupRenderObjects(renderObjects: RenderObject[]): void {
+    this.clearActiveRenderGroups();
+
+    for (const renderObject of renderObjects) {
+      let group = this.groupedRenderObjects.get(renderObject.spriteSheetTexture);
+
+      if (!group) {
+        group = [];
+        this.groupedRenderObjects.set(renderObject.spriteSheetTexture, group);
+      }
+
+      if (group.length === 0) {
+        this.activeTextures.push(renderObject.spriteSheetTexture);
+      }
+
+      group.push(renderObject);
+    }
+  }
+
+  private clearActiveRenderGroups(): void {
+    for (const texture of this.activeTextures) {
+      const group = this.groupedRenderObjects.get(texture);
+
+      if (group) {
+        group.length = 0;
+      }
+    }
+
+    this.activeTextures.length = 0;
+  }
+
+  private ensureFloat32Capacity(buffer: Float32Array, requiredLength: number): Float32Array {
+    if (buffer.length >= requiredLength) {
+      return buffer;
+    }
+
+    let nextLength = buffer.length || 1024;
+    while (nextLength < requiredLength) {
+      nextLength *= 2;
+    }
+
+    return new Float32Array(nextLength);
   }
 }

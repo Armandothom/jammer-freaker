@@ -17,13 +17,14 @@ export class AssetManager {
       if (!spriteSheetProperties) {
         throw new Error("Spritesheet not found");
       }
-      await new Promise((resolve) => {
+      await new Promise<void>((resolve, reject) => {
         let spriteSheetImage = new Image();
         spriteSheetImage.src = spriteSheetProperties.srcImagePath;
         this._loadedImages.set(spriteSheetKey, spriteSheetImage);
-        spriteSheetImage.onload = (() => {
-          resolve(true);
-        })
+        spriteSheetImage.onload = () => resolve();
+        spriteSheetImage.onerror = () => reject(
+          new Error(`Failed to load spritesheet "${spriteSheetKey}" from "${spriteSheetProperties.srcImagePath}".`),
+        );
       })
     }
     this._isLoaded = true;
@@ -32,13 +33,14 @@ export class AssetManager {
   private async loadFontAtlases() {
     const mappedFonts = FONT_MAPPED_VALUES.entries();
     for (const [fontId, fontBlueprint] of mappedFonts) {
-      await new Promise((resolve) => {
+      await new Promise<void>((resolve, reject) => {
         const fontAtlasImage = new Image();
         fontAtlasImage.src = fontBlueprint.atlasImagePath;
         this._loadedImages.set(fontId, fontAtlasImage);
-        fontAtlasImage.onload = (() => {
-          resolve(true);
-        });
+        fontAtlasImage.onload = () => resolve();
+        fontAtlasImage.onerror = () => reject(
+          new Error(`Failed to load font atlas "${fontId}" from "${fontBlueprint.atlasImagePath}".`),
+        );
       });
     }
   }

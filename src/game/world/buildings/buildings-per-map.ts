@@ -1,0 +1,118 @@
+import { WorldMapId } from "../maps/world-map-registry.js";
+import { BuildingName } from "./buildings-config.js";
+
+export type BuildingsDistribution = Record<BuildingName, number>;
+
+export const BUILDINGS_PER_MAP: Record<WorldMapId, BuildingsDistribution> = {
+    map_0: {
+        [BuildingName.RESIDENCE]: 10,
+        [BuildingName.HARDWARE_STORE]: 2,
+        [BuildingName.CONSTRUCTION_STORE]: 0,
+        [BuildingName.HOSPITAL]: 0,
+        [BuildingName.BANK]: 0,
+        [BuildingName.KIOSK]: 2,
+        [BuildingName.POLICE_STATION]: 0,
+        [BuildingName.POST_OFFICE]: 0,
+        [BuildingName.SCHOOL_BUILDING]: 1,
+        [BuildingName.MILITARY_CAMP]: 0,
+        [BuildingName.AUTO_REPAIR_SHOP]: 1,
+    },
+
+    map_1: {
+        [BuildingName.RESIDENCE]: 8,
+        [BuildingName.HARDWARE_STORE]: 3,
+        [BuildingName.CONSTRUCTION_STORE]: 3,
+        [BuildingName.HOSPITAL]: 0,
+        [BuildingName.BANK]: 0,
+        [BuildingName.KIOSK]: 2,
+        [BuildingName.POLICE_STATION]: 1,
+        [BuildingName.POST_OFFICE]: 1,
+        [BuildingName.SCHOOL_BUILDING]: 0,
+        [BuildingName.MILITARY_CAMP]: 0,
+        [BuildingName.AUTO_REPAIR_SHOP]: 2,
+    },
+
+    map_2: {
+        [BuildingName.RESIDENCE]: 16,
+        [BuildingName.HARDWARE_STORE]: 0,
+        [BuildingName.CONSTRUCTION_STORE]: 0,
+        [BuildingName.HOSPITAL]: 0,
+        [BuildingName.BANK]: 0,
+        [BuildingName.KIOSK]: 1,
+        [BuildingName.POLICE_STATION]: 0,
+        [BuildingName.POST_OFFICE]: 0,
+        [BuildingName.SCHOOL_BUILDING]: 1,
+        [BuildingName.MILITARY_CAMP]: 0,
+        [BuildingName.AUTO_REPAIR_SHOP]: 1,
+    },
+
+    map_3: {
+        [BuildingName.RESIDENCE]: 16,
+        [BuildingName.HARDWARE_STORE]: 2,
+        [BuildingName.CONSTRUCTION_STORE]: 2,
+        [BuildingName.HOSPITAL]: 1,
+        [BuildingName.BANK]: 0,
+        [BuildingName.KIOSK]: 0,
+        [BuildingName.POLICE_STATION]: 0,
+        [BuildingName.POST_OFFICE]: 1,
+        [BuildingName.SCHOOL_BUILDING]: 0,
+        [BuildingName.MILITARY_CAMP]: 0,
+        [BuildingName.AUTO_REPAIR_SHOP]: 1,
+    },
+
+    map_4: {
+        [BuildingName.RESIDENCE]: 16,
+        [BuildingName.HARDWARE_STORE]: 6,
+        [BuildingName.CONSTRUCTION_STORE]: 6,
+        [BuildingName.HOSPITAL]: 1,
+        [BuildingName.BANK]: 0,
+        [BuildingName.KIOSK]: 3,
+        [BuildingName.POLICE_STATION]: 1,
+        [BuildingName.POST_OFFICE]: 2,
+        [BuildingName.SCHOOL_BUILDING]: 1,
+        [BuildingName.MILITARY_CAMP]: 1,
+        [BuildingName.AUTO_REPAIR_SHOP]: 6,
+    },
+
+    map_5: {
+        [BuildingName.RESIDENCE]: 8,
+        [BuildingName.HARDWARE_STORE]: 3,
+        [BuildingName.CONSTRUCTION_STORE]: 3,
+        [BuildingName.HOSPITAL]: 0,
+        [BuildingName.BANK]: 2,
+        [BuildingName.KIOSK]: 2,
+        [BuildingName.POLICE_STATION]: 1,
+        [BuildingName.POST_OFFICE]: 0,
+        [BuildingName.SCHOOL_BUILDING]: 1,
+        [BuildingName.MILITARY_CAMP]: 4,
+        [BuildingName.AUTO_REPAIR_SHOP]: 0,
+    },
+
+    map_6: {
+        [BuildingName.RESIDENCE]: 16,
+        [BuildingName.HARDWARE_STORE]: 2,
+        [BuildingName.CONSTRUCTION_STORE]: 2,
+        [BuildingName.HOSPITAL]: 1,
+        [BuildingName.BANK]: 0,
+        [BuildingName.KIOSK]: 0,
+        [BuildingName.POLICE_STATION]: 1,
+        [BuildingName.POST_OFFICE]: 0,
+        [BuildingName.SCHOOL_BUILDING]: 0,
+        [BuildingName.MILITARY_CAMP]: 2,
+        [BuildingName.AUTO_REPAIR_SHOP]: 2,
+    },
+
+    map_7: {
+        [BuildingName.RESIDENCE]: 12,
+        [BuildingName.HARDWARE_STORE]: 3,
+        [BuildingName.CONSTRUCTION_STORE]: 3,
+        [BuildingName.HOSPITAL]: 2,
+        [BuildingName.BANK]: 3,
+        [BuildingName.KIOSK]: 1,
+        [BuildingName.POLICE_STATION]: 3,
+        [BuildingName.POST_OFFICE]: 3,
+        [BuildingName.SCHOOL_BUILDING]: 1,
+        [BuildingName.MILITARY_CAMP]: 4,
+        [BuildingName.AUTO_REPAIR_SHOP]: 1,
+    },
+};

@@ -2,6 +2,7 @@ import { BulletFiredComponent } from "../components/bullet-fired.component.js";
 import { GrenadeFiredComponent } from "../components/grenade-fired.component.js";
 import { InventoryComponent } from "../components/inventory-component.js";
 import { PlayerComponent } from "../components/player.component.js";
+import { BackpackType } from "../components/types/backpack-config.js";
 import { InventoryResourceType } from "../components/types/inventory-resource-type.js";
 import { ComponentStore } from "../core/component-store.js";
 import { InventoryManager } from "../core/inventory-manager.js";
@@ -18,6 +19,20 @@ export class InventorySystem implements ISystem {
         private bulletFiredComponentStore: ComponentStore<BulletFiredComponent>,
         private grenadeFiredComponentStore: ComponentStore<GrenadeFiredComponent>,
     ) {
+    }
+
+    public canUpgradeBackpack(
+        inventory: InventoryComponent,
+        nextBackpackType: BackpackType,
+    ): boolean {
+        return this.inventoryManager.canUpgradeBackpack(inventory, nextBackpackType);
+    }
+
+    public upgradeBackpack(
+        inventory: InventoryComponent,
+        nextBackpackType: BackpackType,
+    ): boolean {
+        return this.inventoryManager.upgradeBackpack(inventory, nextBackpackType);
     }
 
     update(deltaTime: number): void {

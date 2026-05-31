@@ -60,7 +60,7 @@ export class WorldEdgeManager {
   private hasNotWallTile(tileX: number, tileY: number): boolean {
     const key = this.worldTilemapManager.setTilemapKey(tileX, tileY);
     const tile = this.worldTilemapManager.getTileFromKey(key);
-    return !tile || !this.worldTilemapManager.impassableWallTiles.has(key);
+    return !tile || !this.worldTilemapManager.visionBlockingWallTiles.has(key);
   }
 
   private getEdgeWorldCoordinate(tileX : number, tileY : number, corner : "topright" | "topleft" | "bottomleft" | "bottomright") : WorldMapCoordinates {
@@ -89,7 +89,7 @@ export class WorldEdgeManager {
     const assignedHorizontalSegments = new Set<string>();
     const assignedVerticalSegments = new Set<string>();
     const edgeTiles = new Set<string>();
-    for (const tile of Array.from(this.worldTilemapManager.impassableWallTiles.values())) {
+    for (const tile of Array.from(this.worldTilemapManager.visionBlockingWallTiles.values())) {
       let distanceFromTile = 1;
       const keyTile = this.worldTilemapManager.setTilemapKey(tile.x, tile.y);
       const segmentPathAssigner : Record<"north" | "south" | "east" | "west", SegmentAssignerPath> = {
@@ -132,7 +132,7 @@ export class WorldEdgeManager {
   private moveEdgeSegmentDirection(x: number, y: number, segmentPath: SegmentAssignerPath, assignedSegments : Set<string>) {
     const tileKey = this.worldTilemapManager.setTilemapKey(x, y);
     if ((this.worldTilemapManager.maxNumberTilesY < y || this.worldTilemapManager.maxNumberTilesX < x || x < 0 || y < 0) ||
-      !this.worldTilemapManager.impassableWallTiles.has(tileKey) || assignedSegments.has(tileKey)) {
+      !this.worldTilemapManager.visionBlockingWallTiles.has(tileKey) || assignedSegments.has(tileKey)) {
       segmentPath.isFinished = true;
     } else {
       segmentPath.edge = tileKey;

@@ -7,6 +7,7 @@ export class MedicalItemUseComponent {
     constructor(
         itemApplied: InventoryResourceType,
         applyTime: number,
+        public consumeInventory: boolean = true,
     ) {
         this.itemApplied = itemApplied;
         this.applyTime = applyTime;

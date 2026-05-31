@@ -1,0 +1,46 @@
+{
+    "mapId": "map_0",
+    "tileSize": 32,
+    "plots": [
+        {
+            "id": "plot_1",
+            "xMin": 576,
+            "yMin": 0,
+            "xMax": 2496,
+            "yMax": 576,
+            "orientation": "south"
+        },
+        {
+            "id": "plot_2",
+            "xMin": 0,
+            "yMin": 576,
+            "xMax": 576,
+            "yMax": 3072,
+            "orientation": "east"
+        },
+        {
+            "id": "plot_3",
+            "xMin": 2496,
+            "yMin": 576,
+            "xMax": 3072,
+            "yMax": 3072,
+            "orientation": "west"
+        },
+        {
+            "id": "plot_4",
+            "xMin": 864,
+            "yMin": 864,
+            "xMax": 1504,
+            "yMax": 3072,
+            "orientation": "west"
+        },
+        {
+            "id": "plot_5",
+            "xMin": 1568,
+            "yMin": 864,
+            "xMax": 2208,
+            "yMax": 3072,
+            "orientation": "east"
+        }
+    ]
+}

@@ -3,7 +3,7 @@ import type { UIAction, UIActionHandler } from "../../ui/input/ui-action.js";
 
 export class ShopHubActionController implements UIActionHandler {
     constructor(
-        private requestGameplayState: () => void,
+        private requestMissionSelectState: () => void,
         private requestGunsShopState: () => void,
         private requestMedicalShopState: () => void,
         private requestCombatShopState: () => void,
@@ -11,8 +11,8 @@ export class ShopHubActionController implements UIActionHandler {
 
     public handle(action: UIAction): boolean {
         switch (action.type) {
-            case SHOP_HUB_UI_ACTION.GO_TO_GAMEPLAY:
-                this.requestGameplayState();
+            case SHOP_HUB_UI_ACTION.GO_TO_MISSION_SELECT:
+                this.requestMissionSelectState();
                 return true;
 
             case SHOP_HUB_UI_ACTION.GO_TO_GUNS_SHOP:

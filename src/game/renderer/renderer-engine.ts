@@ -59,6 +59,8 @@ export class RendererEngine {
   private visibilityFogProgram!: WebGLProgram;
   private visibilityFogBuffer!: WebGLBuffer;
   private visibilityFogVAO!: WebGLVertexArrayObject;
+  private readonly stencilIgnoredEntityObjects: RenderObject[] = [];
+  private readonly stencilMaskedEntityObjects: RenderObject[] = [];
   private elapsedTime = 0;
   private viewportLeft = 0;
   private viewportTop = 0;
@@ -169,10 +171,24 @@ export class RendererEngine {
       return;
     }
 
-    this.renderWorldPass(tileObjects);
+    this.stencilIgnoredEntityObjects.length = 0;
+    this.stencilMaskedEntityObjects.length = 0;
+
+    for (const renderObject of entityObjects) {
+      if (renderObject.ignoreVisibilityStencil === true) {
+        this.stencilIgnoredEntityObjects.push(renderObject);
+      } else {
+        this.stencilMaskedEntityObjects.push(renderObject);
+      }
+    }
+
+    this.renderWorldPass(tileObjects, false);
 
     if (disableRaycasting || visibilityPoints.length === 0) {
       this.gl.disable(this.gl.STENCIL_TEST);
+      this.renderWorldPass(this.stencilMaskedEntityObjects);
+      this.renderWorldPass(this.stencilIgnoredEntityObjects);
+      return;
     } else {
       this.setStencilMask(visibilityPoints);
       this.toggleDrawVisibilityArea("outside");
@@ -180,8 +196,9 @@ export class RendererEngine {
       this.toggleDrawVisibilityArea("inside");
     }
 
-    this.renderWorldPass(entityObjects);
+    this.renderWorldPass(this.stencilMaskedEntityObjects);
     this.gl.disable(this.gl.STENCIL_TEST);
+    this.renderWorldPass(this.stencilIgnoredEntityObjects);
   }
 
   renderUiSprites(renderObjects: RenderObject[]): void {
@@ -273,8 +290,8 @@ export class RendererEngine {
     gl.disable(gl.STENCIL_TEST);
   }
 
-  private renderWorldPass(renderObjects: RenderObject[]): void {
-    this.worldRenderer.render(renderObjects, this.debugBorderSprites);
+  private renderWorldPass(renderObjects: RenderObject[], debugBorderSprites = this.debugBorderSprites): void {
+    this.worldRenderer.render(renderObjects, debugBorderSprites);
   }
 
   private renderParticlePass(

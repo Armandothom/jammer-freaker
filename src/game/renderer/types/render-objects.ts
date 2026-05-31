@@ -13,5 +13,8 @@ export abstract class RenderObject {
   width!: number;
   angleRotation!: number | null
   offsetRotation!: number
+  rotationPivotX?: number
+  rotationPivotY?: number
   opacity?: number
+  ignoreVisibilityStencil?: boolean
 }

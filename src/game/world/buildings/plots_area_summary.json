@@ -1,0 +1,846 @@
+{
+  "summary": [
+    {
+      "mapId": "map_0",
+      "plots": 5,
+      "total_area_px2": 6807552,
+      "total_area_tiles": 6648
+    },
+    {
+      "mapId": "map_1",
+      "plots": 7,
+      "total_area_px2": 10172416,
+      "total_area_tiles": 9934
+    },
+    {
+      "mapId": "map_2",
+      "plots": 18,
+      "total_area_px2": 10235904,
+      "total_area_tiles": 9996
+    },
+    {
+      "mapId": "map_3",
+      "plots": 9,
+      "total_area_px2": 9556992,
+      "total_area_tiles": 9333
+    },
+    {
+      "mapId": "map_4",
+      "plots": 13,
+      "total_area_px2": 23764992,
+      "total_area_tiles": 23208
+    },
+    {
+      "mapId": "map_5",
+      "plots": 12,
+      "total_area_px2": 12111872,
+      "total_area_tiles": 11828
+    },
+    {
+      "mapId": "map_6",
+      "plots": 12,
+      "total_area_px2": 18370560,
+      "total_area_tiles": 17940
+    },
+    {
+      "mapId": "map_7",
+      "plots": 12,
+      "total_area_px2": 21725184,
+      "total_area_tiles": 21216
+    }
+  ],
+  "plots": [
+    {
+      "mapId": "map_0",
+      "plotId": "plot_1",
+      "orientation": "south",
+      "width_px": 1920,
+      "height_px": 576,
+      "area_px2": 1105920,
+      "area_tiles": 1080
+    },
+    {
+      "mapId": "map_0",
+      "plotId": "plot_2",
+      "orientation": "east",
+      "width_px": 576,
+      "height_px": 2496,
+      "area_px2": 1437696,
+      "area_tiles": 1404
+    },
+    {
+      "mapId": "map_0",
+      "plotId": "plot_3",
+      "orientation": "west",
+      "width_px": 576,
+      "height_px": 2496,
+      "area_px2": 1437696,
+      "area_tiles": 1404
+    },
+    {
+      "mapId": "map_0",
+      "plotId": "plot_4",
+      "orientation": "west",
+      "width_px": 640,
+      "height_px": 2208,
+      "area_px2": 1413120,
+      "area_tiles": 1380
+    },
+    {
+      "mapId": "map_0",
+      "plotId": "plot_5",
+      "orientation": "east",
+      "width_px": 640,
+      "height_px": 2208,
+      "area_px2": 1413120,
+      "area_tiles": 1380
+    },
+    {
+      "mapId": "map_1",
+      "plotId": "plot_1",
+      "orientation": "east",
+      "width_px": 576,
+      "height_px": 2880,
+      "area_px2": 1658880,
+      "area_tiles": 1620
+    },
+    {
+      "mapId": "map_1",
+      "plotId": "plot_2",
+      "orientation": "south",
+      "width_px": 1632,
+      "height_px": 576,
+      "area_px2": 940032,
+      "area_tiles": 918
+    },
+    {
+      "mapId": "map_1",
+      "plotId": "plot_3",
+      "orientation": "west",
+      "width_px": 576,
+      "height_px": 2880,
+      "area_px2": 1658880,
+      "area_tiles": 1620
+    },
+    {
+      "mapId": "map_1",
+      "plotId": "plot_4",
+      "orientation": "east",
+      "width_px": 576,
+      "height_px": 2432,
+      "area_px2": 1400832,
+      "area_tiles": 1368
+    },
+    {
+      "mapId": "map_1",
+      "plotId": "plot_5",
+      "orientation": "west",
+      "width_px": 640,
+      "height_px": 2432,
+      "area_px2": 1556480,
+      "area_tiles": 1520
+    },
+    {
+      "mapId": "map_1",
+      "plotId": "plot_6",
+      "orientation": "east",
+      "width_px": 640,
+      "height_px": 2432,
+      "area_px2": 1556480,
+      "area_tiles": 1520
+    },
+    {
+      "mapId": "map_1",
+      "plotId": "plot_7",
+      "orientation": "west",
+      "width_px": 576,
+      "height_px": 2432,
+      "area_px2": 1400832,
+      "area_tiles": 1368
+    },
+    {
+      "mapId": "map_2",
+      "plotId": "plot_1",
+      "orientation": "east",
+      "width_px": 544,
+      "height_px": 768,
+      "area_px2": 417792,
+      "area_tiles": 408
+    },
+    {
+      "mapId": "map_2",
+      "plotId": "plot_2",
+      "orientation": "west",
+      "width_px": 512,
+      "height_px": 768,
+      "area_px2": 393216,
+      "area_tiles": 384
+    },
+    {
+      "mapId": "map_2",
+      "plotId": "plot_3",
+      "orientation": "east",
+      "width_px": 512,
+      "height_px": 768,
+      "area_px2": 393216,
+      "area_tiles": 384
+    },
+    {
+      "mapId": "map_2",
+      "plotId": "plot_4",
+      "orientation": "west",
+      "width_px": 512,
+      "height_px": 768,
+      "area_px2": 393216,
+      "area_tiles": 384
+    },
+    {
+      "mapId": "map_2",
+      "plotId": "plot_5",
+      "orientation": "east",
+      "width_px": 512,
+      "height_px": 768,
+      "area_px2": 393216,
+      "area_tiles": 384
+    },
+    {
+      "mapId": "map_2",
+      "plotId": "plot_6",
+      "orientation": "west",
+      "width_px": 544,
+      "height_px": 768,
+      "area_px2": 417792,
+      "area_tiles": 408
+    },
+    {
+      "mapId": "map_2",
+      "plotId": "plot_7",
+      "orientation": "east",
+      "width_px": 544,
+      "height_px": 1728,
+      "area_px2": 940032,
+      "area_tiles": 918
+    },
+    {
+      "mapId": "map_2",
+      "plotId": "plot_8",
+      "orientation": "west",
+      "width_px": 512,
+      "height_px": 1728,
+      "area_px2": 884736,
+      "area_tiles": 864
+    },
+    {
+      "mapId": "map_2",
+      "plotId": "plot_9",
+      "orientation": "east",
+      "width_px": 512,
+      "height_px": 1728,
+      "area_px2": 884736,
+      "area_tiles": 864
+    },
+    {
+      "mapId": "map_2",
+      "plotId": "plot_10",
+      "orientation": "west",
+      "width_px": 512,
+      "height_px": 1728,
+      "area_px2": 884736,
+      "area_tiles": 864
+    },
+    {
+      "mapId": "map_2",
+      "plotId": "plot_11",
+      "orientation": "east",
+      "width_px": 512,
+      "height_px": 1728,
+      "area_px2": 884736,
+      "area_tiles": 864
+    },
+    {
+      "mapId": "map_2",
+      "plotId": "plot_12",
+      "orientation": "west",
+      "width_px": 544,
+      "height_px": 1728,
+      "area_px2": 940032,
+      "area_tiles": 918
+    },
+    {
+      "mapId": "map_2",
+      "plotId": "plot_13",
+      "orientation": "east",
+      "width_px": 544,
+      "height_px": 768,
+      "area_px2": 417792,
+      "area_tiles": 408
+    },
+    {
+      "mapId": "map_2",
+      "plotId": "plot_14",
+      "orientation": "west",
+      "width_px": 512,
+      "height_px": 768,
+      "area_px2": 393216,
+      "area_tiles": 384
+    },
+    {
+      "mapId": "map_2",
+      "plotId": "plot_15",
+      "orientation": "east",
+      "width_px": 512,
+      "height_px": 768,
+      "area_px2": 393216,
+      "area_tiles": 384
+    },
+    {
+      "mapId": "map_2",
+      "plotId": "plot_16",
+      "orientation": "west",
+      "width_px": 512,
+      "height_px": 768,
+      "area_px2": 393216,
+      "area_tiles": 384
+    },
+    {
+      "mapId": "map_2",
+      "plotId": "plot_17",
+      "orientation": "east",
+      "width_px": 512,
+      "height_px": 768,
+      "area_px2": 393216,
+      "area_tiles": 384
+    },
+    {
+      "mapId": "map_2",
+      "plotId": "plot_18",
+      "orientation": "west",
+      "width_px": 544,
+      "height_px": 768,
+      "area_px2": 417792,
+      "area_tiles": 408
+    },
+    {
+      "mapId": "map_3",
+      "plotId": "plot_1",
+      "orientation": "south",
+      "width_px": 2016,
+      "height_px": 544,
+      "area_px2": 1096704,
+      "area_tiles": 1071
+    },
+    {
+      "mapId": "map_3",
+      "plotId": "plot_2",
+      "orientation": "east",
+      "width_px": 544,
+      "height_px": 2208,
+      "area_px2": 1201152,
+      "area_tiles": 1173
+    },
+    {
+      "mapId": "map_3",
+      "plotId": "plot_3",
+      "orientation": "west",
+      "width_px": 544,
+      "height_px": 2208,
+      "area_px2": 1201152,
+      "area_tiles": 1173
+    },
+    {
+      "mapId": "map_3",
+      "plotId": "plot_4",
+      "orientation": "west",
+      "width_px": 704,
+      "height_px": 1920,
+      "area_px2": 1351680,
+      "area_tiles": 1320
+    },
+    {
+      "mapId": "map_3",
+      "plotId": "plot_5",
+      "orientation": "east",
+      "width_px": 704,
+      "height_px": 1920,
+      "area_px2": 1351680,
+      "area_tiles": 1320
+    },
+    {
+      "mapId": "map_3",
+      "plotId": "plot_6",
+      "orientation": "east",
+      "width_px": 576,
+      "height_px": 2080,
+      "area_px2": 1198080,
+      "area_tiles": 1170
+    },
+    {
+      "mapId": "map_3",
+      "plotId": "plot_7",
+      "orientation": "north",
+      "width_px": 832,
+      "height_px": 576,
+      "area_px2": 479232,
+      "area_tiles": 468
+    },
+    {
+      "mapId": "map_3",
+      "plotId": "plot_8",
+      "orientation": "west",
+      "width_px": 576,
+      "height_px": 2080,
+      "area_px2": 1198080,
+      "area_tiles": 1170
+    },
+    {
+      "mapId": "map_3",
+      "plotId": "plot_9",
+      "orientation": "north",
+      "width_px": 832,
+      "height_px": 576,
+      "area_px2": 479232,
+      "area_tiles": 468
+    },
+    {
+      "mapId": "map_4",
+      "plotId": "plot_1",
+      "orientation": "south",
+      "width_px": 1536,
+      "height_px": 544,
+      "area_px2": 835584,
+      "area_tiles": 816
+    },
+    {
+      "mapId": "map_4",
+      "plotId": "plot_2",
+      "orientation": "south",
+      "width_px": 2496,
+      "height_px": 544,
+      "area_px2": 1357824,
+      "area_tiles": 1326
+    },
+    {
+      "mapId": "map_4",
+      "plotId": "plot_3",
+      "orientation": "east",
+      "width_px": 1408,
+      "height_px": 2016,
+      "area_px2": 2838528,
+      "area_tiles": 2772
+    },
+    {
+      "mapId": "map_4",
+      "plotId": "plot_4",
+      "orientation": "south",
+      "width_px": 3424,
+      "height_px": 704,
+      "area_px2": 2410496,
+      "area_tiles": 2354
+    },
+    {
+      "mapId": "map_4",
+      "plotId": "plot_5",
+      "orientation": "north",
+      "width_px": 2432,
+      "height_px": 704,
+      "area_px2": 1712128,
+      "area_tiles": 1672
+    },
+    {
+      "mapId": "map_4",
+      "plotId": "plot_6",
+      "orientation": "east",
+      "width_px": 704,
+      "height_px": 1696,
+      "area_px2": 1193984,
+      "area_tiles": 1166
+    },
+    {
+      "mapId": "map_4",
+      "plotId": "plot_7",
+      "orientation": "west",
+      "width_px": 704,
+      "height_px": 992,
+      "area_px2": 698368,
+      "area_tiles": 682
+    },
+    {
+      "mapId": "map_4",
+      "plotId": "plot_8",
+      "orientation": "east",
+      "width_px": 704,
+      "height_px": 992,
+      "area_px2": 698368,
+      "area_tiles": 682
+    },
+    {
+      "mapId": "map_4",
+      "plotId": "plot_9",
+      "orientation": "north",
+      "width_px": 1408,
+      "height_px": 1152,
+      "area_px2": 1622016,
+      "area_tiles": 1584
+    },
+    {
+      "mapId": "map_4",
+      "plotId": "plot_10",
+      "orientation": "south",
+      "width_px": 2272,
+      "height_px": 768,
+      "area_px2": 1744896,
+      "area_tiles": 1704
+    },
+    {
+      "mapId": "map_4",
+      "plotId": "plot_11",
+      "orientation": "north",
+      "width_px": 1792,
+      "height_px": 768,
+      "area_px2": 1376256,
+      "area_tiles": 1344
+    },
+    {
+      "mapId": "map_4",
+      "plotId": "plot_12",
+      "orientation": "north",
+      "width_px": 1632,
+      "height_px": 1216,
+      "area_px2": 1984512,
+      "area_tiles": 1938
+    },
+    {
+      "mapId": "map_4",
+      "plotId": "plot_13",
+      "orientation": "north",
+      "width_px": 4352,
+      "height_px": 1216,
+      "area_px2": 5292032,
+      "area_tiles": 5168
+    },
+    {
+      "mapId": "map_5",
+      "plotId": "plot_1",
+      "orientation": "west",
+      "width_px": 544,
+      "height_px": 2080,
+      "area_px2": 1131520,
+      "area_tiles": 1105
+    },
+    {
+      "mapId": "map_5",
+      "plotId": "plot_2",
+      "orientation": "south",
+      "width_px": 1984,
+      "height_px": 544,
+      "area_px2": 1079296,
+      "area_tiles": 1054
+    },
+    {
+      "mapId": "map_5",
+      "plotId": "plot_3",
+      "orientation": "east",
+      "width_px": 544,
+      "height_px": 1984,
+      "area_px2": 1079296,
+      "area_tiles": 1054
+    },
+    {
+      "mapId": "map_5",
+      "plotId": "plot_4",
+      "orientation": "north",
+      "width_px": 1696,
+      "height_px": 576,
+      "area_px2": 976896,
+      "area_tiles": 954
+    },
+    {
+      "mapId": "map_5",
+      "plotId": "plot_5",
+      "orientation": "west",
+      "width_px": 544,
+      "height_px": 1120,
+      "area_px2": 609280,
+      "area_tiles": 595
+    },
+    {
+      "mapId": "map_5",
+      "plotId": "plot_6",
+      "orientation": "south",
+      "width_px": 2080,
+      "height_px": 576,
+      "area_px2": 1198080,
+      "area_tiles": 1170
+    },
+    {
+      "mapId": "map_5",
+      "plotId": "plot_7",
+      "orientation": "north",
+      "width_px": 2080,
+      "height_px": 576,
+      "area_px2": 1198080,
+      "area_tiles": 1170
+    },
+    {
+      "mapId": "map_5",
+      "plotId": "plot_8",
+      "orientation": "south",
+      "width_px": 1696,
+      "height_px": 544,
+      "area_px2": 922624,
+      "area_tiles": 901
+    },
+    {
+      "mapId": "map_5",
+      "plotId": "plot_9",
+      "orientation": "east",
+      "width_px": 544,
+      "height_px": 1152,
+      "area_px2": 626688,
+      "area_tiles": 612
+    },
+    {
+      "mapId": "map_5",
+      "plotId": "plot_10",
+      "orientation": "west",
+      "width_px": 544,
+      "height_px": 1984,
+      "area_px2": 1079296,
+      "area_tiles": 1054
+    },
+    {
+      "mapId": "map_5",
+      "plotId": "plot_11",
+      "orientation": "east",
+      "width_px": 544,
+      "height_px": 2080,
+      "area_px2": 1131520,
+      "area_tiles": 1105
+    },
+    {
+      "mapId": "map_5",
+      "plotId": "plot_12",
+      "orientation": "north",
+      "width_px": 1984,
+      "height_px": 544,
+      "area_px2": 1079296,
+      "area_tiles": 1054
+    },
+    {
+      "mapId": "map_6",
+      "plotId": "plot_1",
+      "orientation": "north",
+      "width_px": 2080,
+      "height_px": 480,
+      "area_px2": 998400,
+      "area_tiles": 975
+    },
+    {
+      "mapId": "map_6",
+      "plotId": "plot_2",
+      "orientation": "north",
+      "width_px": 2080,
+      "height_px": 544,
+      "area_px2": 1131520,
+      "area_tiles": 1105
+    },
+    {
+      "mapId": "map_6",
+      "plotId": "plot_3",
+      "orientation": "north",
+      "width_px": 4256,
+      "height_px": 544,
+      "area_px2": 2315264,
+      "area_tiles": 2261
+    },
+    {
+      "mapId": "map_6",
+      "plotId": "plot_4",
+      "orientation": "north",
+      "width_px": 2080,
+      "height_px": 544,
+      "area_px2": 1131520,
+      "area_tiles": 1105
+    },
+    {
+      "mapId": "map_6",
+      "plotId": "plot_5",
+      "orientation": "north",
+      "width_px": 4256,
+      "height_px": 544,
+      "area_px2": 2315264,
+      "area_tiles": 2261
+    },
+    {
+      "mapId": "map_6",
+      "plotId": "plot_6",
+      "orientation": "south",
+      "width_px": 4256,
+      "height_px": 576,
+      "area_px2": 2451456,
+      "area_tiles": 2394
+    },
+    {
+      "mapId": "map_6",
+      "plotId": "plot_7",
+      "orientation": "north",
+      "width_px": 4256,
+      "height_px": 576,
+      "area_px2": 2451456,
+      "area_tiles": 2394
+    },
+    {
+      "mapId": "map_6",
+      "plotId": "plot_8",
+      "orientation": "west",
+      "width_px": 576,
+      "height_px": 1984,
+      "area_px2": 1142784,
+      "area_tiles": 1116
+    },
+    {
+      "mapId": "map_6",
+      "plotId": "plot_9",
+      "orientation": "east",
+      "width_px": 576,
+      "height_px": 1984,
+      "area_px2": 1142784,
+      "area_tiles": 1116
+    },
+    {
+      "mapId": "map_6",
+      "plotId": "plot_10",
+      "orientation": "north",
+      "width_px": 2016,
+      "height_px": 544,
+      "area_px2": 1096704,
+      "area_tiles": 1071
+    },
+    {
+      "mapId": "map_6",
+      "plotId": "plot_11",
+      "orientation": "north",
+      "width_px": 2016,
+      "height_px": 544,
+      "area_px2": 1096704,
+      "area_tiles": 1071
+    },
+    {
+      "mapId": "map_6",
+      "plotId": "plot_12",
+      "orientation": "north",
+      "width_px": 2016,
+      "height_px": 544,
+      "area_px2": 1096704,
+      "area_tiles": 1071
+    },
+    {
+      "mapId": "map_7",
+      "plotId": "plot_1",
+      "orientation": "east",
+      "width_px": 608,
+      "height_px": 3264,
+      "area_px2": 1984512,
+      "area_tiles": 1938
+    },
+    {
+      "mapId": "map_7",
+      "plotId": "plot_2",
+      "orientation": "south",
+      "width_px": 3968,
+      "height_px": 608,
+      "area_px2": 2412544,
+      "area_tiles": 2356
+    },
+    {
+      "mapId": "map_7",
+      "plotId": "plot_3",
+      "orientation": "east",
+      "width_px": 576,
+      "height_px": 704,
+      "area_px2": 405504,
+      "area_tiles": 396
+    },
+    {
+      "mapId": "map_7",
+      "plotId": "plot_4",
+      "orientation": "west",
+      "width_px": 608,
+      "height_px": 3200,
+      "area_px2": 1945600,
+      "area_tiles": 1900
+    },
+    {
+      "mapId": "map_7",
+      "plotId": "plot_5",
+      "orientation": "east",
+      "width_px": 608,
+      "height_px": 3200,
+      "area_px2": 1945600,
+      "area_tiles": 1900
+    },
+    {
+      "mapId": "map_7",
+      "plotId": "plot_6",
+      "orientation": "north",
+      "width_px": 3968,
+      "height_px": 608,
+      "area_px2": 2412544,
+      "area_tiles": 2356
+    },
+    {
+      "mapId": "map_7",
+      "plotId": "plot_7",
+      "orientation": "south",
+      "width_px": 5504,
+      "height_px": 608,
+      "area_px2": 3346432,
+      "area_tiles": 3268
+    },
+    {
+      "mapId": "map_7",
+      "plotId": "plot_8",
+      "orientation": "east",
+      "width_px": 608,
+      "height_px": 2528,
+      "area_px2": 1537024,
+      "area_tiles": 1501
+    },
+    {
+      "mapId": "map_7",
+      "plotId": "plot_9",
+      "orientation": "north",
+      "width_px": 3456,
+      "height_px": 608,
+      "area_px2": 2101248,
+      "area_tiles": 2052
+    },
+    {
+      "mapId": "map_7",
+      "plotId": "plot_10",
+      "orientation": "east",
+      "width_px": 544,
+      "height_px": 1856,
+      "area_px2": 1009664,
+      "area_tiles": 986
+    },
+    {
+      "mapId": "map_7",
+      "plotId": "plot_11",
+      "orientation": "north",
+      "width_px": 2656,
+      "height_px": 608,
+      "area_px2": 1614848,
+      "area_tiles": 1577
+    },
+    {
+      "mapId": "map_7",
+      "plotId": "plot_12",
+      "orientation": "west",
+      "width_px": 544,
+      "height_px": 1856,
+      "area_px2": 1009664,
+      "area_tiles": 986
+    }
+  ]
+}

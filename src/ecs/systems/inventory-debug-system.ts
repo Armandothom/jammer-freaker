@@ -4,6 +4,7 @@ import { DamageTakenIntentComponent } from "../components/damage-taken-intent.co
 import { HealthComponent } from "../components/health.component.js";
 import { InventoryComponent } from "../components/inventory-component.js";
 import { PlayerComponent } from "../components/player.component.js";
+import { getBackpackTypeByLevel } from "../components/types/backpack-config.js";
 import { InventoryResourceType } from "../components/types/inventory-resource-type.js";
 import { WeaponConfig, WeaponType } from "../components/types/weapon-config.js";
 import { ComponentStore } from "../core/component-store.js";
@@ -72,7 +73,11 @@ export class InventoryDebugSystem implements ISystem {
             this.addWeapon(inventory, this.debugWeaponToAdd);
         }
 
-        if (this.wasKeyPressedThisFrame("KeyI")) {
+        if (this.wasKeyPressedThisFrame("KeyH")) {
+            this.upgradeBackpackOneLevel(inventory);
+        }
+
+        if (this.wasKeyPressedThisFrame("Numpad0")) {
             this.inventoryManager.addDebugResourceBundle(inventory);
             console.log("[InventoryDebug] Added debug resource bundle: +99 all resources, +99999 money.");
         }
@@ -110,6 +115,19 @@ export class InventoryDebugSystem implements ISystem {
         }
 
         console.log(`[InventoryDebug] Weapon added: ${weaponType}`);
+    }
+
+    private upgradeBackpackOneLevel(inventory: InventoryComponent): void {
+        const currentBackpackType = this.inventoryManager.getBackpackType(inventory);
+        const currentBackpackLevel = this.inventoryManager.getBackpackLevel(inventory);
+        const nextBackpackType = getBackpackTypeByLevel(currentBackpackLevel + 1);
+
+        if (!this.inventoryManager.upgradeBackpack(inventory, nextBackpackType)) {
+            console.log(`[InventoryDebug] Backpack already maxed: ${currentBackpackType}`);
+            return;
+        }
+
+        console.log(`[InventoryDebug] Backpack upgraded: ${currentBackpackType} -> ${nextBackpackType}`);
     }
 
     private wasKeyPressedThisFrame(code: string): boolean {

@@ -3,6 +3,7 @@ import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { RendererEngine } from "../../game/renderer/renderer-engine.js";
 import { TextManager } from "../../game/text/text-manager.js";
 import { WeatherManager } from "../../game/weather/weather-manager.js";
+import { WorldMapManager } from "../../game/world/world-map-manager.js";
 import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
 import type { InventorySnapshot } from "../components/snapshots/inventory-snapshot.js";
 import { GameplaySystemRunner } from "./gameplay-system-runner.js";
@@ -15,11 +16,12 @@ export class GameManager {
     private readonly gameplaySystemRunner: GameplaySystemRunner;
     private readonly shopSystemRunner: ShopSystemRunner;
     private readonly weatherManager: WeatherManager;
-    private activeState: GameState = GameState.GameplayState;
+    private activeState: GameState = GameState.ShopHubState;
     private inventorySnapshot: InventorySnapshot | null = null;
 
     constructor(
         private worldTilemapManager: WorldTilemapManager,
+        private worldMapManager: WorldMapManager,
         private spriteManager: SpriteManager,
         private textManager: TextManager,
         private entityManager: EntityManager,
@@ -30,6 +32,7 @@ export class GameManager {
         this.weatherManager = new WeatherManager();
         this.gameplaySystemRunner = new GameplaySystemRunner(
             this.worldTilemapManager,
+            this.worldMapManager,
             this.spriteManager,
             this.textManager,
             this.entityManager,
@@ -45,13 +48,15 @@ export class GameManager {
             this.debugManager,
             this.entityManager,
             this.weatherManager,
+            this.worldMapManager,
         );
         this.gameplaySystemRunner.bindGameManager(this);
         this.shopSystemRunner.bindGameManager(this);
     }
 
     initialize(): void {
-        this.gameplaySystemRunner.initialize();
+        this.shopSystemRunner.setInventorySnapshot(this.inventorySnapshot);
+        this.shopSystemRunner.initialize();
     }
 
     update(): void {
@@ -61,6 +66,7 @@ export class GameManager {
                 return;
 
             case GameState.ShopHubState:
+            case GameState.MissionSelectState:
             case GameState.GunsShopState:
             case GameState.MedicalShopState:
             case GameState.CombatShopState:
@@ -78,6 +84,10 @@ export class GameManager {
         this.requestShopState(GameState.ShopHubState);
     }
 
+    requestMissionSelectState(): void {
+        this.requestShopState(GameState.MissionSelectState);
+    }
+
     requestGunsShopState(): void {
         this.requestShopState(GameState.GunsShopState);
     }
@@ -90,21 +100,22 @@ export class GameManager {
         this.requestShopState(GameState.CombatShopState);
     }
 
-    requestGameplayState(): void {
+    requestGameplayState(mapId?: string | null): void {
         if (this.activeState === GameState.GameplayState) {
             return;
         }
 
+        const selectedMapId = this.worldMapManager.resolveMapId(mapId);
         this.inventorySnapshot = this.shopSystemRunner.captureInventorySnapshot();
-        this.gameplaySystemRunner.startNextLevelWithInventorySnapshot(this.inventorySnapshot);
+        this.gameplaySystemRunner.startMapWithInventorySnapshot(selectedMapId, this.inventorySnapshot);
         this.shopSystemRunner.reset();
         this.activeState = GameState.GameplayState;
 
-        console.log("[GameManager] Transitioned to GameplayState.");
+        console.log(`[GameManager] Transitioned to GameplayState (${selectedMapId}).`);
         console.log("[GameManager] Inventory snapshot:", this.inventorySnapshot);
     }
 
-    private requestShopState(nextState: GameState.ShopHubState | GameState.GunsShopState | GameState.MedicalShopState | GameState.CombatShopState): void {
+    private requestShopState(nextState: GameState.ShopHubState | GameState.MissionSelectState | GameState.GunsShopState | GameState.MedicalShopState | GameState.CombatShopState): void {
         if (this.activeState === nextState) {
             return;
         }
@@ -125,8 +136,9 @@ export class GameManager {
         console.log("[GameManager] Inventory snapshot:", this.inventorySnapshot);
     }
 
-    private isShopState(state: GameState): state is GameState.ShopHubState | GameState.GunsShopState | GameState.MedicalShopState | GameState.CombatShopState {
+    private isShopState(state: GameState): state is GameState.ShopHubState | GameState.MissionSelectState | GameState.GunsShopState | GameState.MedicalShopState | GameState.CombatShopState {
         return state === GameState.ShopHubState
+            || state === GameState.MissionSelectState
             || state === GameState.GunsShopState
             || state === GameState.MedicalShopState
             || state === GameState.CombatShopState;
@@ -139,4 +151,5 @@ export class GameManager {
     getWeatherManager(): WeatherManager {
         return this.weatherManager;
     }
+
 }

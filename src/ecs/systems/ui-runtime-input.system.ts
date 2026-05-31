@@ -13,11 +13,8 @@ export class UIRuntimeInputSystem implements ISystem {
   }
 
   public update(_deltaTime: number): void {
-    const action = this.uiInputSystem.consumeAction();
-    if (!action) {
-      return;
+    for (let action = this.uiInputSystem.consumeAction(); action; action = this.uiInputSystem.consumeAction()) {
+      this.uiActionRouter.route(action);
     }
-
-    this.uiActionRouter.route(action);
   }
 }

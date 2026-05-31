@@ -77,31 +77,43 @@ export class MedicalItemsSystem implements ISystem {
         this.tryStartMedicalItemUse(InventoryResourceType.CombatStim);
     }
 
-    private tryStartMedicalItemUse(itemApplied: MedicalItemType): void {
+    public tryStartMedicalItemUse(itemApplied: MedicalItemType, consumeInventory: boolean = true): boolean {
         const playerEntity = this.getPlayerEntity();
 
         if (playerEntity == null) {
-            return;
+            return false;
         }
 
         if (this.medicalItemUseComponentStore.has(playerEntity)) {
-            return;
+            return false;
         }
 
         const inventory = this.inventoryComponent.getOrNull(playerEntity);
         const velocity = this.velocityComponentStore.getOrNull(playerEntity);
         if (!inventory || !velocity) {
-            return;
+            return false;
         }
 
-        if (this.inventoryManager.getResourceAmount(inventory, itemApplied) <= 0) {
-            return;
+        if (itemApplied === InventoryResourceType.Healpack) {
+            const health = this.healthComponentStore.getOrNull(playerEntity);
+
+            if (!health || health.hp === health.maxHp) {
+                return false;
+            }
+        }
+
+        if (consumeInventory && this.inventoryManager.getResourceAmount(inventory, itemApplied) <= 0) {
+            return false;
         }
 
         const useEfficiencyUpgrade = this.inventoryManager.getMedicalUpgradeValueOrDefault(inventory, MedicalShopUpgradeItemType.USE_EFFICIENCY);
         const applyTime = MEDICAL_ITEM_CONFIG[itemApplied].useTime * useEfficiencyUpgrade;
-        this.medicalItemUseComponentStore.add(playerEntity, new MedicalItemUseComponent(itemApplied, applyTime));
+        this.medicalItemUseComponentStore.add(
+            playerEntity,
+            new MedicalItemUseComponent(itemApplied, applyTime, consumeInventory),
+        );
         this.applyUsageSlow(velocity);
+        return true;
     }
 
     private getPlayerEntity(): number | null {
@@ -159,7 +171,7 @@ export class MedicalItemsSystem implements ISystem {
         }
         if (medicalItemUse.timer >= medicalItemUse.applyTime) {
             this.medicalItemUseComponentStore.remove(playerEntity);
-            this.applyItem(medicalItemUse.itemApplied);
+            this.applyItem(medicalItemUse.itemApplied, medicalItemUse.consumeInventory);
             this.restorePlayerVelocity(playerEntity);
         }
     }
@@ -184,7 +196,7 @@ export class MedicalItemsSystem implements ISystem {
         }
     }
 
-    private applyItem(item: InventoryResourceType) {
+    private applyItem(item: InventoryResourceType, consumeInventory: boolean) {
         const playerEntity = this.getPlayerEntity();
 
         if (playerEntity == null) {
@@ -192,7 +204,9 @@ export class MedicalItemsSystem implements ISystem {
         }
 
         const inventory = this.inventoryComponent.get(playerEntity);
-        this.inventoryManager.removeResource(inventory, item, 1);
+        if (consumeInventory) {
+            this.inventoryManager.removeResource(inventory, item, 1);
+        }
         const stimDurationUpgrade = this.inventoryManager.getMedicalUpgradeValueOrDefault(inventory, MedicalShopUpgradeItemType.STIM_DURATION);
         const medicalEfficiencyUpgrade = this.inventoryManager.getMedicalUpgradeValueOrDefault(inventory, MedicalShopUpgradeItemType.USE_EFFICIENCY);
 

@@ -9,6 +9,16 @@ import {
     SHOTGUN_SHELLS_PER_BOX,
 } from "./types/inventory-resource-type.js";
 import {
+    clampMiscResourceAmount,
+    MiscResourceType,
+} from "./types/misc-resource-type.js";
+import {
+    BackpackType,
+    getBackpackLevel,
+    getBackpackTypeForMiscResource,
+    normalizeBackpackType,
+} from "./types/backpack-config.js";
+import {
     normalizeStoredCombatShopUpgradeLevel,
     type CombatShopUpgradeType,
 } from "./types/combat-shop-upgrade-config.js";
@@ -21,22 +31,28 @@ import { WeaponType } from "./types/weapon-config.js";
 export class InventoryComponent {
     public weapons: Map<WeaponType, OwnedWeaponState>;
     public resources: Map<InventoryResourceType, number>;
+    public miscResources: Map<MiscResourceType, number>;
     public equippedWeaponType: WeaponType | null;
     public medicalUpgrades: Map<MedicalShopUpgradeItemType, number>;
     public combatUpgrades: Map<CombatShopUpgradeType, number>;
+    public backpackType: BackpackType;
 
     constructor(
         weapons?: Map<WeaponType, OwnedWeaponState>,
         resources?: Map<InventoryResourceType, number>,
+        miscResources?: Map<MiscResourceType, number>,
         equippedWeaponType: WeaponType | null = null,
         medicalUpgrades?: Map<MedicalShopUpgradeItemType, number>,
         combatUpgrades?: Map<CombatShopUpgradeType, number>,
+        backpackType: BackpackType = BackpackType.NO_BACKPACK,
     ) {
         this.weapons = weapons ?? new Map<WeaponType, OwnedWeaponState>();
         this.resources = resources ?? new Map<InventoryResourceType, number>();
+        this.miscResources = miscResources ?? new Map<MiscResourceType, number>();
         this.equippedWeaponType = equippedWeaponType;
         this.medicalUpgrades = medicalUpgrades ?? new Map<MedicalShopUpgradeItemType, number>();
         this.combatUpgrades = combatUpgrades ?? new Map<CombatShopUpgradeType, number>();
+        this.backpackType = backpackType;
     }
 
     public toSnapshot(): InventorySnapshot {
@@ -60,6 +76,12 @@ export class InventoryComponent {
 
         for (const [resourceType, amount] of this.resources.entries()) {
             resourceSnapshots.set(resourceType, amount);
+        }
+
+        const miscResourceSnapshots = new Map<MiscResourceType, number>();
+
+        for (const [miscResourceType, amount] of this.miscResources.entries()) {
+            miscResourceSnapshots.set(miscResourceType, amount);
         }
 
         const medicalUpgradeSnapshots = new Map<MedicalShopUpgradeItemType, number>();
@@ -86,6 +108,8 @@ export class InventoryComponent {
             this.equippedWeaponType,
             medicalUpgradeSnapshots,
             combatUpgradeSnapshots,
+            miscResourceSnapshots,
+            this.backpackType,
         );
     }
 
@@ -130,6 +154,25 @@ export class InventoryComponent {
             resources.delete(InventoryResourceType.ShotgunShellBox);
         }
 
+        const miscResources = new Map<MiscResourceType, number>();
+        let backpackType = normalizeBackpackType(snapshot.backpackType);
+
+        for (const [miscResourceType, amount] of snapshot.miscResources?.entries() ?? []) {
+            const miscBackpackType = getBackpackTypeForMiscResource(miscResourceType);
+
+            if (miscBackpackType) {
+                if (getBackpackLevel(miscBackpackType) > getBackpackLevel(backpackType)) {
+                    backpackType = miscBackpackType;
+                }
+                continue;
+            }
+
+            miscResources.set(
+                miscResourceType,
+                clampMiscResourceAmount(amount),
+            );
+        }
+
         const medicalUpgrades = new Map<MedicalShopUpgradeItemType, number>();
 
         for (const [upgradeType, level] of snapshot.medicalUpgrades?.entries() ?? []) {
@@ -151,9 +194,11 @@ export class InventoryComponent {
         return new InventoryComponent(
             weapons,
             resources,
+            miscResources,
             snapshot.equippedWeaponType,
             medicalUpgrades,
             combatUpgrades,
+            backpackType,
         );
     }
 
