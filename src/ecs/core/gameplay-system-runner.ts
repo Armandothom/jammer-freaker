@@ -5,7 +5,7 @@ import { TextManager } from "../../game/text/text-manager.js";
 import { VisibilityManager } from "../../game/visibility/visibility-manager.js";
 import { WeatherManager } from "../../game/weather/weather-manager.js";
 import { CameraManager } from "../../game/world/camera-manager.js";
-import { CollisionManager } from "../../game/world/collision-manager.js";
+import { CollisionManager } from "../../game/collision/collision-manager.js";
 import { PathFindingManager } from "../../game/world/pathfinding-manager.js";
 import { WorldEdgeChunkManager } from "../../game/world/world-edge-chunk-manager.js";
 import { WorldEdgeManager } from "../../game/world/world-edge-manager.js";
