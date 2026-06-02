@@ -1,4 +1,4 @@
-import type { LootTableItemId } from "../../game/world/loot/loot-tables.js";
+import type { LootTableItemId } from "../../game/world-map/loot/loot-tables.js";
 
 export interface LootContainerLootSlot {
     itemId: LootTableItemId;

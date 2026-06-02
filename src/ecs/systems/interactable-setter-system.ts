@@ -1,11 +1,11 @@
-import { BuildingInteractionManager } from "../../game/world/buildings/building-interaction-manager.js";
+import { BuildingInteractionManager } from "../../game/world-map/buildings/building-interaction-manager.js";
 import {
     getBuildingDoorPanelSide,
     type BuildingDoorPanelSide,
     type BuildingTileType,
-} from "../../game/world/buildings/building-types.js";
-import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
-import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
+} from "../../game/world-map/buildings/building-types.js";
+import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
+import { WorldTilemapManager } from "../../game/world-map/world-tilemap-manager.js";
 import type {
     InteractableDoorVisualState,
     InteractableSpriteState,

@@ -1,4 +1,4 @@
-import { SpriteName } from "../../world/types/sprite-name.enum.js";
+import { SpriteName } from "../../world-map/types/sprite-name.enum.js";
 import { AnimationKeyMap, AnimationName } from "../types/animation-map.js";
 import { SpriteSheetName } from "../types/sprite-sheet-name.enum.js";
 

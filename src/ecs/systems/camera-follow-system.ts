@@ -1,4 +1,4 @@
-import { CameraManager } from "../../game/world/camera-manager.js";
+import { CameraManager } from "../../game/world-map/camera-manager.js";
 import { CameraComponent } from "../components/camera-component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ComponentStore } from "../core/component-store.js";

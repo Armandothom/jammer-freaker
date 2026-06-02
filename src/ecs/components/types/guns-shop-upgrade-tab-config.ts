@@ -1,4 +1,4 @@
-import { SpriteName } from "../../../game/world/types/sprite-name.enum.js";
+import { SpriteName } from "../../../game/world-map/types/sprite-name.enum.js";
 import { WeaponType } from "./weapon-config.js";
 import type { UpgradableWeaponType } from "./weapon-upgrade-config.js";
 

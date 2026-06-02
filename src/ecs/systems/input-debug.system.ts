@@ -1,5 +1,5 @@
-import { CameraManager } from "../../game/world/camera-manager.js";
-import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
+import { CameraManager } from "../../game/world-map/camera-manager.js";
+import { WorldTilemapManager } from "../../game/world-map/world-tilemap-manager.js";
 import { DebugManager } from "../core/debug-manager.js";
 import { DebugSettingKey } from "../core/types/debug-manager-settings.js";
 import { OrderDebuggerOrchestrator } from "../debugger-orders/order-debugger-orchestrator.js";

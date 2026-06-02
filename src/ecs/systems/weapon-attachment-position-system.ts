@@ -1,4 +1,4 @@
-import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
 import { AimRotationShootingComponent } from "../components/aim-rotation-shooting.component.js";
 import { DisableAttachmentComponent } from "../components/disable-attachment.component.js";
 import { PositionComponent } from "../components/position.component.js";

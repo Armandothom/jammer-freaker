@@ -1,11 +1,11 @@
-import { CameraManager } from "../../game/world/camera-manager.js";
-import { BuildingInteractionManager } from "../../game/world/buildings/building-interaction-manager.js";
-import { BuildingInPlotSorter } from "../../game/world/buildings/building-in-plot-sorter.js";
-import { BuildingTilemapApplier } from "../../game/world/buildings/building-tilemap-applier.js";
-import { WorldEdgeChunkManager } from "../../game/world/world-edge-chunk-manager.js";
-import { WorldEdgeManager } from "../../game/world/world-edge-manager.js";
-import { WorldMapManager } from "../../game/world/world-map-manager.js";
-import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
+import { CameraManager } from "../../game/world-map/camera-manager.js";
+import { BuildingInteractionManager } from "../../game/world-map/buildings/building-interaction-manager.js";
+import { BuildingInPlotSorter } from "../../game/world-map/buildings/building-in-plot-sorter.js";
+import { BuildingTilemapApplier } from "../../game/world-map/buildings/building-tilemap-applier.js";
+import { WorldEdgeChunkManager } from "../../game/world-map/world-edge-chunk-manager.js";
+import { WorldEdgeManager } from "../../game/world-map/world-edge-manager.js";
+import { WorldMapManager } from "../../game/world-map/world-map-manager.js";
+import { WorldTilemapManager } from "../../game/world-map/world-tilemap-manager.js";
 import { HealthComponent } from "../components/health.component.js";
 import { InventoryComponent } from "../components/inventory-component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
@@ -25,7 +25,7 @@ import { EnemyLifecicleSystem } from "../systems/enemy-lifecicle.system.js";
 import { ComponentStore } from "./component-store.js";
 import { GameManager } from "./game-manager.js";
 import type { LootContainerManager } from "./loot-container-manager.js";
-import { WorldImpassableChunkManager } from "../../game/world/world-impassable-chunk-manager.js";
+import { WorldImpassableChunkManager } from "../../game/world-map/world-impassable-chunk-manager.js";
 
 export enum LevelEndReason {
     PlayerDeath = "player_death",

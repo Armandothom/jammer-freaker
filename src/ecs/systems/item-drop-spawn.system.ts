@@ -1,6 +1,6 @@
 import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
-import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
 import { ItemDropIntentComponent } from "../components/item-drop-intent.component.js";
 import { InventoryResourceType } from "../components/types/inventory-resource-type.js";
 import { DroppedResource, ItemDropRateTable } from "../components/types/item-drop-rate-table.js";

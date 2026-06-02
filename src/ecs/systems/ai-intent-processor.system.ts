@@ -1,5 +1,5 @@
 
-import { PathFindingManager } from "../../game/world/pathfinding-manager.js";
+import { PathFindingManager } from "../../game/world-map/pathfinding-manager.js";
 import { AIMovementOrderComponent } from "../components/ai-movement-order.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";
 import { PositionComponent } from "../components/position.component.js";

@@ -1,6 +1,6 @@
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { PARTICLE_TYPE_SPARK } from "../../game/renderer/renderer-engine.js";
-import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
+import { WorldTilemapManager } from "../../game/world-map/world-tilemap-manager.js";
 import { CollisionLastFrameComponent } from "../components/collision-last-frame.component.js";
 import { CollisionBoxComponent } from "../components/collision-box-component.js";
 import { EnemyComponent } from "../components/enemy.component.js";

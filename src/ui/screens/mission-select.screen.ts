@@ -1,6 +1,6 @@
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
-import type { WorldMapSummary } from "../../game/world/maps/world-map-registry.js";
-import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+import type { WorldMapSummary } from "../../game/world-map/maps/world-map-registry.js";
+import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
 import {
     createReturnFromMissionSelectToHubAction,
     createSelectMissionMapAction,

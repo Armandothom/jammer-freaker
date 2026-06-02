@@ -1,4 +1,4 @@
-import { TilemapCoordinates } from "../../../game/world/types/tilemap-tile.js";
+import { TilemapCoordinates } from "../../../game/world-map/types/tilemap-tile.js";
 
 export type SoldierId = number;
 

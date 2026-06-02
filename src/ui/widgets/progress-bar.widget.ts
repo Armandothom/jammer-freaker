@@ -4,11 +4,11 @@ import type { UIAnchor } from "../layout/ui-layout-types.js";
 type ProgressBarWidgetArgs = {
   anchor: UIAnchor;
   backgroundNodeId: string;
-  backgroundSpriteName: import("../../game/world/types/sprite-name.enum.js").SpriteName;
+  backgroundSpriteName: import("../../game/world-map/types/sprite-name.enum.js").SpriteName;
   fillNodeId: string;
   fillSourceHeight: number;
   fillSourceWidth: number;
-  fillSpriteName: import("../../game/world/types/sprite-name.enum.js").SpriteName;
+  fillSpriteName: import("../../game/world-map/types/sprite-name.enum.js").SpriteName;
   nodeId: string;
   offsetX: number;
   offsetY: number;

@@ -1,4 +1,4 @@
-import { PathfindingCoordinates } from "../../game/world/types/pathfinding-node.js";
+import { PathfindingCoordinates } from "../../game/world-map/types/pathfinding-node.js";
 
 export class AIMovementOrderComponent {
   public pathList : PathfindingCoordinates[];

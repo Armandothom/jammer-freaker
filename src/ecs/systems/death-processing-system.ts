@@ -1,7 +1,7 @@
 import { SOUND_KEYS, SOUND_VOLUME } from "../../game/asset-manager/consts/sound-mapped.values.js";
 import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
 import { SoundEventBus } from "../../game/audio/sound-event-bus.js";
-import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
 import { AwaitingAnimationEndComponent } from "../components/awaiting-animation-end.component.js";
 import { CorpseComponent } from "../components/corpse.component.js";
 import { DeathIntentComponent, DeathIntentReason } from "../components/death-intent.component.js";

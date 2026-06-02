@@ -1,4 +1,4 @@
-import { SpriteName } from "../world/types/sprite-name.enum.js";
+import { SpriteName } from "../world-map/types/sprite-name.enum.js";
 import { AssetManager } from "./asset-manager.js";
 import { SPRITESHEET_MAPPED_VALUES } from "./consts/sprite-mapped-values.js";
 import { SpriteSheetAsset } from "./types/sprite-sheet-map.js";

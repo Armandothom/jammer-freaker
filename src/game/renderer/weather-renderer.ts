@@ -1,4 +1,4 @@
-import type { CameraViewport } from "../world/types/camera-viewport.js";
+import type { CameraViewport } from "../world-map/types/camera-viewport.js";
 import type { RainConfig } from "../weather/weather-types.js";
 import { createProgram } from "./renderer-shared.js";
 
