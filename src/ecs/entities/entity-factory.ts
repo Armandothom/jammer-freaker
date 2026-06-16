@@ -1,8 +1,8 @@
 import { SPRITESHEET_MAPPED_VALUES } from "../../game/asset-manager/consts/sprite-mapped-values.js";
 import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
-import { LootContainerType } from "../../game/world/loot/loot-container-config.js";
-import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+import { LootContainerType } from "../../game/world-map/loot/loot-container-config.js";
+import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
 import { AiAttackRangeComponent } from "../components/ai-attack-range.component.js";
 import { AIComponent } from "../components/ai.component.js";
 import { AimRotationShootingComponent } from "../components/aim-rotation-shooting.component.js";

@@ -20,7 +20,7 @@ import {
     normalizeBackpackType,
 } from "../components/types/backpack-config.js";
 import type { LootContainerContentComponent } from "../components/loot-container-content.component.js";
-import type { LootTableItemId } from "../../game/world/loot/loot-tables.js";
+import type { LootTableItemId } from "../../game/world-map/loot/loot-tables.js";
 import {
     getCombatShopUpgradeLevelConfig,
     normalizeStoredCombatShopUpgradeLevel,

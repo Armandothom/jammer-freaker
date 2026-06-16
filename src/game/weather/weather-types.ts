@@ -1,6 +1,6 @@
 import type { SpriteSheetName } from "../asset-manager/types/sprite-sheet-name.enum.js";
 import type { UvBounds } from "../renderer/renderer-shared.js";
-import type { SpriteName } from "../world/types/sprite-name.enum.js";
+import type { SpriteName } from "../world-map/types/sprite-name.enum.js";
 
 export interface ColorRgba {
   r: number;

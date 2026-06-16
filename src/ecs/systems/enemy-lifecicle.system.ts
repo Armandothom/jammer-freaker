@@ -6,14 +6,14 @@ import { EntityFactory } from "../entities/entity-factory.js";
 import { EnemyComponent } from "../components/enemy.component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { EnemyDeadComponent } from "../components/enemy-dead.component.js";
-import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
+import { WorldTilemapManager } from "../../game/world-map/world-tilemap-manager.js";
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
 import { sleep } from "../../utils/sleep.js";
 import { SoundManager } from "../../game/asset-manager/sound-manager.js";
 import { FreezeManager } from "../core/freeze-manager.js";
 import { SpriteComponent } from "../components/sprite.component.js";
-import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
 import { OrderDebuggerOrchestrator } from "../debugger-orders/order-debugger-orchestrator.js";
 import { DebuggerSpawnerOrderType } from "../debugger-orders/types/debugger.js";
 

@@ -12,8 +12,8 @@ import { WeaponType } from "../../ecs/components/types/weapon-config.js";
 import { ComponentStore } from "../../ecs/core/component-store.js";
 import { InventoryManager } from "../../ecs/core/inventory-manager.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
-import { CameraManager } from "../../game/world/camera-manager.js";
-import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+import { CameraManager } from "../../game/world-map/camera-manager.js";
+import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
 import type { HudViewModel } from "../view-models/hud.view-model.js";
 
 type HudAmmoIcon = {

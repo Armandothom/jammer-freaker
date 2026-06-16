@@ -1,5 +1,5 @@
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
-import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
 import type { UIAnchor } from "../layout/ui-layout-types.js";
 
 export const GUNS_SHOP_SKIN_MAP = {

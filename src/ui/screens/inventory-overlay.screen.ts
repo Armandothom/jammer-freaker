@@ -1,5 +1,5 @@
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
-import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
 import { createItemPlacementBindAction } from "../input/container-content-ui-actions.js";
 import { createUINode, type UINode } from "../runtime/ui-node.js";
 import type { UIScreen } from "../runtime/ui-screen.js";

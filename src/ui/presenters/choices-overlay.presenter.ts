@@ -3,7 +3,7 @@ import {
 } from "../../ecs/components/types/inventory-resource-type.js";
 import { MEDICAL_ITEM_CONFIG } from "../../ecs/components/types/medical-items-config.js";
 import { isMiscResourceType } from "../../ecs/components/types/misc-resource-type.js";
-import type { LootTableItemId } from "../../game/world/loot/loot-tables.js";
+import type { LootTableItemId } from "../../game/world-map/loot/loot-tables.js";
 import type {
   ChoicesOverlayChoiceId,
 } from "../input/choices-overlay-ui-actions.js";

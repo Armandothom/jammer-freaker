@@ -1,4 +1,4 @@
-import { CameraManager } from "../../game/world/camera-manager.js";
+import { CameraManager } from "../../game/world-map/camera-manager.js";
 import { AimRotationShootingComponent } from "../components/aim-rotation-shooting.component.js";
 import { CombatStimActiveComponent } from "../components/combat-stim-active-component.js";
 import { DisableAimComponent } from "../components/disable-aim.component.js";

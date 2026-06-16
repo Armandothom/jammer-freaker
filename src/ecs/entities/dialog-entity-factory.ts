@@ -1,6 +1,6 @@
 import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
-import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
 import { AnimationComponent } from "../components/animation.component.js";
 import { BitmapTextComponent } from "../components/bitmap-text.component.js";
 import { DialogAnimComponent } from "../components/dialog-anim.component.js";

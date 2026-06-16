@@ -1,6 +1,6 @@
 import { SPRITESHEET_MAPPED_VALUES } from "../../game/asset-manager/consts/sprite-mapped-values.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
-import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
 import { ParentEntityComponent } from "../components/parent-entity-component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ShadowComponent } from "../components/shadow-component.js";

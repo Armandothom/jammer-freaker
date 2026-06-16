@@ -1,7 +1,7 @@
 
-import { CollisionManager } from "../../game/world/collision-manager.js";
-import { PathFindingManager } from "../../game/world/pathfinding-manager.js";
-import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
+import { CollisionManager } from "../../game/collision/collision-manager.js";
+import { PathFindingManager } from "../../game/world-map/pathfinding-manager.js";
+import { WorldTilemapManager } from "../../game/world-map/world-tilemap-manager.js";
 import { AiMovementRetryBackoff } from "../components/ai-movement-retry-backoff.component.js";
 import { AIMovementOrderComponent } from "../components/ai-movement-order.component.js";
 import { CollisionLastFrameComponent } from "../components/collision-last-frame.component.js";

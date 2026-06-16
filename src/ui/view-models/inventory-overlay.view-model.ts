@@ -1,5 +1,5 @@
 import type { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
-import type { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+import type { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
 
 export interface InventoryOverlayWeaponSlotViewModel {
   ammoText: string;

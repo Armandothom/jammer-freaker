@@ -1,5 +1,5 @@
 import { AnimationName } from "../../../game/asset-manager/types/animation-map.js";
-import { SpriteName } from "../../../game/world/types/sprite-name.enum.js";
+import { SpriteName } from "../../../game/world-map/types/sprite-name.enum.js";
 
 export enum WeaponType {
     PISTOL = "pistol",

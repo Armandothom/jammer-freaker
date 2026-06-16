@@ -2,7 +2,7 @@ import { SOUND_KEYS, SOUND_VOLUME } from "../../game/asset-manager/consts/sound-
 import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
 import { SoundEventBus } from "../../game/audio/sound-event-bus.js";
-import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
 import { AwaitingAnimationEndComponent } from "../components/awaiting-animation-end.component.js";
 import { FuseTimerComponent } from "../components/fuse-timer.component.js";
 import { GrenadeComponent } from "../components/grenade-component.js";

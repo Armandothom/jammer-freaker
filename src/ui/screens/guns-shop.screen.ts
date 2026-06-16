@@ -13,7 +13,7 @@ import {
 } from "../../ecs/components/types/guns-shop-weapon-item-config.js";
 import { WEAPON_UPGRADE_TYPES_ORDER } from "../../ecs/components/types/weapon-upgrade-config.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
-import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
 import {
   createBuyGunsShopResourceAction,
   createBuyGunsShopUpgradeAction,

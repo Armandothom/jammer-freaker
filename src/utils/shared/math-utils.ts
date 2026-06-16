@@ -17,4 +17,8 @@ export class MathUtils {
   static degreeToRad(deg: number) {
     return deg * (Math.PI / 180);
   }
+
+  static randomIntBetween(min: number, max: number) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
 }

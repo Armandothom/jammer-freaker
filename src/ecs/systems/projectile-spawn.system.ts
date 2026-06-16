@@ -3,7 +3,7 @@ import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
 import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
 import { SoundEventBus } from "../../game/audio/sound-event-bus.js";
-import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
 import { BulletFiredComponent } from "../components/bullet-fired.component.js";
 import { DamageDealtComponent } from "../components/damage-dealt.component.js";
 import { EnemyComponent } from "../components/enemy.component.js";

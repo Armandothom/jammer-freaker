@@ -8,7 +8,7 @@ import {
     COMBAT_SHOP_UPGRADE_ITEMS_ORDER,
 } from "../../ecs/components/types/combat-shop-upgrade-config.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
-import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
 import {
     createBuyCombatShopUpgradeAction,
     createReturnFromCombatShopToHubAction,

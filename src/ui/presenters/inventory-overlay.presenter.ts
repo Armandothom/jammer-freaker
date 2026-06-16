@@ -11,9 +11,9 @@ import { WeaponType } from "../../ecs/components/types/weapon-config.js";
 import { ComponentStore } from "../../ecs/core/component-store.js";
 import { InventoryManager } from "../../ecs/core/inventory-manager.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
-import type { LootTableItemId } from "../../game/world/loot/loot-tables.js";
-import { getLootSprite } from "../../game/world/loot/loot-sprites.js";
-import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+import type { LootTableItemId } from "../../game/world-map/loot/loot-tables.js";
+import { getLootSprite } from "../../game/world-map/loot/loot-sprites.js";
+import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
 import { INVENTORY_OVERLAY_SKIN_MAP } from "../style/inventory-overlay-skin-map.js";
 import type {
   InventoryOverlayBackpackSlotViewModel,

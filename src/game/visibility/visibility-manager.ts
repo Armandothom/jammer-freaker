@@ -4,10 +4,10 @@ import { DebugManager } from "../../ecs/core/debug-manager.js";
 import { DebugSettingKey } from "../../ecs/core/types/debug-manager-settings.js";
 import { OrderDebuggerOrchestrator } from "../../ecs/debugger-orders/order-debugger-orchestrator.js";
 import { MathUtils } from "../../utils/shared/math-utils.js";
-import { CameraManager } from "../world/camera-manager.js";
-import { TilemapCoordinates, WorldMapCoordinates } from "../world/types/tilemap-tile.js";
-import { WorldEdgeChunkManager } from "../world/world-edge-chunk-manager.js";
-import { WorldTilemapManager } from "../world/world-tilemap-manager.js";
+import { CameraManager } from "../world-map/camera-manager.js";
+import { TilemapCoordinates, WorldMapCoordinates } from "../world-map/types/tilemap-tile.js";
+import { WorldEdgeChunkManager } from "../world-map/world-edge-chunk-manager.js";
+import { WorldTilemapManager } from "../world-map/world-tilemap-manager.js";
 import { VisibilityRayPoint } from "./visibility.type.js";
 
 export class VisibilityManager {

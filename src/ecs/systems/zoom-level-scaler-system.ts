@@ -1,5 +1,5 @@
 import { SpriteManager } from "../../game/asset-manager/sprite-manager.js";
-import { WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
+import { WorldTilemapManager } from "../../game/world-map/world-tilemap-manager.js";
 import { RenderableComponent } from "../components/renderable-component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { ComponentStore } from "../core/component-store.js";

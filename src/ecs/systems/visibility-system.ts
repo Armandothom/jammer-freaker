@@ -3,7 +3,7 @@ import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { ISystem } from "./system.interface.js";
-import { WorldMapCoordinates } from "../../game/world/types/tilemap-tile.js";
+import { WorldMapCoordinates } from "../../game/world-map/types/tilemap-tile.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { PlayerFovComponent } from "../components/player-fov.component.js";
 

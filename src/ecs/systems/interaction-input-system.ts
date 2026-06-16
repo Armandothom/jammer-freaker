@@ -1,4 +1,4 @@
-import { TilemapWallTileState, WorldTilemapManager } from "../../game/world/world-tilemap-manager.js";
+import { TilemapWallTileState, WorldTilemapManager } from "../../game/world-map/world-tilemap-manager.js";
 import { InteractableComponent, InteractableKind } from "../components/interactable-component.js";
 import { PlayerComponent } from "../components/player.component.js";
 import { PositionComponent } from "../components/position.component.js";

@@ -1,5 +1,5 @@
 import type { DebuggerPaintOrder } from "../../ecs/debugger-orders/types/debugger.js";
-import type { CameraViewport } from "../world/types/camera-viewport.js";
+import type { CameraViewport } from "../world-map/types/camera-viewport.js";
 import type { RenderObject } from "./types/render-objects.js";
 
 export interface RendererFrame {

@@ -1,7 +1,7 @@
 import { SOUND_KEYS } from "../../game/asset-manager/consts/sound-mapped.values.js";
 import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
 import { SoundEventBus } from "../../game/audio/sound-event-bus.js";
-import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
 import { AnimationComponent } from "../components/animation.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PlayerComponent } from "../components/player.component.js";

@@ -1,6 +1,6 @@
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
-import { MAX_LOOT_CONTAINER_SLOTS } from "../../game/world/loot/loot-container-config.js";
-import { SpriteName } from "../../game/world/types/sprite-name.enum.js";
+import { MAX_LOOT_CONTAINER_SLOTS } from "../../game/world-map/loot/loot-container-config.js";
+import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
 import {
   createCloseContainerContentAction,
   createItemPlacementBindAction,

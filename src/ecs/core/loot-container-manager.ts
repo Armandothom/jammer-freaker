@@ -1,8 +1,8 @@
-import { BuildingInteractionManager } from "../../game/world/buildings/building-interaction-manager.js";
-import { getRandomLootContainerTypeForBuilding } from "../../game/world/loot/building-loot-contexts.js";
-import { getLootContainerDefinition, LootContainerType } from "../../game/world/loot/loot-container-config.js";
-import { getLootContainerSprite } from "../../game/world/loot/loot-container-sprites.js";
-import { getLootTable, type LootTableEntry } from "../../game/world/loot/loot-tables.js";
+import { BuildingInteractionManager } from "../../game/world-map/buildings/building-interaction-manager.js";
+import { getRandomLootContainerTypeForBuilding } from "../../game/world-map/loot/building-loot-contexts.js";
+import { getLootContainerDefinition, LootContainerType } from "../../game/world-map/loot/loot-container-config.js";
+import { getLootContainerSprite } from "../../game/world-map/loot/loot-container-sprites.js";
+import { getLootTable, type LootTableEntry } from "../../game/world-map/loot/loot-tables.js";
 import {
     LootContainerContentComponent,
     type LootContainerLootSlot,
