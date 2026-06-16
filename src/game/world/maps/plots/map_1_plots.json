@@ -29,33 +29,33 @@
         {
             "id": "plot_4",
             "xMin": 0,
-            "yMin": 3712,
+            "yMin": 3648,
             "xMax": 576,
-            "yMax": 6144,
+            "yMax": 6080,
             "orientation": "east"
         },
         {
             "id": "plot_5",
             "xMin": 864,
-            "yMin": 3712,
+            "yMin": 3648,
             "xMax": 1504,
-            "yMax": 6144,
+            "yMax": 6080,
             "orientation": "west"
         },
         {
             "id": "plot_6",
             "xMin": 1568,
-            "yMin": 3712,
+            "yMin": 3648,
             "xMax": 2208,
-            "yMax": 6144,
+            "yMax": 6080,
             "orientation": "east"
         },
         {
             "id": "plot_7",
             "xMin": 2496,
-            "yMin": 3712,
+            "yMin": 3648,
             "xMax": 3072,
-            "yMax": 6144,
+            "yMax": 6080,
             "orientation": "west"
         }
     ]

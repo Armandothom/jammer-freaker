@@ -1,1 +1,150 @@
-{"mapId":"map_2","tileSize":32,"plots":[{"id":"plot_1","xMin":0,"yMin":0,"xMax":544,"yMax":768,"orientation":"east"},{"id":"plot_2","xMin":832,"yMin":0,"xMax":1344,"yMax":768,"orientation":"west"},{"id":"plot_3","xMin":1376,"yMin":0,"xMax":1888,"yMax":768,"orientation":"east"},{"id":"plot_4","xMin":2176,"yMin":0,"xMax":2688,"yMax":768,"orientation":"west"},{"id":"plot_5","xMin":2720,"yMin":0,"xMax":3232,"yMax":768,"orientation":"east"},{"id":"plot_6","xMin":3520,"yMin":0,"xMax":4064,"yMax":768,"orientation":"west"},{"id":"plot_7","xMin":0,"yMin":1056,"xMax":544,"yMax":2784,"orientation":"east"},{"id":"plot_8","xMin":832,"yMin":1056,"xMax":1344,"yMax":2784,"orientation":"west"},{"id":"plot_9","xMin":1376,"yMin":1056,"xMax":1888,"yMax":2784,"orientation":"east"},{"id":"plot_10","xMin":2176,"yMin":1056,"xMax":2688,"yMax":2784,"orientation":"west"},{"id":"plot_11","xMin":2720,"yMin":1056,"xMax":3232,"yMax":2784,"orientation":"east"},{"id":"plot_12","xMin":3520,"yMin":1056,"xMax":4064,"yMax":2784,"orientation":"west"},{"id":"plot_13","xMin":0,"yMin":3072,"xMax":544,"yMax":3840,"orientation":"east"},{"id":"plot_14","xMin":832,"yMin":3072,"xMax":1344,"yMax":3840,"orientation":"west"},{"id":"plot_15","xMin":1376,"yMin":3072,"xMax":1888,"yMax":3840,"orientation":"east"},{"id":"plot_16","xMin":2176,"yMin":3072,"xMax":2688,"yMax":3840,"orientation":"west"},{"id":"plot_17","xMin":2720,"yMin":3072,"xMax":3232,"yMax":3840,"orientation":"east"},{"id":"plot_18","xMin":3520,"yMin":3072,"xMax":4064,"yMax":3840,"orientation":"west"}]}
+{
+    "mapId": "map_2",
+    "tileSize": 32,
+    "plots": [
+        {
+            "id": "plot_1",
+            "xMin": 0,
+            "yMin": 0,
+            "xMax": 544,
+            "yMax": 768,
+            "orientation": "east"
+        },
+        {
+            "id": "plot_2",
+            "xMin": 832,
+            "yMin": 0,
+            "xMax": 1344,
+            "yMax": 768,
+            "orientation": "west"
+        },
+        {
+            "id": "plot_3",
+            "xMin": 1376,
+            "yMin": 0,
+            "xMax": 1888,
+            "yMax": 768,
+            "orientation": "east"
+        },
+        {
+            "id": "plot_4",
+            "xMin": 2176,
+            "yMin": 0,
+            "xMax": 2688,
+            "yMax": 768,
+            "orientation": "west"
+        },
+        {
+            "id": "plot_5",
+            "xMin": 2720,
+            "yMin": 0,
+            "xMax": 3232,
+            "yMax": 768,
+            "orientation": "east"
+        },
+        {
+            "id": "plot_6",
+            "xMin": 3520,
+            "yMin": 0,
+            "xMax": 4064,
+            "yMax": 768,
+            "orientation": "west"
+        },
+        {
+            "id": "plot_7",
+            "xMin": 0,
+            "yMin": 1056,
+            "xMax": 544,
+            "yMax": 2784,
+            "orientation": "east"
+        },
+        {
+            "id": "plot_8",
+            "xMin": 832,
+            "yMin": 1056,
+            "xMax": 1344,
+            "yMax": 2784,
+            "orientation": "west"
+        },
+        {
+            "id": "plot_9",
+            "xMin": 1376,
+            "yMin": 1056,
+            "xMax": 1888,
+            "yMax": 2784,
+            "orientation": "east"
+        },
+        {
+            "id": "plot_10",
+            "xMin": 2176,
+            "yMin": 1056,
+            "xMax": 2688,
+            "yMax": 2784,
+            "orientation": "west"
+        },
+        {
+            "id": "plot_11",
+            "xMin": 2720,
+            "yMin": 1056,
+            "xMax": 3232,
+            "yMax": 2784,
+            "orientation": "east"
+        },
+        {
+            "id": "plot_12",
+            "xMin": 3520,
+            "yMin": 1056,
+            "xMax": 4064,
+            "yMax": 2784,
+            "orientation": "west"
+        },
+        {
+            "id": "plot_13",
+            "xMin": 0,
+            "yMin": 3072,
+            "xMax": 544,
+            "yMax": 3840,
+            "orientation": "east"
+        },
+        {
+            "id": "plot_14",
+            "xMin": 832,
+            "yMin": 3072,
+            "xMax": 1344,
+            "yMax": 3840,
+            "orientation": "west"
+        },
+        {
+            "id": "plot_15",
+            "xMin": 1376,
+            "yMin": 3072,
+            "xMax": 1888,
+            "yMax": 3840,
+            "orientation": "east"
+        },
+        {
+            "id": "plot_16",
+            "xMin": 2176,
+            "yMin": 3072,
+            "xMax": 2688,
+            "yMax": 3840,
+            "orientation": "west"
+        },
+        {
+            "id": "plot_17",
+            "xMin": 2720,
+            "yMin": 3072,
+            "xMax": 3232,
+            "yMax": 3840,
+            "orientation": "east"
+        },
+        {
+            "id": "plot_18",
+            "xMin": 3520,
+            "yMin": 3072,
+            "xMax": 4064,
+            "yMax": 3840,
+            "orientation": "west"
+        }
+    ]
+}
