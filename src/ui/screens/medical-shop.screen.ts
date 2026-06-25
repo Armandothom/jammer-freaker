@@ -11,6 +11,7 @@ import {
     MEDICAL_SHOP_UPGRADE_ITEM_CONFIG,
     MEDICAL_SHOP_UPGRADE_ITEMS_ORDER,
 } from "../../ecs/components/types/medical-shop-upgrade-item-config.js";
+import { QUEST_TRADER } from "../../ecs/components/types/quest-config.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
 import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
 import {
@@ -19,10 +20,15 @@ import {
     createReturnFromMedicalShopToHubAction,
     createSelectMedicalShopTabAction,
 } from "../input/medical-shop-ui-actions.js";
+import { createOpenQuestScreenAction } from "../input/quest-ui-actions.js";
+import {
+    resolveLegacyRightAnchoredStripOffsetX,
+    resolveShopInfoAuxActionRowLayout,
+} from "../layout/shop-auto-layout.js";
 import { createUINode, type UINode } from "../runtime/ui-node.js";
 import type { UIScreen } from "../runtime/ui-screen.js";
 import { MEDICAL_SHOP_SKIN_MAP } from "../style/medical-shop-skin-map.js";
-import { UIButtonState, UIButtonVariant } from "../style/ui-button-config.js";
+import { UI_BUTTON_CONFIG, UIButtonState, UIButtonVariant } from "../style/ui-button-config.js";
 import { createButtonWidget } from "../widgets/button.widget.js";
 import { createLegacyPointLayout } from "../widgets/legacy-layout.js";
 import { MEDICAL_SHOP_NODE_IDS } from "./node-ids/medical-shop-node-ids.js";
@@ -73,7 +79,12 @@ export class MedicalShopScreen implements UIScreen {
                     buttonVariant: UIButtonVariant.TAB,
                     legacyAnchor: true,
                     nodeId: MEDICAL_SHOP_NODE_IDS.tab(tabType),
-                    offsetX: MEDICAL_SHOP_SKIN_MAP.tabs.offsetX + (MEDICAL_SHOP_SKIN_MAP.tabs.stepX * index),
+                    offsetX: resolveLegacyRightAnchoredStripOffsetX(
+                        MEDICAL_SHOP_SKIN_MAP.tabs.offsetX,
+                        index,
+                        UI_BUTTON_CONFIG[UIButtonVariant.TAB].width,
+                        MEDICAL_SHOP_SKIN_MAP.tabs.gap,
+                    ),
                     offsetY: MEDICAL_SHOP_SKIN_MAP.tabs.offsetY,
                     onClickAction: createSelectMedicalShopTabAction(tabType),
                     text: MEDICAL_SHOP_TAB_CONFIG[tabType].label,
@@ -88,6 +99,16 @@ export class MedicalShopScreen implements UIScreen {
                     offsetY: MEDICAL_SHOP_SKIN_MAP.returnButton.offsetY,
                     onClickAction: createReturnFromMedicalShopToHubAction(),
                     text: "Return to Hub",
+                }),
+                createButtonWidget({
+                    anchor: "bottom-left",
+                    buttonState: UIButtonState.NORMAL,
+                    buttonVariant: UIButtonVariant.PROMINENT,
+                    nodeId: MEDICAL_SHOP_NODE_IDS.questButton,
+                    offsetX: 64,
+                    offsetY: 48,
+                    onClickAction: createOpenQuestScreenAction(QUEST_TRADER.DIGNITAS),
+                    text: "Quests",
                 }),
                 createUINode({
                     children: MEDICAL_SHOP_RESOURCE_ITEMS_ORDER.map((itemType, index) => {
@@ -182,7 +203,16 @@ type MedicalShopResourceItemRowProps = {
     rowIndex: number;
 };
 
+type MedicalShopResourceRowLayout = {
+    actionX: number;
+    infoWidth: number;
+    infoX: number;
+    auxX: number;
+};
+
 function createMedicalShopResourceItemRow(props: MedicalShopResourceItemRowProps): UINode {
+    const rowLayout = resolveMedicalShopResourceRowLayout(props.itemWidth);
+
     return createUINode({
         children: [
             createUINode({
@@ -203,14 +233,15 @@ function createMedicalShopResourceItemRow(props: MedicalShopResourceItemRowProps
             createUINode({
                 id: props.itemNameNodeId,
                 layout: {
-                    offsetX: props.itemWidth + MEDICAL_SHOP_SKIN_MAP.itemRows.nameOffsetX,
+                    offsetX: rowLayout.infoX,
                     offsetY: 0,
+                    width: rowLayout.infoWidth,
                 },
                 visual: {
                     text: {
                         autoWrap: false,
                         horizontalAlign: "left",
-                        maxWidth: null,
+                        maxWidth: rowLayout.infoWidth,
                         text: props.itemName,
                     },
                 },
@@ -218,14 +249,15 @@ function createMedicalShopResourceItemRow(props: MedicalShopResourceItemRowProps
             createUINode({
                 id: props.quantityNodeId,
                 layout: {
-                    offsetX: props.itemWidth + 148,
+                    offsetX: rowLayout.auxX,
                     offsetY: 0,
+                    width: MEDICAL_SHOP_SKIN_MAP.itemRows.quantityColumnWidth,
                 },
                 visual: {
                     text: {
                         autoWrap: false,
-                        horizontalAlign: "left",
-                        maxWidth: null,
+                        horizontalAlign: "right",
+                        maxWidth: MEDICAL_SHOP_SKIN_MAP.itemRows.quantityColumnWidth,
                         text: props.quantityText,
                     },
                 },
@@ -233,14 +265,15 @@ function createMedicalShopResourceItemRow(props: MedicalShopResourceItemRowProps
             createUINode({
                 id: props.descriptionNodeId,
                 layout: {
-                    offsetX: props.itemWidth + MEDICAL_SHOP_SKIN_MAP.itemRows.nameOffsetX,
-                    offsetY: 18,
+                    offsetX: rowLayout.infoX,
+                    offsetY: MEDICAL_SHOP_SKIN_MAP.itemRows.descriptionOffsetY,
+                    width: rowLayout.infoWidth,
                 },
                 visual: {
                     text: {
                         autoWrap: true,
                         horizontalAlign: "left",
-                        maxWidth: 176,
+                        maxWidth: rowLayout.infoWidth,
                         text: props.descriptionText,
                     },
                 },
@@ -250,7 +283,7 @@ function createMedicalShopResourceItemRow(props: MedicalShopResourceItemRowProps
                 buttonState: UIButtonState.NORMAL,
                 buttonVariant: UIButtonVariant.PRIMARY,
                 nodeId: props.buttonNodeId,
-                offsetX: MEDICAL_SHOP_SKIN_MAP.itemRows.buttonOffsetX,
+                offsetX: rowLayout.actionX,
                 offsetY: MEDICAL_SHOP_SKIN_MAP.itemRows.buttonOffsetY,
                 onClickAction: props.onButtonClickAction,
                 text: props.buttonText,
@@ -262,6 +295,19 @@ function createMedicalShopResourceItemRow(props: MedicalShopResourceItemRowProps
             MEDICAL_SHOP_SKIN_MAP.itemRows.offsetX,
             MEDICAL_SHOP_SKIN_MAP.itemRows.offsetY + (MEDICAL_SHOP_SKIN_MAP.itemRows.stepY * props.rowIndex),
         ),
+    });
+}
+
+function resolveMedicalShopResourceRowLayout(itemWidth: number): MedicalShopResourceRowLayout {
+    const rowSkin = MEDICAL_SHOP_SKIN_MAP.itemRows;
+    return resolveShopInfoAuxActionRowLayout({
+        actionWidth: UI_BUTTON_CONFIG[UIButtonVariant.PRIMARY].width,
+        auxToActionGap: rowSkin.quantityToButtonGap,
+        auxWidth: rowSkin.quantityColumnWidth,
+        infoToAuxGap: rowSkin.infoToQuantityGap,
+        leadingToInfoGap: rowSkin.iconToInfoGap,
+        leadingWidth: itemWidth,
+        rowWidth: rowSkin.rowWidth,
     });
 }
 
@@ -280,19 +326,30 @@ type MedicalShopUpgradeItemRowProps = {
 };
 
 function createMedicalShopUpgradeItemRow(props: MedicalShopUpgradeItemRowProps): UINode {
+    const rowLayout = resolveShopInfoAuxActionRowLayout({
+        actionWidth: UI_BUTTON_CONFIG[UIButtonVariant.PRIMARY].width,
+        auxToActionGap: MEDICAL_SHOP_SKIN_MAP.upgradeRows.levelToButtonGap,
+        auxWidth: MEDICAL_SHOP_SKIN_MAP.upgradeRows.levelColumnWidth,
+        infoToAuxGap: MEDICAL_SHOP_SKIN_MAP.upgradeRows.infoToLevelGap,
+        leadingToInfoGap: 0,
+        leadingWidth: MEDICAL_SHOP_SKIN_MAP.upgradeRows.leadingPadding,
+        rowWidth: MEDICAL_SHOP_SKIN_MAP.upgradeRows.rowWidth,
+    });
+
     return createUINode({
         children: [
             createUINode({
                 id: props.titleNodeId,
                 layout: {
-                    offsetX: 0,
+                    offsetX: rowLayout.infoX,
                     offsetY: 0,
+                    width: rowLayout.infoWidth,
                 },
                 visual: {
                     text: {
                         autoWrap: false,
                         horizontalAlign: "left",
-                        maxWidth: null,
+                        maxWidth: rowLayout.infoWidth,
                         text: props.titleText,
                     },
                 },
@@ -300,14 +357,15 @@ function createMedicalShopUpgradeItemRow(props: MedicalShopUpgradeItemRowProps):
             createUINode({
                 id: props.levelNodeId,
                 layout: {
-                    offsetX: 0,
-                    offsetY: 18,
+                    offsetX: rowLayout.auxX,
+                    offsetY: 0,
+                    width: MEDICAL_SHOP_SKIN_MAP.upgradeRows.levelColumnWidth,
                 },
                 visual: {
                     text: {
                         autoWrap: false,
-                        horizontalAlign: "left",
-                        maxWidth: null,
+                        horizontalAlign: "right",
+                        maxWidth: MEDICAL_SHOP_SKIN_MAP.upgradeRows.levelColumnWidth,
                         text: props.levelText,
                     },
                 },
@@ -315,14 +373,15 @@ function createMedicalShopUpgradeItemRow(props: MedicalShopUpgradeItemRowProps):
             createUINode({
                 id: props.descriptionNodeId,
                 layout: {
-                    offsetX: MEDICAL_SHOP_SKIN_MAP.upgradeRows.infoOffsetX,
-                    offsetY: 0,
+                    offsetX: rowLayout.infoX,
+                    offsetY: MEDICAL_SHOP_SKIN_MAP.upgradeRows.descriptionOffsetY,
+                    width: rowLayout.infoWidth,
                 },
                 visual: {
                     text: {
                         autoWrap: true,
                         horizontalAlign: "left",
-                        maxWidth: 104,
+                        maxWidth: rowLayout.infoWidth,
                         text: props.descriptionText,
                     },
                 },
@@ -332,7 +391,7 @@ function createMedicalShopUpgradeItemRow(props: MedicalShopUpgradeItemRowProps):
                 buttonState: UIButtonState.NORMAL,
                 buttonVariant: UIButtonVariant.PRIMARY,
                 nodeId: props.buttonNodeId,
-                offsetX: MEDICAL_SHOP_SKIN_MAP.upgradeRows.buttonOffsetX,
+                offsetX: rowLayout.actionX,
                 offsetY: MEDICAL_SHOP_SKIN_MAP.upgradeRows.buttonOffsetY,
                 onClickAction: props.onButtonClickAction,
                 text: props.buttonText,

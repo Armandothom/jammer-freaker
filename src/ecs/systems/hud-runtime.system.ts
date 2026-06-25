@@ -63,6 +63,31 @@ export class HudRuntimeSystem implements ISystem {
         },
       });
     }
+    binder.setVisibility(HUD_NODE_IDS.demolitionPrompt.root, viewModel.demolitionPrompt.visible);
+    if (viewModel.demolitionPrompt.visible) {
+      binder.patchLayout(HUD_NODE_IDS.demolitionPrompt.root, {
+        offsetX: Math.round(
+          viewModel.demolitionPrompt.playerScreenX
+          + (viewModel.demolitionPrompt.playerSpriteWidth / 2)
+          - (HUD_SKIN_MAP.demolitionPrompt.width / 2),
+        ),
+        offsetY: Math.round(
+          viewModel.demolitionPrompt.playerScreenY
+          + HUD_SKIN_MAP.demolitionPrompt.playerOffsetY,
+        ),
+      });
+    }
+    binder.setVisibility(HUD_NODE_IDS.demolitionTimer.root, viewModel.demolitionTimer.visible);
+    if (viewModel.demolitionTimer.visible) {
+      binder.patchLayout(HUD_NODE_IDS.demolitionTimer.root, {
+        offsetX: Math.round(
+          (viewModel.demolitionTimer.viewportWidth - HUD_SKIN_MAP.demolitionTimer.textWidth) / 2,
+        ),
+      });
+      binder.patchText(HUD_NODE_IDS.demolitionTimer.text, {
+        text: viewModel.demolitionTimer.text,
+      });
+    }
     binder.patchSprite(HUD_NODE_IDS.weapon.icon, {
       spriteName: viewModel.weapon.iconSpriteName,
     });

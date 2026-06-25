@@ -7,17 +7,21 @@ import {
     COMBAT_SHOP_UPGRADE_CONFIG,
     COMBAT_SHOP_UPGRADE_ITEMS_ORDER,
 } from "../../ecs/components/types/combat-shop-upgrade-config.js";
-import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
-import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
+import { QUEST_TRADER } from "../../ecs/components/types/quest-config.js";
 import {
     createBuyCombatShopUpgradeAction,
     createReturnFromCombatShopToHubAction,
     createSelectCombatShopTabAction,
 } from "../input/combat-shop-ui-actions.js";
+import { createOpenQuestScreenAction } from "../input/quest-ui-actions.js";
+import {
+    resolveLegacyRightAnchoredStripOffsetX,
+    resolveShopInfoAuxActionRowLayout,
+} from "../layout/shop-auto-layout.js";
 import { createUINode, type UINode } from "../runtime/ui-node.js";
 import type { UIScreen } from "../runtime/ui-screen.js";
 import { COMBAT_SHOP_SKIN_MAP } from "../style/combat-shop-skin-map.js";
-import { UIButtonState, UIButtonVariant } from "../style/ui-button-config.js";
+import { UI_BUTTON_CONFIG, UIButtonState, UIButtonVariant } from "../style/ui-button-config.js";
 import { createButtonWidget } from "../widgets/button.widget.js";
 import { createLegacyPointLayout } from "../widgets/legacy-layout.js";
 import { COMBAT_SHOP_NODE_IDS } from "./node-ids/combat-shop-node-ids.js";
@@ -33,13 +37,16 @@ export class CombatShopScreen implements UIScreen {
                 createUINode({
                     id: COMBAT_SHOP_NODE_IDS.background,
                     layout: {
-                        height: "fill",
-                        width: "fill",
+                        anchor: COMBAT_SHOP_SKIN_MAP.background.anchor,
+                        offsetX: COMBAT_SHOP_SKIN_MAP.background.offsetX,
+                        offsetY: COMBAT_SHOP_SKIN_MAP.background.offsetY,
                     },
                     visual: {
                         sprite: {
-                            spriteName: SpriteName.BLANK,
-                            spriteSheetName: SpriteSheetName.BLANK,
+                            height: COMBAT_SHOP_SKIN_MAP.background.height,
+                            spriteName: COMBAT_SHOP_SKIN_MAP.background.spriteName,
+                            spriteSheetName: COMBAT_SHOP_SKIN_MAP.background.spriteSheetName,
+                            width: COMBAT_SHOP_SKIN_MAP.background.width,
                         },
                     },
                 }),
@@ -65,7 +72,12 @@ export class CombatShopScreen implements UIScreen {
                     buttonVariant: UIButtonVariant.TAB,
                     legacyAnchor: true,
                     nodeId: COMBAT_SHOP_NODE_IDS.tab(tabType),
-                    offsetX: COMBAT_SHOP_SKIN_MAP.tabs.offsetX + (COMBAT_SHOP_SKIN_MAP.tabs.stepX * index),
+                    offsetX: resolveLegacyRightAnchoredStripOffsetX(
+                        COMBAT_SHOP_SKIN_MAP.tabs.offsetX,
+                        index,
+                        UI_BUTTON_CONFIG[UIButtonVariant.TAB].width,
+                        COMBAT_SHOP_SKIN_MAP.tabs.gap,
+                    ),
                     offsetY: COMBAT_SHOP_SKIN_MAP.tabs.offsetY,
                     onClickAction: createSelectCombatShopTabAction(tabType),
                     text: COMBAT_SHOP_TAB_CONFIG[tabType].label,
@@ -80,6 +92,16 @@ export class CombatShopScreen implements UIScreen {
                     offsetY: COMBAT_SHOP_SKIN_MAP.returnButton.offsetY,
                     onClickAction: createReturnFromCombatShopToHubAction(),
                     text: "Return to Hub",
+                }),
+                createButtonWidget({
+                    anchor: "bottom-left",
+                    buttonState: UIButtonState.NORMAL,
+                    buttonVariant: UIButtonVariant.PROMINENT,
+                    nodeId: COMBAT_SHOP_NODE_IDS.questButton,
+                    offsetX: 64,
+                    offsetY: 48,
+                    onClickAction: createOpenQuestScreenAction(QUEST_TRADER.PORCUPINE),
+                    text: "Quests",
                 }),
                 createUINode({
                     children: COMBAT_SHOP_UPGRADE_ITEMS_ORDER.map((upgradeType, index) => {
@@ -137,19 +159,30 @@ type CombatShopUpgradeItemRowProps = {
 };
 
 function createCombatShopUpgradeItemRow(props: CombatShopUpgradeItemRowProps): UINode {
+    const rowLayout = resolveShopInfoAuxActionRowLayout({
+        actionWidth: UI_BUTTON_CONFIG[UIButtonVariant.PRIMARY].width,
+        auxToActionGap: COMBAT_SHOP_SKIN_MAP.upgradeRows.levelToButtonGap,
+        auxWidth: COMBAT_SHOP_SKIN_MAP.upgradeRows.levelColumnWidth,
+        infoToAuxGap: COMBAT_SHOP_SKIN_MAP.upgradeRows.infoToLevelGap,
+        leadingToInfoGap: 0,
+        leadingWidth: COMBAT_SHOP_SKIN_MAP.upgradeRows.leadingPadding,
+        rowWidth: COMBAT_SHOP_SKIN_MAP.upgradeRows.rowWidth,
+    });
+
     return createUINode({
         children: [
             createUINode({
                 id: props.titleNodeId,
                 layout: {
-                    offsetX: 0,
+                    offsetX: rowLayout.infoX,
                     offsetY: 0,
+                    width: rowLayout.infoWidth,
                 },
                 visual: {
                     text: {
                         autoWrap: false,
                         horizontalAlign: "left",
-                        maxWidth: null,
+                        maxWidth: rowLayout.infoWidth,
                         text: props.titleText,
                     },
                 },
@@ -157,14 +190,15 @@ function createCombatShopUpgradeItemRow(props: CombatShopUpgradeItemRowProps): U
             createUINode({
                 id: props.levelNodeId,
                 layout: {
-                    offsetX: 0,
-                    offsetY: 18,
+                    offsetX: rowLayout.auxX,
+                    offsetY: 0,
+                    width: COMBAT_SHOP_SKIN_MAP.upgradeRows.levelColumnWidth,
                 },
                 visual: {
                     text: {
                         autoWrap: false,
-                        horizontalAlign: "left",
-                        maxWidth: null,
+                        horizontalAlign: "right",
+                        maxWidth: COMBAT_SHOP_SKIN_MAP.upgradeRows.levelColumnWidth,
                         text: props.levelText,
                     },
                 },
@@ -172,14 +206,15 @@ function createCombatShopUpgradeItemRow(props: CombatShopUpgradeItemRowProps): U
             createUINode({
                 id: props.descriptionNodeId,
                 layout: {
-                    offsetX: COMBAT_SHOP_SKIN_MAP.upgradeRows.infoOffsetX,
-                    offsetY: 0,
+                    offsetX: rowLayout.infoX,
+                    offsetY: COMBAT_SHOP_SKIN_MAP.upgradeRows.descriptionOffsetY,
+                    width: rowLayout.infoWidth,
                 },
                 visual: {
                     text: {
                         autoWrap: true,
                         horizontalAlign: "left",
-                        maxWidth: 104,
+                        maxWidth: rowLayout.infoWidth,
                         text: props.descriptionText,
                     },
                 },
@@ -189,7 +224,7 @@ function createCombatShopUpgradeItemRow(props: CombatShopUpgradeItemRowProps): U
                 buttonState: UIButtonState.NORMAL,
                 buttonVariant: UIButtonVariant.PRIMARY,
                 nodeId: props.buttonNodeId,
-                offsetX: COMBAT_SHOP_SKIN_MAP.upgradeRows.buttonOffsetX,
+                offsetX: rowLayout.actionX,
                 offsetY: COMBAT_SHOP_SKIN_MAP.upgradeRows.buttonOffsetY,
                 onClickAction: props.onButtonClickAction,
                 text: props.buttonText,

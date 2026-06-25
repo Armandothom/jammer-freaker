@@ -19,6 +19,18 @@ export type HudViewModel = {
     playerSpriteWidth: number;
     visible: boolean;
   };
+  demolitionPrompt: {
+    playerScreenX: number;
+    playerScreenY: number;
+    playerSpriteHeight: number;
+    playerSpriteWidth: number;
+    visible: boolean;
+  };
+  demolitionTimer: {
+    text: string;
+    viewportWidth: number;
+    visible: boolean;
+  };
   medicalItems: {
     bandage: {
       countText: string;

@@ -11,6 +11,13 @@ export type UISpriteClip = {
   trimRenderedSize?: boolean;
 };
 
+export type UISpriteNineSlice = {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+};
+
 export type UISpriteVisual = {
   spriteName: SpriteName;
   spriteSheetName: SpriteSheetName;
@@ -19,6 +26,7 @@ export type UISpriteVisual = {
   opacity?: number;
   rotationOffset?: number;
   clip?: UISpriteClip;
+  nineSlice?: UISpriteNineSlice;
 };
 
 export type UITextVisual = {

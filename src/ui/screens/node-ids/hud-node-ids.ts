@@ -18,6 +18,15 @@ export const HUD_NODE_IDS = {
     fill: "hud.medical-apply.fill",
     root: "hud.medical-apply.root",
   },
+  demolitionPrompt: {
+    icon: "hud.demolition-prompt.icon",
+    key: "hud.demolition-prompt.key",
+    root: "hud.demolition-prompt.root",
+  },
+  demolitionTimer: {
+    root: "hud.demolition-timer.root",
+    text: "hud.demolition-timer.text",
+  },
   medicalItems: {
     bandage: {
       icon: "hud.medical-items.bandage.icon",

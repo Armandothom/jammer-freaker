@@ -1,7 +1,5 @@
-import { MovementIntentComponent } from "../components/movement-intent.component.js";
+import { MovementInputComponent } from "../components/movement-input.component.js";
 import { PlayerComponent } from "../components/player.component.js";
-import { PositionComponent } from "../components/position.component.js";
-import { VelocityComponent } from "../components/velocity-component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { ISystem } from "./system.interface.js";
 
@@ -9,27 +7,28 @@ const keys: Record<string, boolean> = {};
 
 export class InputMovementSystem implements ISystem {
     constructor(
-        private positionComponentStore: ComponentStore<PositionComponent>,
-        private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
+        private movementInputComponentStore: ComponentStore<MovementInputComponent>,
         private playerComponentStore: ComponentStore<PlayerComponent>,
-        private velocityComponentStore: ComponentStore<VelocityComponent>,
     ) { }
 
     update(deltaTime: number): void {
-        for (const playerId of this.playerComponentStore.getAllEntities()) {
-            const velocity = this.velocityComponentStore.get(playerId);
+        const playerIds = this.playerComponentStore.getAllEntities();
+        const activePlayerIds = new Set(playerIds);
 
+        for (const playerId of playerIds) {
             const input = getInputForEntity(); // Definido abaixo
-            if (!input) continue;
+            if (!input) {
+                this.movementInputComponentStore.remove(playerId);
+                continue;
+            }
 
-            const pos = this.positionComponentStore.get(playerId);
-            if (!pos) continue;
+            this.movementInputComponentStore.add(playerId, new MovementInputComponent(input.dx, input.dy));
+        }
 
-            const intent = new MovementIntentComponent(
-                pos.x + input.dx * velocity.currentVelocityX,
-                pos.y + input.dy * velocity.currentVelocityY
-            );
-            this.movementIntentComponentStore.add(playerId, intent);
+        for (const inputEntity of this.movementInputComponentStore.getAllEntities()) {
+            if (!activePlayerIds.has(inputEntity)) {
+                this.movementInputComponentStore.remove(inputEntity);
+            }
         }
     }
 }

@@ -1,7 +1,11 @@
 import { CameraManager } from "../../game/world-map/camera-manager.js";
-import { BuildingInteractionManager } from "../../game/world-map/buildings/building-interaction-manager.js";
+import {
+    BuildingInteractionManager,
+    type BuildingCountsByName,
+} from "../../game/world-map/buildings/building-interaction-manager.js";
 import { BuildingInPlotSorter } from "../../game/world-map/buildings/building-in-plot-sorter.js";
 import { BuildingTilemapApplier } from "../../game/world-map/buildings/building-tilemap-applier.js";
+import type { PlacedBuilding } from "../../game/world-map/buildings/building-types.js";
 import { WorldEdgeChunkManager } from "../../game/world-map/world-edge-chunk-manager.js";
 import { WorldEdgeManager } from "../../game/world-map/world-edge-manager.js";
 import { WorldMapManager } from "../../game/world-map/world-map-manager.js";
@@ -220,6 +224,14 @@ export class LevelManager {
 
     public getBuildingInteractionManager(): BuildingInteractionManager {
         return this.buildingInteractionManager;
+    }
+
+    public getPlacedBuildings(): PlacedBuilding[] {
+        return this.buildingInteractionManager.getPlacedBuildings();
+    }
+
+    public getBuildingCountsByName(): BuildingCountsByName {
+        return this.buildingInteractionManager.getBuildingCountsByName();
     }
 
     public updateStateTransitions(): boolean {

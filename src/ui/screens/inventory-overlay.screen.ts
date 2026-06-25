@@ -1,13 +1,17 @@
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
 import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
 import { createItemPlacementBindAction } from "../input/container-content-ui-actions.js";
+import { createSelectInventoryOverlayTabAction } from "../input/inventory-overlay-ui-actions.js";
 import { createUINode, type UINode } from "../runtime/ui-node.js";
 import type { UIScreen } from "../runtime/ui-screen.js";
 import {
+  INVENTORY_OVERLAY_MAX_ACTIVE_QUESTS,
   INVENTORY_OVERLAY_MAX_BACKPACK_SLOTS,
   INVENTORY_OVERLAY_MAX_WEAPON_SLOTS,
   INVENTORY_OVERLAY_SKIN_MAP,
 } from "../style/inventory-overlay-skin-map.js";
+import { UIButtonState, UIButtonVariant } from "../style/ui-button-config.js";
+import { createButtonWidget } from "../widgets/button.widget.js";
 import {
   INVENTORY_OVERLAY_NODE_IDS,
   INVENTORY_OVERLAY_SCREEN_ID,
@@ -21,9 +25,30 @@ export class InventoryOverlayScreen implements UIScreen {
       children: [
         createUINode({
           children: [
+            ...this.createTabNodes(),
             ...this.createWeaponSlotNodes(),
             createUINode({
-              children: this.createBackpackSlotNodes(),
+              children: [
+                createUINode({
+                  id: INVENTORY_OVERLAY_NODE_IDS.hoveredItemName,
+                  layout: {
+                    height: INVENTORY_OVERLAY_SKIN_MAP.hoveredItemName.height,
+                    offsetX: 0,
+                    offsetY: 0,
+                    width: 220 - (INVENTORY_OVERLAY_SKIN_MAP.backpackFrame.padding * 2),
+                  },
+                  visual: {
+                    text: {
+                      autoWrap: false,
+                      horizontalAlign: "left",
+                      maxWidth: 220 - (INVENTORY_OVERLAY_SKIN_MAP.backpackFrame.padding * 2),
+                      text: "",
+                    },
+                  },
+                  zIndex: 4,
+                }),
+                ...this.createBackpackSlotNodes(),
+              ],
               id: INVENTORY_OVERLAY_NODE_IDS.backpackFrame,
               layout: {
                 childrenLayout: {
@@ -43,6 +68,7 @@ export class InventoryOverlayScreen implements UIScreen {
               visual: {
                 sprite: {
                   height: 64,
+                  nineSlice: INVENTORY_OVERLAY_SKIN_MAP.backpackFrame.nineSlice,
                   spriteName: INVENTORY_OVERLAY_SKIN_MAP.backpackFrame.backgroundSpriteName,
                   spriteSheetName: INVENTORY_OVERLAY_SKIN_MAP.backpackFrame.backgroundSpriteSheetName,
                   width: 220,
@@ -50,6 +76,7 @@ export class InventoryOverlayScreen implements UIScreen {
               },
               zIndex: 2,
             }),
+            this.createQuestsFrameNode(),
           ],
           id: INVENTORY_OVERLAY_NODE_IDS.panelFrame,
           layout: {
@@ -71,6 +98,7 @@ export class InventoryOverlayScreen implements UIScreen {
           visual: {
             sprite: {
               height: INVENTORY_OVERLAY_SKIN_MAP.panelFrame.height,
+              nineSlice: INVENTORY_OVERLAY_SKIN_MAP.panelFrame.nineSlice,
               spriteName: INVENTORY_OVERLAY_SKIN_MAP.panelFrame.backgroundSpriteName,
               spriteSheetName: INVENTORY_OVERLAY_SKIN_MAP.panelFrame.backgroundSpriteSheetName,
               width: INVENTORY_OVERLAY_SKIN_MAP.panelFrame.width,
@@ -171,6 +199,7 @@ export class InventoryOverlayScreen implements UIScreen {
         visual: {
           sprite: {
             height: INVENTORY_OVERLAY_SKIN_MAP.itemSlot.height,
+            nineSlice: INVENTORY_OVERLAY_SKIN_MAP.itemSlot.nineSlice,
             spriteName: INVENTORY_OVERLAY_SKIN_MAP.itemSlot.backgroundSpriteName,
             spriteSheetName: INVENTORY_OVERLAY_SKIN_MAP.itemSlot.backgroundSpriteSheetName,
             width: INVENTORY_OVERLAY_SKIN_MAP.itemSlot.width,
@@ -256,6 +285,156 @@ export class InventoryOverlayScreen implements UIScreen {
       visible: false,
       zIndex: 20,
     });
+  }
+
+  private createActiveQuestNodes(): UINode[] {
+    return Array.from({ length: INVENTORY_OVERLAY_MAX_ACTIVE_QUESTS }, (_value, questIndex) => {
+      const nodeIds = INVENTORY_OVERLAY_NODE_IDS.activeQuest(questIndex);
+
+      return createUINode({
+        children: [
+          this.createQuestTextNode(
+            nodeIds.title,
+            0,
+            INVENTORY_OVERLAY_SKIN_MAP.activeQuest.titleOffsetY,
+            INVENTORY_OVERLAY_SKIN_MAP.activeQuest.textWidth,
+            "",
+            true,
+          ),
+          this.createQuestTextNode(
+            nodeIds.objective,
+            0,
+            INVENTORY_OVERLAY_SKIN_MAP.activeQuest.descriptionOffsetY,
+            INVENTORY_OVERLAY_SKIN_MAP.activeQuest.textWidth,
+            "",
+            true,
+          ),
+        ],
+        id: nodeIds.root,
+        layout: {
+          childrenLayout: {
+            kind: "absolute",
+          },
+          height: INVENTORY_OVERLAY_SKIN_MAP.activeQuest.entryHeight,
+          offsetX: INVENTORY_OVERLAY_SKIN_MAP.activeQuest.offsetX,
+          offsetY: 0,
+          width: INVENTORY_OVERLAY_SKIN_MAP.activeQuest.textWidth,
+        },
+        visible: false,
+        zIndex: 3,
+      });
+    });
+  }
+
+  private createQuestTextNode(
+    nodeId: string,
+    offsetX: number,
+    offsetY: number,
+    width: number,
+    text: string,
+    autoWrap = false,
+  ): UINode {
+    return createUINode({
+      id: nodeId,
+      layout: {
+        offsetX,
+        offsetY,
+        width,
+      },
+      visual: {
+        text: {
+          autoWrap,
+          horizontalAlign: "left",
+          maxWidth: width,
+          text,
+        },
+      },
+      zIndex: 4,
+    });
+  }
+
+  private createQuestsFrameNode(): UINode {
+    return createUINode({
+      children: [
+        createUINode({
+          id: INVENTORY_OVERLAY_NODE_IDS.activeQuestEmpty,
+          layout: {
+            offsetX: 0,
+            offsetY: INVENTORY_OVERLAY_SKIN_MAP.activeQuest.offsetY,
+            width: INVENTORY_OVERLAY_SKIN_MAP.activeQuest.textWidth,
+          },
+          visual: {
+            text: {
+              autoWrap: true,
+              horizontalAlign: "left",
+              maxWidth: INVENTORY_OVERLAY_SKIN_MAP.activeQuest.textWidth,
+              text: "",
+            },
+          },
+          visible: false,
+          zIndex: 4,
+        }),
+        ...this.createActiveQuestNodes(),
+      ],
+      id: INVENTORY_OVERLAY_NODE_IDS.questsFrame,
+      layout: {
+        childrenLayout: {
+          kind: "absolute",
+        },
+        height: INVENTORY_OVERLAY_SKIN_MAP.questsFrame.height,
+        offsetX: INVENTORY_OVERLAY_SKIN_MAP.questsFrame.offsetX,
+        offsetY: INVENTORY_OVERLAY_SKIN_MAP.questsFrame.offsetY,
+        padding: {
+          bottom: INVENTORY_OVERLAY_SKIN_MAP.questsFrame.padding,
+          left: INVENTORY_OVERLAY_SKIN_MAP.questsFrame.padding,
+          right: INVENTORY_OVERLAY_SKIN_MAP.questsFrame.padding,
+          top: INVENTORY_OVERLAY_SKIN_MAP.questsFrame.padding,
+        },
+        width: INVENTORY_OVERLAY_SKIN_MAP.questsFrame.width,
+      },
+      visible: false,
+      visual: {
+        sprite: {
+          height: INVENTORY_OVERLAY_SKIN_MAP.questsFrame.height,
+          nineSlice: INVENTORY_OVERLAY_SKIN_MAP.questsFrame.nineSlice,
+          spriteName: INVENTORY_OVERLAY_SKIN_MAP.questsFrame.backgroundSpriteName,
+          spriteSheetName: INVENTORY_OVERLAY_SKIN_MAP.questsFrame.backgroundSpriteSheetName,
+          width: INVENTORY_OVERLAY_SKIN_MAP.questsFrame.width,
+        },
+      },
+      zIndex: 2,
+    });
+  }
+
+  private createTabNodes(): UINode[] {
+    return [
+      createButtonWidget({
+        anchor: "top-left",
+        buttonState: UIButtonState.SELECTED,
+        buttonVariant: UIButtonVariant.TAB,
+        height: INVENTORY_OVERLAY_SKIN_MAP.tabs.height,
+        nodeId: INVENTORY_OVERLAY_NODE_IDS.tabs.inventory,
+        offsetX: INVENTORY_OVERLAY_SKIN_MAP.tabs.offsetX,
+        offsetY: INVENTORY_OVERLAY_SKIN_MAP.tabs.offsetY,
+        onClickAction: createSelectInventoryOverlayTabAction("inventory"),
+        text: "Inventory",
+        width: INVENTORY_OVERLAY_SKIN_MAP.tabs.tabWidth,
+      }),
+      createButtonWidget({
+        anchor: "top-left",
+        buttonState: UIButtonState.NORMAL,
+        buttonVariant: UIButtonVariant.TAB,
+        height: INVENTORY_OVERLAY_SKIN_MAP.tabs.height,
+        nodeId: INVENTORY_OVERLAY_NODE_IDS.tabs.quests,
+        offsetX: INVENTORY_OVERLAY_SKIN_MAP.tabs.offsetX
+          + INVENTORY_OVERLAY_SKIN_MAP.tabs.tabWidth
+          + INVENTORY_OVERLAY_SKIN_MAP.tabs.tabGap,
+        offsetY: INVENTORY_OVERLAY_SKIN_MAP.tabs.offsetY,
+        onClickAction: createSelectInventoryOverlayTabAction("quests"),
+        text: "Quests",
+        width: INVENTORY_OVERLAY_SKIN_MAP.tabs.tabWidth,
+      }),
+    ];
   }
 
   private createWeaponSlotNodes(): UINode[] {
@@ -370,6 +549,7 @@ export class InventoryOverlayScreen implements UIScreen {
         visual: {
           sprite: {
             height: INVENTORY_OVERLAY_SKIN_MAP.weaponSlot.height,
+            nineSlice: INVENTORY_OVERLAY_SKIN_MAP.itemSlot.nineSlice,
             spriteName: INVENTORY_OVERLAY_SKIN_MAP.itemSlot.backgroundSpriteName,
             spriteSheetName: INVENTORY_OVERLAY_SKIN_MAP.itemSlot.backgroundSpriteSheetName,
             width: INVENTORY_OVERLAY_SKIN_MAP.weaponSlot.width,

@@ -8,15 +8,19 @@ import { createLegacyPointLayout } from "./legacy-layout.js";
 import { createButtonWidget } from "./button.widget.js";
 import { getBitmapTextBounds } from "../../utils/get-bitmap-text-size.js";
 import { getCenteredBitmapTextPosition } from "../../utils/get-centered-bitmap-text-position.js";
+import { resolveShopInfoActionRowLayout, resolveShopInfoAuxActionRowLayout } from "../layout/shop-auto-layout.js";
+import { UI_BUTTON_CONFIG } from "../style/ui-button-config.js";
 
 type GunsShopItemRowWidgetProps = {
   anchor: UIAnchor;
   buttonNodeId: string;
-  buttonOffsetX: number;
   buttonOffsetY: number;
   buttonState: UIButtonState;
   buttonText: string;
   iconNodeId: string;
+  iconToInfoGap: number;
+  infoToButtonGap: number;
+  infoToQuantityGap?: number;
   itemHeight: number;
   itemName: string;
   itemNameNodeId: string;
@@ -25,22 +29,42 @@ type GunsShopItemRowWidgetProps = {
   itemWidth: number;
   legacyOffsetX: number;
   legacyOffsetY: number;
-  nameOffsetX: number;
   nodeId: string;
   onButtonClickAction: UIAction;
+  quantityColumnWidth?: number;
   quantityNodeId?: string;
   quantityText?: string;
-  secondarySpacingX?: number;
+  quantityToButtonGap?: number;
+  rowWidth: number;
 };
 
 export function createGunsShopItemRowWidget(props: GunsShopItemRowWidgetProps): UINode {
   const itemNameBounds = getBitmapTextBounds(props.itemName, "04b_03", 2);
+  const buttonWidth = UI_BUTTON_CONFIG[UIButtonVariant.PRIMARY].width;
   const textBaselineY = props.buttonOffsetY + getCenteredBitmapTextPosition(
     props.buttonText,
-    64,
-    32,
+    buttonWidth,
+    UI_BUTTON_CONFIG[UIButtonVariant.PRIMARY].height,
     2,
   ).y;
+  const quantityRowLayout = props.quantityNodeId
+    ? resolveShopInfoAuxActionRowLayout({
+      actionWidth: buttonWidth,
+      auxToActionGap: props.quantityToButtonGap ?? 0,
+      auxWidth: props.quantityColumnWidth ?? 0,
+      infoToAuxGap: props.infoToQuantityGap ?? 0,
+      leadingToInfoGap: props.iconToInfoGap,
+      leadingWidth: props.itemWidth,
+      rowWidth: props.rowWidth,
+    })
+    : null;
+  const rowLayout = quantityRowLayout ?? resolveShopInfoActionRowLayout({
+      actionWidth: buttonWidth,
+      infoToActionGap: props.infoToButtonGap,
+      leadingToInfoGap: props.iconToInfoGap,
+      leadingWidth: props.itemWidth,
+      rowWidth: props.rowWidth,
+    });
   const children: UINode[] = [
     createUINode({
       id: props.iconNodeId,
@@ -62,7 +86,7 @@ export function createGunsShopItemRowWidget(props: GunsShopItemRowWidgetProps): 
       buttonState: props.buttonState,
       buttonVariant: UIButtonVariant.PRIMARY,
       nodeId: props.buttonNodeId,
-      offsetX: props.buttonOffsetX,
+      offsetX: rowLayout.actionX,
       offsetY: props.buttonOffsetY,
       onClickAction: props.onButtonClickAction,
       text: props.buttonText,
@@ -70,14 +94,15 @@ export function createGunsShopItemRowWidget(props: GunsShopItemRowWidgetProps): 
     createUINode({
       id: props.itemNameNodeId,
       layout: {
-        offsetX: props.itemWidth + props.nameOffsetX - itemNameBounds.left,
+        offsetX: rowLayout.infoX - itemNameBounds.left,
         offsetY: textBaselineY,
+        width: rowLayout.infoWidth,
       },
       visual: {
         text: {
           autoWrap: false,
           horizontalAlign: "left",
-          maxWidth: null,
+          maxWidth: rowLayout.infoWidth,
           text: props.itemName,
         },
       },
@@ -86,23 +111,19 @@ export function createGunsShopItemRowWidget(props: GunsShopItemRowWidgetProps): 
 
   if (props.quantityNodeId) {
     const quantityText = props.quantityText ?? "";
-    const quantityBounds = getBitmapTextBounds(quantityText, "04b_03", 2);
 
     children.push(createUINode({
       id: props.quantityNodeId,
       layout: {
-        offsetX: props.itemWidth
-          + props.nameOffsetX
-          + itemNameBounds.width
-          + (props.secondarySpacingX ?? 0)
-          - quantityBounds.left,
+        offsetX: quantityRowLayout?.auxX ?? 0,
         offsetY: textBaselineY,
+        width: props.quantityColumnWidth ?? 0,
       },
       visual: {
         text: {
           autoWrap: false,
-          horizontalAlign: "left",
-          maxWidth: null,
+          horizontalAlign: "right",
+          maxWidth: props.quantityColumnWidth ?? 0,
           text: quantityText,
         },
       },

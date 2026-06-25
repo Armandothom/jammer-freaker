@@ -1,4 +1,6 @@
 import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
+import type { UISpriteNineSlice } from "./ui-visual-types.js";
+import { UI_BUTTON_NINE_SLICE } from "./ui-nine-slice.js";
 
 export const UIButtonState = {
   NORMAL: "normal",
@@ -26,6 +28,7 @@ export type UIButtonVisualStateConfig = {
 export type UIButtonConfig = {
   width: number;
   height: number;
+  nineSlice?: UISpriteNineSlice;
   states: Record<UIButtonState, UIButtonVisualStateConfig>;
 };
 
@@ -33,6 +36,7 @@ export const UI_BUTTON_CONFIG: Record<UIButtonVariant, UIButtonConfig> = {
   [UIButtonVariant.PRIMARY]: {
     width: 64,
     height: 32,
+    nineSlice: UI_BUTTON_NINE_SLICE,
     states: {
       [UIButtonState.NORMAL]: { spriteName: SpriteName.BUTTON_1 },
       [UIButtonState.SELECTED]: { spriteName: SpriteName.BUTTON_1_SELECTED },
@@ -42,6 +46,7 @@ export const UI_BUTTON_CONFIG: Record<UIButtonVariant, UIButtonConfig> = {
   [UIButtonVariant.TAB]: {
     width: 96,
     height: 32,
+    nineSlice: UI_BUTTON_NINE_SLICE,
     states: {
       [UIButtonState.NORMAL]: { spriteName: SpriteName.BUTTON_2 },
       [UIButtonState.SELECTED]: { spriteName: SpriteName.BUTTON_2_SELECTED },
@@ -51,6 +56,7 @@ export const UI_BUTTON_CONFIG: Record<UIButtonVariant, UIButtonConfig> = {
   [UIButtonVariant.PROMINENT]: {
     width: 128,
     height: 48,
+    nineSlice: UI_BUTTON_NINE_SLICE,
     states: {
       [UIButtonState.NORMAL]: { spriteName: SpriteName.BUTTON_3 },
       [UIButtonState.SELECTED]: { spriteName: SpriteName.BUTTON_3_SELECTED },
@@ -60,6 +66,7 @@ export const UI_BUTTON_CONFIG: Record<UIButtonVariant, UIButtonConfig> = {
   [UIButtonVariant.COMPACT]: {
     width: 64,
     height: 32,
+    nineSlice: UI_BUTTON_NINE_SLICE,
     states: {
       [UIButtonState.NORMAL]: { spriteName: SpriteName.BUTTON_4 },
       [UIButtonState.SELECTED]: { spriteName: SpriteName.BUTTON_4_SELECTED },

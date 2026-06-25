@@ -1,3 +1,4 @@
+import { ActiveQuestComponent } from "../../ecs/components/active-quest-component.js";
 import { InventoryComponent } from "../../ecs/components/inventory-component.js";
 import { PlayerComponent } from "../../ecs/components/player.component.js";
 import {
@@ -6,20 +7,38 @@ import {
   isInventoryResourceType,
 } from "../../ecs/components/types/inventory-resource-type.js";
 import { MISC_RESOURCE_TYPES } from "../../ecs/components/types/misc-resource-type.js";
+import {
+  QUEST_CONFIG,
+  QuestType,
+  type QuestConfigEntry,
+} from "../../ecs/components/types/quest-config.js";
 import type { LootContainerLootSlot } from "../../ecs/components/loot-container-content.component.js";
 import { WeaponType } from "../../ecs/components/types/weapon-config.js";
 import { ComponentStore } from "../../ecs/core/component-store.js";
 import { InventoryManager } from "../../ecs/core/inventory-manager.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
 import type { LootTableItemId } from "../../game/world-map/loot/loot-tables.js";
+import {
+  formatLootItemAbbreviation,
+  formatLootItemDetails,
+  formatLootItemName,
+} from "../../game/world-map/loot/loot-item-display.js";
 import { getLootSprite } from "../../game/world-map/loot/loot-sprites.js";
 import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
-import { INVENTORY_OVERLAY_SKIN_MAP } from "../style/inventory-overlay-skin-map.js";
+import {
+  INVENTORY_OVERLAY_MAX_ACTIVE_QUESTS,
+  INVENTORY_OVERLAY_SKIN_MAP,
+} from "../style/inventory-overlay-skin-map.js";
+import { UIButtonState } from "../style/ui-button-config.js";
 import type {
+  InventoryOverlayActiveQuestViewModel,
   InventoryOverlayBackpackSlotViewModel,
+  InventoryOverlayTab,
+  InventoryOverlayTabViewModel,
   InventoryOverlayViewModel,
   InventoryOverlayWeaponSlotViewModel,
 } from "../view-models/inventory-overlay.view-model.js";
+import { INVENTORY_OVERLAY_TAB } from "../view-models/inventory-overlay.view-model.js";
 
 type InventoryOverlayItemStack = {
   itemId: LootTableItemId;
@@ -40,13 +59,16 @@ const WEAPON_SLOT_ORDER: readonly WeaponType[] = [
 ];
 
 export class InventoryOverlayPresenter {
+  private activeTab: InventoryOverlayTab = INVENTORY_OVERLAY_TAB.INVENTORY;
   private draggedBackpackSlotIndex: number | null = null;
+  private hoveredBackpackSlotIndex: number | null = null;
   private backpackPlacementItemIds: Array<LootTableItemId | null> = [];
 
   constructor(
     private inventoryManager: InventoryManager,
     private inventoryComponentStore: ComponentStore<InventoryComponent>,
     private playerComponentStore: ComponentStore<PlayerComponent>,
+    private activeQuestComponent: ActiveQuestComponent,
   ) { }
 
   public buildViewModel(): InventoryOverlayViewModel | null {
@@ -68,17 +90,33 @@ export class InventoryOverlayPresenter {
     );
     const backpackSlotsWidth = (backpackColumnCount * INVENTORY_OVERLAY_SKIN_MAP.itemSlot.width)
       + Math.max(0, backpackColumnCount - 1) * INVENTORY_OVERLAY_SKIN_MAP.layout.slotGap;
+    const hoveredItemNameHeight = INVENTORY_OVERLAY_SKIN_MAP.hoveredItemName.height
+      + INVENTORY_OVERLAY_SKIN_MAP.layout.slotGap;
     const backpackSlotsHeight = (backpackRowCount * INVENTORY_OVERLAY_SKIN_MAP.itemSlot.height)
       + Math.max(0, backpackRowCount - 1) * INVENTORY_OVERLAY_SKIN_MAP.layout.slotGap;
     const backpackFrameWidth = backpackSlotsWidth + INVENTORY_OVERLAY_SKIN_MAP.backpackFrame.padding * 2;
-    const backpackFrameHeight = backpackSlotsHeight + INVENTORY_OVERLAY_SKIN_MAP.backpackFrame.padding * 2;
+    const backpackFrameHeight = hoveredItemNameHeight
+      + backpackSlotsHeight
+      + INVENTORY_OVERLAY_SKIN_MAP.backpackFrame.padding * 2;
 
     return {
+      activeQuestEmptyText: "No active quests.",
+      activeQuestEmptyVisible: this.activeTab === INVENTORY_OVERLAY_TAB.QUESTS
+        && this.activeQuestComponent.getActiveQuestIds().length === 0,
+      activeQuests: this.buildActiveQuestViewModels(),
+      activeTab: this.activeTab,
       backpackFrameHeight,
       backpackFrameWidth,
       backpackFrameX: Math.round((INVENTORY_OVERLAY_SKIN_MAP.layout.contentWidth - backpackFrameWidth) / 2),
       backpackFrameY: INVENTORY_OVERLAY_SKIN_MAP.backpackFrame.offsetY,
       backpackSlots: this.buildBackpackSlotViewModels(backpackMaxSlots, backpackItemStacks),
+      hoveredItemName: this.resolveHoveredBackpackItemDetails(backpackItemStacks),
+      hoveredItemNameWidth: backpackSlotsWidth,
+      inventoryContentVisible: this.activeTab === INVENTORY_OVERLAY_TAB.INVENTORY,
+      questsContentVisible: this.activeTab === INVENTORY_OVERLAY_TAB.QUESTS,
+      questsFrameHeight: INVENTORY_OVERLAY_SKIN_MAP.questsFrame.height,
+      questsFrameWidth: INVENTORY_OVERLAY_SKIN_MAP.questsFrame.width,
+      tabs: this.buildTabViewModels(),
       weaponSlots: this.buildWeaponSlotViewModels(inventory),
     };
   }
@@ -219,6 +257,42 @@ export class InventoryOverlayPresenter {
     this.draggedBackpackSlotIndex = slotIndex;
   }
 
+  public setHoveredBackpackSlotIndex(slotIndex: number | null): void {
+    this.hoveredBackpackSlotIndex = slotIndex;
+  }
+
+  public selectTab(tab: InventoryOverlayTab): void {
+    this.activeTab = tab;
+    this.draggedBackpackSlotIndex = null;
+    this.hoveredBackpackSlotIndex = null;
+  }
+
+  private buildActiveQuestViewModels(): InventoryOverlayActiveQuestViewModel[] {
+    return this.activeQuestComponent
+      .getActiveQuestIds()
+      .slice(0, INVENTORY_OVERLAY_MAX_ACTIVE_QUESTS)
+      .map((questId, questIndex) => {
+        const quest = QUEST_CONFIG[questId];
+        const y = INVENTORY_OVERLAY_SKIN_MAP.activeQuest.offsetY
+          + questIndex * (
+            INVENTORY_OVERLAY_SKIN_MAP.activeQuest.entryHeight
+            + INVENTORY_OVERLAY_SKIN_MAP.activeQuest.entryGap
+          );
+
+        return {
+          objectiveText: formatActiveQuestObjective(
+            quest,
+            (objectiveIndex) => this.activeQuestComponent.getObjectiveProgress(questId, objectiveIndex),
+          ),
+          questIndex,
+          titleText: `${quest.title} --- ${quest.trader}`,
+          visible: this.activeTab === INVENTORY_OVERLAY_TAB.QUESTS,
+          x: INVENTORY_OVERLAY_SKIN_MAP.activeQuest.offsetX,
+          y,
+        };
+      });
+  }
+
   private buildBackpackSlotViewModels(
     backpackMaxSlots: number,
     itemStacks: Array<InventoryOverlayItemStack | null>,
@@ -244,13 +318,15 @@ export class InventoryOverlayPresenter {
         iconSpriteSheetName: lootSprite.spriteSheetName,
         iconVisible: itemVisible && hasLootSprite,
         iconWidth: INVENTORY_OVERLAY_SKIN_MAP.itemIcon.width,
-        labelText: itemStack ? formatInventoryItemAbbreviation(itemStack.itemId) : "",
+        labelText: itemStack ? formatLootItemAbbreviation(itemStack.itemId) : "",
         labelVisible: itemVisible && !hasLootSprite,
         quantityVisible: itemVisible,
         slotIndex,
         visible: true,
         x: column * (INVENTORY_OVERLAY_SKIN_MAP.itemSlot.width + INVENTORY_OVERLAY_SKIN_MAP.layout.slotGap),
-        y: row * (INVENTORY_OVERLAY_SKIN_MAP.itemSlot.height + INVENTORY_OVERLAY_SKIN_MAP.layout.slotGap),
+        y: INVENTORY_OVERLAY_SKIN_MAP.hoveredItemName.height
+          + INVENTORY_OVERLAY_SKIN_MAP.layout.slotGap
+          + row * (INVENTORY_OVERLAY_SKIN_MAP.itemSlot.height + INVENTORY_OVERLAY_SKIN_MAP.layout.slotGap),
       };
     });
   }
@@ -423,6 +499,20 @@ export class InventoryOverlayPresenter {
     return this.inventoryManager.removeMiscResource(inventory, itemId, amount);
   }
 
+  private resolveHoveredBackpackItemDetails(
+    itemStacks: Array<InventoryOverlayItemStack | null>,
+  ): string {
+    if (this.hoveredBackpackSlotIndex == null) {
+      return "";
+    }
+
+    const itemStack = itemStacks[this.hoveredBackpackSlotIndex] ?? null;
+
+    return itemStack
+      ? formatLootItemDetails(itemStack.itemId)
+      : "";
+  }
+
   private buildWeaponSlotViewModels(inventory: InventoryComponent): InventoryOverlayWeaponSlotViewModel[] {
     const ownedWeaponTypes = WEAPON_SLOT_ORDER.filter((weaponType) => {
       return this.inventoryManager.getWeaponState(inventory, weaponType)?.owned === true;
@@ -462,6 +552,23 @@ export class InventoryOverlayPresenter {
           + slotIndex * (INVENTORY_OVERLAY_SKIN_MAP.weaponSlot.height + INVENTORY_OVERLAY_SKIN_MAP.weaponSlot.rowGap),
       };
     });
+  }
+
+  private buildTabViewModels(): InventoryOverlayTabViewModel[] {
+    return [
+      {
+        buttonState: this.activeTab === INVENTORY_OVERLAY_TAB.INVENTORY
+          ? UIButtonState.SELECTED
+          : UIButtonState.NORMAL,
+        tab: INVENTORY_OVERLAY_TAB.INVENTORY,
+      },
+      {
+        buttonState: this.activeTab === INVENTORY_OVERLAY_TAB.QUESTS
+          ? UIButtonState.SELECTED
+          : UIButtonState.NORMAL,
+        tab: INVENTORY_OVERLAY_TAB.QUESTS,
+      },
+    ];
   }
 
   private formatSmallCounter(value: number): string {
@@ -588,21 +695,68 @@ export class InventoryOverlayPresenter {
   }
 }
 
-function formatInventoryItemName(itemId: LootTableItemId): string {
-  return `${itemId}`
-    .replace(/([a-z])([A-Z])/g, "$1 $2")
-    .replace(/[_-]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
-
-function formatInventoryItemAbbreviation(itemId: LootTableItemId): string {
-  const words = formatInventoryItemName(itemId).split(" ").filter(Boolean);
-
-  if (words.length >= 2) {
-    return `${words[0][0]}${words[1][0]}`.toUpperCase();
+function formatActiveQuestObjective(
+  quest: QuestConfigEntry,
+  getObjectiveProgress: (objectiveIndex: number) => number,
+): string {
+  if (quest.objectives.length === 0) {
+    return "Objective pending.";
   }
 
-  return (words[0] ?? "").slice(0, 2).toUpperCase();
+  const summary = quest.objectives
+    .map((objective, objectiveIndex) => formatQuestObjectiveTarget(
+      objective,
+      getObjectiveProgress(objectiveIndex),
+    ))
+    .join(", ");
+
+  switch (quest.type) {
+    case QuestType.COLLECTOR:
+      return `Collect ${summary}`;
+
+    case QuestType.DEMOLITION:
+      return formatDemolitionObjectiveProgress(quest, getObjectiveProgress);
+
+    case QuestType.HVT:
+      return `Eliminate ${summary}`;
+
+    case QuestType.WIPE:
+      return `Kill ${summary}`;
+
+    case QuestType.FINAL:
+      return `Finish ${summary}`;
+  }
+}
+
+function formatQuestObjectiveTarget(
+  objective: QuestConfigEntry["objectives"][number],
+  completedQuantity: number,
+): string {
+  const quantityText = completedQuantity > 0
+    ? `${Math.min(completedQuantity, objective.quantity)}/${objective.quantity}x`
+    : `${objective.quantity}x`;
+
+  if ("item" in objective) {
+    return `${quantityText} ${formatLootItemName(objective.item)}`;
+  }
+
+  if ("category" in objective) {
+    return `${quantityText} ${objective.category}`;
+  }
+
+  return `${quantityText} ${objective.target}`;
+}
+
+function formatDemolitionObjectiveProgress(
+  quest: QuestConfigEntry,
+  getObjectiveProgress: (objectiveIndex: number) => number,
+): string {
+  const totalBuildings = quest.objectives.reduce((total, objective) => {
+    return total + objective.quantity;
+  }, 0);
+  const destroyedBuildings = quest.objectives.reduce((total, objective, objectiveIndex) => {
+    return total + Math.min(getObjectiveProgress(objectiveIndex), objective.quantity);
+  }, 0);
+
+  return `Buildings destroyed: ${destroyedBuildings}/${totalBuildings}`;
 }

@@ -102,6 +102,7 @@ function cloneVisual(visual?: UIVisual): UIVisual | undefined {
       ? {
         ...visual.sprite,
         clip: visual.sprite.clip ? { ...visual.sprite.clip } : undefined,
+        nineSlice: visual.sprite.nineSlice ? { ...visual.sprite.nineSlice } : undefined,
       }
       : undefined,
     text: visual.text ? { ...visual.text } : undefined,

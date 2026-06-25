@@ -26,6 +26,7 @@ function createUpgradeItemNodeIds(prefix: string) {
 export const MEDICAL_SHOP_NODE_IDS = {
     background: "medical-shop.background",
     money: "medical-shop.money",
+    questButton: "medical-shop.quest-button",
     resourceItem(itemType: MedicalShopResourceItemType) {
         return createItemNodeIds(`medical-shop.resource.${itemType}`);
     },

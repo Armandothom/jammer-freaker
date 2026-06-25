@@ -46,6 +46,8 @@ export class HudScreen implements UIScreen {
           visible: false,
           width: HUD_SKIN_MAP.medicalApplyBar.width,
         }),
+        this.createDemolitionPromptNode(),
+        this.createDemolitionTimerNode(),
         createWeaponPanelWidget({
           anchor: HUD_SKIN_MAP.weaponPanel.anchor,
           frameHeight: HUD_SKIN_MAP.weaponPanel.frame.height,
@@ -239,6 +241,97 @@ export class HudScreen implements UIScreen {
         offsetX: skin.offsetX,
         offsetY: skin.offsetY + args.rowIndex * skin.rowGap,
       },
+    });
+  }
+
+  private createDemolitionPromptNode(): ReturnType<typeof createUINode> {
+    const skin = HUD_SKIN_MAP.demolitionPrompt;
+
+    return createUINode({
+      children: [
+        createUINode({
+          id: HUD_NODE_IDS.demolitionPrompt.icon,
+          layout: {
+            height: skin.icon.height,
+            offsetX: skin.icon.offsetX,
+            offsetY: skin.icon.offsetY,
+            width: skin.icon.width,
+          },
+          visual: {
+            sprite: {
+              height: skin.icon.height,
+              spriteName: skin.icon.spriteName,
+              spriteSheetName: skin.icon.spriteSheetName,
+              width: skin.icon.width,
+            },
+          },
+        }),
+        createUINode({
+          id: HUD_NODE_IDS.demolitionPrompt.key,
+          layout: {
+            height: "content",
+            offsetX: 0,
+            offsetY: skin.keyOffsetY,
+            width: skin.width,
+          },
+          visual: {
+            text: {
+              autoWrap: false,
+              horizontalAlign: "center",
+              maxWidth: skin.width,
+              text: "B",
+            },
+          },
+        }),
+      ],
+      id: HUD_NODE_IDS.demolitionPrompt.root,
+      layout: {
+        anchor: skin.anchor,
+        childrenLayout: {
+          kind: "overlay",
+        },
+        offsetX: 0,
+        offsetY: 0,
+        width: skin.width,
+      },
+      visible: false,
+    });
+  }
+
+  private createDemolitionTimerNode(): ReturnType<typeof createUINode> {
+    const skin = HUD_SKIN_MAP.demolitionTimer;
+
+    return createUINode({
+      children: [
+        createUINode({
+          id: HUD_NODE_IDS.demolitionTimer.text,
+          layout: {
+            height: "content",
+            offsetX: 0,
+            offsetY: 0,
+            width: skin.textWidth,
+          },
+          visual: {
+            text: {
+              autoWrap: false,
+              horizontalAlign: "center",
+              maxWidth: skin.textWidth,
+              text: "",
+            },
+          },
+        }),
+      ],
+      id: HUD_NODE_IDS.demolitionTimer.root,
+      layout: {
+        anchor: skin.anchor,
+        childrenLayout: {
+          kind: "overlay",
+        },
+        offsetX: 0,
+        offsetY: skin.offsetY,
+        width: skin.textWidth,
+      },
+      visible: false,
     });
   }
 

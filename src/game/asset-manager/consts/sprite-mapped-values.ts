@@ -710,7 +710,7 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
     SpriteSheetName.BLANK,
     {
       rows: 1,
-      columns: 1,
+      columns: 2,
       eachSpriteCellSizeHeight: 16,
       eachSpriteCellSizeWidth: 16,
       srcImagePath: 'src/assets/images/blank.png',
@@ -718,6 +718,13 @@ export const SPRITESHEET_MAPPED_VALUES: Map<SpriteSheetName, SpriteSheetBlueprin
         [SpriteName.BLANK, {
           row: 1,
           column: 1,
+          originalRenderSpriteHeight: 32,
+          originalRenderSpriteWidth: 12,
+          spriteCellOffset: { offsetX: 0, offsetY: 0, width: 16, height: 16 }
+        }],
+        [SpriteName.GREY, {
+          row: 1,
+          column: 2,
           originalRenderSpriteHeight: 32,
           originalRenderSpriteWidth: 12,
           spriteCellOffset: { offsetX: 0, offsetY: 0, width: 16, height: 16 }

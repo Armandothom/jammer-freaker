@@ -14,6 +14,7 @@ function createUpgradeItemNodeIds(prefix: string) {
 export const COMBAT_SHOP_NODE_IDS = {
     background: "combat-shop.background",
     money: "combat-shop.money",
+    questButton: "combat-shop.quest-button",
     returnButton: "combat-shop.return-button",
     root: "combat-shop.root",
     sections: {

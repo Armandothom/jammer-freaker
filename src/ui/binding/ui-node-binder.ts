@@ -37,6 +37,7 @@ export class UINodeBinder {
       ...node.visual.sprite,
       ...patch,
       clip: nextClip,
+      nineSlice: patch.nineSlice ? { ...patch.nineSlice } : node.visual.sprite.nineSlice,
     };
   }
 

@@ -11,6 +11,7 @@ import {
   GUNS_SHOP_WEAPON_ITEM_CONFIG,
   GUNS_SHOP_WEAPON_ITEMS_ORDER,
 } from "../../ecs/components/types/guns-shop-weapon-item-config.js";
+import { QUEST_TRADER } from "../../ecs/components/types/quest-config.js";
 import { WEAPON_UPGRADE_TYPES_ORDER } from "../../ecs/components/types/weapon-upgrade-config.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
 import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
@@ -23,10 +24,12 @@ import {
   createSelectGunsShopTabAction,
   createSelectGunsShopUpgradeTabAction,
 } from "../input/guns-shop-ui-actions.js";
+import { createOpenQuestScreenAction } from "../input/quest-ui-actions.js";
 import { createUINode } from "../runtime/ui-node.js";
 import type { UIScreen } from "../runtime/ui-screen.js";
+import { resolveLegacyRightAnchoredStripOffsetX, resolveShopInfoActionRowLayout } from "../layout/shop-auto-layout.js";
 import { GUNS_SHOP_SKIN_MAP } from "../style/guns-shop-skin-map.js";
-import { UIButtonState, UIButtonVariant } from "../style/ui-button-config.js";
+import { UI_BUTTON_CONFIG, UIButtonState, UIButtonVariant } from "../style/ui-button-config.js";
 import { createButtonWidget } from "../widgets/button.widget.js";
 import { createLegacyPointLayout, resolveLegacyAnchorLayout } from "../widgets/legacy-layout.js";
 import { createGunsShopItemRowWidget } from "../widgets/guns-shop-item-row.widget.js";
@@ -80,7 +83,12 @@ export class GunsShopScreen implements UIScreen {
           buttonVariant: UIButtonVariant.TAB,
           legacyAnchor: true,
           nodeId: GUNS_SHOP_NODE_IDS.tab(tabType),
-          offsetX: GUNS_SHOP_SKIN_MAP.tabs.offsetX + (GUNS_SHOP_SKIN_MAP.tabs.stepX * index),
+          offsetX: resolveLegacyRightAnchoredStripOffsetX(
+            GUNS_SHOP_SKIN_MAP.tabs.offsetX,
+            index,
+            UI_BUTTON_CONFIG[UIButtonVariant.TAB].width,
+            GUNS_SHOP_SKIN_MAP.tabs.gap,
+          ),
           offsetY: GUNS_SHOP_SKIN_MAP.tabs.offsetY,
           onClickAction: createSelectGunsShopTabAction(tabType),
           text: GUNS_SHOP_TAB_CONFIG[tabType].label,
@@ -96,6 +104,16 @@ export class GunsShopScreen implements UIScreen {
           onClickAction: createReturnFromGunsShopToHubAction(),
           text: "Return to Hub",
         }),
+        createButtonWidget({
+          anchor: "bottom-left",
+          buttonState: UIButtonState.NORMAL,
+          buttonVariant: UIButtonVariant.PROMINENT,
+          nodeId: GUNS_SHOP_NODE_IDS.questButton,
+          offsetX: 64,
+          offsetY: 48,
+          onClickAction: createOpenQuestScreenAction(QUEST_TRADER.BILL),
+          text: "Quests",
+        }),
         createUINode({
           children: GUNS_SHOP_WEAPON_ITEMS_ORDER.map((itemType, index) => {
             const nodeIds = GUNS_SHOP_NODE_IDS.weaponItem(itemType);
@@ -104,11 +122,12 @@ export class GunsShopScreen implements UIScreen {
             return createGunsShopItemRowWidget({
               anchor: GUNS_SHOP_SKIN_MAP.itemRows.anchor,
               buttonNodeId: nodeIds.button,
-              buttonOffsetX: GUNS_SHOP_SKIN_MAP.itemRows.buttonOffsetX,
               buttonOffsetY: GUNS_SHOP_SKIN_MAP.itemRows.buttonOffsetY,
               buttonState: UIButtonState.NORMAL,
               buttonText: `$${MONEY_FORMATTER.format(config.price)}`,
               iconNodeId: nodeIds.icon,
+              iconToInfoGap: GUNS_SHOP_SKIN_MAP.itemRows.iconToInfoGap,
+              infoToButtonGap: GUNS_SHOP_SKIN_MAP.itemRows.infoToButtonGap,
               itemHeight: config.height,
               itemName: config.name,
               itemNameNodeId: nodeIds.name,
@@ -117,9 +136,9 @@ export class GunsShopScreen implements UIScreen {
               itemWidth: config.width,
               legacyOffsetX: GUNS_SHOP_SKIN_MAP.itemRows.offsetX,
               legacyOffsetY: GUNS_SHOP_SKIN_MAP.itemRows.offsetY + (GUNS_SHOP_SKIN_MAP.itemRows.stepY * index),
-              nameOffsetX: GUNS_SHOP_SKIN_MAP.itemRows.nameOffsetX,
               nodeId: nodeIds.root,
               onButtonClickAction: createBuyGunsShopWeaponAction(itemType),
+              rowWidth: GUNS_SHOP_SKIN_MAP.itemRows.rowWidth,
             });
           }),
           id: GUNS_SHOP_NODE_IDS.sections.weapons,
@@ -140,11 +159,13 @@ export class GunsShopScreen implements UIScreen {
             return createGunsShopItemRowWidget({
               anchor: GUNS_SHOP_SKIN_MAP.itemRows.anchor,
               buttonNodeId: nodeIds.button,
-              buttonOffsetX: GUNS_SHOP_SKIN_MAP.itemRows.buttonOffsetX,
               buttonOffsetY: GUNS_SHOP_SKIN_MAP.itemRows.buttonOffsetY,
               buttonState: UIButtonState.NORMAL,
               buttonText: `$${MONEY_FORMATTER.format(config.price)}`,
               iconNodeId: nodeIds.icon,
+              iconToInfoGap: GUNS_SHOP_SKIN_MAP.itemRows.iconToInfoGap,
+              infoToButtonGap: GUNS_SHOP_SKIN_MAP.itemRows.infoToButtonGap,
+              infoToQuantityGap: GUNS_SHOP_SKIN_MAP.itemRows.infoToQuantityGap,
               itemHeight: config.height,
               itemName: config.name,
               itemNameNodeId: nodeIds.name,
@@ -153,12 +174,13 @@ export class GunsShopScreen implements UIScreen {
               itemWidth: config.width,
               legacyOffsetX: GUNS_SHOP_SKIN_MAP.itemRows.offsetX,
               legacyOffsetY: GUNS_SHOP_SKIN_MAP.itemRows.offsetY + (GUNS_SHOP_SKIN_MAP.itemRows.stepY * index),
-              nameOffsetX: GUNS_SHOP_SKIN_MAP.itemRows.nameOffsetX,
               nodeId: nodeIds.root,
               onButtonClickAction: createBuyGunsShopResourceAction(itemType),
+              quantityColumnWidth: GUNS_SHOP_SKIN_MAP.itemRows.quantityColumnWidth,
               quantityNodeId: nodeIds.quantity,
               quantityText: `x${config.availableQuantity}`,
-              secondarySpacingX: GUNS_SHOP_SKIN_MAP.itemRows.secondarySpacingX,
+              quantityToButtonGap: GUNS_SHOP_SKIN_MAP.itemRows.quantityToButtonGap,
+              rowWidth: GUNS_SHOP_SKIN_MAP.itemRows.rowWidth,
             });
           }),
           id: GUNS_SHOP_NODE_IDS.sections.resources,
@@ -232,17 +254,26 @@ export class GunsShopScreen implements UIScreen {
             })),
             ...WEAPON_UPGRADE_TYPES_ORDER.map((upgradeType, index) => {
               const nodeIds = GUNS_SHOP_NODE_IDS.upgradeRow(upgradeType);
+              const rowLayout = resolveShopInfoActionRowLayout({
+                actionWidth: UI_BUTTON_CONFIG[UIButtonVariant.PRIMARY].width,
+                infoToActionGap: GUNS_SHOP_SKIN_MAP.upgradeRows.infoToButtonGap,
+                leadingToInfoGap: GUNS_SHOP_SKIN_MAP.upgradeRows.labelToInfoGap,
+                leadingWidth: GUNS_SHOP_SKIN_MAP.upgradeRows.labelColumnWidth,
+                rowWidth: GUNS_SHOP_SKIN_MAP.upgradeRows.rowWidth,
+              });
 
               return createUpgradeItemRowWidget({
                 anchor: GUNS_SHOP_SKIN_MAP.upgradeRows.anchor,
                 buttonNodeId: nodeIds.button,
-                buttonOffsetX: GUNS_SHOP_SKIN_MAP.upgradeRows.buttonOffsetX,
+                buttonOffsetX: rowLayout.actionX,
                 buttonOffsetY: GUNS_SHOP_SKIN_MAP.upgradeRows.buttonOffsetY,
                 buttonState: UIButtonState.NORMAL,
                 buttonText: "",
+                infoMaxWidth: rowLayout.infoWidth,
                 infoNodeId: nodeIds.info,
-                infoOffsetX: GUNS_SHOP_SKIN_MAP.upgradeRows.infoOffsetX,
+                infoOffsetX: rowLayout.infoX,
                 infoText: "",
+                labelMaxWidth: GUNS_SHOP_SKIN_MAP.upgradeRows.labelColumnWidth,
                 labelNodeId: nodeIds.label,
                 labelText: "",
                 legacyOffsetX: GUNS_SHOP_SKIN_MAP.upgradeRows.offsetX,

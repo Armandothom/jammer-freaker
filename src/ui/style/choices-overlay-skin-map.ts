@@ -1,5 +1,6 @@
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
 import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
+import { UI_FRAME_NINE_SLICE } from "./ui-nine-slice.js";
 
 export const CHOICES_OVERLAY_SKIN_MAP = {
   choice: {
@@ -9,6 +10,7 @@ export const CHOICES_OVERLAY_SKIN_MAP = {
   frame: {
     backgroundSpriteName: SpriteName.INVENTORY_FRAME_1,
     backgroundSpriteSheetName: SpriteSheetName.INVENTORY_FRAMES,
+    nineSlice: UI_FRAME_NINE_SLICE,
     padding: 8,
   },
   layout: {

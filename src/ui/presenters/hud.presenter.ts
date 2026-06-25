@@ -1,4 +1,7 @@
 import { BleedDamageComponent } from "../../ecs/components/bleed-damage.component.js";
+import { DemolitionBombComponent } from "../../ecs/components/demolition-bomb.component.js";
+import { DemolitionPlantComponent } from "../../ecs/components/demolition-plant.component.js";
+import { DemolitionPromptComponent } from "../../ecs/components/demolition-prompt.component.js";
 import { HealthComponent } from "../../ecs/components/health.component.js";
 import { InventoryComponent } from "../../ecs/components/inventory-component.js";
 import { MedicalItemUseComponent } from "../../ecs/components/medical-item-use.component.js";
@@ -32,6 +35,9 @@ export class HudPresenter {
     private healthComponentStore: ComponentStore<HealthComponent>,
     private bleedDamageComponentStore: ComponentStore<BleedDamageComponent>,
     private medicalItemUseComponentStore: ComponentStore<MedicalItemUseComponent>,
+    private demolitionPromptComponentStore: ComponentStore<DemolitionPromptComponent>,
+    private demolitionPlantComponentStore: ComponentStore<DemolitionPlantComponent>,
+    private demolitionBombComponentStore: ComponentStore<DemolitionBombComponent>,
     private positionComponentStore: ComponentStore<PositionComponent>,
     private spriteComponentStore: ComponentStore<SpriteComponent>,
     private cameraManager: CameraManager,
@@ -61,8 +67,12 @@ export class HudPresenter {
     const fillRatio = Math.max(0, Math.min(health.hp / maxHp, 1));
     const bleedDamage = this.bleedDamageComponentStore.getOrNull(playerEntity);
     const medicalApply = this.buildMedicalApplyViewModel(playerEntity);
+    const demolitionPrompt = this.buildDemolitionPromptViewModel(playerEntity);
+    const demolitionTimer = this.buildDemolitionTimerViewModel(playerEntity);
 
     return {
+      demolitionPrompt,
+      demolitionTimer,
       grenades: {
         countText: this.formatHudCounter(grenadeCount),
       },
@@ -108,16 +118,21 @@ export class HudPresenter {
 
   private buildMedicalApplyViewModel(playerEntity: number): HudViewModel["medicalApply"] {
     const medicalItemUse = this.medicalItemUseComponentStore.getOrNull(playerEntity);
+    const demolitionPlant = this.demolitionPlantComponentStore.getOrNull(playerEntity);
     const playerPosition = this.positionComponentStore.getOrNull(playerEntity);
     const playerSprite = this.spriteComponentStore.getOrNull(playerEntity);
 
-    if (!medicalItemUse || !playerPosition || !playerSprite) {
+    if ((!medicalItemUse && !demolitionPlant) || !playerPosition || !playerSprite) {
       return this.buildHiddenMedicalApplyViewModel();
     }
 
     const viewport = this.cameraManager.getViewport();
-    const applyTime = Math.max(medicalItemUse.applyTime, Number.EPSILON);
-    const fillRatio = Math.max(0, Math.min(medicalItemUse.timer / applyTime, 1));
+    const applyTime = Math.max(
+      medicalItemUse?.applyTime ?? demolitionPlant?.applyTime ?? 0,
+      Number.EPSILON,
+    );
+    const timer = medicalItemUse?.timer ?? demolitionPlant?.timer ?? 0;
+    const fillRatio = Math.max(0, Math.min(timer / applyTime, 1));
 
     return {
       fillRatio,
@@ -138,6 +153,63 @@ export class HudPresenter {
       playerSpriteWidth: 0,
       visible: false,
     };
+  }
+
+  private buildDemolitionPromptViewModel(playerEntity: number): HudViewModel["demolitionPrompt"] {
+    const prompt = this.demolitionPromptComponentStore.getOrNull(playerEntity);
+    const playerPosition = this.positionComponentStore.getOrNull(playerEntity);
+    const playerSprite = this.spriteComponentStore.getOrNull(playerEntity);
+
+    if (!prompt || !playerPosition || !playerSprite) {
+      return {
+        playerScreenX: 0,
+        playerScreenY: 0,
+        playerSpriteHeight: 0,
+        playerSpriteWidth: 0,
+        visible: false,
+      };
+    }
+
+    const viewport = this.cameraManager.getViewport();
+
+    return {
+      playerScreenX: playerPosition.x - viewport.left,
+      playerScreenY: playerPosition.y - viewport.top,
+      playerSpriteHeight: playerSprite.height,
+      playerSpriteWidth: playerSprite.width,
+      visible: true,
+    };
+  }
+
+  private buildDemolitionTimerViewModel(playerEntity: number): HudViewModel["demolitionTimer"] {
+    const bomb = this.demolitionBombComponentStore.getOrNull(playerEntity);
+    const viewportSize = this.cameraManager.getViewportSize();
+
+    if (!bomb) {
+      return {
+        text: "",
+        viewportWidth: viewportSize.width,
+        visible: false,
+      };
+    }
+
+    return {
+      text: this.formatSecondsWithCentiseconds(Math.max(0, bomb.fuseTime - bomb.timer)),
+      viewportWidth: viewportSize.width,
+      visible: true,
+    };
+  }
+
+  private formatSecondsWithCentiseconds(seconds: number): string {
+    const centiseconds = Math.max(0, Math.ceil(seconds * 100));
+    const wholeSeconds = Math.floor(centiseconds / 100);
+    const fractional = centiseconds % 100;
+
+    return `${this.padTwoDigits(wholeSeconds)}.${this.padTwoDigits(fractional)}`;
+  }
+
+  private padTwoDigits(value: number): string {
+    return value < 10 ? `0${value}` : `${value}`;
   }
 
   private formatHudCounter(value: number): string {

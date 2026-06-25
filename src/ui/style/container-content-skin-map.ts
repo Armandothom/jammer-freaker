@@ -1,5 +1,6 @@
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
 import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
+import { UI_FRAME_NINE_SLICE } from "./ui-nine-slice.js";
 
 export const CONTAINER_CONTENT_SKIN_MAP = {
   closeButton: {
@@ -10,10 +11,11 @@ export const CONTAINER_CONTENT_SKIN_MAP = {
   frame: {
     backgroundSpriteName: SpriteName.INVENTORY_FRAME_1,
     backgroundSpriteSheetName: SpriteSheetName.INVENTORY_FRAMES,
+    nineSlice: UI_FRAME_NINE_SLICE,
     padding: 8,
   },
   hoveredItemName: {
-    height: 18,
+    height: 36,
   },
   itemIcon: {
     height: 32,
@@ -35,6 +37,7 @@ export const CONTAINER_CONTENT_SKIN_MAP = {
     backgroundSpriteName: SpriteName.ITEM_FRAME_1,
     backgroundSpriteSheetName: SpriteSheetName.ITEM_FRAMES,
     height: 48,
+    nineSlice: UI_FRAME_NINE_SLICE,
     width: 48,
   },
   layout: {

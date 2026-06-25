@@ -2,6 +2,7 @@ import { BitmapTextComponent } from "../components/bitmap-text.component.js";
 import { RenderableComponent } from "../components/renderable-component.js";
 import { ScreenPositionComponent } from "../components/screen-position.component.js";
 import { SpriteClipComponent } from "../components/sprite-clip.component.js";
+import { SpriteNineSliceComponent } from "../components/sprite-nine-slice.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { TransformComponent } from "../components/transform-component.js";
 import { UIRuntimeElementComponent } from "../components/ui-runtime-element.component.js";
@@ -9,6 +10,7 @@ import { ZLayerComponent } from "../components/z-layer.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { EntityManager } from "../core/entity-manager.js";
 import type { UIRenderableNode } from "../../ui/runtime/ui-document.js";
+import type { UISpriteNineSlice } from "../../ui/style/ui-visual-types.js";
 
 const DEFAULT_UI_FONT_ID = "04b_03";
 const DEFAULT_UI_TEXT_SCALE = 2;
@@ -24,6 +26,7 @@ export class UIRuntimeEntityFactory {
     private zLayerComponentStore: ComponentStore<ZLayerComponent>,
     private uiRuntimeElementComponentStore: ComponentStore<UIRuntimeElementComponent>,
     private spriteClipComponentStore: ComponentStore<SpriteClipComponent>,
+    private spriteNineSliceComponentStore: ComponentStore<SpriteNineSliceComponent>,
     private transformComponentStore: ComponentStore<TransformComponent>,
   ) { }
 
@@ -58,6 +61,7 @@ export class UIRuntimeEntityFactory {
     this.zLayerComponentStore.remove(entityId);
     this.uiRuntimeElementComponentStore.remove(entityId);
     this.spriteClipComponentStore.remove(entityId);
+    this.spriteNineSliceComponentStore.remove(entityId);
     this.transformComponentStore.remove(entityId);
   }
 
@@ -141,6 +145,7 @@ export class UIRuntimeEntityFactory {
     if (!spriteVisual) {
       this.spriteComponentStore.remove(entityId);
       this.spriteClipComponentStore.remove(entityId);
+      this.spriteNineSliceComponentStore.remove(entityId);
       this.transformComponentStore.remove(entityId);
       return;
     }
@@ -167,6 +172,7 @@ export class UIRuntimeEntityFactory {
     }
 
     this.syncSpriteTransform(entityId, spriteVisual.rotationOffset);
+    this.syncSpriteNineSlice(entityId, spriteVisual.nineSlice);
 
     if (!spriteVisual.clip) {
       this.spriteClipComponentStore.remove(entityId);
@@ -191,6 +197,35 @@ export class UIRuntimeEntityFactory {
         spriteVisual.clip.sourceWidth,
         spriteVisual.clip.sourceHeight,
         spriteVisual.clip.trimRenderedSize ?? true,
+      ),
+    );
+  }
+
+  private syncSpriteNineSlice(
+    entityId: number,
+    nineSlice: UISpriteNineSlice | undefined,
+  ): void {
+    if (!nineSlice) {
+      this.spriteNineSliceComponentStore.remove(entityId);
+      return;
+    }
+
+    const component = this.spriteNineSliceComponentStore.getOrNull(entityId);
+    if (component) {
+      component.top = nineSlice.top;
+      component.right = nineSlice.right;
+      component.bottom = nineSlice.bottom;
+      component.left = nineSlice.left;
+      return;
+    }
+
+    this.spriteNineSliceComponentStore.add(
+      entityId,
+      new SpriteNineSliceComponent(
+        nineSlice.top,
+        nineSlice.right,
+        nineSlice.bottom,
+        nineSlice.left,
       ),
     );
   }

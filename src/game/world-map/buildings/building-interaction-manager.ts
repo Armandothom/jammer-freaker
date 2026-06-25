@@ -5,7 +5,9 @@ import type {
 } from "./building-types.js";
 import { isBuildingDoorTileType } from "./building-types.js";
 import { getBuildingLootSpawnPoints } from "./building-spawn-registry.js";
-import type { BuildingName } from "./buildings-config.js";
+import { BUILDING_NAMES, type BuildingName } from "./buildings-config.js";
+
+export type BuildingCountsByName = Record<BuildingName, number>;
 
 export type BuildingInteractionFeatureKind =
   | "door"
@@ -26,6 +28,7 @@ export interface BuildingInteractionFeature {
 
 export class BuildingInteractionManager {
   private tileSize = 32;
+  private placedBuildings: PlacedBuilding[] = [];
   private readonly featuresByKind = new Map<BuildingInteractionFeatureKind, BuildingInteractionFeature[]>();
   private readonly buildingInstanceIdsByTile = new Map<string, string>();
   private readonly doorFeaturesByBuildingInstanceId = new Map<string, BuildingInteractionFeature[]>();
@@ -33,6 +36,7 @@ export class BuildingInteractionManager {
   public rebuild(placements: PlacedBuilding[]): void {
     this.clear();
     this.tileSize = placements[0]?.tileSize ?? this.tileSize;
+    this.placedBuildings = placements.map((placement) => this.clonePlacedBuilding(placement));
 
     for (const placement of placements) {
       this.indexPlacement(placement);
@@ -43,6 +47,7 @@ export class BuildingInteractionManager {
     this.featuresByKind.clear();
     this.buildingInstanceIdsByTile.clear();
     this.doorFeaturesByBuildingInstanceId.clear();
+    this.placedBuildings = [];
   }
 
   public getDoors(): BuildingInteractionFeature[] {
@@ -51,6 +56,23 @@ export class BuildingInteractionManager {
 
   public getLootSpawnPoints(): BuildingInteractionFeature[] {
     return this.getFeaturesByKind("loot_spawn");
+  }
+
+  public getPlacedBuildings(): PlacedBuilding[] {
+    return this.placedBuildings.map((placement) => this.clonePlacedBuilding(placement));
+  }
+
+  public getBuildingCountsByName(): BuildingCountsByName {
+    const counts = BUILDING_NAMES.reduce((result, buildingName) => {
+      result[buildingName] = 0;
+      return result;
+    }, {} as BuildingCountsByName);
+
+    for (const placement of this.placedBuildings) {
+      counts[placement.buildingName] += 1;
+    }
+
+    return counts;
   }
 
   public getDoorsForBuildingAtWorldPosition(worldX: number, worldY: number): BuildingInteractionFeature[] {
@@ -178,6 +200,14 @@ export class BuildingInteractionManager {
 
   private getFeaturesByKind(kind: BuildingInteractionFeatureKind): BuildingInteractionFeature[] {
     return [...(this.featuresByKind.get(kind) ?? [])];
+  }
+
+  private clonePlacedBuilding(placement: PlacedBuilding): PlacedBuilding {
+    return {
+      ...placement,
+      rect: { ...placement.rect },
+      tiles: placement.tiles.map((tile) => ({ ...tile })),
+    };
   }
 
   private addFeature(feature: BuildingInteractionFeature): void {

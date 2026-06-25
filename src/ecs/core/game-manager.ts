@@ -6,18 +6,38 @@ import { WeatherManager } from "../../game/weather/weather-manager.js";
 import { WorldMapManager } from "../../game/world-map/world-map-manager.js";
 import { WorldTilemapManager } from "../../game/world-map/world-tilemap-manager.js";
 import type { InventorySnapshot } from "../components/snapshots/inventory-snapshot.js";
+import type { QuestSnapshot } from "../components/snapshots/quest-snapshot.js";
+import type { StorageSnapshot } from "../components/snapshots/storage-snapshot.js";
+import type { QuestTrader } from "../components/types/quest-config.js";
+import { WeaponType } from "../components/types/weapon-config.js";
 import { GameplaySystemRunner } from "./gameplay-system-runner.js";
 import { DebugManager } from "./debug-manager.js";
 import { EntityManager } from "./entity-manager.js";
+import { InventoryManager } from "./inventory-manager.js";
 import { ShopSystemRunner } from "./shop-system-runner.js";
 import { GameState } from "./types/game-state.enum.js";
+
+type QuestReturnState =
+    | GameState.ShopHubState
+    | GameState.CampStorageState
+    | GameState.WareBuyerState
+    | GameState.MissionSelectState
+    | GameState.GunsShopState
+    | GameState.MedicalShopState
+    | GameState.CombatShopState;
+
+type ShopState = QuestReturnState | GameState.QuestState;
 
 export class GameManager {
     private readonly gameplaySystemRunner: GameplaySystemRunner;
     private readonly shopSystemRunner: ShopSystemRunner;
     private readonly weatherManager: WeatherManager;
     private activeState: GameState = GameState.ShopHubState;
-    private inventorySnapshot: InventorySnapshot | null = null;
+    private inventorySnapshot: InventorySnapshot | null = GameManager.createInitialInventorySnapshot();
+    private storageSnapshot: StorageSnapshot | null = null;
+    private questSnapshot: QuestSnapshot | null = null;
+    private wareBuyerSaleSnapshot: StorageSnapshot | null = null;
+    private questReturnState: QuestReturnState = GameState.ShopHubState;
 
     constructor(
         private worldTilemapManager: WorldTilemapManager,
@@ -54,8 +74,17 @@ export class GameManager {
         this.shopSystemRunner.bindGameManager(this);
     }
 
+    private static createInitialInventorySnapshot(): InventorySnapshot {
+        const inventoryManager = new InventoryManager();
+
+        return inventoryManager.createDefaultInventory(WeaponType.PISTOL).toSnapshot();
+    }
+
     initialize(): void {
         this.shopSystemRunner.setInventorySnapshot(this.inventorySnapshot);
+        this.shopSystemRunner.setStorageSnapshot(this.storageSnapshot);
+        this.shopSystemRunner.setQuestSnapshot(this.questSnapshot);
+        this.shopSystemRunner.setWareBuyerSaleSnapshot(this.wareBuyerSaleSnapshot);
         this.shopSystemRunner.initialize();
     }
 
@@ -66,10 +95,13 @@ export class GameManager {
                 return;
 
             case GameState.ShopHubState:
+            case GameState.CampStorageState:
+            case GameState.WareBuyerState:
             case GameState.MissionSelectState:
             case GameState.GunsShopState:
             case GameState.MedicalShopState:
             case GameState.CombatShopState:
+            case GameState.QuestState:
                 this.shopSystemRunner.update();
                 return;
 
@@ -82,6 +114,14 @@ export class GameManager {
 
     requestShopHubState(): void {
         this.requestShopState(GameState.ShopHubState);
+    }
+
+    requestCampStorageState(): void {
+        this.requestShopState(GameState.CampStorageState);
+    }
+
+    requestWareBuyerState(): void {
+        this.requestShopState(GameState.WareBuyerState);
     }
 
     requestMissionSelectState(): void {
@@ -100,6 +140,19 @@ export class GameManager {
         this.requestShopState(GameState.CombatShopState);
     }
 
+    requestQuestState(trader: QuestTrader): void {
+        if (this.activeState !== GameState.QuestState && this.isQuestReturnState(this.activeState)) {
+            this.questReturnState = this.activeState;
+        }
+
+        this.shopSystemRunner.openQuestForTrader(trader);
+        this.requestShopState(GameState.QuestState);
+    }
+
+    requestReturnFromQuestState(): void {
+        this.requestShopState(this.questReturnState);
+    }
+
     requestGameplayState(mapId?: string | null): void {
         if (this.activeState === GameState.GameplayState) {
             return;
@@ -107,6 +160,10 @@ export class GameManager {
 
         const selectedMapId = this.worldMapManager.resolveMapId(mapId);
         this.inventorySnapshot = this.shopSystemRunner.captureInventorySnapshot();
+        this.storageSnapshot = this.shopSystemRunner.captureStorageSnapshot();
+        this.questSnapshot = this.shopSystemRunner.captureQuestSnapshot();
+        this.wareBuyerSaleSnapshot = this.shopSystemRunner.captureWareBuyerSaleSnapshot();
+        this.gameplaySystemRunner.setQuestSnapshot(this.questSnapshot);
         this.gameplaySystemRunner.startMapWithInventorySnapshot(selectedMapId, this.inventorySnapshot);
         this.shopSystemRunner.reset();
         this.activeState = GameState.GameplayState;
@@ -115,19 +172,29 @@ export class GameManager {
         console.log("[GameManager] Inventory snapshot:", this.inventorySnapshot);
     }
 
-    private requestShopState(nextState: GameState.ShopHubState | GameState.MissionSelectState | GameState.GunsShopState | GameState.MedicalShopState | GameState.CombatShopState): void {
+    private requestShopState(nextState: ShopState): void {
         if (this.activeState === nextState) {
             return;
         }
 
         if (this.activeState === GameState.GameplayState) {
             this.inventorySnapshot = this.gameplaySystemRunner.capturePlayerInventorySnapshot();
+            this.questSnapshot = this.gameplaySystemRunner.captureQuestSnapshot();
             this.shopSystemRunner.reset();
             this.shopSystemRunner.setInventorySnapshot(this.inventorySnapshot);
+            this.shopSystemRunner.setStorageSnapshot(this.storageSnapshot);
+            this.shopSystemRunner.setQuestSnapshot(this.questSnapshot);
+            this.shopSystemRunner.setWareBuyerSaleSnapshot(this.wareBuyerSaleSnapshot);
             this.shopSystemRunner.initialize();
         } else if (this.isShopState(this.activeState)) {
             this.inventorySnapshot = this.shopSystemRunner.captureInventorySnapshot();
+            this.storageSnapshot = this.shopSystemRunner.captureStorageSnapshot();
+            this.questSnapshot = this.shopSystemRunner.captureQuestSnapshot();
+            this.wareBuyerSaleSnapshot = this.shopSystemRunner.captureWareBuyerSaleSnapshot();
             this.shopSystemRunner.syncInventorySnapshot(this.inventorySnapshot);
+            this.shopSystemRunner.syncStorageSnapshot(this.storageSnapshot);
+            this.shopSystemRunner.syncQuestSnapshot(this.questSnapshot);
+            this.shopSystemRunner.syncWareBuyerSaleSnapshot(this.wareBuyerSaleSnapshot);
         }
 
         this.activeState = nextState;
@@ -136,12 +203,19 @@ export class GameManager {
         console.log("[GameManager] Inventory snapshot:", this.inventorySnapshot);
     }
 
-    private isShopState(state: GameState): state is GameState.ShopHubState | GameState.MissionSelectState | GameState.GunsShopState | GameState.MedicalShopState | GameState.CombatShopState {
+    private isQuestReturnState(state: GameState): state is QuestReturnState {
         return state === GameState.ShopHubState
+            || state === GameState.CampStorageState
+            || state === GameState.WareBuyerState
             || state === GameState.MissionSelectState
             || state === GameState.GunsShopState
             || state === GameState.MedicalShopState
             || state === GameState.CombatShopState;
+    }
+
+    private isShopState(state: GameState): state is ShopState {
+        return this.isQuestReturnState(state)
+            || state === GameState.QuestState;
     }
 
     getCurrentState(): GameState {

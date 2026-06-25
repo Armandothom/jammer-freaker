@@ -14,7 +14,9 @@ type UpgradeItemRowWidgetProps = {
   buttonText: string;
   infoNodeId: string;
   infoOffsetX: number;
+  infoMaxWidth?: number;
   infoText: string;
+  labelMaxWidth?: number;
   labelNodeId: string;
   labelText: string;
   legacyOffsetX: number;
@@ -32,12 +34,13 @@ export function createUpgradeItemRowWidget(
       layout: {
         offsetX: 0,
         offsetY: 0,
+        width: props.labelMaxWidth,
       },
       visual: {
         text: {
           autoWrap: false,
           horizontalAlign: "left",
-          maxWidth: null,
+          maxWidth: props.labelMaxWidth ?? null,
           text: props.labelText,
         },
       },
@@ -47,12 +50,13 @@ export function createUpgradeItemRowWidget(
       layout: {
         offsetX: props.infoOffsetX,
         offsetY: 0,
+        width: props.infoMaxWidth,
       },
       visual: {
         text: {
           autoWrap: false,
           horizontalAlign: "left",
-          maxWidth: null,
+          maxWidth: props.infoMaxWidth ?? null,
           text: props.infoText,
         },
       },

@@ -61,6 +61,7 @@ export function createButtonWidget(props: ButtonWidgetProps): UINode {
     visual: {
       sprite: {
         height: buttonHeight,
+        nineSlice: buttonConfig.nineSlice,
         spriteName: buttonConfig.states[props.buttonState].spriteName,
         spriteSheetName: SpriteSheetName.BUTTONS,
         width: buttonWidth,

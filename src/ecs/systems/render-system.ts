@@ -23,6 +23,7 @@ import { PositionComponent } from "../components/position.component.js";
 import { RenderableComponent } from "../components/renderable-component.js";
 import { ScreenPositionComponent } from "../components/screen-position.component.js";
 import { SpriteClipComponent } from "../components/sprite-clip.component.js";
+import { SpriteNineSliceComponent } from "../components/sprite-nine-slice.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { TransformComponent } from "../components/transform-component.js";
 import { AnimDirection } from "../components/types/anim-direction.js";
@@ -56,6 +57,13 @@ interface WallRenderObjectGroups {
   visibilityMasked: RenderObject[];
 }
 
+interface NineSliceAxisSegment {
+  sourceOffset: number;
+  sourceSize: number;
+  renderOffset: number;
+  renderSize: number;
+}
+
 const SCREEN_SPACE_DIALOG_Z_OFFSET = 1000;
 
 export class RenderSystem implements ISystem {
@@ -74,6 +82,7 @@ export class RenderSystem implements ISystem {
     private screenPositionComponentStore: ComponentStore<ScreenPositionComponent>,
     private spriteComponentStore: ComponentStore<SpriteComponent>,
     private spriteClipComponentStore: ComponentStore<SpriteClipComponent>,
+    private spriteNineSliceComponentStore: ComponentStore<SpriteNineSliceComponent>,
     private uiRuntimeElementComponentStore: ComponentStore<UIRuntimeElementComponent>,
     private cameraManager: CameraManager,
     private tilemapManager: WorldTilemapManager,
@@ -378,6 +387,7 @@ export class RenderSystem implements ISystem {
           sprite.spriteSheetName,
         );
         const spriteClip = this.spriteClipComponentStore.getOrNull(entity);
+        const spriteNineSlice = this.spriteNineSliceComponentStore.getOrNull(entity);
         let spriteWidth = sprite.hasExplicitWidth
           ? sprite.width
           : spriteProperties.sprite.originalRenderSpriteWidth;
@@ -466,7 +476,7 @@ export class RenderSystem implements ISystem {
             ? spriteHeight * transformComponent.rotationPivotYFactor
             : undefined);
 
-        renderObjects.push({
+        const renderObject: RenderObject = {
           xWorldPosition: screenX,
           yWorldPosition: screenY,
           spriteSheetTexture: spriteProperties.spriteSheet.texture,
@@ -483,7 +493,21 @@ export class RenderSystem implements ISystem {
             sprite.spriteSheetName,
           ),
           zLevel,
-        });
+        };
+
+        if (spriteNineSlice && !spriteClip && angleRotation === null) {
+          renderObjects.push(
+            ...this.getNineSliceRenderObjects(
+              renderObject,
+              sprite,
+              spriteNineSlice,
+              spriteProperties.sprite.spriteCellOffset.width,
+              spriteProperties.sprite.spriteCellOffset.height,
+            ),
+          );
+        } else {
+          renderObjects.push(renderObject);
+        }
       }
 
       if (bitmapText) {
@@ -839,6 +863,139 @@ export class RenderSystem implements ISystem {
       worldBottom < viewport.top ||
       worldTop > viewport.bottom
     );
+  }
+
+  private getNineSliceRenderObjects(
+    baseRenderObject: RenderObject,
+    sprite: SpriteComponent,
+    nineSlice: SpriteNineSliceComponent,
+    sourceWidth: number,
+    sourceHeight: number,
+  ): RenderObject[] {
+    const horizontalSegments = this.getNineSliceAxisSegments(
+      sourceWidth,
+      baseRenderObject.width,
+      nineSlice.left,
+      nineSlice.right,
+    );
+    const verticalSegments = this.getNineSliceAxisSegments(
+      sourceHeight,
+      baseRenderObject.height,
+      nineSlice.top,
+      nineSlice.bottom,
+    );
+    const renderObjects: RenderObject[] = [];
+
+    for (const verticalSegment of verticalSegments) {
+      for (const horizontalSegment of horizontalSegments) {
+        if (
+          horizontalSegment.sourceSize <= 0 ||
+          verticalSegment.sourceSize <= 0 ||
+          horizontalSegment.renderSize <= 0 ||
+          verticalSegment.renderSize <= 0
+        ) {
+          continue;
+        }
+
+        renderObjects.push({
+          ...baseRenderObject,
+          xWorldPosition: baseRenderObject.xWorldPosition + horizontalSegment.renderOffset,
+          yWorldPosition: baseRenderObject.yWorldPosition + verticalSegment.renderOffset,
+          width: horizontalSegment.renderSize,
+          height: verticalSegment.renderSize,
+          uvCoordinates: this.spriteManager.getClippedUvCoordinates(
+            sprite.spriteName,
+            sprite.spriteSheetName,
+            {
+              sourceOffsetX: horizontalSegment.sourceOffset,
+              sourceOffsetY: verticalSegment.sourceOffset,
+              sourceWidth: horizontalSegment.sourceSize,
+              sourceHeight: verticalSegment.sourceSize,
+            },
+          ),
+        });
+      }
+    }
+
+    return renderObjects.length > 0 ? renderObjects : [baseRenderObject];
+  }
+
+  private getNineSliceAxisSegments(
+    sourceSize: number,
+    renderSize: number,
+    startMargin: number,
+    endMargin: number,
+  ): NineSliceAxisSegment[] {
+    const sourceStartSize = this.clampNineSliceMargin(startMargin, sourceSize);
+    const sourceEndSize = this.clampNineSliceMargin(endMargin, sourceSize - sourceStartSize);
+    const sourceMiddleSize = Math.max(0, sourceSize - sourceStartSize - sourceEndSize);
+    const fittedRenderMargins = this.fitNineSliceRenderMargins(
+      renderSize,
+      sourceStartSize,
+      sourceEndSize,
+    );
+    const renderMiddleSize = Math.max(
+      0,
+      renderSize - fittedRenderMargins.start - fittedRenderMargins.end,
+    );
+
+    return [
+      {
+        sourceOffset: 0,
+        sourceSize: sourceStartSize,
+        renderOffset: 0,
+        renderSize: fittedRenderMargins.start,
+      },
+      {
+        sourceOffset: sourceStartSize,
+        sourceSize: sourceMiddleSize,
+        renderOffset: fittedRenderMargins.start,
+        renderSize: renderMiddleSize,
+      },
+      {
+        sourceOffset: sourceSize - sourceEndSize,
+        sourceSize: sourceEndSize,
+        renderOffset: renderSize - fittedRenderMargins.end,
+        renderSize: fittedRenderMargins.end,
+      },
+    ];
+  }
+
+  private clampNineSliceMargin(margin: number, availableSize: number): number {
+    if (!Number.isFinite(margin) || availableSize <= 0) {
+      return 0;
+    }
+
+    return Math.max(0, Math.min(margin, availableSize));
+  }
+
+  private fitNineSliceRenderMargins(
+    renderSize: number,
+    startSize: number,
+    endSize: number,
+  ): { start: number; end: number } {
+    const totalFixedSize = startSize + endSize;
+
+    if (renderSize <= 0 || totalFixedSize <= 0) {
+      return {
+        start: 0,
+        end: 0,
+      };
+    }
+
+    if (totalFixedSize <= renderSize) {
+      return {
+        start: startSize,
+        end: endSize,
+      };
+    }
+
+    const scale = renderSize / totalFixedSize;
+
+    return {
+      start: startSize * scale,
+      end: endSize * scale,
+    };
   }
 
   private getDepthLevel(worldY: number, layerMultiplier: number): number {

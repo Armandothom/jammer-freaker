@@ -67,6 +67,25 @@ export const HUD_SKIN_MAP = {
     spriteSheetName: SpriteSheetName.APPLY_BAR,
     width: 48,
   },
+  demolitionPrompt: {
+    anchor: "top-left" as UIAnchor,
+    icon: {
+      height: 16,
+      offsetX: 0,
+      offsetY: 0,
+      spriteName: SpriteName.BLANK,
+      spriteSheetName: SpriteSheetName.BLANK,
+      width: 16,
+    },
+    keyOffsetY: 18,
+    playerOffsetY: -36,
+    width: 16,
+  },
+  demolitionTimer: {
+    anchor: "top-left" as UIAnchor,
+    offsetY: 42,
+    textWidth: 80,
+  },
   medicalItemCounters: {
     anchor: "top-left" as UIAnchor,
     icon: {

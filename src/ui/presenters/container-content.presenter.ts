@@ -5,8 +5,11 @@ import { BackpackUpgradeIntentComponent } from "../../ecs/components/backpack-up
 import { PlayerComponent } from "../../ecs/components/player.component.js";
 import { PlayerOccupiedComponent, PlayerOccupiedKind } from "../../ecs/components/player-occupied.component.js";
 import type { LootContainerLootSlot } from "../../ecs/components/loot-container-content.component.js";
-import type { LootTableItemId } from "../../game/world-map/loot/loot-tables.js";
 import { getLootSprite } from "../../game/world-map/loot/loot-sprites.js";
+import {
+  formatLootItemAbbreviation,
+  formatLootItemDetails,
+} from "../../game/world-map/loot/loot-item-display.js";
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
 import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
 import { BackpackType, getBackpackLevel } from "../../ecs/components/types/backpack-config.js";
@@ -638,25 +641,6 @@ export class ContainerContentPresenter {
       return "";
     }
 
-    return formatLootItemName(lootSlot.itemId);
+    return formatLootItemDetails(lootSlot.itemId);
   }
-}
-
-function formatLootItemName(itemId: LootTableItemId): string {
-  return `${itemId}`
-    .replace(/([a-z])([A-Z])/g, "$1 $2")
-    .replace(/[_-]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
-
-function formatLootItemAbbreviation(itemId: LootTableItemId): string {
-  const words = formatLootItemName(itemId).split(" ").filter(Boolean);
-
-  if (words.length >= 2) {
-    return `${words[0][0]}${words[1][0]}`.toUpperCase();
-  }
-
-  return (words[0] ?? "").slice(0, 2).toUpperCase();
 }

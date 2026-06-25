@@ -1,10 +1,13 @@
-import { SOUND_KEYS } from "../../game/asset-manager/consts/sound-mapped.values.js";
+import { SOUND_KEYS, type SoundKey } from "../../game/asset-manager/consts/sound-mapped.values.js";
 import { AnimationName } from "../../game/asset-manager/types/animation-map.js";
 import { SoundEventBus } from "../../game/audio/sound-event-bus.js";
 import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
+import type { WorldGroundTileType } from "../../game/world-map/types/tilemap-tile.js";
+import { WorldTilemapManager } from "../../game/world-map/world-tilemap-manager.js";
 import { AnimationComponent } from "../components/animation.component.js";
 import { MovementIntentComponent } from "../components/movement-intent.component.js";
 import { PlayerComponent } from "../components/player.component.js";
+import { PositionComponent } from "../components/position.component.js";
 import { SpriteComponent } from "../components/sprite.component.js";
 import { ComponentStore } from "../core/component-store.js";
 import { ISystem } from "./system.interface.js";
@@ -20,22 +23,31 @@ export class FootstepAudioSystem implements ISystem {
         SpriteName.PLAYER_RUNNING_4,
     ]);
 
-    private static readonly footstepSounds = [
+    private static readonly defaultFootstepSounds = [
         SOUND_KEYS.FOOTSTEP_1,
         SOUND_KEYS.FOOTSTEP_2,
         SOUND_KEYS.FOOTSTEP_3,
         SOUND_KEYS.FOOTSTEP_4,
-    ] as const;
+    ] as const satisfies readonly SoundKey[];
+
+    // Swap these as soon as terrain-specific assets exist
+    private static readonly softGroundFootstepSounds = FootstepAudioSystem.defaultFootstepSounds;
+    private static readonly streetFootstepSounds = FootstepAudioSystem.defaultFootstepSounds;
+    private static readonly sidewalkFootstepSounds = FootstepAudioSystem.defaultFootstepSounds;
+    private static readonly buildingFootstepSounds = FootstepAudioSystem.defaultFootstepSounds;
+    private static readonly waterFootstepSounds = FootstepAudioSystem.defaultFootstepSounds;
 
     private previousSpriteByEntity = new Map<number, SpriteName>();
-    private lastFootstepSoundIndexByEntity = new Map<number, number>();
+    private lastFootstepSoundByEntity = new Map<number, SoundKey>();
 
     constructor(
         private soundEventBus: SoundEventBus,
         private playerComponentStore: ComponentStore<PlayerComponent>,
         private movementIntentComponentStore: ComponentStore<MovementIntentComponent>,
         private animationComponentStore: ComponentStore<AnimationComponent>,
+        private positionComponentStore: ComponentStore<PositionComponent>,
         private spriteComponentStore: ComponentStore<SpriteComponent>,
+        private worldTilemapManager: WorldTilemapManager,
     ) { }
 
     update(_: number): void {
@@ -46,10 +58,11 @@ export class FootstepAudioSystem implements ISystem {
 
         for (const entityId of playerEntities) {
             const animation = this.animationComponentStore.getOrNull(entityId);
+            const position = this.positionComponentStore.getOrNull(entityId);
             const sprite = this.spriteComponentStore.getOrNull(entityId);
-            const hasMovementIntent = this.movementIntentComponentStore.has(entityId);
+            const movementIntent = this.movementIntentComponentStore.getOrNull(entityId);
 
-            if (!animation || !sprite || !hasMovementIntent || animation.animationName !== AnimationName.PLAYER_RUN) {
+            if (!animation || !position || !sprite || !movementIntent || animation.animationName !== AnimationName.PLAYER_RUN) {
                 this.previousSpriteByEntity.delete(entityId);
                 continue;
             }
@@ -61,16 +74,17 @@ export class FootstepAudioSystem implements ISystem {
                 currentSprite !== previousSprite
                 && FootstepAudioSystem.footstepFrameSet.has(currentSprite)
             ) {
-                this.emitFootstep(entityId);
+                this.emitFootstep(entityId, movementIntent, sprite);
             }
 
             this.previousSpriteByEntity.set(entityId, currentSprite);
         }
     }
 
-    private emitFootstep(entityId: number): void {
-        const soundIndex = this.getNextFootstepSoundIndex(entityId);
-        const soundKey = FootstepAudioSystem.footstepSounds[soundIndex];
+    private emitFootstep(entityId: number, position: Pick<PositionComponent, "x" | "y">, sprite: SpriteComponent): void {
+        const tileType = this.resolveFootstepTileType(position, sprite);
+        const soundKeys = this.resolveFootstepSounds(tileType);
+        const soundKey = this.getNextFootstepSoundKey(entityId, soundKeys);
 
         this.soundEventBus.emitSound({
             key: soundKey,
@@ -85,22 +99,86 @@ export class FootstepAudioSystem implements ISystem {
         });
     }
 
-    private getNextFootstepSoundIndex(entityId: number): number {
-        const soundCount = FootstepAudioSystem.footstepSounds.length;
-        const lastSoundIndex = this.lastFootstepSoundIndexByEntity.get(entityId);
+    private resolveFootstepTileType(
+        position: Pick<PositionComponent, "x" | "y">,
+        sprite: SpriteComponent,
+    ): WorldGroundTileType | null {
+        const footstepX = position.x + sprite.width / 2;
+        const footstepY = position.y + Math.max(0, sprite.height - 1);
+
+        return this.worldTilemapManager.getTileTypeAtWorldPosition(footstepX, footstepY);
+    }
+
+    private resolveFootstepSounds(tileType: WorldGroundTileType | null): readonly SoundKey[] {
+        switch (tileType) {
+            case "ground":
+            case "ground_green":
+            case "plot":
+            case "player_spawn":
+            case "extraction_area":
+                return FootstepAudioSystem.softGroundFootstepSounds;
+
+            case "street":
+            case "street_middle":
+                return FootstepAudioSystem.streetFootstepSounds;
+
+            case "sidewalk":
+            case "sidewalk_curb":
+            case "sidewalk_curb_north":
+            case "sidewalk_curb_south":
+            case "sidewalk_curb_west":
+            case "sidewalk_curb_east":
+            case "sidewalk_curb_corner_north_west":
+            case "sidewalk_curb_corner_north_east":
+            case "sidewalk_curb_corner_south_west":
+            case "sidewalk_curb_corner_south_east":
+            case "sidewalk_curb_corner_single_north_west":
+            case "sidewalk_curb_corner_single_north_east":
+            case "sidewalk_curb_corner_single_south_west":
+            case "sidewalk_curb_corner_single_south_east":
+                return FootstepAudioSystem.sidewalkFootstepSounds;
+
+            case "building_floor":
+            case "building_door":
+                return FootstepAudioSystem.buildingFootstepSounds;
+
+            case "river":
+                return FootstepAudioSystem.waterFootstepSounds;
+
+            case "map_wall_visible":
+            case "map_wall_visible_north":
+            case "map_wall_visible_south":
+            case "map_wall_visible_west":
+            case "map_wall_visible_east":
+            case "map_wall_visible_corner_north_west":
+            case "map_wall_visible_corner_north_east":
+            case "map_wall_visible_corner_south_west":
+            case "map_wall_visible_corner_south_east":
+            case "out_of_bounds":
+            case null:
+            default:
+                return FootstepAudioSystem.defaultFootstepSounds;
+        }
+    }
+
+    private getNextFootstepSoundKey(entityId: number, soundKeys: readonly SoundKey[]): SoundKey {
+        const soundCount = soundKeys.length;
+        const lastSoundKey = this.lastFootstepSoundByEntity.get(entityId);
 
         if (soundCount <= 1) {
-            this.lastFootstepSoundIndexByEntity.set(entityId, 0);
-            return 0;
+            const onlySoundKey = soundKeys[0] ?? SOUND_KEYS.FOOTSTEP_1;
+            this.lastFootstepSoundByEntity.set(entityId, onlySoundKey);
+            return onlySoundKey;
         }
 
         let nextSoundIndex = Math.floor(Math.random() * soundCount);
-        while (lastSoundIndex != null && nextSoundIndex === lastSoundIndex) {
+        while (lastSoundKey != null && soundKeys[nextSoundIndex] === lastSoundKey) {
             nextSoundIndex = Math.floor(Math.random() * soundCount);
         }
 
-        this.lastFootstepSoundIndexByEntity.set(entityId, nextSoundIndex);
-        return nextSoundIndex;
+        const nextSoundKey = soundKeys[nextSoundIndex];
+        this.lastFootstepSoundByEntity.set(entityId, nextSoundKey);
+        return nextSoundKey;
     }
 
     private removeDetachedEntities(activePlayerEntitySet: Set<number>): void {
@@ -110,7 +188,7 @@ export class FootstepAudioSystem implements ISystem {
             }
 
             this.previousSpriteByEntity.delete(entityId);
-            this.lastFootstepSoundIndexByEntity.delete(entityId);
+            this.lastFootstepSoundByEntity.delete(entityId);
         }
     }
 

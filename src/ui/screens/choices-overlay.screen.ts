@@ -38,6 +38,7 @@ export class ChoicesOverlayScreen implements UIScreen {
           visual: {
             sprite: {
               height: 32,
+              nineSlice: CHOICES_OVERLAY_SKIN_MAP.frame.nineSlice,
               spriteName: CHOICES_OVERLAY_SKIN_MAP.frame.backgroundSpriteName,
               spriteSheetName: CHOICES_OVERLAY_SKIN_MAP.frame.backgroundSpriteSheetName,
               width: 32,

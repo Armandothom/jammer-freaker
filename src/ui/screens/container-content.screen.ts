@@ -127,6 +127,7 @@ export class ContainerContentScreen implements UIScreen {
           visual: {
             sprite: {
               height: DEFAULT_FRAME_HEIGHT,
+              nineSlice: CONTAINER_CONTENT_SKIN_MAP.frame.nineSlice,
               spriteName: CONTAINER_CONTENT_SKIN_MAP.frame.backgroundSpriteName,
               spriteSheetName: CONTAINER_CONTENT_SKIN_MAP.frame.backgroundSpriteSheetName,
               width: DEFAULT_FRAME_WIDTH,
@@ -226,6 +227,7 @@ export class ContainerContentScreen implements UIScreen {
         visual: {
           sprite: {
             height: CONTAINER_CONTENT_SKIN_MAP.itemSlot.height,
+            nineSlice: CONTAINER_CONTENT_SKIN_MAP.itemSlot.nineSlice,
             spriteName: CONTAINER_CONTENT_SKIN_MAP.itemSlot.backgroundSpriteName,
             spriteSheetName: CONTAINER_CONTENT_SKIN_MAP.itemSlot.backgroundSpriteSheetName,
             width: CONTAINER_CONTENT_SKIN_MAP.itemSlot.width,

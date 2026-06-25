@@ -1,10 +1,12 @@
 import { SpriteSheetName } from "../../game/asset-manager/types/sprite-sheet-name.enum.js";
 import { SpriteName } from "../../game/world-map/types/sprite-name.enum.js";
 import {
+    createGoToCampStorageFromShopHubAction,
     createGoToCombatShopFromShopHubAction,
     createGoToGunsShopFromShopHubAction,
     createGoToMedicalShopFromShopHubAction,
     createGoToMissionSelectFromShopHubAction,
+    createGoToWareBuyerFromShopHubAction,
 } from "../input/shop-hub-ui-actions.js";
 import { createUINode } from "../runtime/ui-node.js";
 import type { UIScreen } from "../runtime/ui-screen.js";
@@ -37,6 +39,7 @@ export class ShopHubScreen implements UIScreen {
                 }),
                 createUINode({
                     children: [
+
                         createButtonWidget({
                             anchor: "top-left",
                             buttonState: UIButtonState.NORMAL,
@@ -47,6 +50,30 @@ export class ShopHubScreen implements UIScreen {
                             offsetY: 0,
                             onClickAction: createGoToMissionSelectFromShopHubAction(),
                             text: "Go-To-Mission",
+                            width: SHOP_HUB_BUTTON_WIDTH,
+                        }),
+                        createButtonWidget({
+                            anchor: "top-left",
+                            buttonState: UIButtonState.NORMAL,
+                            buttonVariant: UIButtonVariant.PROMINENT,
+                            height: SHOP_HUB_BUTTON_HEIGHT,
+                            nodeId: SHOP_HUB_NODE_IDS.buttons.goToCampStorage,
+                            offsetX: 0,
+                            offsetY: 0,
+                            onClickAction: createGoToCampStorageFromShopHubAction(),
+                            text: "Camp Storage",
+                            width: SHOP_HUB_BUTTON_WIDTH,
+                        }),
+                        createButtonWidget({
+                            anchor: "top-left",
+                            buttonState: UIButtonState.NORMAL,
+                            buttonVariant: UIButtonVariant.PROMINENT,
+                            height: SHOP_HUB_BUTTON_HEIGHT,
+                            nodeId: SHOP_HUB_NODE_IDS.buttons.goToWareBuyer,
+                            offsetX: 0,
+                            offsetY: 0,
+                            onClickAction: createGoToWareBuyerFromShopHubAction(),
+                            text: "Ware Buyer",
                             width: SHOP_HUB_BUTTON_WIDTH,
                         }),
                         createButtonWidget({

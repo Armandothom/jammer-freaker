@@ -38,6 +38,7 @@ export class MedicalItemsSystem implements ISystem {
         private combatStimActiveComponentStore: ComponentStore<CombatStimActiveComponent>,
         private epipenActiveComponentStore: ComponentStore<EpipenActiveComponent>,
         private deathIntentComponentStore: ComponentStore<DeathIntentComponent>,
+        private isUseBlocked: () => boolean = () => false,
     ) {
         window.addEventListener("keydown", this.onKeyDown);
         window.addEventListener("keyup", this.onKeyUp);
@@ -78,6 +79,10 @@ export class MedicalItemsSystem implements ISystem {
     }
 
     public tryStartMedicalItemUse(itemApplied: MedicalItemType, consumeInventory: boolean = true): boolean {
+        if (this.isUseBlocked()) {
+            return false;
+        }
+
         const playerEntity = this.getPlayerEntity();
 
         if (playerEntity == null) {

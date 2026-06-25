@@ -26,6 +26,7 @@ function createUpgradeRowNodeIds(prefix: string) {
 export const GUNS_SHOP_NODE_IDS = {
   background: "guns-shop.background",
   money: "guns-shop.money",
+  questButton: "guns-shop.quest-button",
   resourceItem(itemType: GunsShopResourceItemType) {
     return createItemNodeIds(`guns-shop.resource.${itemType}`);
   },
